@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Alembic
+backend/alembic/__pycache__/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker volumes (local data)
+postgres_data/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Uploads (user-generated content — not committed)
+backend/uploads/
+
+# Generated PDFs
+backend/generated_pdfs/
+
+# AI tool directories
+.agent/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/

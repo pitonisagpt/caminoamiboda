@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      background: #fff;
+      line-height: 1.65;
+    }
+
+    .page {
+      padding: 40px 52px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #DB2777;
+      padding-bottom: 18px;
+      margin-bottom: 32px;
+    }
+
+    .brand-name {
+      font-size: 22pt;
+      font-weight: 700;
+      color: #DB2777;
+    }
+
+    .brand-tagline {
+      font-size: 9pt;
+      color: #831843;
+      margin-top: 3px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 9.5pt;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .header-meta .doc-number {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #831843;
+    }
+
+    /* ── Letter body ── */
+    .date-city {
+      margin-bottom: 20px;
+      font-size: 10.5pt;
+    }
+
+    .salutation {
+      margin-bottom: 18px;
+    }
+
+    .greeting {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .client-info {
+      font-size: 10.5pt;
+      color: #333;
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+
+    .subject-line {
+      margin-bottom: 20px;
+      font-size: 11pt;
+    }
+
+    .subject-label {
+      font-weight: 700;
+      color: #831843;
+    }
+
+    .body-text {
+      margin-bottom: 18px;
+      font-size: 11pt;
+    }
+
+    /* ── Amount highlight ── */
+    .amount-highlight {
+      background: #fdf2f8;
+      border-left: 4px solid #DB2777;
+      padding: 12px 18px;
+      margin: 18px 0;
+      font-size: 12pt;
+      font-weight: 600;
+      color: #831843;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── Route ── */
+    .route-section {
+      margin: 18px 0;
+    }
+
+    .route-label {
+      font-weight: 700;
+      color: #831843;
+      font-size: 10.5pt;
+      margin-bottom: 8px;
+    }
+
+    .route-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .route-list li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+      font-size: 10.5pt;
+      border-bottom: 1px solid #f5e0ec;
+      color: #333;
+    }
+
+    .route-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #DB2777;
+      font-weight: 700;
+    }
+
+    .route-list li:last-child {
+      border-bottom: none;
+    }
+
+    /* ── Special conditions ── */
+    .conditions-box {
+      background: #fffbeb;
+      border: 1px solid #CA8A04;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 10.5pt;
+      color: #3d2a00;
+    }
+
+    /* ── Payment ── */
+    .payment-box {
+      background: #fff8e1;
+      border: 1px solid #CA8A04;
+      border-radius: 4px;
+      padding: 14px 18px;
+      margin: 18px 0;
+      font-size: 10.5pt;
+      color: #3d2a00;
+    }
+
+    /* ── Policy sections ── */
+    .policy-section {
+      margin: 18px 0;
+    }
+
+    .policy-title {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #831843;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .policy-text {
+      font-size: 10pt;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    /* ── Closing ── */
+    .closing {
+      margin: 24px 0 10px;
+      font-size: 11pt;
+    }
+
+    /* ── Signature ── */
+    .signature-block {
+      margin-top: auto;
+      padding-top: 40px;
+    }
+
+    .signature-line {
+      width: 200px;
+      border-top: 1.5px solid #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .signature-name {
+      font-size: 11pt;
+      font-weight: 600;
+    }
+
+    .signature-phone {
+      font-size: 10pt;
+      color: #555;
+    }
+
+    .footer-ref {
+      margin-top: 24px;
+      font-size: 8.5pt;
+      color: #aaa;
+      border-top: 1px solid #f3c0d9;
+      padding-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="brand-name">{{ company_name }}</div>
+        <div class="brand-tagline">Transporte de bodas y eventos especiales · Medellín</div>
+      </div>
+      <div class="header-meta">
+        <div class="doc-number">{{ document_number }}</div>
+        <div>{{ company_phone }}</div>
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="date-city">{{ city }}, {{ formatted_date }}</div>
+
+    <!-- Salutation / Client -->
+    <div class="salutation">
+      <div class="greeting">Estimado/a {{ doc.client_name }}</div>
+      <div class="client-info">
+        {{ doc.client_id_type }} {{ doc.client_id_number }}
+        {% if doc.client_address %} · {{ doc.client_address }}{% endif %}
+        {% if doc.client_phone %} · {{ doc.client_phone }}{% endif %}
+      </div>
+    </div>
+
+    <p style="margin-bottom:14px; font-size:11pt;">Cordial Saludo</p>
+
+    <!-- Subject -->
+    <div class="subject-line">
+      <span class="subject-label">Asunto:</span> {{ doc.concept }}
+    </div>
+
+    <!-- Body -->
+    <div class="body-text">
+      Con gusto y toda la disposición
+      {% if doc.vehicle_description %}
+      reservamos <strong>{{ doc.vehicle_description }}</strong>
+      {% endif %}
+      para el <strong>{{ formatted_service_date }}</strong>
+      {% if doc.time_start and doc.time_end %}
+      por un valor de <strong>{{ formatted_amount }}</strong>
+      ({{ amount_in_words }}).
+      El alquiler incluye
+      {% if doc.vehicle_description %} {{ doc.vehicle_description }} con conductor{% endif %}
+      desde las <strong>{{ doc.time_start }}</strong> hasta las <strong>{{ doc.time_end }}</strong>.
+      {% else %}
+      por un valor de <strong>{{ formatted_amount }}</strong> ({{ amount_in_words }}).
+      {% endif %}
+    </div>
+
+    <!-- Amount highlight -->
+    <div class="amount-highlight">
+      Total a pagar: {{ formatted_amount }} COP
+    </div>
+
+    <!-- Route -->
+    {% if route_stops %}
+    <div class="route-section">
+      <div class="route-label">El recorrido es el siguiente:</div>
+      <ul class="route-list">
+        {% for stop in route_stops %}
+        <li>{{ stop }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Special conditions -->
+    {% if doc.special_conditions %}
+    <div class="conditions-box">
+      {{ doc.special_conditions }}
+    </div>
+    {% endif %}
+
+    <!-- Payment conditions -->
+    <p style="font-weight:600; color:#831843; margin:16px 0 6px; font-size:10.5pt;">Condiciones de Pago:</p>
+    <div class="payment-box">{{ doc.payment_instructions }}</div>
+
+    <!-- Cancellation Policy -->
+    {% if doc.include_cancellation_policy %}
+    <div class="policy-section">
+      <div class="policy-title">Política de cancelaciones</div>
+      <div class="policy-text">
+        En caso de realizar cambios o cancelaciones se guardará el anticipo hasta máximo tres años después de la fecha pactada para hacer efectiva la reserva en otro día; en ningún caso se devolverá el dinero. Los movimientos de fecha durante el mismo año calendario no tienen costo; sin embargo, si se requiere mover de año el evento, se hará un incremento de precio del 10% del total del valor por cada año.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Breakdown Policy -->
+    {% if doc.include_breakdown_policy %}
+    <div class="policy-section">
+      <div class="policy-title">Política en caso de avería del vehículo</div>
+      <div class="policy-text">
+        En el improbable evento de que el vehículo reservado para su evento experimente una avería o problema mecánico que impida su uso durante el evento, nos comprometemos a proporcionarle dos opciones. En caso de ser posible, ofreceremos la posibilidad de sustituir el vehículo con otro de la misma gama, asegurando que cumpla con los estándares de elegancia y comodidad establecidos originalmente. Como alternativa al cambio del vehículo, se procederá a devolver el monto total del alquiler de manera íntegra, garantizando la restitución del dinero en el menor tiempo posible. La decisión de alguna de estas opciones dependerá de las circunstancias específicas de la situación.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Closing -->
+    <div class="closing">
+      Espero que nuestros servicios sean de total agrado. Siempre dispuestos a servirles,
+    </div>
+
+    <!-- Signature -->
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      <div class="signature-name">{{ company_owner }}</div>
+      <div class="signature-phone">{{ company_phone }}</div>
+      <div style="font-size:9.5pt; color:#666;">C.C. {{ company_cc }}</div>
+    </div>
+
+    <div class="footer-ref">
+      {{ company_name }} · {{ document_number }} · Generado el {{ formatted_today }}
+    </div>
+
+  </div>
+</body>
+</html>

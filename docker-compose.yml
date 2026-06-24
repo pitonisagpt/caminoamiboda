@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: caminoamiboda
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/caminoamiboda
+      COMPANY_NAME: "Camino a mi Boda"
+      COMPANY_OWNER: "Juan Camilo Yepes Correa"
+      COMPANY_PHONE: "+(57) 314 737 2030"
+      COMPANY_CC: "1040735268"
+      BANK_NAME: "Bancolombia"
+      BANK_ACCOUNT: "00484248273"
+      CITY: "Medellín"
+    volumes:
+      - ./backend:/app
+      - pdf_storage:/app/generated_pdfs
+      - ./docs:/app/docs:ro
+      - vehicle_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_BACKEND_URL: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host
+
+volumes:
+  postgres_data:
+  pdf_storage:
+  vehicle_uploads:
