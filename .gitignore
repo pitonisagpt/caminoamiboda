@@ -54,3 +54,11 @@ backend/generated_pdfs/
 .codex/
 .continue/
 .cursor/
+.gemini/
+.github/prompts/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
