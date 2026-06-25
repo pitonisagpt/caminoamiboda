@@ -23,6 +23,53 @@ export interface DashboardSummary {
   };
 }
 
+export interface RevenueTrendPoint {
+  month: string;       // "2024-01"
+  revenue: number;
+  company_share: number;
+  count: number;
+}
+
+export interface RevenueTrendResponse {
+  data: RevenueTrendPoint[];
+}
+
+export interface FunnelStage {
+  status: string;
+  label: string;
+  count: number;
+  conversion: number | null;
+}
+
+export interface MonthlyBookingPoint {
+  month: string;
+  created: number;
+  completed: number;
+}
+
+export interface CategoryPoint {
+  category: string;
+  label: string;
+  count: number;
+  revenue: number;
+}
+
+export interface SeasonalityPoint {
+  month: number;
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsResponse {
+  funnel: FunnelStage[];
+  monthly_bookings: MonthlyBookingPoint[];
+  category_breakdown: CategoryPoint[];
+  seasonality: SeasonalityPoint[];
+}
+
 export const dashboardApi = {
   summary: () => api.get<DashboardSummary>('/dashboard/summary'),
+  revenueTrend: (months = 24) =>
+    api.get<RevenueTrendResponse>('/dashboard/charts/revenue-trend', { params: { months } }),
+  analytics: () => api.get<AnalyticsResponse>('/dashboard/charts/analytics'),
 };

@@ -4,6 +4,7 @@ import { Calendar, Car, ClipboardList, TrendingUp, AlertCircle, CheckCircle2, Lo
 import { dashboardApi, type DashboardSummary } from '../../api/dashboard';
 import { RESERVATION_STATUS_LABEL, RESERVATION_STATUS_COLOR } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
+import AnalyticsSection from './AnalyticsSection';
 
 function formatCOP(n: number): string {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
@@ -204,6 +205,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <AnalyticsSection />
     </div>
   );
 }
