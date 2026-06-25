@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { ArrowLeft, Save } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
+import { AlertTriangle, ArrowLeft, Save } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
 import { vehiclesApi } from '../../api/vehicles';
 import { driversApi } from '../../api/drivers';
+import { calendarApi } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
 
@@ -17,8 +18,9 @@ export default function ReservationForm() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
+  const [conflicts, setConflicts] = useState<string[]>([]);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } =
     useForm<ReservationFormData>({
       defaultValues: {
         status: 'lead',
@@ -52,6 +54,25 @@ export default function ReservationForm() {
       });
     }
   }, [id, isEdit, reset]);
+
+  const watchedDate = useWatch({ control, name: 'event_date' });
+  const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
+  const watchedDriver = useWatch({ control, name: 'driver_id' });
+
+  const checkConflicts = useCallback(async () => {
+    if (!watchedDate) { setConflicts([]); return; }
+    try {
+      const res = await calendarApi.conflicts({
+        event_date: watchedDate,
+        vehicle_id: watchedVehicle ? Number(watchedVehicle) : null,
+        driver_id: watchedDriver ? Number(watchedDriver) : null,
+        exclude_reservation_id: isEdit ? Number(id) : null,
+      });
+      setConflicts(res.data.conflicts.map(c => c.message));
+    } catch { setConflicts([]); }
+  }, [watchedDate, watchedVehicle, watchedDriver, id, isEdit]);
+
+  useEffect(() => { checkConflicts(); }, [checkConflicts]);
 
   const onSubmit = async (data: ReservationFormData) => {
     const payload = {
@@ -204,6 +225,18 @@ export default function ReservationForm() {
             />
           </div>
         </div>
+
+        {conflicts.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-1">
+            <div className="flex items-center gap-2 text-yellow-700 font-semibold text-sm">
+              <AlertTriangle size={16} />
+              Conflictos detectados
+            </div>
+            {conflicts.map((c, i) => (
+              <p key={i} className="text-sm text-yellow-700 ml-6">{c}</p>
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-end gap-3">
           <button

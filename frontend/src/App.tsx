@@ -27,6 +27,7 @@ import QuoteForm from "./pages/Quotes/QuoteForm";
 import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
+import CalendarPage from "./pages/Calendar/CalendarPage";
 
 export default function App() {
   return (
@@ -59,6 +60,9 @@ export default function App() {
             <Route path="vehiculos" element={<VehicleList />} />
             <Route path="vehiculos/nuevo" element={<VehicleForm />} />
             <Route path="vehiculos/editar/:id" element={<VehicleForm />} />
+
+            {/* Calendar */}
+            <Route path="calendario" element={<CalendarPage />} />
 
             {/* Reservations */}
             <Route path="reservas" element={<ReservationList />} />
