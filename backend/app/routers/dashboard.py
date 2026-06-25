@@ -21,7 +21,7 @@ ACTIVE_STATUSES = {
 }
 
 
-@router.get("/dashboard/summary")
+@router.get("/api/dashboard/summary")
 def get_summary(
     db: Session = Depends(get_db),
     _=Depends(get_current_user),

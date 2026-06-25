@@ -47,6 +47,9 @@ backend/uploads/
 # Google OAuth credentials (never commit)
 backend/credentials.json
 
+# Local docs / backups (personal data, not for repo)
+docs/
+
 # Generated PDFs
 backend/generated_pdfs/
 
