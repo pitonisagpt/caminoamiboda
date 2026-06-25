@@ -35,7 +35,7 @@ function formatCOP(amount: number) {
   return `COP $${amount.toLocaleString("es-CO")}`;
 }
 
-export function VehicleCard({ vehicle }: { vehicle: VehicleListItem }) {
+export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; onClick?: () => void }) {
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
   const minPrice = [vehicle.price_medellin, vehicle.price_rionegro]
@@ -55,7 +55,14 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleListItem }) {
   ] as (number | null)[];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200">
+    <div
+      className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
+      aria-label={`Ver detalle de ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+    >
       {/* Photo */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-pink-50 to-yellow-50 overflow-hidden">
         <PhotoSlider
@@ -126,6 +133,7 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleListItem }) {
           href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMsg}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
           className="mt-auto w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

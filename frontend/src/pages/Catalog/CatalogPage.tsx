@@ -2,6 +2,7 @@ import { Loader2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
+import { VehicleModal } from "./VehicleModal";
 import type { VehicleListItem, VehicleLocation, VehicleType } from "../../types/vehicle";
 
 type SortKey = "score" | "year";
@@ -20,6 +21,7 @@ export function CatalogPage() {
   const [locationFilter, setLocationFilter] = useState<VehicleLocation | "all">("all");
   const [sort, setSort] = useState<SortKey>("score");
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<VehicleListItem | null>(null);
 
   useEffect(() => {
     axios
@@ -61,6 +63,7 @@ export function CatalogPage() {
   );
 
   return (
+    <>
     <div className="space-y-8">
       {/* Hero */}
       <div className="text-center py-8">
@@ -137,11 +140,13 @@ export function CatalogPage() {
           <p className="text-xs text-gray-400">{filtered.length} vehículo{filtered.length !== 1 ? "s" : ""}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {filtered.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} />
+              <VehicleCard key={v.id} vehicle={v} onClick={() => setSelected(v)} />
             ))}
           </div>
         </>
       )}
     </div>
+    {selected && <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />}
+    </>
   );
 }
