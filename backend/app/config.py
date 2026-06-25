@@ -14,6 +14,11 @@ class Settings(BaseSettings):
 
     pdf_storage_path: str = "generated_pdfs"
 
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_refresh_token: str = ""
+    google_calendar_id: str = "primary"
+
     secret_key: str = "change-me-in-production-use-a-random-32-byte-hex"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480

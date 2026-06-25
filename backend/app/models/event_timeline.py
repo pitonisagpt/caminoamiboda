@@ -36,6 +36,8 @@ class EventTimeline(Base):
     special_instructions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    gcal_event_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+
     # Share tokens — one per audience
     share_token_driver: Mapped[str] = mapped_column(String(64), unique=True, default=_new_token)
     share_token_customer: Mapped[str] = mapped_column(String(64), unique=True, default=_new_token)

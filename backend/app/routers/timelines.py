@@ -68,6 +68,11 @@ def create_timeline(body: TimelineCreate, db: Session = Depends(get_db)):
     db.add(timeline)
     db.commit()
     tl = _get_timeline(timeline.id, db)
+    try:
+        from app.services.google_calendar_service import sync_timeline
+        sync_timeline(tl, db)
+    except Exception as e:
+        print(f"[GCal] sync failed on create: {e}")
     locs, acts = _load_locs_acts(tl.id, db)
     return TimelineRead.build(tl, locs, acts)
 
@@ -85,6 +90,11 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(timeline, field, value)
     db.commit()
+    try:
+        from app.services.google_calendar_service import sync_timeline
+        sync_timeline(timeline, db)
+    except Exception as e:
+        print(f"[GCal] sync failed on update: {e}")
     locs, acts = _load_locs_acts(timeline_id, db)
     return TimelineRead.build(timeline, locs, acts)
 
@@ -92,8 +102,15 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
 @router.delete("/api/timelines/{timeline_id}", status_code=204, dependencies=[Depends(get_current_user)])
 def delete_timeline(timeline_id: int, db: Session = Depends(get_db)):
     timeline = _get_timeline(timeline_id, db)
+    gcal_id = timeline.gcal_event_id
     db.delete(timeline)
     db.commit()
+    try:
+        if gcal_id:
+            from app.services.google_calendar_service import delete_timeline_event
+            delete_timeline_event(gcal_id)
+    except Exception as e:
+        print(f"[GCal] delete failed: {e}")
 
 
 @router.post("/api/timelines/{timeline_id}/regenerate-tokens", response_model=TimelineRead, dependencies=[Depends(get_current_user)])

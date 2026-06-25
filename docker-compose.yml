@@ -28,6 +28,10 @@ services:
       BANK_NAME: "Bancolombia"
       BANK_ACCOUNT: "00484248273"
       CITY: "Medellín"
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      GOOGLE_REFRESH_TOKEN: ""
+      GOOGLE_CALENDAR_ID: "primary"
     volumes:
       - ./backend:/app
       - pdf_storage:/app/generated_pdfs
