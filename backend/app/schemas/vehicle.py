@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 from app.models.vehicle import VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
@@ -57,10 +57,39 @@ class VehicleUpdate(BaseModel):
     description: Optional[str] = None
 
 
+_BASE_SCALARS = [
+    "id", "license_plate", "brand", "model_line", "color", "year",
+    "vehicle_type", "body_type", "capacity", "location", "status",
+    "price_medellin", "price_rionegro",
+    "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
+    "description",
+]
+
+
 def _load_photos(vehicle) -> List[VehiclePhotoRead]:
-    raw = getattr(vehicle, "photos", None) or []
-    photos = sorted(raw, key=lambda p: p.display_order)
-    return [VehiclePhotoRead.model_validate(p) for p in photos]
+    from app.models.vehicle_photo import VehiclePhoto
+    from sqlalchemy import inspect as sa_inspect
+    session = sa_inspect(vehicle).session
+    if session is not None:
+        photos = session.query(VehiclePhoto).filter(
+            VehiclePhoto.vehicle_id == vehicle.id
+        ).order_by(VehiclePhoto.display_order).all()
+    else:
+        raw = getattr(vehicle, "photos", None) or []
+        photos = sorted(raw, key=lambda p: p.display_order)
+    return [VehiclePhotoRead.model_validate(p, from_attributes=True) for p in photos]
+
+
+def _build_dict(vehicle, extra: list) -> dict:
+    d = {f: getattr(vehicle, f, None) for f in _BASE_SCALARS + extra}
+    d["photos"] = _load_photos(vehicle)
+    pico = compute_pico_y_placa(
+        vehicle.license_plate, vehicle.vehicle_type.value, vehicle.location.value
+    )
+    d["pico_y_placa_day"] = pico
+    d["pico_y_placa_hours"] = PICO_HOURS if pico else None
+    d["score_total"] = vehicle.score_total
+    return d
 
 
 class VehicleRead(VehicleBase):
@@ -74,24 +103,10 @@ class VehicleRead(VehicleBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
-
-    @field_validator("photos", mode="before")
-    @classmethod
-    def _coerce_photos(cls, v):
-        return v or []
-
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleRead":
-        data = cls.model_validate(vehicle)
-        data.score_total = vehicle.score_total
-        data.pico_y_placa_day = compute_pico_y_placa(
-            vehicle.license_plate, vehicle.vehicle_type.value, vehicle.location.value
-        )
-        if data.pico_y_placa_day:
-            data.pico_y_placa_hours = PICO_HOURS
-        data.photos = _load_photos(vehicle)
-        return data
+        d = _build_dict(vehicle, ["owner_name", "owner_contact", "created_at", "updated_at"])
+        return cls.model_validate(d)
 
 
 class VehiclePublic(BaseModel):
@@ -122,24 +137,10 @@ class VehiclePublic(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
-
-    @field_validator("photos", mode="before")
-    @classmethod
-    def _coerce_photos(cls, v):
-        return v or []
-
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehiclePublic":
-        data = cls.model_validate(vehicle)
-        data.score_total = vehicle.score_total
-        data.pico_y_placa_day = compute_pico_y_placa(
-            vehicle.license_plate, vehicle.vehicle_type.value, vehicle.location.value
-        )
-        if data.pico_y_placa_day:
-            data.pico_y_placa_hours = PICO_HOURS
-        data.photos = _load_photos(vehicle)
-        return data
+        d = _build_dict(vehicle, ["created_at", "updated_at"])
+        return cls.model_validate(d)
 
 
 class VehicleList(BaseModel):
@@ -152,6 +153,7 @@ class VehicleList(BaseModel):
     year: Optional[int] = None
     vehicle_type: VehicleType
     body_type: Optional[str] = None
+    capacity: Optional[int] = None
     location: VehicleLocation
     status: VehicleStatus
     price_medellin: Optional[float] = None
@@ -166,19 +168,7 @@ class VehicleList(BaseModel):
     owner_contact: Optional[str] = None
     photos: List[VehiclePhotoRead] = []
 
-    model_config = {"from_attributes": True}
-
-    @field_validator("photos", mode="before")
-    @classmethod
-    def _coerce_photos(cls, v):
-        return v or []
-
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
-        data = cls.model_validate(vehicle)
-        data.score_total = vehicle.score_total
-        data.pico_y_placa_day = compute_pico_y_placa(
-            vehicle.license_plate, vehicle.vehicle_type.value, vehicle.location.value
-        )
-        data.photos = _load_photos(vehicle)
-        return data
+        d = _build_dict(vehicle, ["owner_contact"])
+        return cls.model_validate(d)
