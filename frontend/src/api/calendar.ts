@@ -11,6 +11,8 @@ export interface CalendarEvent {
   color: string;
   vehicle_id: number | null;
   driver_id: number | null;
+  has_timeline?: boolean;
+  timeline_id?: number | null;
 }
 
 export interface ConflictResult {

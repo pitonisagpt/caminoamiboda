@@ -90,8 +90,13 @@ export default function CalendarPage() {
   const selectedEvents = selectedDay ? (eventsByDate[selectedDay] ?? []) : [];
 
   const handleEventClick = (e: CalendarEvent) => {
-    if (e.type === 'reservation') navigate(`/reservas/${e.source_id}`);
-    else navigate(`/eventos/${e.source_id}`);
+    if (e.type === 'timeline') navigate(`/eventos/${e.source_id}`);
+    else navigate(`/reservas/${e.source_id}`);
+  };
+
+  const handleTimelineClick = (e: CalendarEvent, ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    if (e.timeline_id) navigate(`/eventos/${e.timeline_id}`);
   };
 
   return (
@@ -212,14 +217,24 @@ export default function CalendarPage() {
                       className="flex items-start gap-2.5 p-2.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ background: e.color }} />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{e.title}</p>
                         {e.subtitle && (
                           <p className="text-xs text-gray-400 truncate">{e.subtitle}</p>
                         )}
-                        <p className="text-[10px] text-gray-300 mt-0.5 uppercase tracking-wide">
-                          {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[10px] text-gray-300 uppercase tracking-wide">
+                            {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
+                          </p>
+                          {e.has_timeline && e.timeline_id && (
+                            <button
+                              onClick={ev => handleTimelineClick(e, ev)}
+                              className="text-[10px] text-orange-400 hover:text-orange-600 uppercase tracking-wide cursor-pointer"
+                            >
+                              · Ver evento →
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

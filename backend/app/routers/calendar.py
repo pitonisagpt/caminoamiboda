@@ -2,7 +2,7 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
@@ -30,11 +30,12 @@ def calendar_events(
 ):
     events = []
 
-    # Reservations
+    # Reservations (with timeline presence)
     reservations = (
         db.query(Reservation)
         .filter(Reservation.event_date >= start, Reservation.event_date <= end)
         .filter(Reservation.status != "cancelled")
+        .options(selectinload(Reservation.timelines))
         .all()
     )
     for r in reservations:
@@ -44,6 +45,7 @@ def calendar_events(
         title_parts = [customer]
         if vehicle != "—":
             title_parts.append(vehicle)
+        has_timeline = bool(r.timelines)
         events.append({
             "id": f"res-{r.id}",
             "type": "reservation",
@@ -55,12 +57,15 @@ def calendar_events(
             "color": _STATUS_COLOR.get(r.status, "#9CA3AF"),
             "vehicle_id": r.vehicle_id,
             "driver_id": r.driver_id,
+            "has_timeline": has_timeline,
+            "timeline_id": r.timelines[0].id if has_timeline else None,
         })
 
-    # Timelines
+    # Timelines — only standalone ones (linked timelines are already shown via their reservation)
     timelines = (
         db.query(EventTimeline)
         .filter(EventTimeline.event_date >= start, EventTimeline.event_date <= end)
+        .filter(EventTimeline.reservation_id.is_(None))
         .all()
     )
     for t in timelines:
