@@ -64,6 +64,7 @@ def _build_quote_dict(quote) -> dict:
     d = {f: getattr(quote, f, None) for f in _QUOTE_SCALARS}
     d["display_customer"] = quote.display_customer
     d["display_vehicle"] = quote.display_vehicle
+    d["resolved_customer_phone"] = quote.resolved_customer_phone
     return d
 
 
@@ -89,6 +90,7 @@ class QuoteList(BaseModel):
     quote_number: str
     display_customer: str
     display_vehicle: str
+    resolved_customer_phone: Optional[str] = None
     event_date: date
     total_price: Decimal
     deposit_amount: Optional[Decimal] = None

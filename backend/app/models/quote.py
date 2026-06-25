@@ -60,6 +60,14 @@ class Quote(Base):
     vehicle: Mapped[Optional[object]] = relationship("Vehicle", foreign_keys=[vehicle_id], lazy="select")
 
     @property
+    def resolved_customer_phone(self) -> Optional[str]:
+        if self.customer_phone:
+            return self.customer_phone
+        if self.customer:
+            return getattr(self.customer, "whatsapp", None) or getattr(self.customer, "phone", None)
+        return None
+
+    @property
     def display_customer(self) -> str:
         if self.customer_name:
             return self.customer_name

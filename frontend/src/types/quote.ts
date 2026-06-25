@@ -28,6 +28,7 @@ export interface QuoteListItem {
   quote_number: string;
   display_customer: string;
   display_vehicle: string;
+  resolved_customer_phone: string | null;
   event_date: string;
   total_price: number;
   deposit_amount: number | null;

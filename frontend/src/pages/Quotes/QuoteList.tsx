@@ -61,7 +61,11 @@ export default function QuoteList() {
     try {
       const res = await quotesApi.getWhatsappText(q.id);
       const encoded = encodeURIComponent(res.data.text);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+      const phone = q.resolved_customer_phone?.replace(/\D/g, '') ?? '';
+      const url = phone
+        ? `https://wa.me/${phone}?text=${encoded}`
+        : `https://wa.me/?text=${encoded}`;
+      window.open(url, '_blank');
     } finally {
       setWaLoading(null);
     }
