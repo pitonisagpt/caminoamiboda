@@ -19,6 +19,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.config import settings
 from app.services.google_calendar_service import _get_service, _gcal_configured
 
+# Import all models so SQLAlchemy can resolve relationships
+import app.models.customer        # noqa
+import app.models.vehicle_photo   # noqa
+import app.models.vehicle         # noqa
+import app.models.driver          # noqa
+import app.models.vehicle_owner   # noqa
+import app.models.quote           # noqa
+import app.models.reservation     # noqa
+import app.models.event_location    # noqa
+import app.models.timeline_activity # noqa
+import app.models.event_timeline    # noqa
+
 DRY_RUN = "--dry-run" in sys.argv
 
 # Calendar ID → reservation mapping
