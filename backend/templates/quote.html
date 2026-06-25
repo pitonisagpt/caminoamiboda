@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; }
+
+    .page { padding: 36px 44px; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #DB2777;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .brand-name { font-size: 20pt; font-weight: 700; color: #DB2777; }
+    .brand-tagline { font-size: 8pt; color: #831843; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #831843; }
+
+    /* ── Title ── */
+    .doc-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: 700;
+      color: #831843;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      padding: 10px 0;
+      border-top: 1px solid #f3c0d9;
+      border-bottom: 1px solid #f3c0d9;
+      margin-bottom: 24px;
+    }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 20px; }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #DB2777;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid #fce7f3;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Two-col layout ── */
+    .two-col { display: flex; gap: 24px; margin-bottom: 20px; }
+    .two-col .col { flex: 1; }
+
+    /* ── Info rows ── */
+    .info-row { display: flex; margin-bottom: 5px; font-size: 10.5pt; }
+    .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+
+    /* ── Vehicle block ── */
+    .vehicle-block {
+      display: flex;
+      gap: 16px;
+      background: #fdf2f8;
+      border: 1px solid #fce7f3;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    .vehicle-photo {
+      width: 160px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .vehicle-no-photo {
+      width: 160px;
+      height: 110px;
+      background: #f3e8ff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #DB2777;
+      font-size: 28pt;
+      font-weight: 700;
+    }
+    .vehicle-info { flex: 1; }
+    .vehicle-name { font-size: 14pt; font-weight: 700; color: #831843; margin-bottom: 6px; }
+
+    /* ── Price box ── */
+    .price-box {
+      background: #831843;
+      color: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price-label { font-size: 9pt; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; }
+    .price-value { font-size: 20pt; font-weight: 700; }
+    .deposit-block { text-align: right; }
+    .deposit-label { font-size: 8pt; opacity: 0.8; margin-bottom: 2px; }
+    .deposit-value { font-size: 13pt; font-weight: 600; }
+
+    /* ── Route stops ── */
+    .route { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .route-stop { display: flex; align-items: flex-start; gap: 10px; font-size: 10.5pt; }
+    .route-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #DB2777; margin-top: 3px; flex-shrink: 0;
+    }
+    .route-line {
+      width: 2px; height: 18px; background: #fce7f3;
+      margin-left: 4px; flex-shrink: 0;
+    }
+    .route-label { color: #888; font-size: 8.5pt; }
+    .route-text { font-weight: 500; }
+
+    /* ── Payment ── */
+    .payment-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 10pt;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+
+    /* ── Terms ── */
+    .terms { font-size: 9pt; color: #555; line-height: 1.6; margin-bottom: 20px; }
+    .terms-title { font-weight: 700; color: #1a1a1a; margin-bottom: 6px; font-size: 9.5pt; }
+    .term-item { margin-bottom: 5px; padding-left: 12px; position: relative; }
+    .term-item::before { content: "•"; position: absolute; left: 0; color: #DB2777; }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 2px solid #fce7f3;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5pt;
+      color: #888;
+    }
+    .footer-brand { color: #DB2777; font-weight: 700; font-size: 10pt; }
+    .footer-contact { text-align: right; line-height: 1.6; }
+
+    /* ── Validity note ── */
+    .validity {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #888;
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand-name">Camino a Mi Boda</div>
+      <div class="brand-tagline">Transporte especial para bodas · {{ city }}</div>
+    </div>
+    <div class="header-meta">
+      <div class="doc-num">{{ quote.quote_number }}</div>
+      <div>Fecha: {{ formatted_date }}</div>
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="doc-title">Propuesta de Servicio</div>
+
+  <!-- Client + Event two-col -->
+  <div class="two-col">
+    <div class="col">
+      <div class="section-title">Cliente</div>
+      <div class="info-row">
+        <span class="info-label">Nombre:</span>
+        <span class="info-value">{{ display_customer }}</span>
+      </div>
+      {% if quote.customer_phone %}
+      <div class="info-row">
+        <span class="info-label">Teléfono:</span>
+        <span class="info-value">{{ quote.customer_phone }}</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="col">
+      <div class="section-title">Evento</div>
+      <div class="info-row">
+        <span class="info-label">Fecha de boda:</span>
+        <span class="info-value">{{ formatted_event_date }}</span>
+      </div>
+      {% if quote.service_duration %}
+      <div class="info-row">
+        <span class="info-label">Duración:</span>
+        <span class="info-value">{{ quote.service_duration }}</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Zona:</span>
+        <span class="info-value">{{ zone_label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle -->
+  <div class="section-title">Vehículo</div>
+  <div class="vehicle-block">
+    {% if vehicle_photo_url %}
+    <img src="{{ vehicle_photo_url }}" class="vehicle-photo" alt="Vehículo" />
+    {% else %}
+    <div class="vehicle-no-photo">🚗</div>
+    {% endif %}
+    <div class="vehicle-info">
+      <div class="vehicle-name">{{ display_vehicle }}</div>
+      {% if quote.vehicle and quote.vehicle.description %}
+      <div style="font-size:10pt; color:#555; line-height:1.5; margin-top:4px;">{{ quote.vehicle.description }}</div>
+      {% endif %}
+      <div style="margin-top:10px; font-size:9pt; color:#888;">
+        El vehículo será preparado y decorado para el día de la ceremonia.
+      </div>
+    </div>
+  </div>
+
+  <!-- Route -->
+  {% if quote.pickup_location or quote.ceremony_location or quote.reception_location %}
+  <div class="section">
+    <div class="section-title">Recorrido</div>
+    <div class="route">
+      {% if quote.pickup_location %}
+      <div class="route-stop">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="route-dot"></div>
+          {% if quote.ceremony_location or quote.reception_location %}<div class="route-line"></div>{% endif %}
+        </div>
+        <div>
+          <div class="route-label">Recogida</div>
+          <div class="route-text">{{ quote.pickup_location }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if quote.ceremony_location %}
+      <div class="route-stop">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="route-dot"></div>
+          {% if quote.reception_location %}<div class="route-line"></div>{% endif %}
+        </div>
+        <div>
+          <div class="route-label">Ceremonia</div>
+          <div class="route-text">{{ quote.ceremony_location }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if quote.reception_location %}
+      <div class="route-stop">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="route-dot"></div>
+        </div>
+        <div>
+          <div class="route-label">Recepción</div>
+          <div class="route-text">{{ quote.reception_location }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Price -->
+  <div class="price-box">
+    <div>
+      <div class="price-label">Valor total del servicio</div>
+      <div class="price-value">{{ formatted_price }}</div>
+    </div>
+    {% if formatted_deposit %}
+    <div class="deposit-block">
+      <div class="deposit-label">Anticipo para reservar</div>
+      <div class="deposit-value">{{ formatted_deposit }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Payment instructions -->
+  {% if quote.payment_instructions %}
+  <div class="section">
+    <div class="section-title">Instrucciones de Pago</div>
+    <div class="payment-box">{{ quote.payment_instructions }}</div>
+  </div>
+  {% else %}
+  <div class="section">
+    <div class="section-title">Instrucciones de Pago</div>
+    <div class="payment-box">
+      <strong>{{ bank_name }}</strong> · Cuenta de Ahorros: {{ bank_account }}<br>
+      A nombre de: {{ company_name }}<br>
+      Enviar comprobante de pago para confirmar la reserva.
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Notes -->
+  {% if quote.notes %}
+  <div class="section">
+    <div class="section-title">Observaciones</div>
+    <div style="font-size:10pt; color:#444; line-height:1.6;">{{ quote.notes }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Terms -->
+  <div class="terms">
+    <div class="terms-title">Términos y Condiciones</div>
+    <div class="term-item">
+      <strong>Cancelación:</strong> El anticipo no es reembolsable. Si se cancela con menos de 30 días de anticipación, se cobra el 80% del valor total del servicio.
+    </div>
+    <div class="term-item">
+      <strong>Reprogramación:</strong> Sin costo adicional con más de 15 días de anticipación, sujeto a disponibilidad del vehículo. Con menos de 15 días, queda a criterio de Camino a Mi Boda.
+    </div>
+    <div class="term-item">
+      <strong>Falla mecánica:</strong> Camino a Mi Boda gestionará un vehículo de reemplazo de características similares. Si no es posible, se realizará reembolso total del valor pagado.
+    </div>
+    <div class="term-item">
+      <strong>No incluye:</strong> Arreglo floral para el vehículo. Consultamos con nuestros aliados floristas si lo requieres.
+    </div>
+  </div>
+
+  <!-- Validity -->
+  <div class="validity">Esta propuesta tiene validez de 15 días a partir de la fecha de emisión.</div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      <div class="footer-brand">Camino a Mi Boda</div>
+      <div>@caminoamiboda · caminoatuboda@gmail.com</div>
+    </div>
+    <div class="footer-contact">
+      <div>{{ company_phone }}</div>
+      <div>{{ city }}, Colombia</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

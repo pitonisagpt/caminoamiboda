@@ -22,6 +22,8 @@ import TimelineList from "./pages/Timelines/TimelineList";
 import TimelineForm from "./pages/Timelines/TimelineForm";
 import TimelineDetail from "./pages/Timelines/TimelineDetail";
 import EventoPage from "./pages/Public/EventoPage";
+import QuoteList from "./pages/Quotes/QuoteList";
+import QuoteForm from "./pages/Quotes/QuoteForm";
 
 export default function App() {
   return (
@@ -54,6 +56,11 @@ export default function App() {
             <Route path="vehiculos" element={<VehicleList />} />
             <Route path="vehiculos/nuevo" element={<VehicleForm />} />
             <Route path="vehiculos/editar/:id" element={<VehicleForm />} />
+
+            {/* Quotes */}
+            <Route path="cotizaciones" element={<QuoteList />} />
+            <Route path="cotizaciones/nuevo" element={<QuoteForm />} />
+            <Route path="cotizaciones/:id/editar" element={<QuoteForm />} />
 
             {/* Timelines / Events */}
             <Route path="eventos" element={<TimelineList />} />

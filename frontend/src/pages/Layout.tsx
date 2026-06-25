@@ -43,6 +43,17 @@ export function Layout() {
             </NavLink>
 
             <NavLink
+              to="/cotizaciones"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer
+                ${isActive ? "bg-pink-50 text-pink-700" : "text-gray-600 hover:text-pink-700 hover:bg-pink-50"}`
+              }
+            >
+              <FileText size={16} />
+              Cotizaciones
+            </NavLink>
+
+            <NavLink
               to="/clientes"
               className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer
