@@ -194,12 +194,6 @@ export default function DashboardPage() {
               + Nueva cotización
             </button>
             <button
-              onClick={() => navigate('/eventos/nuevo')}
-              className="w-full text-left text-sm text-pink-700 font-medium hover:underline cursor-pointer py-0.5"
-            >
-              + Nuevo evento
-            </button>
-            <button
               onClick={() => navigate('/calendario')}
               className="w-full text-left text-sm text-gray-600 hover:underline cursor-pointer py-0.5"
             >
