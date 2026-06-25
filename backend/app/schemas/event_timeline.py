@@ -83,7 +83,7 @@ _TIMELINE_SCALARS = [
     "main_contact_name", "main_contact_phone",
     "assigned_vehicle", "assigned_driver", "assigned_driver_phone",
     "special_instructions", "notes", "gcal_event_id",
-    "gcal_calendar_id", "gcal_imported", "calendar_category", "reservation_id",
+    "gcal_calendar_id", "gcal_html_link", "gcal_imported", "calendar_category", "reservation_id",
 ]
 
 
@@ -131,6 +131,7 @@ class TimelineRead(TimelineBase):
     id: int
     gcal_event_id: Optional[str] = None
     gcal_calendar_id: Optional[str] = None
+    gcal_html_link: Optional[str] = None
     gcal_imported: bool = False
     calendar_category: str = "prospectos"
     reservation_id: Optional[int] = None

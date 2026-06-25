@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Plus, Search, Copy, Check, Car, User } from 'lucide-react';
+import { Calendar, Plus, Search, Copy, Check, Car, User, Trash2 } from 'lucide-react';
 import { timelinesApi } from '../../api/timelines';
 import type { TimelineListItem, EventType } from '../../types/timeline';
 
@@ -37,6 +37,12 @@ export default function TimelineList() {
     t.event_name.toLowerCase().includes(search.toLowerCase()) ||
     (t.main_contact_name || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`¿Eliminar el evento "${name}"? Esta acción no se puede deshacer.`)) return;
+    await timelinesApi.delete(id);
+    setTimelines(prev => prev.filter(t => t.id !== id));
+  };
 
   const copyDriverLink = async (token: string, id: number) => {
     const url = `${window.location.origin}/evento/${token}`;
@@ -142,6 +148,13 @@ export default function TimelineList() {
                   >
                     Ver timeline
                   </Link>
+                  <button
+                    onClick={() => handleDelete(t.id, t.event_name)}
+                    title="Eliminar evento"
+                    className="p-1.5 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>

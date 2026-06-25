@@ -38,6 +38,7 @@ class EventTimeline(Base):
 
     gcal_event_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     gcal_calendar_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    gcal_html_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     gcal_imported: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     calendar_category: Mapped[str] = mapped_column(String(20), nullable=False, default="prospectos")
     reservation_id: Mapped[Optional[int]] = mapped_column(

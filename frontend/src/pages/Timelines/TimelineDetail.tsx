@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowLeft, Edit, Trash2, Plus, GripVertical, Copy, Check,
   MapPin, Clock, Phone, User, Car, RefreshCw, ExternalLink,
-  ChevronDown, ChevronUp, Info, MessageCircle,
+  ChevronDown, ChevronUp, Info, MessageCircle, CalendarDays,
 } from 'lucide-react';
 import { timelinesApi } from '../../api/timelines';
 import type {
@@ -478,6 +478,10 @@ export default function TimelineDetail() {
   const formatDate = (d: string) =>
     new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
+  const gcalLink = timeline.gcal_html_link
+    ? `${timeline.gcal_html_link}&authuser=caminoatuboda@gmail.com`
+    : null;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {gcalToast && (
@@ -497,12 +501,36 @@ export default function TimelineDetail() {
             <p className="text-sm text-gray-500 capitalize mt-0.5">{formatDate(timeline.event_date)}</p>
           </div>
         </div>
-        <Link
-          to={`/eventos/${id}/editar`}
-          className="flex items-center gap-1.5 text-sm border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          <Edit className="w-3.5 h-3.5" /> Editar
-        </Link>
+        <div className="flex items-center gap-2">
+
+          {gcalLink && (
+            <a
+              href={gcalLink}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-sm border border-blue-200 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+              title="Ver en Google Calendar"
+            >
+              <CalendarDays className="w-3.5 h-3.5" /> GCal
+            </a>
+          )}
+          <Link
+            to={`/eventos/${id}/editar`}
+            className="flex items-center gap-1.5 text-sm border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Edit className="w-3.5 h-3.5" /> Editar
+          </Link>
+          <button
+            onClick={async () => {
+              if (!confirm(`¿Eliminar el evento "${timeline.event_name}"? Esta acción no se puede deshacer.`)) return;
+              await timelinesApi.delete(timelineId);
+              navigate('/eventos');
+            }}
+            className="flex items-center gap-1.5 text-sm border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Eliminar
+          </button>
+        </div>
       </div>
 
       {/* Event info strip */}

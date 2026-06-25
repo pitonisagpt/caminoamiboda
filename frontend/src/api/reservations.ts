@@ -1,11 +1,23 @@
 import { api } from './index';
-import type { Reservation, ReservationListItem, ReservationStatus } from '../types/reservation';
+import type { Reservation, ReservationPage, ReservationStatus } from '../types/reservation';
 
 const base = '/reservations';
 
+export interface ReservationListParams {
+  status?: ReservationStatus;
+  event_category?: string;
+  search?: string;
+  sort_by?: string;
+  sort_dir?: 'asc' | 'desc';
+  page?: number;
+  page_size?: number;
+  date_from?: string;
+  date_to?: string;
+}
+
 export const reservationsApi = {
-  list: (status?: ReservationStatus) =>
-    api.get<ReservationListItem[]>(base, { params: status ? { status } : {} }),
+  list: (params: ReservationListParams = {}) =>
+    api.get<ReservationPage>(base, { params }),
 
   get: (id: number) => api.get<Reservation>(`${base}/${id}`),
 

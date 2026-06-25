@@ -55,6 +55,14 @@ export interface Reservation extends ReservationListItem {
   updated_at: string;
 }
 
+export interface ReservationPage {
+  items: ReservationListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+}
+
 export interface ReservationFormData {
   customer_id: string;
   quote_id: string;

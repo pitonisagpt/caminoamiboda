@@ -49,6 +49,8 @@ export interface EventTimeline {
   special_instructions: string | null;
   notes: string | null;
   gcal_event_id: string | null;
+  gcal_calendar_id: string | null;
+  gcal_html_link: string | null;
   share_token_driver: string;
   share_token_customer: string;
   share_token_ops: string;

@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -96,3 +96,11 @@ class ReservationList(BaseModel):
     @classmethod
     def build(cls, r) -> "ReservationList":
         return cls.model_validate(_build(r))
+
+
+class ReservationPage(BaseModel):
+    items: List[ReservationList]
+    total: int
+    page: int
+    page_size: int
+    pages: int

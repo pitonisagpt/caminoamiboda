@@ -1,14 +1,16 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy import asc, desc, or_
+from sqlalchemy.orm import Session, outerjoin
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
+from app.models.customer import Customer
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.quote import Quote
-from app.schemas.reservation import ReservationCreate, ReservationList, ReservationRead, ReservationUpdate
+from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
 
 router = APIRouter(tags=["reservations"], redirect_slashes=False)
 
@@ -38,15 +40,64 @@ def _get(reservation_id: int, db: Session) -> Reservation:
     return r
 
 
-@router.get("/api/reservations", response_model=List[ReservationList], dependencies=[Depends(get_current_user)])
+_SORT_COLS = {
+    "event_date":         Reservation.event_date,
+    "reservation_number": Reservation.reservation_number,
+    "total_amount":       Reservation.total_amount,
+    "deposit_paid":       Reservation.deposit_paid,
+    "status":             Reservation.status,
+    "created_at":         Reservation.created_at,
+    "customer":           Customer.main_contact_name,
+}
+
+
+@router.get("/api/reservations", response_model=ReservationPage, dependencies=[Depends(get_current_user)])
 def list_reservations(
     status: Optional[ReservationStatus] = Query(None),
+    event_category: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    sort_by: str = Query("event_date"),
+    sort_dir: str = Query("desc"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
-    q = db.query(Reservation).order_by(Reservation.event_date.asc())
+    q = db.query(Reservation).outerjoin(Customer, Reservation.customer_id == Customer.id)
+
     if status:
         q = q.filter(Reservation.status == status)
-    return [ReservationList.build(r) for r in q.all()]
+    if event_category:
+        q = q.filter(Reservation.event_category == event_category)
+    if date_from:
+        q = q.filter(Reservation.event_date >= date_from)
+    if date_to:
+        q = q.filter(Reservation.event_date <= date_to)
+    if search:
+        pat = f"%{search}%"
+        q = q.filter(or_(
+            Reservation.reservation_number.ilike(pat),
+            Reservation.notes.ilike(pat),
+            Customer.main_contact_name.ilike(pat),
+            Customer.bride_name.ilike(pat),
+            Customer.groom_name.ilike(pat),
+            Customer.phone.ilike(pat),
+        ))
+
+    col = _SORT_COLS.get(sort_by, Reservation.event_date)
+    q = q.order_by(desc(col) if sort_dir == "desc" else asc(col))
+
+    total = q.count()
+    items = q.offset((page - 1) * page_size).limit(page_size).all()
+
+    return ReservationPage(
+        items=[ReservationList.build(r) for r in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=max(1, -(-total // page_size)),
+    )
 
 
 @router.post("/api/reservations", response_model=ReservationRead, status_code=201, dependencies=[Depends(get_current_user)])
