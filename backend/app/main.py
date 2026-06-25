@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User, UserRole
-from app.routers import auth, billing_documents, customers, drivers, users, vehicle_owners, vehicle_photos, vehicles
+from app.routers import auth, billing_documents, customers, drivers, timelines, users, vehicle_owners, vehicle_photos, vehicles
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
@@ -63,6 +63,7 @@ app.include_router(vehicle_photos.router)
 app.include_router(customers.router)
 app.include_router(drivers.router)
 app.include_router(vehicle_owners.router)
+app.include_router(timelines.router)
 
 # Serve uploaded photos
 _uploads_dir = Path("/app/uploads/vehicles")

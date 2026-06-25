@@ -18,6 +18,10 @@ import { OwnerList } from "./pages/Owners/OwnerList";
 import { OwnerForm } from "./pages/Owners/OwnerForm";
 import { CatalogLayout } from "./pages/Catalog/CatalogLayout";
 import { CatalogPage } from "./pages/Catalog/CatalogPage";
+import TimelineList from "./pages/Timelines/TimelineList";
+import TimelineForm from "./pages/Timelines/TimelineForm";
+import TimelineDetail from "./pages/Timelines/TimelineDetail";
+import EventoPage from "./pages/Public/EventoPage";
 
 export default function App() {
   return (
@@ -28,6 +32,9 @@ export default function App() {
           <Route element={<CatalogLayout />}>
             <Route path="catalogo" element={<CatalogPage />} />
           </Route>
+
+          {/* Public event view — no auth */}
+          <Route path="/evento/:token" element={<EventoPage />} />
 
           <Route path="/login" element={<LoginPage />} />
 
@@ -47,6 +54,12 @@ export default function App() {
             <Route path="vehiculos" element={<VehicleList />} />
             <Route path="vehiculos/nuevo" element={<VehicleForm />} />
             <Route path="vehiculos/editar/:id" element={<VehicleForm />} />
+
+            {/* Timelines / Events */}
+            <Route path="eventos" element={<TimelineList />} />
+            <Route path="eventos/nuevo" element={<TimelineForm />} />
+            <Route path="eventos/:id" element={<TimelineDetail />} />
+            <Route path="eventos/:id/editar" element={<TimelineForm />} />
 
             {/* Customers */}
             <Route path="clientes" element={<CustomerList />} />

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.models.vehicle import VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
@@ -58,8 +58,8 @@ class VehicleUpdate(BaseModel):
 
 
 def _load_photos(vehicle) -> List[VehiclePhotoRead]:
-    from app.models.vehicle_photo import VehiclePhoto
-    photos = sorted(vehicle.photos, key=lambda p: p.display_order) if hasattr(vehicle, "photos") else []
+    raw = getattr(vehicle, "photos", None) or []
+    photos = sorted(raw, key=lambda p: p.display_order)
     return [VehiclePhotoRead.model_validate(p) for p in photos]
 
 
@@ -75,6 +75,11 @@ class VehicleRead(VehicleBase):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @field_validator("photos", mode="before")
+    @classmethod
+    def _coerce_photos(cls, v):
+        return v or []
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleRead":
@@ -119,6 +124,11 @@ class VehiclePublic(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("photos", mode="before")
+    @classmethod
+    def _coerce_photos(cls, v):
+        return v or []
+
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehiclePublic":
         data = cls.model_validate(vehicle)
@@ -157,6 +167,11 @@ class VehicleList(BaseModel):
     photos: List[VehiclePhotoRead] = []
 
     model_config = {"from_attributes": True}
+
+    @field_validator("photos", mode="before")
+    @classmethod
+    def _coerce_photos(cls, v):
+        return v or []
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
