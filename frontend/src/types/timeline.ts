@@ -48,6 +48,7 @@ export interface EventTimeline {
   assigned_driver_phone: string | null;
   special_instructions: string | null;
   notes: string | null;
+  gcal_event_id: string | null;
   share_token_driver: string;
   share_token_customer: string;
   share_token_ops: string;

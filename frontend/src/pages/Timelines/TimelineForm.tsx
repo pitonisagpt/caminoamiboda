@@ -61,11 +61,11 @@ export default function TimelineForm() {
     };
 
     if (isEdit) {
-      await timelinesApi.update(Number(id), payload);
-      navigate(`/eventos/${id}`);
+      const res = await timelinesApi.update(Number(id), payload);
+      navigate(`/eventos/${id}`, { state: { gcalSynced: !!res.data.gcal_event_id } });
     } else {
       const res = await timelinesApi.create(payload);
-      navigate(`/eventos/${res.data.id}`);
+      navigate(`/eventos/${res.data.id}`, { state: { gcalSynced: !!res.data.gcal_event_id } });
     }
   };
 

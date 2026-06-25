@@ -82,7 +82,7 @@ _TIMELINE_SCALARS = [
     "id", "event_name", "event_type", "event_date",
     "main_contact_name", "main_contact_phone",
     "assigned_vehicle", "assigned_driver", "assigned_driver_phone",
-    "special_instructions", "notes",
+    "special_instructions", "notes", "gcal_event_id",
 ]
 
 
@@ -128,6 +128,7 @@ class TimelineUpdate(BaseModel):
 class TimelineRead(TimelineBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    gcal_event_id: Optional[str] = None
     share_token_driver: str
     share_token_customer: str
     share_token_ops: str
@@ -139,6 +140,7 @@ class TimelineRead(TimelineBase):
     @classmethod
     def build(cls, timeline, locations: list, activities: list) -> "TimelineRead":
         d = _build_timeline_dict(timeline, locations, activities, extra_fields=[
+            "gcal_event_id",
             "share_token_driver", "share_token_customer", "share_token_ops",
             "created_at", "updated_at",
         ])

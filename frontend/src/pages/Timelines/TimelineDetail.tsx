@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
+import { Toast } from '../../components/ui/Toast';
 import {
   DndContext,
   closestCenter,
@@ -373,6 +374,8 @@ function buildFullMsg(t: EventTimeline): string {
 export default function TimelineDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [gcalToast, setGcalToast] = useState(() => !!(location.state as any)?.gcalSynced);
   const timelineId = Number(id);
 
   const [timeline, setTimeline] = useState<EventTimeline | null>(null);
@@ -477,6 +480,12 @@ export default function TimelineDetail() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {gcalToast && (
+        <Toast
+          message="Sincronizado con Google Calendar"
+          onDismiss={() => setGcalToast(false)}
+        />
+      )}
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
