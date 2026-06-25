@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/Login/LoginPage";
 import { BillingDocumentDetail } from "./pages/BillingDocuments/BillingDocumentDetail";
 import { BillingDocumentForm } from "./pages/BillingDocuments/BillingDocumentForm";
 import { BillingDocumentList } from "./pages/BillingDocuments/BillingDocumentList";
+import DashboardPage from "./pages/Dashboard/DashboardPage";
 import { UserList } from "./pages/Admin/UserList";
 import { UserForm } from "./pages/Admin/UserForm";
 import { VehicleList } from "./pages/Vehicles/VehicleList";
@@ -51,10 +52,13 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<BillingDocumentList />} />
-            <Route path="nueva" element={<BillingDocumentForm />} />
-            <Route path="editar/:id" element={<BillingDocumentForm />} />
-            <Route path="documento/:id" element={<BillingDocumentDetail />} />
+            <Route index element={<DashboardPage />} />
+
+            {/* Billing Documents */}
+            <Route path="documentos" element={<BillingDocumentList />} />
+            <Route path="documentos/nuevo" element={<BillingDocumentForm />} />
+            <Route path="documentos/editar/:id" element={<BillingDocumentForm />} />
+            <Route path="documentos/:id" element={<BillingDocumentDetail />} />
 
             {/* Vehicles */}
             <Route path="vehiculos" element={<VehicleList />} />

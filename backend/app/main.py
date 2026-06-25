@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User, UserRole
-from app.routers import auth, billing_documents, calendar, customers, drivers, quotes, reservations, timelines, users, vehicle_owners, vehicle_photos, vehicles
+from app.routers import auth, billing_documents, calendar, customers, dashboard, drivers, quotes, reservations, timelines, users, vehicle_owners, vehicle_photos, vehicles
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
@@ -57,6 +57,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(dashboard.router)
 app.include_router(billing_documents.router)
 app.include_router(vehicles.router)
 app.include_router(vehicle_photos.router)

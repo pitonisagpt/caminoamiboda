@@ -92,7 +92,7 @@ export function BillingDocumentList() {
             Gestiona y genera documentos de cobro para tus clientes
           </p>
         </div>
-        <Button onClick={() => navigate("/nueva")} size="lg">
+        <Button onClick={() => navigate("/documentos/nuevo")} size="lg">
           <FilePlus size={18} />
           Nueva Cuenta de Cobro
         </Button>
@@ -125,7 +125,7 @@ export function BillingDocumentList() {
             <p className="text-gray-500 text-sm mb-6">
               Crea tu primera cuenta de cobro para empezar a gestionar tus documentos
             </p>
-            <Button onClick={() => navigate("/nueva")}>
+            <Button onClick={() => navigate("/documentos/nuevo")}>
               <FilePlus size={16} />
               Crear primera cuenta
             </Button>
@@ -194,7 +194,7 @@ export function BillingDocumentList() {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate(`/documento/${doc.id}`)}
+                          onClick={() => navigate(`/documentos/${doc.id}`)}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors duration-150 cursor-pointer"
                           title="Ver documento"
                         >

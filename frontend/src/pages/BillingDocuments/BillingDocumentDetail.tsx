@@ -112,7 +112,7 @@ export function BillingDocumentDetail() {
     return (
       <div className="text-center py-20 text-gray-500">
         Documento no encontrado.{" "}
-        <button onClick={() => navigate("/")} className="text-pink-600 underline cursor-pointer">
+        <button onClick={() => navigate("/documentos")} className="text-pink-600 underline cursor-pointer">
           Volver
         </button>
       </div>
@@ -156,7 +156,7 @@ export function BillingDocumentDetail() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => navigate(`/editar/${doc.id}`)}
+            onClick={() => navigate(`/documentos/editar/${doc.id}`)}
           >
             <Edit size={15} />
             Editar

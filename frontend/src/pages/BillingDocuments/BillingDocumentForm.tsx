@@ -148,7 +148,7 @@ export function BillingDocumentForm() {
         await billingDocumentsApi.generatePdf(docId);
       }
 
-      navigate(`/documento/${docId}`);
+      navigate(`/documentos/${docId}`);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
