@@ -66,11 +66,33 @@ def get_reservation(reservation_id: int, db: Session = Depends(get_db)):
 @router.put("/api/reservations/{reservation_id}", response_model=ReservationRead, dependencies=[Depends(get_current_user)])
 def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session = Depends(get_db)):
     r = _get(reservation_id, db)
-    for field, value in body.model_dump(exclude_unset=True).items():
+    changed = body.model_dump(exclude_unset=True)
+    status_or_category_changed = "status" in changed or "event_category" in changed
+    for field, value in changed.items():
         setattr(r, field, value)
     db.commit()
     db.refresh(r)
+
+    if status_or_category_changed:
+        _sync_linked_timelines(r, db)
+
     return ReservationRead.build(r)
+
+
+def _sync_linked_timelines(reservation, db):
+    from app.models.event_timeline import EventTimeline
+    from app.services.google_calendar_service import calendar_category_for
+    from app.routers.timelines import _gcal_sync
+
+    new_category = calendar_category_for(reservation)
+    linked = db.query(EventTimeline).filter(
+        EventTimeline.reservation_id == reservation.id,
+        EventTimeline.gcal_imported.is_(False),
+    ).all()
+    for tl in linked:
+        tl.calendar_category = new_category
+        db.commit()
+        _gcal_sync(tl, db, "on reservation change")
 
 
 @router.delete("/api/reservations/{reservation_id}", status_code=204, dependencies=[Depends(get_current_user)])

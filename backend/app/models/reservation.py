@@ -3,7 +3,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -34,6 +34,9 @@ class Reservation(Base):
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"))
     deposit_paid: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"))
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="lead")
+
+    event_category: Mapped[str] = mapped_column(String(20), nullable=False, default="standard")
+    gcal_imported: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     special_instructions: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)

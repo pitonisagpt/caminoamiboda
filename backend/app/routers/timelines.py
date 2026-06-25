@@ -95,12 +95,14 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
 def delete_timeline(timeline_id: int, db: Session = Depends(get_db)):
     timeline = _get_timeline(timeline_id, db)
     gcal_id = timeline.gcal_event_id
+    gcal_cal_id = timeline.gcal_calendar_id
+    gcal_imported = timeline.gcal_imported
     db.delete(timeline)
     db.commit()
     try:
-        if gcal_id:
+        if gcal_id and not gcal_imported:
             from app.services.google_calendar_service import delete_timeline_event
-            delete_timeline_event(gcal_id)
+            delete_timeline_event(gcal_id, gcal_cal_id)
     except Exception as e:
         print(f"[GCal] delete failed: {e}")
 

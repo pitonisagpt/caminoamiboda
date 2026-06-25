@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, Enum, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -37,6 +37,13 @@ class EventTimeline(Base):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     gcal_event_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    gcal_calendar_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    gcal_imported: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    calendar_category: Mapped[str] = mapped_column(String(20), nullable=False, default="prospectos")
+    reservation_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("reservations.id", ondelete="SET NULL"), nullable=True
+    )
+    reservation = relationship("Reservation", foreign_keys=[reservation_id], lazy="select")
 
     # Share tokens — one per audience
     share_token_driver: Mapped[str] = mapped_column(String(64), unique=True, default=_new_token)

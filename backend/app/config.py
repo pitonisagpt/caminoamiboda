@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_refresh_token: str = ""
     google_calendar_id: str = "primary"
+    google_calendar_prospectos: str = ""
+    google_calendar_pendiente: str = ""
+    google_calendar_abono: str = ""
+    google_calendar_ok: str = ""
+    google_calendar_obsequio: str = ""
+    google_calendar_publicidad: str = ""
 
     secret_key: str = "change-me-in-production-use-a-random-32-byte-hex"
     algorithm: str = "HS256"
