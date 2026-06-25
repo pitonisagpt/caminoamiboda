@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Car, Loader2, Pencil, Trash2, User, DollarSign, CalendarClock, Plus } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { Reservation, ReservationStatus } from '../../types/reservation';
-import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
-
-function formatDate(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
-}
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
+import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
+import InfoTab from './tabs/InfoTab';
+import FinanceTab from './tabs/FinanceTab';
+import EventoTab from './tabs/EventoTab';
 
 const STATUS_NEXT: Partial<Record<ReservationStatus, ReservationStatus>> = {
   lead: 'quoted',
@@ -23,18 +16,31 @@ const STATUS_NEXT: Partial<Record<ReservationStatus, ReservationStatus>> = {
   confirmed: 'completed',
 };
 
+const TABS = [
+  { key: 'info',     label: 'Información' },
+  { key: 'evento',   label: 'Evento' },
+  { key: 'finanzas', label: 'Finanzas' },
+] as const;
+type TabKey = typeof TABS[number]['key'];
+
 export default function ReservationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = (searchParams.get('tab') ?? 'info') as TabKey;
+
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [advancing, setAdvancing] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     reservationsApi.get(Number(id))
       .then(r => setReservation(r.data))
       .finally(() => setLoading(false));
-  }, [id]);
+  };
+
+  useEffect(() => { load(); }, [id]);
 
   const handleAdvanceStatus = async () => {
     if (!reservation) return;
@@ -56,17 +62,16 @@ export default function ReservationDetail() {
     navigate('/reservas');
   };
 
+  const setTab = (tab: TabKey) => setSearchParams({ tab }, { replace: true });
+
   if (loading || !reservation) {
     return <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   const nextStatus = STATUS_NEXT[reservation.status];
-  const pct = reservation.total_amount > 0
-    ? Math.round((reservation.deposit_paid / reservation.total_amount) * 100)
-    : 0;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -111,127 +116,32 @@ export default function ReservationDetail() {
         </div>
       </div>
 
-      {/* Status pipeline */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1">
-          {STATUS_FLOW.filter(s => s !== 'cancelled').map((s, i, arr) => (
-            <div key={s} className="flex items-center gap-1 shrink-0">
-              <div className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                s === reservation.status
-                  ? RESERVATION_STATUS_COLOR[s]
-                  : STATUS_FLOW.indexOf(s) < STATUS_FLOW.indexOf(reservation.status)
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-gray-100 text-gray-400'
-              }`}>
-                {RESERVATION_STATUS_LABEL[s as ReservationStatus]}
-              </div>
-              {i < arr.length - 1 && <span className="text-gray-300 text-xs">›</span>}
-            </div>
-          ))}
-        </div>
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setTab(tab.key)}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              activeTab === tab.key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* Event info */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-          <h2 className="font-semibold text-gray-800 text-sm uppercase tracking-wide text-gray-500">Evento</h2>
-          <div className="flex items-start gap-2 text-sm">
-            <Calendar size={16} className="text-pink-400 mt-0.5 shrink-0" />
-            <span className="text-gray-700 capitalize">{formatDate(reservation.event_date)}</span>
-          </div>
-          {reservation.display_vehicle !== '—' && (
-            <div className="flex items-center gap-2 text-sm">
-              <Car size={16} className="text-pink-400 shrink-0" />
-              <span className="text-gray-700">{reservation.display_vehicle}</span>
-            </div>
-          )}
-          {reservation.display_driver !== '—' && (
-            <div className="flex items-center gap-2 text-sm">
-              <User size={16} className="text-pink-400 shrink-0" />
-              <span className="text-gray-700">{reservation.display_driver}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Financial */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-          <h2 className="font-semibold text-gray-800 text-sm uppercase tracking-wide text-gray-500">Financiero</h2>
-          <div className="flex items-center gap-2 text-sm">
-            <DollarSign size={16} className="text-pink-400 shrink-0" />
-            <span className="text-gray-500">Total:</span>
-            <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount)}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <DollarSign size={16} className="text-green-400 shrink-0" />
-            <span className="text-gray-500">Depósito:</span>
-            <span className="font-semibold text-green-700">{formatCOP(reservation.deposit_paid)}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <DollarSign size={16} className={Number(reservation.remaining_balance) > 0 ? 'text-red-400 shrink-0' : 'text-green-400 shrink-0'} />
-            <span className="text-gray-500">Saldo:</span>
-            <span className={`font-semibold ${Number(reservation.remaining_balance) > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {formatCOP(reservation.remaining_balance)}
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div className="mt-2">
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-400 rounded-full transition-all"
-                style={{ width: `${Math.min(pct, 100)}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">{pct}% pagado</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Timeline link */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CalendarClock size={16} className="text-pink-400" />
-            <h2 className="font-semibold text-gray-800 text-sm">Evento / Minuto a minuto</h2>
-          </div>
-          {reservation.timeline_id ? (
-            <button
-              onClick={() => navigate(`/eventos/${reservation.timeline_id}`)}
-              className="flex items-center gap-1.5 text-sm text-pink-700 font-medium border border-pink-200 hover:bg-pink-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-            >
-              <CalendarClock size={14} />
-              {reservation.timeline_event_name ?? 'Ver evento'}
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/eventos/nuevo', { state: { reservation_id: reservation.id, prefill: { event_name: reservation.display_customer, event_date: reservation.event_date } } })}
-              className="flex items-center gap-1.5 text-sm text-gray-500 border border-gray-200 hover:border-pink-300 hover:text-pink-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-            >
-              <Plus size={14} /> Crear evento
-            </button>
-          )}
-        </div>
-        {!reservation.timeline_id && (
-          <p className="text-xs text-gray-400 mt-2">No hay un evento creado para esta reserva todavía.</p>
-        )}
-      </div>
-
-      {/* Notes */}
-      {(reservation.special_instructions || reservation.notes) && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-          {reservation.special_instructions && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Instrucciones especiales</p>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{reservation.special_instructions}</p>
-            </div>
-          )}
-          {reservation.notes && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Notas internas</p>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{reservation.notes}</p>
-            </div>
-          )}
-        </div>
+      {/* Tab content */}
+      {activeTab === 'info' && <InfoTab reservation={reservation} />}
+      {activeTab === 'evento' && (
+        <EventoTab
+          reservation={reservation}
+          onReservationChange={load}
+        />
       )}
+      {activeTab === 'finanzas' && <FinanceTab reservation={reservation} />}
     </div>
   );
 }

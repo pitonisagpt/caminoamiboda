@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, CalendarDays, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, Truck, User, Users } from "lucide-react";
+import { Calendar, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/Badge";
@@ -99,7 +99,6 @@ export function Layout() {
           <SidebarSection label="Operaciones" />
           <NavItem to="/calendario"   icon={Calendar}      label="Calendario"   onClick={closeSidebar} />
           <NavItem to="/reservas"     icon={ClipboardList} label="Reservas"     onClick={closeSidebar} />
-          <NavItem to="/eventos"      icon={CalendarDays}  label="Eventos"      onClick={closeSidebar} />
           <NavItem to="/cotizaciones" icon={FileText}      label="Cotizaciones" onClick={closeSidebar} />
 
           <SidebarSection label="Clientes & Flota" />

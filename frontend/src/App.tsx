@@ -1,4 +1,6 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./pages/Layout";
@@ -19,9 +21,6 @@ import { OwnerList } from "./pages/Owners/OwnerList";
 import { OwnerForm } from "./pages/Owners/OwnerForm";
 import { CatalogLayout } from "./pages/Catalog/CatalogLayout";
 import { CatalogPage } from "./pages/Catalog/CatalogPage";
-import TimelineList from "./pages/Timelines/TimelineList";
-import TimelineForm from "./pages/Timelines/TimelineForm";
-import TimelineDetail from "./pages/Timelines/TimelineDetail";
 import EventoPage from "./pages/Public/EventoPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
@@ -29,6 +28,23 @@ import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
 import CalendarPage from "./pages/Calendar/CalendarPage";
+import { timelinesApi } from "./api/timelines";
+
+function TimelineRedirect() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  useEffect(() => {
+    timelinesApi.get(Number(id)).then(r => {
+      const rid = r.data.reservation_id;
+      navigate(rid ? `/reservas/${rid}?tab=evento` : '/reservas', { replace: true });
+    }).catch(() => navigate('/reservas', { replace: true }));
+  }, [id, navigate]);
+  return (
+    <div className="flex justify-center items-center h-64 text-pink-400">
+      <Loader2 className="animate-spin" size={28} />
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -79,11 +95,8 @@ export default function App() {
             <Route path="cotizaciones/nuevo" element={<QuoteForm />} />
             <Route path="cotizaciones/:id/editar" element={<QuoteForm />} />
 
-            {/* Timelines / Events */}
-            <Route path="eventos" element={<TimelineList />} />
-            <Route path="eventos/nuevo" element={<TimelineForm />} />
-            <Route path="eventos/:id" element={<TimelineDetail />} />
-            <Route path="eventos/:id/editar" element={<TimelineForm />} />
+            {/* Legacy timeline URLs — redirect to reservation?tab=evento */}
+            <Route path="eventos/:id" element={<TimelineRedirect />} />
 
             {/* Customers */}
             <Route path="clientes" element={<CustomerList />} />
