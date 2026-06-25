@@ -47,10 +47,13 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-1">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             <TrendingUp size={14} />
-            Ingresos este mes
+            Facturado este mes
           </div>
           <p className="text-2xl font-bold text-gray-900">{formatCOP(data.finance.revenue_this_month)}</p>
-          <p className="text-xs text-gray-400">Reservas completadas</p>
+          <div className="flex items-center gap-1.5 pt-1">
+            <span className="text-xs text-gray-400">Ganancia empresa</span>
+            <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.revenue_this_month * 0.30)}</span>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-1">
