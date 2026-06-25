@@ -51,6 +51,7 @@ export interface EventTimeline {
   gcal_event_id: string | null;
   gcal_calendar_id: string | null;
   gcal_html_link: string | null;
+  reservation_id: number | null;
   share_token_driver: string;
   share_token_customer: string;
   share_token_ops: string;

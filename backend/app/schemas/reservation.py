@@ -20,6 +20,9 @@ def _build(r) -> dict:
     d["display_customer"] = r.display_customer
     d["display_vehicle"] = r.display_vehicle
     d["display_driver"] = r.display_driver
+    tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
+    d["timeline_id"] = tls[0].id if tls else None
+    d["timeline_event_name"] = tls[0].event_name if tls else None
     return d
 
 
@@ -71,6 +74,8 @@ class ReservationRead(BaseModel):
     display_customer: str
     display_vehicle: str
     display_driver: str
+    timeline_id: Optional[int] = None
+    timeline_event_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -91,6 +96,7 @@ class ReservationList(BaseModel):
     deposit_paid: Decimal
     remaining_balance: Decimal
     status: ReservationStatus
+    timeline_id: Optional[int] = None
     created_at: datetime
 
     @classmethod

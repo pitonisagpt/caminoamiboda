@@ -44,7 +44,7 @@ class EventTimeline(Base):
     reservation_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("reservations.id", ondelete="SET NULL"), nullable=True
     )
-    reservation = relationship("Reservation", foreign_keys=[reservation_id], lazy="select")
+    reservation = relationship("Reservation", foreign_keys=[reservation_id], back_populates="timelines", lazy="select")
 
     # Share tokens — one per audience
     share_token_driver: Mapped[str] = mapped_column(String(64), unique=True, default=_new_token)

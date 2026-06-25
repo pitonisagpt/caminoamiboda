@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, CalendarClock,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
@@ -270,6 +270,19 @@ export default function ReservationList() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => r.timeline_id
+                          ? navigate(`/eventos/${r.timeline_id}`)
+                          : navigate(`/reservas/${r.id}`)}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          r.timeline_id
+                            ? 'text-pink-500 hover:bg-pink-50'
+                            : 'text-gray-200 hover:text-gray-400 hover:bg-gray-100'
+                        }`}
+                        title={r.timeline_id ? 'Ver evento' : 'Sin evento'}
+                      >
+                        <CalendarClock size={14} />
+                      </button>
                       <button
                         onClick={() => navigate(`/reservas/${r.id}/editar`)}
                         className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"

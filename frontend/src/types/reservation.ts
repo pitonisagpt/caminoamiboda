@@ -42,6 +42,7 @@ export interface ReservationListItem {
   deposit_paid: number;
   remaining_balance: number;
   status: ReservationStatus;
+  timeline_id: number | null;
   created_at: string;
 }
 
@@ -52,6 +53,7 @@ export interface Reservation extends ReservationListItem {
   driver_id: number | null;
   special_instructions: string | null;
   notes: string | null;
+  timeline_event_name: string | null;
   updated_at: string;
 }
 

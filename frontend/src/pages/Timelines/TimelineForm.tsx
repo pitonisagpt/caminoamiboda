@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Save } from 'lucide-react';
 import { timelinesApi } from '../../api/timelines';
@@ -17,6 +17,10 @@ export default function TimelineForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const { state: navState } = useLocation();
+  const fromReservation = (navState as any)?.reservation_id as number | undefined;
+  const prefill = (navState as any)?.prefill as Partial<TimelineFormData> | undefined;
+
   const {
     register,
     handleSubmit,
@@ -25,6 +29,7 @@ export default function TimelineForm() {
   } = useForm<TimelineFormData>({
     defaultValues: {
       event_type: 'wedding',
+      ...prefill,
     },
   });
 
@@ -49,7 +54,7 @@ export default function TimelineForm() {
   }, [id, isEdit, reset]);
 
   const onSubmit = async (data: TimelineFormData) => {
-    const payload = {
+    const payload: Record<string, unknown> = {
       ...data,
       main_contact_name: data.main_contact_name || null,
       main_contact_phone: data.main_contact_phone || null,
@@ -59,6 +64,7 @@ export default function TimelineForm() {
       special_instructions: data.special_instructions || null,
       notes: data.notes || null,
     };
+    if (fromReservation) payload.reservation_id = fromReservation;
 
     if (isEdit) {
       const res = await timelinesApi.update(Number(id), payload);

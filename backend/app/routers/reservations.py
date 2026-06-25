@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import asc, desc, or_
-from sqlalchemy.orm import Session, outerjoin
+from sqlalchemy.orm import Session, outerjoin, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
@@ -64,7 +64,9 @@ def list_reservations(
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
-    q = db.query(Reservation).outerjoin(Customer, Reservation.customer_id == Customer.id)
+    q = (db.query(Reservation)
+         .outerjoin(Customer, Reservation.customer_id == Customer.id)
+         .options(selectinload(Reservation.timelines)))
 
     if status:
         q = q.filter(Reservation.status == status)

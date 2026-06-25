@@ -48,6 +48,7 @@ class Reservation(Base):
     quote = relationship("Quote", foreign_keys=[quote_id], lazy="select")
     vehicle = relationship("Vehicle", foreign_keys=[vehicle_id], lazy="select")
     driver = relationship("Driver", foreign_keys=[driver_id], lazy="select")
+    timelines = relationship("EventTimeline", back_populates="reservation", lazy="select")
 
     @property
     def remaining_balance(self) -> Decimal:

@@ -498,7 +498,17 @@ export default function TimelineDetail() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{timeline.event_name}</h1>
-            <p className="text-sm text-gray-500 capitalize mt-0.5">{formatDate(timeline.event_date)}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-sm text-gray-500 capitalize">{formatDate(timeline.event_date)}</p>
+              {timeline.reservation_id && (
+                <button
+                  onClick={() => navigate(`/reservas/${timeline.reservation_id}`)}
+                  className="text-xs text-pink-600 hover:underline cursor-pointer"
+                >
+                  · Ver reserva →
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">

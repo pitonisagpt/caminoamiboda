@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Car, Loader2, Pencil, Trash2, User, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Car, Loader2, Pencil, Trash2, User, DollarSign, CalendarClock, Plus } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { Reservation, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
@@ -184,6 +184,35 @@ export default function ReservationDetail() {
             <p className="text-xs text-gray-400 mt-1">{pct}% pagado</p>
           </div>
         </div>
+      </div>
+
+      {/* Timeline link */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarClock size={16} className="text-pink-400" />
+            <h2 className="font-semibold text-gray-800 text-sm">Evento / Minuto a minuto</h2>
+          </div>
+          {reservation.timeline_id ? (
+            <button
+              onClick={() => navigate(`/eventos/${reservation.timeline_id}`)}
+              className="flex items-center gap-1.5 text-sm text-pink-700 font-medium border border-pink-200 hover:bg-pink-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <CalendarClock size={14} />
+              {reservation.timeline_event_name ?? 'Ver evento'}
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/eventos/nuevo', { state: { reservation_id: reservation.id, prefill: { event_name: reservation.display_customer, event_date: reservation.event_date } } })}
+              className="flex items-center gap-1.5 text-sm text-gray-500 border border-gray-200 hover:border-pink-300 hover:text-pink-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <Plus size={14} /> Crear evento
+            </button>
+          )}
+        </div>
+        {!reservation.timeline_id && (
+          <p className="text-xs text-gray-400 mt-2">No hay un evento creado para esta reserva todavía.</p>
+        )}
       </div>
 
       {/* Notes */}
