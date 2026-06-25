@@ -68,11 +68,7 @@ def create_timeline(body: TimelineCreate, db: Session = Depends(get_db)):
     db.add(timeline)
     db.commit()
     tl = _get_timeline(timeline.id, db)
-    try:
-        from app.services.google_calendar_service import sync_timeline
-        sync_timeline(tl, db)
-    except Exception as e:
-        print(f"[GCal] sync failed on create: {e}")
+    _gcal_sync(tl, db, "on create")
     locs, acts = _load_locs_acts(tl.id, db)
     return TimelineRead.build(tl, locs, acts)
 
@@ -90,11 +86,7 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(timeline, field, value)
     db.commit()
-    try:
-        from app.services.google_calendar_service import sync_timeline
-        sync_timeline(timeline, db)
-    except Exception as e:
-        print(f"[GCal] sync failed on update: {e}")
+    _gcal_sync(timeline, db, "on update")
     locs, acts = _load_locs_acts(timeline_id, db)
     return TimelineRead.build(timeline, locs, acts)
 
@@ -113,6 +105,7 @@ def delete_timeline(timeline_id: int, db: Session = Depends(get_db)):
         print(f"[GCal] delete failed: {e}")
 
 
+
 @router.post("/api/timelines/{timeline_id}/regenerate-tokens", response_model=TimelineRead, dependencies=[Depends(get_current_user)])
 def regenerate_tokens(timeline_id: int, db: Session = Depends(get_db)):
     timeline = _get_timeline(timeline_id, db)
@@ -122,6 +115,14 @@ def regenerate_tokens(timeline_id: int, db: Session = Depends(get_db)):
     db.commit()
     locs, acts = _load_locs_acts(timeline_id, db)
     return TimelineRead.build(_get_timeline(timeline_id, db), locs, acts)
+
+
+def _gcal_sync(timeline, db: Session, label: str = ""):
+    try:
+        from app.services.google_calendar_service import sync_timeline
+        sync_timeline(timeline, db)
+    except Exception as e:
+        print(f"[GCal] sync failed{' ' + label if label else ''}: {e}")
 
 
 # ── Locations ──────────────────────────────────────────────────────────────────
@@ -134,7 +135,7 @@ def list_locations(timeline_id: int, db: Session = Depends(get_db)):
 
 @router.post("/api/timelines/{timeline_id}/locations", response_model=LocationRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_location(timeline_id: int, body: LocationCreate, db: Session = Depends(get_db)):
-    _get_timeline(timeline_id, db)
+    tl = _get_timeline(timeline_id, db)
     max_order = db.query(EventLocation).filter(EventLocation.timeline_id == timeline_id).count()
     data = body.model_dump()
     data.setdefault("display_order", max_order)
@@ -142,24 +143,29 @@ def create_location(timeline_id: int, body: LocationCreate, db: Session = Depend
     db.add(loc)
     db.commit()
     db.refresh(loc)
+    _gcal_sync(tl, db, "on location create")
     return loc
 
 
 @router.put("/api/timelines/{timeline_id}/locations/{location_id}", response_model=LocationRead, dependencies=[Depends(get_current_user)])
 def update_location(timeline_id: int, location_id: int, body: LocationUpdate, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
     loc = _get_location(timeline_id, location_id, db)
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(loc, field, value)
     db.commit()
     db.refresh(loc)
+    _gcal_sync(tl, db, "on location update")
     return loc
 
 
 @router.delete("/api/timelines/{timeline_id}/locations/{location_id}", status_code=204, dependencies=[Depends(get_current_user)])
 def delete_location(timeline_id: int, location_id: int, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
     loc = _get_location(timeline_id, location_id, db)
     db.delete(loc)
     db.commit()
+    _gcal_sync(tl, db, "on location delete")
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
