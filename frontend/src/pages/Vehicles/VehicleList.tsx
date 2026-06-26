@@ -1,5 +1,5 @@
-import { Car, Edit, Loader2, MessageCircle, Plus, PowerOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Car, ChevronUp, ChevronDown, Edit, Loader2, MessageCircle, Plus, PowerOff, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { Badge } from "../../components/ui/Badge";
@@ -64,6 +64,15 @@ function ScoreBar({ total }: { total: number | null }) {
   );
 }
 
+type SortKey = "license_plate" | "brand" | "year" | "color" | "status" | "score_total";
+type SortDir = "asc" | "desc";
+
+function vehiclePhoto(v: VehicleListItem): string | null {
+  if (!v.photos?.length) return null;
+  const visible = v.photos.find(p => p.is_visible) ?? v.photos[0];
+  return visible ? `/api/uploads/vehicles/${visible.file_name}` : null;
+}
+
 export function VehicleList() {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
@@ -72,6 +81,9 @@ export function VehicleList() {
   const [deactivating, setDeactivating] = useState<number | null>(null);
   const [waVehicle, setWaVehicle] = useState<VehicleListItem | null>(null);
   const [waDate, setWaDate] = useState(todayISO());
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("brand");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const fetchVehicles = async () => {
     try {
@@ -85,6 +97,35 @@ export function VehicleList() {
   };
 
   useEffect(() => { fetchVehicles(); }, []);
+
+  const displayed = useMemo(() => {
+    const q = search.toLowerCase();
+    const filtered = q
+      ? vehicles.filter(v =>
+          [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString()]
+            .some(f => f?.toLowerCase().includes(q))
+        )
+      : vehicles;
+
+    return [...filtered].sort((a, b) => {
+      let av: string | number | null = null;
+      let bv: string | number | null = null;
+      if (sortKey === "score_total") { av = a.score_total; bv = b.score_total; }
+      else if (sortKey === "year")   { av = a.year;        bv = b.year; }
+      else                           { av = (a as any)[sortKey] ?? ""; bv = (b as any)[sortKey] ?? ""; }
+
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [vehicles, search, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
 
   const handleDeactivate = async (v: VehicleListItem) => {
     if (!confirm(`¿Desactivar el vehículo ${v.license_plate}?`)) return;
@@ -110,6 +151,23 @@ export function VehicleList() {
           <Plus size={18} />
           Nuevo vehículo
         </Button>
+      </div>
+
+      {/* Search bar */}
+      <div className="relative max-w-sm">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Buscar por placa, marca, color…"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+        />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+            <X size={13} />
+          </button>
+        )}
       </div>
 
       {error && (
@@ -212,74 +270,122 @@ export function VehicleList() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-pink-100 bg-pink-50/60">
-                  {["Placa", "Marca / Línea", "Año", "Color", "Ubicación", "Estado", "Score", "Pico y Placa", ""].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider first:pl-6 last:pr-6 last:text-right">
-                      {h}
+                  {/* Photo — not sortable */}
+                  <th className="pl-4 pr-2 py-3 w-12" />
+                  {(
+                    [
+                      { label: "Placa",       key: "license_plate" as SortKey },
+                      { label: "Marca / Línea", key: "brand" as SortKey },
+                      { label: "Año",         key: "year" as SortKey },
+                      { label: "Color",       key: "color" as SortKey },
+                      { label: "Ubicación",   key: null },
+                      { label: "Estado",      key: "status" as SortKey },
+                      { label: "Score",       key: "score_total" as SortKey },
+                      { label: "Pico y Placa", key: null },
+                    ] as { label: string; key: SortKey | null }[]
+                  ).map(({ label, key }) => (
+                    <th
+                      key={label}
+                      onClick={key ? () => toggleSort(key) : undefined}
+                      className={`text-left px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider select-none ${key ? "cursor-pointer hover:text-pink-900" : ""}`}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {label}
+                        {key && sortKey === key && (
+                          sortDir === "asc"
+                            ? <ChevronUp size={12} className="text-pink-500" />
+                            : <ChevronDown size={12} className="text-pink-500" />
+                        )}
+                      </span>
                     </th>
                   ))}
+                  <th className="pr-6 py-3 text-right text-xs font-semibold text-pink-700 uppercase tracking-wider" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-pink-50">
-                {vehicles.map((v) => (
-                  <tr key={v.id} className="hover:bg-pink-50/40 transition-colors duration-150">
-                    <td className="px-6 py-3">
-                      <span className="font-mono text-pink-700 font-semibold text-xs tracking-wide">{v.license_plate}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900">{v.brand}</div>
-                      {v.model_line && <div className="text-xs text-gray-500">{v.model_line}</div>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{v.year ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-700">{v.color ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-700">{LOCATION_LABEL[v.location] ?? v.location}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ScoreBar total={v.score_total} />
-                    </td>
-                    <td className="px-4 py-3">
-                      {v.pico_y_placa_day ? (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${DAY_COLOR[v.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}>
-                          {v.pico_y_placa_day}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">N/A</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {v.owner_contact && (
-                          <button
-                            onClick={() => { setWaVehicle(v); setWaDate(todayISO()); }}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
-                            title="Consultar disponibilidad por WhatsApp"
-                          >
-                            <MessageCircle size={15} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => navigate(`/vehiculos/editar/${v.id}`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-                          title="Editar"
-                        >
-                          <Edit size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleDeactivate(v)}
-                          disabled={deactivating === v.id || v.status === "inactive"}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                          title="Desactivar"
-                        >
-                          {deactivating === v.id ? <Loader2 size={15} className="animate-spin" /> : <PowerOff size={15} />}
-                        </button>
-                      </div>
+                {displayed.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-6 py-10 text-center text-sm text-gray-400">
+                      No hay vehículos que coincidan con "{search}"
                     </td>
                   </tr>
-                ))}
+                ) : displayed.map((v) => {
+                  const photo = vehiclePhoto(v);
+                  return (
+                    <tr key={v.id} className="hover:bg-pink-50/40 transition-colors duration-150">
+                      {/* Photo / avatar */}
+                      <td className="pl-4 pr-2 py-2">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          {photo
+                            ? <img src={photo} alt={v.brand} className="w-full h-full object-cover" loading="lazy" />
+                            : <Car size={16} className="text-gray-300" />
+                          }
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-pink-700 font-semibold text-xs tracking-wide">{v.license_plate}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">{v.brand}</div>
+                        {v.model_line && <div className="text-xs text-gray-500">{v.model_line}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{v.year ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-700">{v.color ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-700">{LOCATION_LABEL[v.location] ?? v.location}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <ScoreBar total={v.score_total} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {v.pico_y_placa_day ? (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${DAY_COLOR[v.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}>
+                            {v.pico_y_placa_day}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          {v.owner_contact && (
+                            <button
+                              onClick={() => { setWaVehicle(v); setWaDate(todayISO()); }}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
+                              title="Consultar disponibilidad por WhatsApp"
+                            >
+                              <MessageCircle size={15} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => navigate(`/vehiculos/editar/${v.id}`)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+                            title="Editar"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeactivate(v)}
+                            disabled={deactivating === v.id || v.status === "inactive"}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Desactivar"
+                          >
+                            {deactivating === v.id ? <Loader2 size={15} className="animate-spin" /> : <PowerOff size={15} />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+          {search && displayed.length > 0 && (
+            <p className="px-6 py-2 text-xs text-gray-400 border-t border-pink-50">
+              {displayed.length} de {vehicles.length} vehículos
+            </p>
+          )}
         </Card>
       )}
     </div>
