@@ -232,7 +232,7 @@ export function VehicleList() {
 
             <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 leading-relaxed">
               <span className="font-medium text-gray-700">Mensaje:</span><br />
-              Hola! Te escribo de Camino a mi Boda. ¿Está disponible el {waVehicle.brand}
+              Hola! Te escribo de Camino a mi Boda. ¿Está disponible el {waVehicle.color ? `${waVehicle.color} ` : ""}{waVehicle.brand}
               {waVehicle.model_line ? ` ${waVehicle.model_line}` : ""} ({waVehicle.license_plate}) para el{" "}
               <span className="capitalize">{waDate ? formatDateES(waDate) : "…"}</span>?
             </div>
@@ -247,7 +247,7 @@ export function VehicleList() {
               <a
                 href={toWhatsAppUrl(
                   waVehicle.owner_contact!,
-                  `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${waVehicle.brand}${waVehicle.model_line ? ` ${waVehicle.model_line}` : ""} (${waVehicle.license_plate}) para el ${formatDateES(waDate)}?`
+                  `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${waVehicle.color ? `${waVehicle.color} ` : ""}${waVehicle.brand}${waVehicle.model_line ? ` ${waVehicle.model_line}` : ""} (${waVehicle.license_plate}) para el ${formatDateES(waDate)}?`
                 )}
                 target="_blank"
                 rel="noopener noreferrer"

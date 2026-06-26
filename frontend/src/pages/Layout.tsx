@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookUser, Calendar, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, Truck, User, Users } from "lucide-react";
+import { BookUser, Calendar, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/Badge";
@@ -116,7 +116,8 @@ export function Layout() {
           )}
 
           <SidebarSection label="Finanzas" />
-          <NavItem to="/documentos" icon={FileText} label="Cuentas de Cobro" onClick={closeSidebar} />
+          <NavItem to="/finanzas"   icon={TrendingUp} label="Dashboard Financiero" onClick={closeSidebar} />
+          <NavItem to="/documentos" icon={FileText}   label="Cuentas de Cobro"     onClick={closeSidebar} />
         </nav>
 
         {/* User footer */}

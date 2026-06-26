@@ -9,6 +9,7 @@ import { BillingDocumentDetail } from "./pages/BillingDocuments/BillingDocumentD
 import { BillingDocumentForm } from "./pages/BillingDocuments/BillingDocumentForm";
 import { BillingDocumentList } from "./pages/BillingDocuments/BillingDocumentList";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import FinancePage from "./pages/Finance/FinancePage";
 import { UserList } from "./pages/Admin/UserList";
 import { UserForm } from "./pages/Admin/UserForm";
 import { VehicleList } from "./pages/Vehicles/VehicleList";
@@ -123,6 +124,16 @@ export default function App() {
             <Route path="propietarios" element={<ProtectedRoute adminOnly><OwnerList /></ProtectedRoute>} />
             <Route path="propietarios/nuevo" element={<ProtectedRoute adminOnly><OwnerForm /></ProtectedRoute>} />
             <Route path="propietarios/editar/:id" element={<ProtectedRoute adminOnly><OwnerForm /></ProtectedRoute>} />
+
+            {/* Finance Dashboard — admin only */}
+            <Route
+              path="finanzas"
+              element={
+                <ProtectedRoute adminOnly>
+                  <FinancePage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin */}
             <Route
