@@ -75,6 +75,24 @@ export interface DateRangeParams {
   date_to?: string | null;
 }
 
+export interface VehicleUsageStat {
+  id: number;
+  display_name: string;
+  license_plate: string;
+  photo_url: string | null;
+  event_count: number;
+  completed_count: number;
+  total_revenue: number;
+  company_share: number;
+  avg_revenue: number;
+  last_event_date: string | null;
+  next_event_date: string | null;
+}
+
+export interface VehicleUsageResponse {
+  vehicles: VehicleUsageStat[];
+}
+
 export const dashboardApi = {
   summary: (params?: DateRangeParams) =>
     api.get<DashboardSummary>('/dashboard/summary', { params: params ?? {} }),
@@ -82,4 +100,10 @@ export const dashboardApi = {
     api.get<RevenueTrendResponse>('/dashboard/charts/revenue-trend', { params: params ?? { months: 24 } }),
   analytics: (params?: DateRangeParams) =>
     api.get<AnalyticsResponse>('/dashboard/charts/analytics', { params: params ?? {} }),
+  vehicleUsage: (params?: DateRangeParams & { vehicle_ids?: number[] }) => {
+    const { vehicle_ids, ...rest } = params ?? {};
+    return api.get<VehicleUsageResponse>('/dashboard/charts/vehicles', {
+      params: { ...rest, ...(vehicle_ids?.length ? { vehicle_ids: vehicle_ids.join(',') } : {}) },
+    });
+  },
 };

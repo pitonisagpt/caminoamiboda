@@ -13,6 +13,7 @@ import { UserList } from "./pages/Admin/UserList";
 import { UserForm } from "./pages/Admin/UserForm";
 import { VehicleList } from "./pages/Vehicles/VehicleList";
 import { VehicleForm } from "./pages/Vehicles/VehicleForm";
+import VehicleStatsPage from "./pages/Vehicles/VehicleStatsPage";
 import { CustomerList } from "./pages/Customers/CustomerList";
 import { CustomerForm } from "./pages/Customers/CustomerForm";
 import { DriverList } from "./pages/Drivers/DriverList";
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="vehiculos" element={<VehicleList />} />
             <Route path="vehiculos/nuevo" element={<VehicleForm />} />
             <Route path="vehiculos/editar/:id" element={<VehicleForm />} />
+            <Route path="vehiculos/:id/estadisticas" element={<VehicleStatsPage />} />
 
             {/* Calendar */}
             <Route path="calendario" element={<CalendarPage />} />

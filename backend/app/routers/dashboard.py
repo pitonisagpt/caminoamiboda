@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import extract, func
@@ -363,3 +363,128 @@ def analytics(
         "category_breakdown": category_breakdown,
         "seasonality": seasonality,
     }
+
+
+@router.get("/api/dashboard/charts/vehicles")
+def vehicle_usage(
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    vehicle_ids: Optional[str] = Query(None),  # comma-separated ints
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    today = date.today()
+
+    parsed_ids: Optional[List[int]] = None
+    if vehicle_ids:
+        try:
+            parsed_ids = [int(x.strip()) for x in vehicle_ids.split(",") if x.strip()]
+        except ValueError:
+            parsed_ids = None
+
+    # Base filters
+    base_filters = [
+        Reservation.vehicle_id.isnot(None),
+        Reservation.status != ReservationStatus.cancelled,
+    ]
+    if date_from:
+        base_filters.append(Reservation.event_date >= date_from)
+    if date_to:
+        base_filters.append(Reservation.event_date <= date_to)
+    if parsed_ids:
+        base_filters.append(Reservation.vehicle_id.in_(parsed_ids))
+
+    # Total events per vehicle (non-cancelled)
+    res_rows = (
+        db.query(
+            Reservation.vehicle_id,
+            func.count(Reservation.id).label("event_count"),
+        )
+        .filter(*base_filters)
+        .group_by(Reservation.vehicle_id)
+        .all()
+    )
+
+    # Completed stats per vehicle
+    completed_rows = (
+        db.query(
+            Reservation.vehicle_id,
+            func.count(Reservation.id).label("cnt"),
+            func.coalesce(func.sum(Reservation.total_amount), 0).label("revenue"),
+        )
+        .filter(
+            Reservation.vehicle_id.isnot(None),
+            Reservation.status == ReservationStatus.completed,
+            *([Reservation.event_date >= date_from] if date_from else []),
+            *([Reservation.event_date <= date_to] if date_to else []),
+            *([Reservation.vehicle_id.in_(parsed_ids)] if parsed_ids else []),
+        )
+        .group_by(Reservation.vehicle_id)
+        .all()
+    )
+    completed_map = {r.vehicle_id: (r.cnt, float(r.revenue)) for r in completed_rows}
+
+    # Last historical event and next upcoming per vehicle (all time, not filtered)
+    past_rows = (
+        db.query(Reservation.vehicle_id, func.max(Reservation.event_date).label("last_date"))
+        .filter(Reservation.vehicle_id.isnot(None), Reservation.event_date <= today)
+        .group_by(Reservation.vehicle_id)
+        .all()
+    )
+    next_rows = (
+        db.query(Reservation.vehicle_id, func.min(Reservation.event_date).label("next_date"))
+        .filter(
+            Reservation.vehicle_id.isnot(None),
+            Reservation.event_date > today,
+            Reservation.status.notin_([ReservationStatus.cancelled]),
+        )
+        .group_by(Reservation.vehicle_id)
+        .all()
+    )
+    last_map = {r.vehicle_id: r.last_date for r in past_rows}
+    next_map = {r.vehicle_id: r.next_date for r in next_rows}
+
+    # Build vehicle id set
+    vehicle_id_set = {r.vehicle_id for r in res_rows}
+
+    # Fetch vehicles
+    veh_query = db.query(Vehicle)
+    if vehicle_id_set:
+        veh_query = veh_query.filter(Vehicle.id.in_(vehicle_id_set))
+    vehicles_map = {v.id: v for v in veh_query.all()}
+
+    def _photo_url(vehicle: Vehicle) -> Optional[str]:
+        if not vehicle or not vehicle.photos:
+            return None
+        first = next((p for p in vehicle.photos if p.is_visible), None)
+        return f"/api/uploads/vehicles/{first.file_name}" if first else None
+
+    result = []
+    for row in res_rows:
+        v = vehicles_map.get(row.vehicle_id)
+        if not v:
+            continue
+        display_parts = [v.brand or ""]
+        if v.color:
+            display_parts.append(v.color)
+        display_name = " ".join(p for p in display_parts if p).strip() or v.license_plate
+
+        completed, rev = completed_map.get(row.vehicle_id, (0, 0.0))
+        last_date = last_map.get(row.vehicle_id)
+        next_date = next_map.get(row.vehicle_id)
+        result.append({
+            "id": v.id,
+            "display_name": display_name,
+            "license_plate": v.license_plate,
+            "photo_url": _photo_url(v),
+            "event_count": row.event_count,
+            "completed_count": completed,
+            "total_revenue": rev,
+            "company_share": round(rev * 0.30),
+            "avg_revenue": round(rev / completed) if completed else 0,
+            "last_event_date": last_date.isoformat() if last_date else None,
+            "next_event_date": next_date.isoformat() if next_date else None,
+        })
+
+    result.sort(key=lambda x: x["completed_count"], reverse=True)
+    return {"vehicles": result}

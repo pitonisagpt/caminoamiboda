@@ -1,4 +1,4 @@
-import { Car, ChevronUp, ChevronDown, Edit, Loader2, MessageCircle, Plus, PowerOff, Search, X } from "lucide-react";
+import { BarChart2, Car, ChevronUp, ChevronDown, Edit, Loader2, MessageCircle, Plus, PowerOff, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
@@ -358,6 +358,13 @@ export function VehicleList() {
                               <MessageCircle size={15} />
                             </button>
                           )}
+                          <button
+                            onClick={() => navigate(`/vehiculos/${v.id}/estadisticas`)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors cursor-pointer"
+                            title="Estadísticas"
+                          >
+                            <BarChart2 size={15} />
+                          </button>
                           <button
                             onClick={() => navigate(`/vehiculos/editar/${v.id}`)}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"

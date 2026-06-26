@@ -43,6 +43,7 @@ export function VehicleForm() {
   const [loadingDoc, setLoadingDoc] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [owners, setOwners] = useState<VehicleOwner[]>([]);
+  const [ownerContact, setOwnerContact] = useState("");
 
   useEffect(() => {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
@@ -81,6 +82,7 @@ export function VehicleForm() {
     if (!isEditing || !id) return;
     vehiclesApi.get(Number(id)).then((res) => {
       const v = res.data;
+      setOwnerContact(v.owner_contact ?? "");
       reset({
         license_plate: v.license_plate,
         brand: v.brand,
@@ -276,7 +278,12 @@ export function VehicleForm() {
                 setValue("owner_name", name);
                 const selected = owners.find(o => o.full_name === name);
                 if (selected) {
-                  setValue("owner_contact", selected.whatsapp || selected.phone || "");
+                  const contact = selected.whatsapp || selected.phone || "";
+                  setValue("owner_contact", contact);
+                  setOwnerContact(contact);
+                } else {
+                  setOwnerContact("");
+                  setValue("owner_contact", "");
                 }
               }}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
@@ -287,7 +294,14 @@ export function VehicleForm() {
               ))}
             </select>
           </div>
-          <Input label="Contacto del dueño" {...register("owner_contact")} placeholder="312 798 6558" />
+          <Input
+            label="Contacto del dueño"
+            value={ownerContact}
+            onChange={() => {}}
+            readOnly
+            disabled
+            placeholder="Se llena automáticamente al seleccionar propietario"
+          />
         </CardBody>
       </Card>
 

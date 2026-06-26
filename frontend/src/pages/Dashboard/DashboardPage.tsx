@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Car, ClipboardList, TrendingUp, AlertCircle, CheckCircle2, Loader2, Info } from 'lucide-react';
 import { dashboardApi, type DashboardSummary } from '../../api/dashboard';
 import { RESERVATION_STATUS_LABEL, RESERVATION_STATUS_COLOR } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
 import AnalyticsSection from './AnalyticsSection';
+import VehicleStatsSection from './VehicleStatsSection';
 import DateRangeFilter, { DEFAULT_RANGE, type DateRange } from './DateRangeFilter';
 
 function Tooltip({ text }: { text: string }) {
@@ -275,16 +276,15 @@ export default function DashboardPage() {
                   const newMonth = !prevD || d.getMonth() !== prevD.getMonth() || d.getFullYear() !== prevD.getFullYear();
                   const monthLabel = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
                   return (
-                    <>
+                    <React.Fragment key={r.id}>
                       {newMonth && (
-                        <tr key={`month-${r.date}`} className="bg-gray-50/70">
+                        <tr className="bg-gray-50/70">
                           <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest capitalize">
                             {monthLabel}
                           </td>
                         </tr>
                       )}
                       <tr
-                        key={r.id}
                         onClick={() => navigate(`/reservas/${r.id}`)}
                         className="hover:bg-pink-50/40 transition-colors cursor-pointer"
                       >
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                             : <span className="text-green-600 text-xs">Pagado</span>}
                         </td>
                       </tr>
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -349,6 +349,7 @@ export default function DashboardPage() {
       </div>
 
       <AnalyticsSection range={range} />
+      <VehicleStatsSection range={range} />
     </div>
   );
 }

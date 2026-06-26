@@ -1,6 +1,32 @@
 import type { Vehicle, VehicleListItem, VehicleLocation, VehiclePhoto, VehicleStatus, VehicleType } from "../types/vehicle";
 import { api } from "./index";
 
+export interface VehicleStatsSummary {
+  total_events: number;
+  completed_events: number;
+  upcoming_count: number;
+  total_revenue: number;
+  company_share: number;
+  avg_revenue_per_event: number;
+  first_event_date: string | null;
+  last_event_date: string | null;
+}
+
+export interface VehicleStatsResponse {
+  summary: VehicleStatsSummary;
+  monthly_trend: { month: string; revenue: number; count: number }[];
+  status_breakdown: { status: string; label: string; count: number }[];
+  seasonality: { month: number; label: string; count: number }[];
+  recent_events: {
+    id: number;
+    reservation_number: string;
+    title: string;
+    date: string;
+    status: string;
+    total_amount: number;
+  }[];
+}
+
 interface ListParams {
   status?: VehicleStatus;
   location?: VehicleLocation;
@@ -46,6 +72,10 @@ export const vehiclesApi = {
 
   deletePhoto(vehicleId: number, photoId: number) {
     return api.delete(`/vehicles/${vehicleId}/photos/${photoId}`);
+  },
+
+  stats(id: number, params?: { date_from?: string | null; date_to?: string | null }) {
+    return api.get<VehicleStatsResponse>(`/vehicles/${id}/stats`, { params: params ?? {} });
   },
 };
 
