@@ -1,6 +1,7 @@
 import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import Combobox from "../../components/ui/Combobox";
 import { useNavigate, useParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { vehicleOwnersApi } from "../../api/vehicleOwners";
@@ -49,7 +50,7 @@ export function VehicleForm() {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
   }, []);
 
-  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<VehicleFormData>({
+  const { register, handleSubmit, watch, reset, setValue, control, formState: { errors } } = useForm<VehicleFormData>({
     defaultValues: {
       vehicle_type: "car",
       location: "medellin",
@@ -269,31 +270,25 @@ export function VehicleForm() {
           </div>
         </CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Propietario</label>
-            <select
-              {...register("owner_name")}
-              onChange={e => {
-                const name = e.target.value;
-                setValue("owner_name", name);
-                const selected = owners.find(o => o.full_name === name);
-                if (selected) {
-                  const contact = selected.whatsapp || selected.phone || "";
-                  setValue("owner_contact", contact);
+          <Controller
+            name="owner_name"
+            control={control}
+            render={({ field }) => (
+              <Combobox
+                label="Propietario"
+                options={owners.map(o => ({ value: o.full_name, label: o.full_name }))}
+                value={field.value ?? ''}
+                onChange={val => {
+                  field.onChange(val);
+                  const selected = owners.find(o => o.full_name === val);
+                  const contact = selected?.whatsapp || selected?.phone || '';
+                  setValue('owner_contact', contact);
                   setOwnerContact(contact);
-                } else {
-                  setOwnerContact("");
-                  setValue("owner_contact", "");
-                }
-              }}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
-            >
-              <option value="">Sin asignar</option>
-              {owners.map(o => (
-                <option key={o.id} value={o.full_name}>{o.full_name}</option>
-              ))}
-            </select>
-          </div>
+                }}
+                placeholder="Buscar propietario..."
+              />
+            )}
+          />
           <Input
             label="Contacto del dueño"
             value={ownerContact}

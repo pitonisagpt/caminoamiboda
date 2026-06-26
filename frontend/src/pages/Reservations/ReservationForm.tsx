@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { AlertTriangle, ArrowLeft, Save } from 'lucide-react';
+import Combobox from '../../components/ui/Combobox';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
 import { contactsApi } from '../../api/contacts';
@@ -133,27 +134,35 @@ export default function ReservationForm() {
           <h2 className="font-semibold text-gray-800">Información del evento</h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Cliente (novios)</label>
-              <select {...register('customer_id')} className={inputCls}>
-                <option value="">Sin asignar aún</option>
-                {customers.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.bride_name && c.groom_name ? `${c.bride_name} & ${c.groom_name}` : c.main_contact_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelCls}>Planificadora / Referida por</label>
-              <select {...register('contact_id')} className={inputCls}>
-                <option value="">Sin contacto</option>
-                {contacts.map(c => (
-                  <option key={c.id} value={c.id}>{c.full_name}</option>
-                ))}
-              </select>
-            </div>
+            <Controller
+              name="customer_id"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  label="Cliente (novios)"
+                  options={customers.map(c => ({
+                    value: String(c.id),
+                    label: c.bride_name && c.groom_name ? `${c.bride_name} & ${c.groom_name}` : c.main_contact_name,
+                  }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Buscar cliente..."
+                />
+              )}
+            />
+            <Controller
+              name="contact_id"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  label="Planificadora / Referida por"
+                  options={contacts.map(c => ({ value: String(c.id), label: c.full_name }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Buscar contacto..."
+                />
+              )}
+            />
           </div>
 
           <div>
@@ -186,28 +195,35 @@ export default function ReservationForm() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Vehículo</label>
-              <select {...register('vehicle_id')} className={inputCls}>
-                <option value="">Sin asignar</option>
-                {vehicles.map(v => (
-                  <option key={v.id} value={v.id}>
-                    {[v.brand, v.model_line, v.color].filter(Boolean).join(' · ')}
-                    {v.owner_name ? ` (${v.owner_name})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelCls}>Conductor</label>
-              <select {...register('driver_id')} className={inputCls}>
-                <option value="">Sin asignar</option>
-                {drivers.map(d => (
-                  <option key={d.id} value={d.id}>{d.full_name}</option>
-                ))}
-              </select>
-            </div>
+            <Controller
+              name="vehicle_id"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  label="Vehículo"
+                  options={vehicles.map(v => ({
+                    value: String(v.id),
+                    label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
+                  }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Buscar vehículo..."
+                />
+              )}
+            />
+            <Controller
+              name="driver_id"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  label="Conductor"
+                  options={drivers.map(d => ({ value: String(d.id), label: d.full_name }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Buscar conductor..."
+                />
+              )}
+            />
           </div>
         </div>
 

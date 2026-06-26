@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import Combobox from '../../components/ui/Combobox';
 import { Loader2 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
 import { customersApi } from '../../api/customers';
@@ -24,7 +25,7 @@ export default function QuoteForm() {
   const [saving, setSaving] = useState(false);
   const [existingStatus, setExistingStatus] = useState<QuoteStatus>('draft');
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<QuoteFormData>({
+  const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<QuoteFormData>({
     defaultValues: {
       use_existing_customer: false,
       customer_id: null,
@@ -162,19 +163,22 @@ export default function QuoteForm() {
         </div>
 
         {useExistingCustomer ? (
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Cliente</label>
-            <select {...register('customer_id')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
-            >
-              <option value="">Seleccionar cliente...</option>
-              {customers.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.main_contact_name}{c.bride_name ? ` (${c.bride_name} & ${c.groom_name ?? '…'})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Controller
+            name="customer_id"
+            control={control}
+            render={({ field }) => (
+              <Combobox
+                label="Cliente"
+                options={customers.map(c => ({
+                  value: String(c.id),
+                  label: c.main_contact_name + (c.bride_name ? ` (${c.bride_name} & ${c.groom_name ?? '…'})` : ''),
+                }))}
+                value={field.value ? String(field.value) : ''}
+                onChange={val => field.onChange(val ? Number(val) : null)}
+                placeholder="Buscar cliente..."
+              />
+            )}
+          />
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -244,20 +248,23 @@ export default function QuoteForm() {
         </div>
 
         {useExistingVehicle ? (
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Vehículo</label>
-            <select {...register('vehicle_id')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
-            >
-              <option value="">Seleccionar vehículo...</option>
-              {vehicles.map(v => (
-                <option key={v.id} value={v.id}>
-                  {v.brand}{v.model_line ? ` ${v.model_line}` : ''}{v.color ? ` / ${v.color}` : ''}
-                  {v.price_medellin ? ` — $${v.price_medellin.toLocaleString('es-CO')} Medellín` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Controller
+            name="vehicle_id"
+            control={control}
+            render={({ field }) => (
+              <Combobox
+                label="Vehículo"
+                options={vehicles.map(v => ({
+                  value: String(v.id),
+                  label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ')
+                    + (v.price_medellin ? ` — $${v.price_medellin.toLocaleString('es-CO')} Medellin` : ''),
+                }))}
+                value={field.value ? String(field.value) : ''}
+                onChange={val => field.onChange(val ? Number(val) : null)}
+                placeholder="Buscar vehículo..."
+              />
+            )}
+          />
         ) : (
           <div>
             <label className="block text-sm text-gray-600 mb-1">Descripción del vehículo</label>
