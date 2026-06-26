@@ -14,12 +14,14 @@ export interface UpcomingReservation {
 
 export interface DashboardSummary {
   upcoming: UpcomingReservation[];
+  period_events: UpcomingReservation[];
   reservations_by_status: Record<string, number>;
   vehicles_by_status: Record<string, number>;
   finance: {
     revenue_this_month: number;
     pending_collections: number;
     pending_owner_payments: number;
+    pending_company_revenue: number;
   };
 }
 
@@ -67,9 +69,16 @@ export interface AnalyticsResponse {
   seasonality: SeasonalityPoint[];
 }
 
+export interface DateRangeParams {
+  date_from?: string | null;
+  date_to?: string | null;
+}
+
 export const dashboardApi = {
-  summary: () => api.get<DashboardSummary>('/dashboard/summary'),
-  revenueTrend: (months = 24) =>
-    api.get<RevenueTrendResponse>('/dashboard/charts/revenue-trend', { params: { months } }),
-  analytics: () => api.get<AnalyticsResponse>('/dashboard/charts/analytics'),
+  summary: (params?: DateRangeParams) =>
+    api.get<DashboardSummary>('/dashboard/summary', { params: params ?? {} }),
+  revenueTrend: (params?: DateRangeParams & { months?: number }) =>
+    api.get<RevenueTrendResponse>('/dashboard/charts/revenue-trend', { params: params ?? { months: 24 } }),
+  analytics: (params?: DateRangeParams) =>
+    api.get<AnalyticsResponse>('/dashboard/charts/analytics', { params: params ?? {} }),
 };

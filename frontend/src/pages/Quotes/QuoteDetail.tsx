@@ -267,11 +267,13 @@ export default function QuoteDetail() {
           <div className="flex-1 bg-gray-50 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-xl font-bold text-gray-900">{formatCOP(quote.total_price)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP((quote.total_price ?? 0) * 0.3)}</p>
           </div>
           {quote.deposit_amount && (
             <div className="flex-1 bg-green-50 rounded-xl p-4">
               <p className="text-xs text-gray-400 mb-1">Anticipo</p>
               <p className="text-xl font-bold text-green-700">{formatCOP(quote.deposit_amount)}</p>
+              <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(quote.deposit_amount * 0.3)}</p>
             </div>
           )}
         </div>

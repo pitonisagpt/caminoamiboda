@@ -73,16 +73,19 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
           <div className="bg-gray-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-lg font-bold text-gray-900">{formatCOP(reservation.total_amount)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.total_amount * 0.3)}</p>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Depósito</p>
             <p className="text-lg font-bold text-green-700">{formatCOP(reservation.deposit_paid)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.deposit_paid * 0.3)}</p>
           </div>
           <div className={`rounded-xl p-4 text-center ${Number(reservation.remaining_balance) > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
             <p className={`text-lg font-bold ${Number(reservation.remaining_balance) > 0 ? 'text-red-600' : 'text-green-700'}`}>
               {formatCOP(reservation.remaining_balance)}
             </p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(Number(reservation.remaining_balance) * 0.3)}</p>
           </div>
         </div>
 

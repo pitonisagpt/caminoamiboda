@@ -149,7 +149,10 @@ export default function QuoteList() {
                   <td className="px-4 py-3 font-medium text-gray-900">{q.display_customer}</td>
                   <td className="px-4 py-3 text-gray-600">{q.display_vehicle}</td>
                   <td className="px-4 py-3 text-gray-600">{formatDate(q.event_date)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatCOP(q.total_price)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <p className="font-semibold text-gray-900">{formatCOP(q.total_price)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP((q.total_price ?? 0) * 0.3)}</p>
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${QUOTE_STATUS_COLOR[q.status]}`}>
                       {QUOTE_STATUS_LABEL[q.status]}

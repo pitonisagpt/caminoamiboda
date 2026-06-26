@@ -259,9 +259,13 @@ export default function ReservationList() {
                   <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{r.display_customer}</td>
                   <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{r.display_vehicle}</td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(r.event_date)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900 whitespace-nowrap">{formatCOP(r.total_amount)}</td>
-                  <td className={`px-4 py-3 text-right font-semibold whitespace-nowrap ${Number(r.remaining_balance) > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                    {formatCOP(r.remaining_balance)}
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * 0.3)}</p>
+                  </td>
+                  <td className={`px-4 py-3 text-right whitespace-nowrap ${Number(r.remaining_balance) > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                    <p className="font-semibold">{formatCOP(r.remaining_balance)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP(Number(r.remaining_balance) * 0.3)}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
