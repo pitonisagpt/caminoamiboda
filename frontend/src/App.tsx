@@ -25,6 +25,8 @@ import EventoPage from "./pages/Public/EventoPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
+import ContactList from "./pages/Contacts/ContactList";
+import ContactForm from "./pages/Contacts/ContactForm";
 import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
@@ -99,6 +101,11 @@ export default function App() {
 
             {/* Legacy timeline URLs — redirect to reservation?tab=evento */}
             <Route path="eventos/:id" element={<TimelineRedirect />} />
+
+            {/* Contacts (wedding planners, venues, agencies) */}
+            <Route path="contactos" element={<ContactList />} />
+            <Route path="contactos/nuevo" element={<ContactForm />} />
+            <Route path="contactos/editar/:id" element={<ContactForm />} />
 
             {/* Customers */}
             <Route path="clientes" element={<CustomerList />} />

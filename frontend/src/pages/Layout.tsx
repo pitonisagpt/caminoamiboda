@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, Truck, User, Users } from "lucide-react";
+import { BookUser, Calendar, Car, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, Menu, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/Badge";
@@ -105,6 +105,7 @@ export function Layout() {
           <NavItem to="/clientes"    icon={Heart} label="Clientes"    onClick={closeSidebar} />
           <NavItem to="/vehiculos"   icon={Car}   label="Vehículos"   onClick={closeSidebar} />
           <NavItem to="/conductores" icon={Truck} label="Conductores" onClick={closeSidebar} />
+          <NavItem to="/contactos"   icon={BookUser} label="Contactos"  onClick={closeSidebar} />
 
           {isAdmin && (
             <>
