@@ -141,6 +141,11 @@ export default function DashboardPage() {
                       {new Date(r.date + 'T12:00:00').getDate()}
                     </p>
                   </div>
+                  <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {r.vehicle_photo_url
+                      ? <img src={r.vehicle_photo_url} alt={r.vehicle} className="w-full h-full object-cover" />
+                      : <Car size={20} className="text-gray-300" />}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{r.title}</p>
                     <p className="text-xs text-gray-400 truncate">
@@ -254,6 +259,7 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-50 text-xs text-gray-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 w-12" />
                   <th className="text-left px-5 py-3">Fecha</th>
                   <th className="text-left px-4 py-3">Cliente</th>
                   <th className="text-left px-4 py-3 hidden md:table-cell">Vehículo</th>
@@ -272,7 +278,7 @@ export default function DashboardPage() {
                     <>
                       {newMonth && (
                         <tr key={`month-${r.date}`} className="bg-gray-50/70">
-                          <td colSpan={6} className="px-5 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest capitalize">
+                          <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest capitalize">
                             {monthLabel}
                           </td>
                         </tr>
@@ -282,6 +288,13 @@ export default function DashboardPage() {
                         onClick={() => navigate(`/reservas/${r.id}`)}
                         className="hover:bg-pink-50/40 transition-colors cursor-pointer"
                       >
+                        <td className="px-4 py-2">
+                          <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                            {r.vehicle_photo_url
+                              ? <img src={r.vehicle_photo_url} alt={r.vehicle} className="w-full h-full object-cover" />
+                              : <Car size={16} className="text-gray-300" />}
+                          </div>
+                        </td>
                         <td className="px-5 py-3 text-gray-600 whitespace-nowrap">
                           {d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
                         </td>

@@ -10,6 +10,7 @@ export interface UpcomingReservation {
   driver: string;
   total_amount: number;
   remaining_balance: number;
+  vehicle_photo_url: string | null;
 }
 
 export interface DashboardSummary {

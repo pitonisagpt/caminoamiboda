@@ -52,6 +52,13 @@ def get_summary(
         .all()
     )
 
+    def _vehicle_photo_url(reservation) -> str | None:
+        v = reservation.vehicle
+        if not v or not v.photos:
+            return None
+        first = next((p for p in v.photos if p.is_visible), None)
+        return f"/api/uploads/vehicles/{first.file_name}" if first else None
+
     upcoming = []
     for r in upcoming_qs:
         upcoming.append({
@@ -64,6 +71,7 @@ def get_summary(
             "driver": r.display_driver,
             "total_amount": float(r.total_amount),
             "remaining_balance": float(r.remaining_balance),
+            "vehicle_photo_url": _vehicle_photo_url(r),
         })
 
     # --- Reservations by status (always all-time snapshot) ---
@@ -128,6 +136,7 @@ def get_summary(
             "vehicle": r.display_vehicle,
             "total_amount": float(r.total_amount),
             "remaining_balance": float(r.remaining_balance),
+            "vehicle_photo_url": _vehicle_photo_url(r),
         }
         for r in period_events
     ]
