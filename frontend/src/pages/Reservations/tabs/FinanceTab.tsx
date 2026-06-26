@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { DollarSign, Download, FileText, Loader2 } from 'lucide-react';
+import { DollarSign, Download, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
+import { reservationsApi } from '../../../api/reservations';
+import type { ReservationPayment } from '../../../api/reservations';
 import { ownerSettlementsApi, type OwnerSettlement } from '../../../api/ownerSettlements';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -8,15 +10,45 @@ function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
 }
 
-export default function FinanceTab({ reservation }: { reservation: Reservation }) {
+function formatDate(d: string) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+
+export default function FinanceTab({
+  reservation,
+  onReservationChange,
+}: {
+  reservation: Reservation;
+  onReservationChange?: () => void;
+}) {
   const { isAdmin } = useAuth();
-  const pct = reservation.total_amount > 0
-    ? Math.round((reservation.deposit_paid / reservation.total_amount) * 100)
-    : 0;
+
+  const [payments, setPayments] = useState<ReservationPayment[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [addingPayment, setAddingPayment] = useState(false);
+  const [newAmount, setNewAmount] = useState('');
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [newNotes, setNewNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [settlement, setSettlement] = useState<OwnerSettlement | null | 'loading'>('loading');
   const [creating, setCreating] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
+  const pct = reservation.total_amount > 0
+    ? Math.round((totalDeposit / Number(reservation.total_amount)) * 100)
+    : 0;
+
+  useEffect(() => {
+    reservationsApi.listPayments(reservation.id)
+      .then(r => setPayments(r.data))
+      .finally(() => setPaymentsLoading(false));
+  }, [reservation.id]);
 
   useEffect(() => {
     if (!isAdmin) { setSettlement(null); return; }
@@ -27,6 +59,36 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
       })
       .catch(() => setSettlement(null));
   }, [reservation.id, isAdmin]);
+
+  const handleAddPayment = async () => {
+    if (!newAmount || Number(newAmount) <= 0) return;
+    setSaving(true);
+    try {
+      const res = await reservationsApi.addPayment(reservation.id, {
+        amount: Number(newAmount),
+        paid_at: newDate,
+        notes: newNotes || undefined,
+      });
+      setPayments(prev => [...prev, res.data].sort((a, b) => a.paid_at.localeCompare(b.paid_at)));
+      setNewAmount('');
+      setNewNotes('');
+      setAddingPayment(false);
+      onReservationChange?.();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeletePayment = async (id: number) => {
+    setDeletingId(id);
+    try {
+      await reservationsApi.deletePayment(reservation.id, id);
+      setPayments(prev => prev.filter(p => p.id !== id));
+      onReservationChange?.();
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleCreateSettlement = async () => {
     setCreating(true);
@@ -66,6 +128,7 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
 
   return (
     <div className="space-y-4">
+      {/* Financial summary */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Resumen financiero</h2>
 
@@ -76,16 +139,16 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
             <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.total_amount * 0.3)}</p>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Depósito</p>
-            <p className="text-lg font-bold text-green-700">{formatCOP(reservation.deposit_paid)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.deposit_paid * 0.3)}</p>
+            <p className="text-xs text-gray-400 mb-1">Depósitos</p>
+            <p className="text-lg font-bold text-green-700">{formatCOP(totalDeposit)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(totalDeposit * 0.3)}</p>
           </div>
-          <div className={`rounded-xl p-4 text-center ${Number(reservation.remaining_balance) > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
+          <div className={`rounded-xl p-4 text-center ${remaining > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
-            <p className={`text-lg font-bold ${Number(reservation.remaining_balance) > 0 ? 'text-red-600' : 'text-green-700'}`}>
-              {formatCOP(reservation.remaining_balance)}
+            <p className={`text-lg font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-700'}`}>
+              {formatCOP(remaining)}
             </p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(Number(reservation.remaining_balance) * 0.3)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(remaining * 0.3)}</p>
           </div>
         </div>
 
@@ -103,7 +166,7 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
           </div>
         </div>
 
-        {/* Split info */}
+        {/* Split */}
         {reservation.total_amount > 0 && (
           <div className="border-t border-gray-100 pt-4 space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Distribución (70/30)</p>
@@ -120,6 +183,105 @@ export default function FinanceTab({ reservation }: { reservation: Reservation }
                 <span className="text-gray-600">Empresa (30%)</span>
               </div>
               <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * 0.3)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Payments list */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Pagos recibidos</h2>
+          {!addingPayment && (
+            <button
+              onClick={() => setAddingPayment(true)}
+              className="flex items-center gap-1 text-xs font-semibold text-pink-600 hover:text-pink-700 cursor-pointer"
+            >
+              <Plus size={13} /> Agregar pago
+            </button>
+          )}
+        </div>
+
+        {paymentsLoading ? (
+          <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
+            <Loader2 size={14} className="animate-spin" /> Cargando…
+          </div>
+        ) : payments.length === 0 && !addingPayment ? (
+          <p className="text-sm text-gray-400">Sin pagos registrados.</p>
+        ) : (
+          <div className="space-y-2">
+            {payments.map(p => (
+              <div key={p.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(p.amount))}</p>
+                  <p className="text-xs text-gray-400">{formatDate(p.paid_at)}{p.notes ? ` · ${p.notes}` : ''}</p>
+                </div>
+                <button
+                  onClick={() => handleDeletePayment(p.id)}
+                  disabled={deletingId === p.id}
+                  className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {deletingId === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add payment form */}
+        {addingPayment && (
+          <div className="border border-pink-100 rounded-xl p-4 space-y-3 bg-pink-50/30">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Monto (COP) *</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1000"
+                  value={newAmount}
+                  onChange={e => setNewAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Fecha *</label>
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={e => setNewDate(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
+              <input
+                type="text"
+                value={newNotes}
+                onChange={e => setNewNotes(e.target.value)}
+                placeholder="Ej: transferencia, efectivo, cuota…"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => { setAddingPayment(false); setNewAmount(''); setNewNotes(''); }}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleAddPayment}
+                disabled={saving || !newAmount}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                Guardar
+              </button>
             </div>
           </div>
         )}

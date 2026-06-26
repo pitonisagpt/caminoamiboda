@@ -3,6 +3,15 @@ import type { Reservation, ReservationPage, ReservationStatus } from '../types/r
 
 const base = '/reservations';
 
+export interface ReservationPayment {
+  id: number;
+  reservation_id: number;
+  amount: number;
+  paid_at: string;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface ReservationListParams {
   status?: ReservationStatus;
   event_category?: string;
@@ -30,4 +39,13 @@ export const reservationsApi = {
 
   createFromQuote: (quoteId: number) =>
     api.post<Reservation>(`${base}/from-quote/${quoteId}`),
+
+  listPayments: (id: number) =>
+    api.get<ReservationPayment[]>(`${base}/${id}/payments`),
+
+  addPayment: (id: number, data: { amount: number; paid_at: string; notes?: string }) =>
+    api.post<ReservationPayment>(`${base}/${id}/payments`, data),
+
+  deletePayment: (reservationId: number, paymentId: number) =>
+    api.delete(`${base}/${reservationId}/payments/${paymentId}`),
 };

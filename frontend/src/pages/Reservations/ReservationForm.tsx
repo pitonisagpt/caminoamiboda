@@ -28,7 +28,7 @@ export default function ReservationForm() {
       defaultValues: {
         status: 'lead',
         total_amount: '0',
-        deposit_paid: '0',
+        deposit_paid: '0',  // kept for schema compat, not shown in form
         special_instructions: '',
         notes: '',
       },
@@ -213,27 +213,16 @@ export default function ReservationForm() {
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
           <h2 className="font-semibold text-gray-800">Financiero</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Valor total (COP)</label>
-              <input
-                type="number"
-                min="0"
-                step="1000"
-                {...register('total_amount', { required: 'Requerido' })}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Depósito pagado (COP)</label>
-              <input
-                type="number"
-                min="0"
-                step="1000"
-                {...register('deposit_paid')}
-                className={inputCls}
-              />
-            </div>
+          <div>
+            <label className={labelCls}>Valor total (COP)</label>
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              {...register('total_amount', { required: 'Requerido' })}
+              className={inputCls}
+            />
+            <p className="text-xs text-gray-400 mt-1">Los depósitos se registran en el detalle de la reserva.</p>
           </div>
         </div>
 

@@ -1,7 +1,9 @@
 from datetime import date, datetime
+from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy import asc, desc, or_
 from sqlalchemy.orm import Session, outerjoin, selectinload
 
@@ -9,6 +11,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.customer import Customer
 from app.models.reservation import Reservation, ReservationStatus
+from app.models.reservation_payment import ReservationPayment
 from app.models.quote import Quote
 from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
 from app.services.conflicts import find_conflicts
@@ -194,3 +197,71 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(r)
     return ReservationRead.build(r)
+
+
+# ── Reservation Payments ──────────────────────────────────────────────────────
+
+class PaymentCreate(BaseModel):
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str] = None
+
+
+class PaymentRead(BaseModel):
+    id: int
+    reservation_id: int
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+def _sync_deposit(reservation: Reservation, db: Session) -> None:
+    total = sum(p.amount for p in reservation.payments)
+    reservation.deposit_paid = total
+    db.commit()
+
+
+@router.get("/api/reservations/{reservation_id}/payments", response_model=List[PaymentRead], dependencies=[Depends(get_current_user)])
+def list_payments(reservation_id: int, db: Session = Depends(get_db)):
+    r = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    if not r:
+        raise HTTPException(404, "Reserva no encontrada")
+    return r.payments
+
+
+@router.post("/api/reservations/{reservation_id}/payments", response_model=PaymentRead, status_code=201, dependencies=[Depends(get_current_user)])
+def add_payment(reservation_id: int, body: PaymentCreate, db: Session = Depends(get_db)):
+    r = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    if not r:
+        raise HTTPException(404, "Reserva no encontrada")
+    payment = ReservationPayment(
+        reservation_id=reservation_id,
+        amount=body.amount,
+        paid_at=body.paid_at,
+        notes=body.notes,
+    )
+    db.add(payment)
+    db.flush()
+    db.refresh(r)
+    _sync_deposit(r, db)
+    db.refresh(payment)
+    return payment
+
+
+@router.delete("/api/reservations/{reservation_id}/payments/{payment_id}", status_code=204, dependencies=[Depends(get_current_user)])
+def delete_payment(reservation_id: int, payment_id: int, db: Session = Depends(get_db)):
+    payment = db.query(ReservationPayment).filter(
+        ReservationPayment.id == payment_id,
+        ReservationPayment.reservation_id == reservation_id,
+    ).first()
+    if not payment:
+        raise HTTPException(404, "Pago no encontrado")
+    db.delete(payment)
+    db.flush()
+    r = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    if r:
+        db.refresh(r)
+        _sync_deposit(r, db)

@@ -141,7 +141,7 @@ export default function ReservationDetail() {
           onReservationChange={load}
         />
       )}
-      {activeTab === 'finanzas' && <FinanceTab reservation={reservation} />}
+      {activeTab === 'finanzas' && <FinanceTab reservation={reservation} onReservationChange={load} />}
     </div>
   );
 }
