@@ -116,9 +116,47 @@ def create_reservation(body: ReservationCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
     r = Reservation(**body.model_dump(), reservation_number=_next_number(db))
     db.add(r)
+    db.flush()
+    _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
     return ReservationRead.build(r)
+
+
+def _auto_create_timeline(r: Reservation, db: Session) -> None:
+    import uuid
+    from app.models.event_timeline import EventTimeline
+    from app.services.google_calendar_service import calendar_category_for
+
+    customer = r.customer
+    driver = r.driver
+    vehicle = r.vehicle
+
+    event_name = (
+        f"{customer.bride_name} & {customer.groom_name}"
+        if customer and getattr(customer, "bride_name", None) and getattr(customer, "groom_name", None)
+        else (customer.main_contact_name if customer else r.reservation_number)
+    )
+
+    tl = EventTimeline(
+        reservation_id=r.id,
+        event_name=event_name,
+        event_date=r.event_date,
+        main_contact_name=customer.main_contact_name if customer else None,
+        main_contact_phone=customer.phone if customer else None,
+        assigned_vehicle=r.display_vehicle if r.display_vehicle != "—" else None,
+        assigned_driver=driver.full_name if driver else None,
+        assigned_driver_phone=driver.phone if driver else None,
+        special_instructions=r.special_instructions,
+        calendar_category=calendar_category_for(r),
+        share_token_driver=uuid.uuid4().hex,
+        share_token_customer=uuid.uuid4().hex,
+        share_token_ops=uuid.uuid4().hex,
+    )
+    db.add(tl)
+    db.flush()
+    from app.routers.timelines import _gcal_sync
+    _gcal_sync(tl, db, "auto on reservation create")
 
 
 @router.get("/api/reservations/{reservation_id}", response_model=ReservationRead, dependencies=[Depends(get_current_user)])
@@ -142,13 +180,14 @@ def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
-    status_or_category_changed = "status" in changed or "event_category" in changed
+    operational_fields = {"event_date", "vehicle_id", "driver_id", "customer_id", "status", "event_category", "special_instructions"}
+    needs_timeline_sync = bool(operational_fields & set(changed.keys()))
     for field, value in changed.items():
         setattr(r, field, value)
     db.commit()
     db.refresh(r)
 
-    if status_or_category_changed:
+    if needs_timeline_sync:
         _sync_linked_timelines(r, db)
 
     return ReservationRead.build(r)
@@ -160,12 +199,25 @@ def _sync_linked_timelines(reservation, db):
     from app.routers.timelines import _gcal_sync
 
     new_category = calendar_category_for(reservation)
+    customer = reservation.customer
+    driver = reservation.driver
+
     linked = db.query(EventTimeline).filter(
         EventTimeline.reservation_id == reservation.id,
         EventTimeline.gcal_imported.is_(False),
     ).all()
     for tl in linked:
         tl.calendar_category = new_category
+        tl.event_date = reservation.event_date
+        tl.assigned_vehicle = reservation.display_vehicle if reservation.display_vehicle != "—" else tl.assigned_vehicle
+        if driver:
+            tl.assigned_driver = driver.full_name
+            tl.assigned_driver_phone = driver.phone
+        if customer:
+            tl.main_contact_name = customer.main_contact_name
+            tl.main_contact_phone = customer.phone
+        if reservation.special_instructions:
+            tl.special_instructions = reservation.special_instructions
         db.commit()
         _gcal_sync(tl, db, "on reservation change")
 
@@ -194,6 +246,8 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     )
     db.add(r)
     quote.status = "accepted"
+    db.flush()
+    _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
     return ReservationRead.build(r)
