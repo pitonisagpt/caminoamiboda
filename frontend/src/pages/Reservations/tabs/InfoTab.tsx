@@ -1,4 +1,4 @@
-import { Calendar, Car, User } from 'lucide-react';
+import { Calendar, Car, Network, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
 
@@ -48,6 +48,12 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
           <div className="flex items-center gap-2 text-sm">
             <User size={16} className="text-pink-400 shrink-0" />
             <span className="text-gray-700">{reservation.display_driver}</span>
+          </div>
+        )}
+        {reservation.display_contact && (
+          <div className="flex items-center gap-2 text-sm">
+            <Network size={16} className="text-pink-400 shrink-0" />
+            <span className="text-gray-500">Ref: <span className="text-gray-700">{reservation.display_contact}</span></span>
           </div>
         )}
       </div>

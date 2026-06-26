@@ -4,6 +4,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { AlertTriangle, ArrowLeft, Save } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
+import { contactsApi } from '../../api/contacts';
 import { vehiclesApi } from '../../api/vehicles';
 import { driversApi } from '../../api/drivers';
 import { calendarApi } from '../../api/calendar';
@@ -17,6 +18,7 @@ export default function ReservationForm() {
   const isEdit = Boolean(id);
 
   const [customers, setCustomers] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
@@ -34,6 +36,7 @@ export default function ReservationForm() {
 
   useEffect(() => {
     customersApi.list().then(r => setCustomers(r.data));
+    contactsApi.list().then(r => setContacts(r.data));
     vehiclesApi.list({}).then(r => setVehicles(r.data));
     driversApi.list().then(r => setDrivers(r.data));
 
@@ -42,6 +45,7 @@ export default function ReservationForm() {
         const v = r.data;
         reset({
           customer_id: v.customer_id?.toString() ?? '',
+          contact_id: v.contact_id?.toString() ?? '',
           quote_id: v.quote_id?.toString() ?? '',
           vehicle_id: v.vehicle_id?.toString() ?? '',
           driver_id: v.driver_id?.toString() ?? '',
@@ -84,6 +88,7 @@ export default function ReservationForm() {
   const onSubmit = async (data: ReservationFormData) => {
     const payload = {
       customer_id: data.customer_id ? Number(data.customer_id) : null,
+      contact_id: data.contact_id ? Number(data.contact_id) : null,
       quote_id: data.quote_id ? Number(data.quote_id) : null,
       vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : null,
       driver_id: data.driver_id ? Number(data.driver_id) : null,
@@ -129,9 +134,9 @@ export default function ReservationForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Cliente</label>
+              <label className={labelCls}>Cliente (novios)</label>
               <select {...register('customer_id')} className={inputCls}>
-                <option value="">Sin asignar</option>
+                <option value="">Sin asignar aún</option>
                 {customers.map(c => (
                   <option key={c.id} value={c.id}>
                     {c.bride_name && c.groom_name ? `${c.bride_name} & ${c.groom_name}` : c.main_contact_name}
@@ -141,14 +146,24 @@ export default function ReservationForm() {
             </div>
 
             <div>
-              <label className={labelCls}>Fecha del evento *</label>
-              <input
-                type="date"
-                {...register('event_date', { required: 'Requerido' })}
-                className={inputCls}
-              />
-              {errors.event_date && <p className="text-xs text-red-500 mt-1">{errors.event_date.message}</p>}
+              <label className={labelCls}>Planificadora / Referida por</label>
+              <select {...register('contact_id')} className={inputCls}>
+                <option value="">Sin contacto</option>
+                {contacts.map(c => (
+                  <option key={c.id} value={c.id}>{c.full_name}</option>
+                ))}
+              </select>
             </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Fecha del evento *</label>
+            <input
+              type="date"
+              {...register('event_date', { required: 'Requerido' })}
+              className={inputCls}
+            />
+            {errors.event_date && <p className="text-xs text-red-500 mt-1">{errors.event_date.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

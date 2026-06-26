@@ -48,11 +48,13 @@ export interface ReservationListItem {
 
 export interface Reservation extends ReservationListItem {
   customer_id: number | null;
+  contact_id: number | null;
   quote_id: number | null;
   vehicle_id: number | null;
   driver_id: number | null;
   start_time: string | null;
   end_time: string | null;
+  display_contact: string | null;
   special_instructions: string | null;
   notes: string | null;
   timeline_event_name: string | null;
@@ -69,6 +71,7 @@ export interface ReservationPage {
 
 export interface ReservationFormData {
   customer_id: string;
+  contact_id: string;
   quote_id: string;
   vehicle_id: string;
   driver_id: string;

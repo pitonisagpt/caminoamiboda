@@ -26,6 +26,7 @@ class Reservation(Base):
     reservation_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
 
     customer_id: Mapped[Optional[int]] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
+    contact_id: Mapped[Optional[int]] = mapped_column(ForeignKey("contacts.id", ondelete="SET NULL"), nullable=True)
     quote_id: Mapped[Optional[int]] = mapped_column(ForeignKey("quotes.id", ondelete="SET NULL"), nullable=True)
     vehicle_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicles.id", ondelete="SET NULL"), nullable=True)
     driver_id: Mapped[Optional[int]] = mapped_column(ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True)
@@ -47,6 +48,7 @@ class Reservation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     customer = relationship("Customer", foreign_keys=[customer_id], lazy="select")
+    contact = relationship("Contact", foreign_keys=[contact_id], lazy="select")
     quote = relationship("Quote", foreign_keys=[quote_id], lazy="select")
     vehicle = relationship("Vehicle", foreign_keys=[vehicle_id], lazy="select")
     driver = relationship("Driver", foreign_keys=[driver_id], lazy="select")
@@ -63,6 +65,8 @@ class Reservation(Base):
             if getattr(c, "bride_name", None) and getattr(c, "groom_name", None):
                 return f"{c.bride_name} & {c.groom_name}"
             return c.main_contact_name
+        if self.contact:
+            return f"{self.contact.full_name} (contacto)"
         return "—"
 
     @property
