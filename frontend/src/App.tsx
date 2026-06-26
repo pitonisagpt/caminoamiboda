@@ -24,6 +24,7 @@ import { CatalogPage } from "./pages/Catalog/CatalogPage";
 import EventoPage from "./pages/Public/EventoPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
+import QuoteDetail from "./pages/Quotes/QuoteDetail";
 import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
@@ -93,6 +94,7 @@ export default function App() {
             {/* Quotes */}
             <Route path="cotizaciones" element={<QuoteList />} />
             <Route path="cotizaciones/nuevo" element={<QuoteForm />} />
+            <Route path="cotizaciones/:id" element={<QuoteDetail />} />
             <Route path="cotizaciones/:id/editar" element={<QuoteForm />} />
 
             {/* Legacy timeline URLs — redirect to reservation?tab=evento */}

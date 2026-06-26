@@ -144,7 +144,7 @@ export default function QuoteList() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {quotes.map(q => (
-                <tr key={q.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={q.id} className="hover:bg-pink-50/40 transition-colors cursor-pointer" onClick={() => navigate(`/cotizaciones/${q.id}`)}>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{q.quote_number}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{q.display_customer}</td>
                   <td className="px-4 py-3 text-gray-600">{q.display_vehicle}</td>
@@ -155,7 +155,7 @@ export default function QuoteList() {
                       {QUOTE_STATUS_LABEL[q.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       {/* WhatsApp */}
                       <button

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; }
+
+    .page { padding: 36px 44px; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #DB2777;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .brand-name { font-size: 20pt; font-weight: 700; color: #DB2777; }
+    .brand-tagline { font-size: 8pt; color: #831843; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #831843; }
+
+    .doc-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: 700;
+      color: #831843;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      padding: 10px 0;
+      border-top: 1px solid #f3c0d9;
+      border-bottom: 1px solid #f3c0d9;
+      margin-bottom: 24px;
+    }
+
+    .section { margin-bottom: 20px; }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #DB2777;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid #fce7f3;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    .two-col { display: flex; gap: 24px; margin-bottom: 20px; }
+    .two-col .col { flex: 1; }
+
+    .info-row { display: flex; margin-bottom: 5px; font-size: 10.5pt; }
+    .info-label { color: #666; min-width: 160px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+
+    /* Distribution table */
+    .dist-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .dist-table th {
+      background: #831843;
+      color: #fff;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .dist-table td { padding: 9px 12px; border-bottom: 1px solid #fce7f3; font-size: 10.5pt; }
+    .dist-table tr:last-child td { border-bottom: none; }
+    .dist-table .amount { text-align: right; font-weight: 700; }
+    .row-owner { background: #fff5f9; }
+    .row-company { background: #f0fdf4; }
+    .row-total { background: #fce7f3; font-weight: 700; }
+
+    /* Payment block */
+    .payment-box {
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 4px;
+    }
+    .payment-box .pay-label { font-size: 8.5pt; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .payment-box .pay-value { font-size: 11pt; font-weight: 600; }
+    .payment-box .pay-amount { font-size: 18pt; font-weight: 700; color: #DB2777; margin-top: 10px; }
+    .payment-box .pay-row { margin-bottom: 8px; }
+
+    .notes-box {
+      background: #fef9c3;
+      border-left: 3px solid #ca8a04;
+      padding: 10px 14px;
+      font-size: 9.5pt;
+      color: #713f12;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .footer {
+      margin-top: 32px;
+      border-top: 1px solid #f3c0d9;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5pt;
+      color: #888;
+    }
+    .footer .brand { font-weight: 700; color: #DB2777; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand-name">{{ company_name }}</div>
+      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
+    </div>
+    <div class="header-meta">
+      <div class="doc-num">{{ settlement.settlement_number }}</div>
+      <div>Fecha: {{ formatted_date }}</div>
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="doc-title">Liquidación de Propietario</div>
+
+  <!-- Reservation info + Vehicle -->
+  <div class="two-col">
+    <div class="col">
+      <div class="section-title">Información del Evento</div>
+      {% if reservation %}
+      <div class="info-row">
+        <span class="info-label">Reserva:</span>
+        <span class="info-value">{{ reservation.reservation_number }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Cliente:</span>
+        <span class="info-value">{{ reservation.display_customer }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Fecha del evento:</span>
+        <span class="info-value">{{ formatted_event_date }}</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Vehículo:</span>
+        <span class="info-value">{{ display_vehicle }}</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-title">Propietario</div>
+      {% if owner %}
+      <div class="info-row">
+        <span class="info-label">Nombre:</span>
+        <span class="info-value">{{ owner.full_name }}</span>
+      </div>
+      {% if owner.identification_number %}
+      <div class="info-row">
+        <span class="info-label">Cédula:</span>
+        <span class="info-value">{{ owner.identification_number }}</span>
+      </div>
+      {% endif %}
+      {% if owner.phone %}
+      <div class="info-row">
+        <span class="info-label">Teléfono:</span>
+        <span class="info-value">{{ owner.phone }}</span>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="info-row"><span class="info-value" style="color:#888;">Sin propietario registrado</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Distribution -->
+  <div class="section">
+    <div class="section-title">Distribución de Ingresos</div>
+    <table class="dist-table">
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Porcentaje</th>
+          <th class="amount">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-total">
+          <td>Valor total del servicio</td>
+          <td>100%</td>
+          <td class="amount">{{ formatted_value }}</td>
+        </tr>
+        <tr class="row-owner">
+          <td>Propietario del vehículo</td>
+          <td>{{ settlement.owner_percentage }}%</td>
+          <td class="amount">{{ formatted_owner_amount }}</td>
+        </tr>
+        <tr class="row-company">
+          <td>{{ company_name }}</td>
+          <td>{{ 100 - settlement.owner_percentage }}%</td>
+          <td class="amount">{{ formatted_company_amount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Payment block -->
+  <div class="section">
+    <div class="section-title">Pago al Propietario</div>
+    <div class="payment-box">
+      {% if owner and owner.bank_name %}
+      <div class="pay-row">
+        <div class="pay-label">Banco</div>
+        <div class="pay-value">{{ owner.bank_name }}</div>
+      </div>
+      {% if owner.account_type %}
+      <div class="pay-row">
+        <div class="pay-label">Tipo de cuenta</div>
+        <div class="pay-value">{{ owner.account_type }}</div>
+      </div>
+      {% endif %}
+      {% if owner.account_number %}
+      <div class="pay-row">
+        <div class="pay-label">Número de cuenta</div>
+        <div class="pay-value">{{ owner.account_number }}</div>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="pay-row">
+        <div class="pay-label">Datos bancarios</div>
+        <div class="pay-value" style="color:#aaa;">No registrados</div>
+      </div>
+      {% endif %}
+      <div class="pay-amount">{{ formatted_owner_amount }}</div>
+    </div>
+  </div>
+
+  {% if settlement.notes %}
+  <div class="section">
+    <div class="section-title">Notas</div>
+    <div class="notes-box">{{ settlement.notes }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div><span class="brand">{{ company_name }}</span> · CC {{ company_cc }}</div>
+    <div>{{ company_phone }}</div>
+    <div>Generado el {{ formatted_date }}</div>
+  </div>
+
+</div>
+</body>
+</html>

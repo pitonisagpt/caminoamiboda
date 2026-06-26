@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User, UserRole
-from app.routers import auth, billing_documents, calendar, customers, dashboard, drivers, quotes, reservations, timelines, users, vehicle_owners, vehicle_photos, vehicles
+from app.routers import auth, billing_documents, calendar, customers, dashboard, drivers, owner_settlements, quotes, reservations, timelines, users, vehicle_owners, vehicle_photos, vehicles
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
@@ -67,6 +67,7 @@ app.include_router(vehicle_owners.router)
 app.include_router(timelines.router)
 app.include_router(quotes.router)
 app.include_router(reservations.router)
+app.include_router(owner_settlements.router)
 app.include_router(calendar.router)
 
 # Serve uploaded photos

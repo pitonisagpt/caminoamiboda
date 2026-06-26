@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from io import StringIO
 from pathlib import Path
 from typing import List, Optional
@@ -15,10 +16,12 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.customer import Customer
 from app.models.quote import LocationZone, Quote, QuoteStatus
+from app.models.reservation import Reservation, ReservationStatus
 from app.models.vehicle import Vehicle
 from app.schemas.quote import (
     QuoteCreate, QuoteList, QuoteRead, QuoteUpdate, WhatsappTextResponse,
 )
+from app.schemas.reservation import ReservationRead as ReservationReadSchema
 
 router = APIRouter(prefix="/api/quotes", tags=["quotes"], redirect_slashes=False)
 
@@ -212,6 +215,48 @@ def download_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         filename=f"{quote.quote_number}.pdf",
     )
+
+
+# ── Convert to Reservation ────────────────────────────────────────────────────
+
+def _next_reservation_number(db: Session) -> str:
+    now = datetime.now()
+    prefix = f"RES-{now.strftime('%Y%m')}-"
+    last = (
+        db.query(Reservation)
+        .filter(Reservation.reservation_number.like(f"{prefix}%"))
+        .order_by(Reservation.reservation_number.desc())
+        .first()
+    )
+    seq = int(last.reservation_number.split("-")[-1]) + 1 if last else 1
+    return f"{prefix}{seq:03d}"
+
+
+@router.post("/{quote_id}/convert-to-reservation", response_model=ReservationReadSchema, dependencies=[Depends(get_current_user)])
+def convert_to_reservation(quote_id: int, db: Session = Depends(get_db)):
+    quote = _get_quote(quote_id, db)
+    if quote.status not in (QuoteStatus.draft, QuoteStatus.sent, QuoteStatus.accepted):
+        raise HTTPException(400, "Solo se pueden convertir cotizaciones activas")
+
+    deposit = quote.deposit_amount or Decimal("0")
+    status = ReservationStatus.deposit_received if deposit > 0 else ReservationStatus.reserved
+
+    reservation = Reservation(
+        reservation_number=_next_reservation_number(db),
+        customer_id=quote.customer_id,
+        quote_id=quote.id,
+        vehicle_id=quote.vehicle_id,
+        event_date=quote.event_date,
+        total_amount=quote.total_price,
+        deposit_paid=deposit,
+        status=status,
+        notes=quote.notes,
+    )
+    db.add(reservation)
+    quote.status = QuoteStatus.accepted
+    db.commit()
+    db.refresh(reservation)
+    return ReservationReadSchema.build(reservation)
 
 
 # ── WhatsApp ──────────────────────────────────────────────────────────────────

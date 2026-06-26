@@ -28,4 +28,7 @@ export const quotesApi = {
 
   getWhatsappText: (id: number) =>
     api.get<{ text: string }>(`/quotes/${id}/whatsapp-text`),
+
+  convertToReservation: (id: number) =>
+    api.post<{ id: number; reservation_number: string }>(`/quotes/${id}/convert-to-reservation`),
 };
