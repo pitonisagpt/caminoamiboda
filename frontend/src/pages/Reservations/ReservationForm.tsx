@@ -192,7 +192,8 @@ export default function ReservationForm() {
                 <option value="">Sin asignar</option>
                 {vehicles.map(v => (
                   <option key={v.id} value={v.id}>
-                    {v.name || `${v.brand} ${v.color ?? ''}`.trim()}
+                    {[v.brand, v.model_line, v.color].filter(Boolean).join(' · ')}
+                    {v.owner_name ? ` (${v.owner_name})` : ''}
                   </option>
                 ))}
               </select>
