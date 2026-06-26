@@ -1,8 +1,10 @@
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
+import { vehicleOwnersApi } from "../../api/vehicleOwners";
+import type { VehicleOwner } from "../../types/vehicleOwner";
 import { PhotoManager } from "./PhotoManager";
 import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
@@ -40,8 +42,13 @@ export function VehicleForm() {
   const isEditing = Boolean(id);
   const [loadingDoc, setLoadingDoc] = useState(isEditing);
   const [saving, setSaving] = useState(false);
+  const [owners, setOwners] = useState<VehicleOwner[]>([]);
 
-  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<VehicleFormData>({
+  useEffect(() => {
+    vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
+  }, []);
+
+  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<VehicleFormData>({
     defaultValues: {
       vehicle_type: "car",
       location: "medellin",
@@ -245,9 +252,41 @@ export function VehicleForm() {
 
       {/* Owner (admin only) */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Propietario</h2></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Propietario</h2>
+            <a
+              href="/propietarios/nuevo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-pink-500 hover:text-pink-700 transition-colors"
+            >
+              <ExternalLink size={12} />
+              Agregar nuevo propietario
+            </a>
+          </div>
+        </CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Nombre del dueño" {...register("owner_name")} placeholder="Jaime Cadavid" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Propietario</label>
+            <select
+              {...register("owner_name")}
+              onChange={e => {
+                const name = e.target.value;
+                setValue("owner_name", name);
+                const selected = owners.find(o => o.full_name === name);
+                if (selected) {
+                  setValue("owner_contact", selected.whatsapp || selected.phone || "");
+                }
+              }}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+            >
+              <option value="">Sin asignar</option>
+              {owners.map(o => (
+                <option key={o.id} value={o.full_name}>{o.full_name}</option>
+              ))}
+            </select>
+          </div>
           <Input label="Contacto del dueño" {...register("owner_contact")} placeholder="312 798 6558" />
         </CardBody>
       </Card>
