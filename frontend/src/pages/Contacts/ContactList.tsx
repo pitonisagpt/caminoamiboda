@@ -198,13 +198,12 @@ export default function ContactList() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{c.location ?? '—'}</td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-4 py-3 hidden lg:table-cell" onClick={e => e.stopPropagation()}>
                     {c.instagram ? (
                       <a
-                        href={`https://instagram.com/${c.instagram.replace('@', '')}`}
+                        href={`https://www.instagram.com/${c.instagram.replace(/^@/, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
                         className="text-pink-600 hover:underline text-xs flex items-center gap-1"
                       >
                         {c.instagram} <ExternalLink size={10} />
