@@ -1,9 +1,9 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Numeric, String, Text, Time, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -31,6 +31,8 @@ class Reservation(Base):
     driver_id: Mapped[Optional[int]] = mapped_column(ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True)
 
     event_date: Mapped[date] = mapped_column(Date(), nullable=False)
+    start_time: Mapped[Optional[time]] = mapped_column(Time(), nullable=True)
+    end_time: Mapped[Optional[time]] = mapped_column(Time(), nullable=True)
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"))
     deposit_paid: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"))
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="lead")

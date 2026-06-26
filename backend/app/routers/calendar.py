@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -8,6 +8,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.event_timeline import EventTimeline
+from app.services.conflicts import find_conflicts
 
 router = APIRouter(tags=["calendar"], redirect_slashes=False)
 
@@ -59,6 +60,8 @@ def calendar_events(
             "driver_id": r.driver_id,
             "has_timeline": has_timeline,
             "timeline_id": r.timelines[0].id if has_timeline else None,
+            "start_time": r.start_time.strftime("%H:%M") if r.start_time else None,
+            "end_time": r.end_time.strftime("%H:%M") if r.end_time else None,
         })
 
     # Timelines — only standalone ones (linked timelines are already shown via their reservation)
@@ -90,32 +93,18 @@ def check_conflicts(
     event_date: date = Query(...),
     vehicle_id: Optional[int] = Query(None),
     driver_id: Optional[int] = Query(None),
+    start_time: Optional[time] = Query(None),
+    end_time: Optional[time] = Query(None),
     exclude_reservation_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
-    conflicts = []
-
-    base = db.query(Reservation).filter(
-        Reservation.event_date == event_date,
-        Reservation.status.notin_(["cancelled", "lead"]),
+    conflicts = find_conflicts(
+        db,
+        event_date=event_date,
+        vehicle_id=vehicle_id,
+        driver_id=driver_id,
+        new_start=start_time,
+        new_end=end_time,
+        exclude_id=exclude_reservation_id,
     )
-    if exclude_reservation_id:
-        base = base.filter(Reservation.id != exclude_reservation_id)
-
-    if vehicle_id:
-        clash = base.filter(Reservation.vehicle_id == vehicle_id).first()
-        if clash:
-            conflicts.append({
-                "type": "vehicle",
-                "message": f"El vehículo ya está reservado ese día ({clash.reservation_number} — {clash.display_customer})",
-            })
-
-    if driver_id:
-        clash = base.filter(Reservation.driver_id == driver_id).first()
-        if clash:
-            conflicts.append({
-                "type": "driver",
-                "message": f"El conductor ya está asignado ese día ({clash.reservation_number} — {clash.display_customer})",
-            })
-
     return {"conflicts": conflicts, "has_conflicts": len(conflicts) > 0}

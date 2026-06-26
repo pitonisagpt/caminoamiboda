@@ -13,10 +13,19 @@ export interface CalendarEvent {
   driver_id: number | null;
   has_timeline?: boolean;
   timeline_id?: number | null;
+  start_time?: string | null;
+  end_time?: string | null;
+}
+
+export interface ConflictItem {
+  type: 'vehicle' | 'driver';
+  severity: 'blocking' | 'warning';
+  reservation_number: string;
+  message: string;
 }
 
 export interface ConflictResult {
-  conflicts: { type: string; message: string }[];
+  conflicts: ConflictItem[];
   has_conflicts: boolean;
 }
 
@@ -28,6 +37,8 @@ export const calendarApi = {
     event_date: string;
     vehicle_id?: number | null;
     driver_id?: number | null;
+    start_time?: string | null;
+    end_time?: string | null;
     exclude_reservation_id?: number | null;
   }) => api.get<ConflictResult>('/calendar/conflicts', { params }),
 };

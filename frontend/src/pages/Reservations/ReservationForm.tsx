@@ -7,6 +7,7 @@ import { customersApi } from '../../api/customers';
 import { vehiclesApi } from '../../api/vehicles';
 import { driversApi } from '../../api/drivers';
 import { calendarApi } from '../../api/calendar';
+import type { ConflictItem } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
 
@@ -18,7 +19,7 @@ export default function ReservationForm() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
-  const [conflicts, setConflicts] = useState<string[]>([]);
+  const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
 
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } =
     useForm<ReservationFormData>({
@@ -45,6 +46,8 @@ export default function ReservationForm() {
           vehicle_id: v.vehicle_id?.toString() ?? '',
           driver_id: v.driver_id?.toString() ?? '',
           event_date: v.event_date,
+          start_time: v.start_time ?? '',
+          end_time: v.end_time ?? '',
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
@@ -55,9 +58,11 @@ export default function ReservationForm() {
     }
   }, [id, isEdit, reset]);
 
-  const watchedDate = useWatch({ control, name: 'event_date' });
+  const watchedDate    = useWatch({ control, name: 'event_date' });
   const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
-  const watchedDriver = useWatch({ control, name: 'driver_id' });
+  const watchedDriver  = useWatch({ control, name: 'driver_id' });
+  const watchedStart   = useWatch({ control, name: 'start_time' });
+  const watchedEnd     = useWatch({ control, name: 'end_time' });
 
   const checkConflicts = useCallback(async () => {
     if (!watchedDate) { setConflicts([]); return; }
@@ -66,11 +71,13 @@ export default function ReservationForm() {
         event_date: watchedDate,
         vehicle_id: watchedVehicle ? Number(watchedVehicle) : null,
         driver_id: watchedDriver ? Number(watchedDriver) : null,
+        start_time: watchedStart || null,
+        end_time: watchedEnd || null,
         exclude_reservation_id: isEdit ? Number(id) : null,
       });
-      setConflicts(res.data.conflicts.map(c => c.message));
+      setConflicts(res.data.conflicts);
     } catch { setConflicts([]); }
-  }, [watchedDate, watchedVehicle, watchedDriver, id, isEdit]);
+  }, [watchedDate, watchedVehicle, watchedDriver, watchedStart, watchedEnd, id, isEdit]);
 
   useEffect(() => { checkConflicts(); }, [checkConflicts]);
 
@@ -81,6 +88,8 @@ export default function ReservationForm() {
       vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : null,
       driver_id: data.driver_id ? Number(data.driver_id) : null,
       event_date: data.event_date,
+      start_time: data.start_time || null,
+      end_time: data.end_time || null,
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
       status: data.status,
@@ -139,6 +148,25 @@ export default function ReservationForm() {
                 className={inputCls}
               />
               {errors.event_date && <p className="text-xs text-red-500 mt-1">{errors.event_date.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Hora inicio</label>
+              <input
+                type="time"
+                {...register('start_time')}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Hora fin</label>
+              <input
+                type="time"
+                {...register('end_time')}
+                className={inputCls}
+              />
             </div>
           </div>
 
@@ -226,17 +254,33 @@ export default function ReservationForm() {
           </div>
         </div>
 
-        {conflicts.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-1">
-            <div className="flex items-center gap-2 text-yellow-700 font-semibold text-sm">
-              <AlertTriangle size={16} />
-              Conflictos detectados
+        {conflicts.length > 0 && (() => {
+          const hasBlocking = conflicts.some(c => c.severity === 'blocking');
+          return (
+            <div className={`border rounded-xl p-4 space-y-1 ${
+              hasBlocking
+                ? 'bg-red-50 border-red-200'
+                : 'bg-yellow-50 border-yellow-200'
+            }`}>
+              <div className={`flex items-center gap-2 font-semibold text-sm ${
+                hasBlocking ? 'text-red-700' : 'text-yellow-700'
+              }`}>
+                <AlertTriangle size={16} />
+                {hasBlocking ? 'Conflicto de horario' : 'Posible conflicto de horario'}
+              </div>
+              {conflicts.map((c, i) => (
+                <p key={i} className={`text-sm ml-6 ${
+                  c.severity === 'blocking' ? 'text-red-700' : 'text-yellow-700'
+                }`}>{c.message}</p>
+              ))}
+              {!hasBlocking && (
+                <p className="text-xs text-yellow-600 ml-6 mt-1">
+                  No hay horarios definidos para comparar — verifica manualmente antes de confirmar.
+                </p>
+              )}
             </div>
-            {conflicts.map((c, i) => (
-              <p key={i} className="text-sm text-yellow-700 ml-6">{c}</p>
-            ))}
-          </div>
-        )}
+          );
+        })()}
 
         <div className="flex justify-end gap-3">
           <button
@@ -248,7 +292,7 @@ export default function ReservationForm() {
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || conflicts.some(c => c.severity === 'blocking')}
             className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
           >
             <Save size={16} />

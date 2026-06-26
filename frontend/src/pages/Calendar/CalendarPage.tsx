@@ -179,8 +179,9 @@ export default function CalendarPage() {
                               onClick={ev => { ev.stopPropagation(); handleEventClick(e); }}
                               className="truncate text-white text-[10px] font-medium px-1.5 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: e.color }}
-                              title={e.title}
+                              title={e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ${e.title}` : e.title}
                             >
+                              {e.start_time && <span className="opacity-80 mr-0.5">{e.start_time}</span>}
                               {e.title}
                             </div>
                           ))}
@@ -223,6 +224,11 @@ export default function CalendarPage() {
                           <p className="text-xs text-gray-400 truncate">{e.subtitle}</p>
                         )}
                         <div className="flex items-center gap-2 mt-0.5">
+                          {e.start_time && (
+                            <p className="text-[10px] text-pink-400 font-medium">
+                              {e.start_time}{e.end_time ? ` – ${e.end_time}` : ''}
+                            </p>
+                          )}
                           <p className="text-[10px] text-gray-300 uppercase tracking-wide">
                             {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
                           </p>
