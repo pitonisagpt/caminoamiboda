@@ -89,6 +89,7 @@ def create_timeline(body: TimelineCreate, db: Session = Depends(get_db)):
     db.commit()
     tl = _get_timeline(timeline.id, db)
     _gcal_sync(tl, db, "on create")
+    db.refresh(tl)
     locs, acts = _load_locs_acts(tl.id, db)
     return TimelineRead.build(tl, locs, acts)
 
@@ -107,6 +108,7 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
         setattr(timeline, field, value)
     db.commit()
     _gcal_sync(timeline, db, "on update")
+    db.refresh(timeline)
     locs, acts = _load_locs_acts(timeline_id, db)
     return TimelineRead.build(timeline, locs, acts)
 
