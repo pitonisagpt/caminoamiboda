@@ -55,6 +55,8 @@ export interface EventTimeline {
   share_token_driver: string;
   share_token_customer: string;
   share_token_ops: string;
+  planner_name: string | null;
+  planner_phone: string | null;
   locations: EventLocation[];
   activities: TimelineActivity[];
   created_at: string;

@@ -91,6 +91,9 @@ def _build_timeline_dict(timeline, locations, activities, extra_fields: list = N
     d = {f: getattr(timeline, f) for f in _TIMELINE_SCALARS + (extra_fields or [])}
     d["locations"] = [LocationRead.model_validate(loc, from_attributes=True) for loc in locations]
     d["activities"] = [ActivityRead.model_validate(act, from_attributes=True) for act in activities]
+    contact = getattr(getattr(timeline, "reservation", None), "contact", None)
+    d["planner_name"] = contact.full_name if contact else None
+    d["planner_phone"] = contact.phone if contact else None
     return d
 
 
@@ -138,6 +141,8 @@ class TimelineRead(TimelineBase):
     share_token_driver: str
     share_token_customer: str
     share_token_ops: str
+    planner_name: Optional[str] = None
+    planner_phone: Optional[str] = None
     locations: List[LocationRead] = []
     activities: List[ActivityRead] = []
     created_at: datetime

@@ -136,6 +136,13 @@ def _build_description(
         if timeline.main_contact_phone:
             contact_line += f" · {timeline.main_contact_phone}"
         lines.append(contact_line)
+    if reservation:
+        contact = getattr(reservation, "contact", None)
+        if contact:
+            planner_line = f"Planeador: {contact.full_name}"
+            if contact.phone:
+                planner_line += f" · {contact.phone}"
+            lines.append(planner_line)
     if timeline.special_instructions:
         lines.append(f"\nInstrucciones: {timeline.special_instructions}")
 

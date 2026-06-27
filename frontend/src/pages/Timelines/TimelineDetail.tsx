@@ -342,6 +342,9 @@ function buildFullMsg(t: EventTimeline): string {
   if (t.main_contact_name) {
     lines.push(`*Contacto:* ${t.main_contact_name}${t.main_contact_phone ? ' – ' + t.main_contact_phone : ''}`);
   }
+  if (t.planner_name) {
+    lines.push(`*Planeador:* ${t.planner_name}${t.planner_phone ? ' – ' + t.planner_phone : ''}`);
+  }
   lines.push(t.assigned_driver
     ? `*Conductor:* ${t.assigned_driver}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`
     : `*Conductor:* Pendiente de asignar`);
