@@ -507,7 +507,15 @@ export default function FinanceTab({
                 </div>
 
                 <div className="flex gap-2 pt-1">
-                  {settlement.pdf_path ? (
+                  <button
+                    onClick={handleGeneratePdf}
+                    disabled={pdfLoading}
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+                    {settlement.pdf_path ? 'Regenerar PDF' : 'Generar PDF'}
+                  </button>
+                  {settlement.pdf_path && (
                     <button
                       onClick={handleDownloadPdf}
                       disabled={pdfLoading}
@@ -515,15 +523,6 @@ export default function FinanceTab({
                     >
                       {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
                       Descargar PDF
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleGeneratePdf}
-                      disabled={pdfLoading}
-                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                    >
-                      {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
-                      Generar PDF
                     </button>
                   )}
                 </div>
