@@ -314,13 +314,15 @@
   <div class="section">
     <div class="section-title">Itinerario Minuto a Minuto</div>
     {% if activities %}
+    {% set has_duration = activities | selectattr('estimated_duration') | list | length > 0 %}
+    {% set has_notes = activities | selectattr('notes') | list | length > 0 %}
     <table class="act-table">
       <thead>
         <tr>
           <th style="width:70px;">Hora</th>
           <th>Actividad</th>
-          <th style="width:90px;">Duración</th>
-          <th>Notas</th>
+          {% if has_duration %}<th style="width:90px;">Duración</th>{% endif %}
+          {% if has_notes %}<th>Notas</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -328,8 +330,8 @@
         <tr>
           <td class="act-time">{{ act.time }}</td>
           <td style="font-weight:500;">{{ act.description }}</td>
-          <td class="act-duration">{{ act.estimated_duration or '—' }}</td>
-          <td class="act-notes">{{ act.notes or '—' }}</td>
+          {% if has_duration %}<td class="act-duration">{{ act.estimated_duration or '—' }}</td>{% endif %}
+          {% if has_notes %}<td class="act-notes">{{ act.notes or '—' }}</td>{% endif %}
         </tr>
         {% endfor %}
       </tbody>
