@@ -21,6 +21,8 @@ def _build(r) -> dict:
     d["display_contact"] = r.contact.full_name if r.contact else None
     d["display_vehicle"] = r.display_vehicle
     d["display_driver"] = r.display_driver
+    d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
+    d["owner_whatsapp"] = r.vehicle.owner_contact if r.vehicle else None
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
     d["timeline_id"] = tls[0].id if tls else None
     d["timeline_event_name"] = tls[0].event_name if tls else None
@@ -85,6 +87,8 @@ class ReservationRead(BaseModel):
     display_contact: Optional[str] = None
     display_vehicle: str
     display_driver: str
+    owner_name: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
     timeline_id: Optional[int] = None
     timeline_event_name: Optional[str] = None
     created_at: datetime

@@ -500,23 +500,41 @@ export default function EventoTab({
         </div>
         <div className="space-y-2">
           {[
-            { label: 'Conductor', token: timeline.share_token_driver },
-            { label: 'Cliente', token: timeline.share_token_customer },
-            { label: 'Operaciones', token: timeline.share_token_ops },
-          ].map(({ label, token }) => (
-            <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2">
-              <span className="text-sm text-gray-600 font-medium w-24 shrink-0">{label}</span>
-              <code className="text-xs text-gray-400 flex-1 truncate">{window.location.origin}/evento/{token}</code>
-              <div className="flex gap-1.5 shrink-0">
-                <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-rose-600 cursor-pointer" title="Copiar enlace">
-                  {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                </button>
-                <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-rose-600" title="Abrir">
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+            { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, name: timeline.assigned_driver },
+            { label: 'Propietario', token: timeline.share_token_ops, phone: reservation.owner_whatsapp, name: reservation.owner_name },
+            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, name: timeline.main_contact_name },
+            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, name: null },
+          ].map(({ label, token, phone, name }) => {
+            const link = `${window.location.origin}/evento/${token}`;
+            const waMsg = `Hola${name ? ` ${name.split(' ')[0]}` : ''}, aquí está el enlace del evento:\n${link}`;
+            return (
+              <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm text-gray-600 font-medium">{label}</span>
+                  {name && <span className="text-xs text-gray-400 ml-2">{name}</span>}
+                  <code className="block text-xs text-gray-300 truncate mt-0.5">/evento/{token}</code>
+                </div>
+                <div className="flex gap-1.5 shrink-0">
+                  {phone && (
+                    <a
+                      href={buildWaUrl(phone, waMsg)}
+                      target="_blank" rel="noreferrer"
+                      className="text-gray-400 hover:text-green-600 cursor-pointer"
+                      title={`Enviar a ${label} por WhatsApp`}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </a>
+                  )}
+                  <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-rose-600 cursor-pointer" title="Copiar enlace">
+                    {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                  <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-rose-600" title="Abrir">
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
