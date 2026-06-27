@@ -14,6 +14,7 @@ import {
   User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2,
 } from 'lucide-react';
 import { timelinesApi } from '../../../api/timelines';
+import { Toast } from '../../../components/ui/Toast';
 import type {
   EventTimeline, EventLocation, TimelineActivity,
   LocationType, LocationFormData, ActivityFormData,
@@ -119,6 +120,7 @@ function buildFullMsg(t: EventTimeline): string {
 
   lines.push('');
   lines.push(`_Camino a mi Boda_`);
+  lines.push(`https://www.instagram.com/caminoamiboda`);
 
   return lines.join('\n').trim();
 }
@@ -308,6 +310,12 @@ export default function EventoTab({
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [locModal, setLocModal] = useState<{ open: boolean; editing: EventLocation | null }>({ open: false, editing: null });
   const [actModal, setActModal] = useState<{ open: boolean; editing: TimelineActivity | null }>({ open: false, editing: null });
+  const [gcalToast, setGcalToast] = useState(false);
+
+  const showGcalToast = () => {
+    setGcalToast(true);
+    setTimeout(() => setGcalToast(false), 4000);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -356,13 +364,15 @@ export default function EventoTab({
     if (locModal.editing) await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload);
     else await timelinesApi.createLocation(timelineId, payload);
     setLocModal({ open: false, editing: null });
-    load();
+    await load();
+    showGcalToast();
   };
 
   const deleteLocation = async (locId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta ubicación?')) return;
     await timelinesApi.deleteLocation(timelineId, locId);
-    load();
+    await load();
+    showGcalToast();
   };
 
   const saveActivity = async (data: ActivityFormData) => {
@@ -371,13 +381,15 @@ export default function EventoTab({
     if (actModal.editing) await timelinesApi.updateActivity(timelineId, actModal.editing.id, payload);
     else await timelinesApi.createActivity(timelineId, payload);
     setActModal({ open: false, editing: null });
-    load();
+    await load();
+    showGcalToast();
   };
 
   const deleteActivity = async (actId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta actividad?')) return;
     await timelinesApi.deleteActivity(timelineId, actId);
-    load();
+    await load();
+    showGcalToast();
   };
 
   const copyLink = async (token: string, label: string) => {
@@ -423,6 +435,7 @@ export default function EventoTab({
 
   return (
     <div className="space-y-4">
+      {gcalToast && <Toast message="Sincronizado con Google Calendar" onDismiss={() => setGcalToast(false)} />}
       {/* Event info strip */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">

@@ -373,6 +373,7 @@ function buildFullMsg(t: EventTimeline): string {
 
   lines.push('');
   lines.push(`_Camino a mi Boda_`);
+  lines.push(`https://www.instagram.com/caminoamiboda`);
 
   return lines.join('\n').trim();
 }
@@ -416,6 +417,12 @@ export default function TimelineDetail() {
     const reordered = arrayMove(activities, oldIndex, newIndex).map((a, i) => ({ ...a, display_order: i }));
     setActivities(reordered);
     await timelinesApi.reorderActivities(timelineId, reordered.map(a => ({ id: a.id, display_order: a.display_order })));
+    showGcalToast();
+  };
+
+  const showGcalToast = () => {
+    setGcalToast(true);
+    setTimeout(() => setGcalToast(false), 4000);
   };
 
   const saveLocation = async (data: LocationFormData) => {
@@ -433,13 +440,15 @@ export default function TimelineDetail() {
       await timelinesApi.createLocation(timelineId, payload);
     }
     setLocModal({ open: false, editing: null });
-    load();
+    await load();
+    showGcalToast();
   };
 
   const deleteLocation = async (locId: number) => {
     if (!confirm('¿Eliminar esta ubicación?')) return;
     await timelinesApi.deleteLocation(timelineId, locId);
-    load();
+    await load();
+    showGcalToast();
   };
 
   const saveActivity = async (data: ActivityFormData) => {
@@ -454,13 +463,15 @@ export default function TimelineDetail() {
       await timelinesApi.createActivity(timelineId, payload);
     }
     setActModal({ open: false, editing: null });
-    load();
+    await load();
+    showGcalToast();
   };
 
   const deleteActivity = async (actId: number) => {
     if (!confirm('¿Eliminar esta actividad?')) return;
     await timelinesApi.deleteActivity(timelineId, actId);
-    load();
+    await load();
+    showGcalToast();
   };
 
   const copyLink = async (token: string, label: string) => {

@@ -64,21 +64,30 @@ def _get_calendar_id(category: str) -> str:
 
 
 def calendar_category_for(reservation) -> str:
-    """Derive the calendar category from a reservation's status and event_category."""
+    """Derive the calendar category from a reservation's status and payment state."""
     if reservation.event_category == "obsequio":
         return "obsequio"
     if reservation.event_category == "publicidad":
         return "publicidad"
-    status_map = {
-        "lead":             "prospectos",
-        "quoted":           "prospectos",
-        "reserved":         "pendiente",
-        "deposit_received": "abono",
-        "confirmed":        "ok",
-        "completed":        "ok",
-        "cancelled":        "prospectos",
-    }
-    return status_map.get(reservation.status, "prospectos")
+
+    status = reservation.status
+
+    if status in ("lead", "quoted", "cancelled"):
+        return "prospectos"
+    if status == "reserved":
+        return "pendiente"
+
+    # deposit_received, confirmed, completed → depends on how much was paid
+    total = float(reservation.total_amount or 0)
+    paid = float(reservation.deposit_paid or 0)
+    fully_paid = total > 0 and paid >= total
+
+    if status == "deposit_received":
+        return "abono"
+    if status in ("confirmed", "completed"):
+        return "ok" if fully_paid else "abono"
+
+    return "prospectos"
 
 
 def _format_date_es(d: date) -> str:
@@ -89,25 +98,50 @@ def _format_date_es(d: date) -> str:
     return f"{d.day} de {months[d.month]} de {d.year}"
 
 
-def _build_description(timeline, locations: list) -> str:
+def _fmt_time(t: str) -> str:
+    try:
+        h, m = int(t[:2]), int(t[3:5])
+        period = "p.m." if h >= 12 else "a.m."
+        h12 = h % 12 or 12
+        return f"{h12:02d}:{m:02d} {period}"
+    except Exception:
+        return t
+
+
+def _fmt_cop(amount) -> str:
+    try:
+        return f"COP ${int(amount):,}".replace(",", ".")
+    except Exception:
+        return str(amount)
+
+
+def _build_description(
+    timeline,
+    locations: list,
+    activities: list | None = None,
+    reservation=None,
+    client_payments: list | None = None,
+    settlement=None,
+) -> str:
     lines = []
     if timeline.assigned_vehicle:
-        lines.append(f"🚗 Vehículo: {timeline.assigned_vehicle}")
+        lines.append(f"Vehículo: {timeline.assigned_vehicle}")
     if timeline.assigned_driver:
-        driver_line = f"👤 Conductor: {timeline.assigned_driver}"
+        driver_line = f"Conductor: {timeline.assigned_driver}"
         if timeline.assigned_driver_phone:
             driver_line += f" · {timeline.assigned_driver_phone}"
         lines.append(driver_line)
     if timeline.main_contact_name:
-        contact_line = f"💍 Contacto: {timeline.main_contact_name}"
+        contact_line = f"Contacto: {timeline.main_contact_name}"
         if timeline.main_contact_phone:
             contact_line += f" · {timeline.main_contact_phone}"
         lines.append(contact_line)
     if timeline.special_instructions:
-        lines.append(f"\n📋 Instrucciones: {timeline.special_instructions}")
+        lines.append(f"\nInstrucciones: {timeline.special_instructions}")
 
     if locations:
         lines.append("")
+        lines.append("— Ubicaciones —")
         for loc in locations:
             emoji = _LOCATION_EMOJI.get(loc.location_type, "📌")
             loc_line = f"{emoji} {loc.location_name}"
@@ -116,6 +150,44 @@ def _build_description(timeline, locations: list) -> str:
             lines.append(loc_line)
             if loc.google_maps_link:
                 lines.append(f"   {loc.google_maps_link}")
+
+    if activities:
+        sorted_acts = sorted(activities, key=lambda a: a.display_order)
+        lines.append("")
+        lines.append("— Itinerario —")
+        for act in sorted_acts:
+            lines.append(f"{_fmt_time(act.time)} – {act.description}")
+
+    if reservation:
+        total = reservation.total_amount
+        paid = reservation.deposit_paid
+        remaining = max(0, total - paid) if total else 0
+        lines.append("")
+        lines.append("— Financiero —")
+        lines.append(f"Total: {_fmt_cop(total)}")
+        lines.append(f"Pagado por cliente: {_fmt_cop(paid)}")
+        if client_payments:
+            for p in client_payments:
+                note = f" ({p.notes})" if p.notes else ""
+                lines.append(f"  · {p.paid_at.strftime('%d/%m/%Y')} – {_fmt_cop(p.amount)}{note}")
+        lines.append(f"Saldo cliente: {_fmt_cop(remaining)}")
+
+    if settlement:
+        lines.append("")
+        lines.append("— Liquidación propietario —")
+        lines.append(f"Propietario ({settlement.owner_percentage}%): {_fmt_cop(settlement.owner_amount)}")
+        lines.append(f"Empresa ({100 - settlement.owner_percentage}%): {_fmt_cop(settlement.company_amount)}")
+        paid_owner = settlement.amount_paid
+        remaining_owner = settlement.remaining_to_owner
+        lines.append(f"Abonado al propietario: {_fmt_cop(paid_owner)}")
+        if remaining_owner > 0:
+            lines.append(f"Pendiente al propietario: {_fmt_cop(remaining_owner)}")
+        else:
+            lines.append("Propietario: PAGADO COMPLETO")
+        if settlement.payments:
+            for p in sorted(settlement.payments, key=lambda x: x.paid_at):
+                note = f" ({p.notes})" if p.notes else ""
+                lines.append(f"  · {p.paid_at.strftime('%d/%m/%Y')} – {_fmt_cop(p.amount)}{note}")
 
     return "\n".join(lines)
 
@@ -130,12 +202,55 @@ def _primary_location_address(locations: list) -> Optional[str]:
     return None
 
 
-def _build_gcal_event(timeline, locations: list) -> dict:
+_CATEGORY_LABEL = {
+    "prospectos": "Prospecto",
+    "pendiente":  "Pendiente",
+    "abono":      "Abono",
+    "ok":         "OK",
+    "obsequio":   "Obsequio",
+    "publicidad": "Publicidad",
+}
+
+_EVENT_TYPE_LABEL = {
+    "wedding":               "Boda",
+    "quinceanera":           "Quinceañera",
+    "brand_activation":      "Activación",
+    "audiovisual_production":"Producción",
+    "other":                 "Evento",
+}
+
+
+def _short_name(event_name: str) -> str:
+    """Extract first name(s) before '&' or the whole name if no couple."""
+    if "&" in event_name:
+        bride_part = event_name.split("&")[0].strip()
+        return bride_part.split()[0] if bride_part else event_name
+    return event_name.split()[0] if event_name else event_name
+
+
+def _short_vehicle(vehicle: str) -> str:
+    """Return brand + color from a vehicle string like 'Mercedes Benz Gazelle Beige y negro'."""
+    words = vehicle.split()
+    if not words:
+        return vehicle
+    brand = words[0]
+    color = words[-1] if len(words) > 1 else ""
+    return f"{brand} {color}".strip() if color else brand
+
+
+def _build_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, client_payments: list | None = None, settlement=None) -> dict:
     event_date = timeline.event_date
+    category_label = _CATEGORY_LABEL.get(timeline.calendar_category or "", "")
+    event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
+    short = _short_name(timeline.event_name or "")
+    date_str = _format_date_es(event_date)
+    vehicle_str = f" ({timeline.assigned_vehicle})" if timeline.assigned_vehicle else ""
+    prefix = f"{category_label}: " if category_label else ""
+    summary = f"{prefix}{event_type_label} {short} {date_str}{vehicle_str}"
     return {
-        "summary": f"🚗 {timeline.event_name}",
+        "summary": summary,
         "location": _primary_location_address(locations),
-        "description": _build_description(timeline, locations),
+        "description": _build_description(timeline, locations, activities, reservation, client_payments, settlement),
         "start": {"date": str(event_date)},
         "end": {"date": str(event_date + timedelta(days=1))},
         "colorId": "4",  # Flamingo
@@ -155,6 +270,10 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
         return timeline.gcal_event_id
 
     from app.models.event_location import EventLocation
+    from app.models.timeline_activity import TimelineActivity
+    from app.models.reservation import Reservation
+    from app.models.reservation_payment import ReservationPayment
+    from app.models.owner_settlement import OwnerSettlement
 
     locations = (
         db.query(EventLocation)
@@ -162,9 +281,30 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
         .order_by(EventLocation.display_order)
         .all()
     )
+    activities = (
+        db.query(TimelineActivity)
+        .filter(TimelineActivity.timeline_id == timeline.id)
+        .order_by(TimelineActivity.display_order)
+        .all()
+    )
+    reservation = (
+        db.query(Reservation).filter(Reservation.id == timeline.reservation_id).first()
+        if timeline.reservation_id else None
+    )
+    client_payments = (
+        db.query(ReservationPayment)
+        .filter(ReservationPayment.reservation_id == timeline.reservation_id)
+        .order_by(ReservationPayment.paid_at)
+        .all()
+        if timeline.reservation_id else []
+    )
+    settlement = (
+        db.query(OwnerSettlement).filter(OwnerSettlement.reservation_id == timeline.reservation_id).first()
+        if timeline.reservation_id else None
+    )
 
     service = _get_service()
-    body = _build_gcal_event(timeline, locations)
+    body = _build_gcal_event(timeline, locations, activities, reservation, client_payments, settlement)
     target_cal_id = _get_calendar_id(timeline.calendar_category)
 
     if timeline.gcal_event_id:
@@ -192,8 +332,15 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
         timeline.gcal_calendar_id = target_cal_id
 
     gcal_id = result.get("id")
+    html_link = result.get("htmlLink")
+    changed = False
     if gcal_id and gcal_id != timeline.gcal_event_id:
         timeline.gcal_event_id = gcal_id
+        changed = True
+    if html_link and html_link != timeline.gcal_html_link:
+        timeline.gcal_html_link = html_link
+        changed = True
+    if changed:
         db.commit()
 
     return gcal_id
