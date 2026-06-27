@@ -135,12 +135,20 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     r = s.reservation
     v = s.vehicle
     o = s.owner
+    driver = r.driver if r else None
+    timeline = r.timelines[0] if r and r.timelines else None
+    locations = sorted(timeline.locations, key=lambda l: l.display_order) if timeline else []
+    activities = sorted(timeline.activities, key=lambda a: a.display_order) if timeline else []
 
     html = template.render(
         settlement=s,
         reservation=r,
         vehicle=v,
         owner=o,
+        driver=driver,
+        timeline=timeline,
+        locations=locations,
+        activities=activities,
         payments=s.payments,
         formatted_date=_format_date_es(datetime.now().date()),
         formatted_event_date=_format_date_es(r.event_date) if r else "",

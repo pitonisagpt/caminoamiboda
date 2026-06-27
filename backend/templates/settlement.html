@@ -71,6 +71,29 @@
     .row-company { background: #f0fdf4; }
     .row-total { background: #fce7f3; font-weight: 700; }
 
+    /* Conductor block */
+    .conductor-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; }
+    .conductor-box .row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .conductor-box .field { flex: 1; min-width: 140px; margin-bottom: 6px; }
+    .conductor-box .field-label { font-size: 8pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+    .conductor-box .field-value { font-size: 10pt; font-weight: 600; color: #1a1a1a; }
+
+    /* Timeline / Itinerary */
+    .itinerary-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9.5pt; }
+    .itinerary-table th { background: #475569; color: #fff; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.6px; padding: 7px 10px; text-align: left; }
+    .itinerary-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .itinerary-table tr:last-child td { border-bottom: none; }
+    .itinerary-table .time-cell { white-space: nowrap; font-weight: 700; color: #DB2777; width: 70px; }
+    .section-subtitle { font-size: 8.5pt; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 6px; }
+    .no-data { font-size: 9.5pt; color: #94a3b8; font-style: italic; padding: 8px 0; }
+
+    /* Cláusulas */
+    .clauses-wrap { display: flex; gap: 18px; }
+    .clauses-col { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; }
+    .clauses-col h4 { font-size: 8.5pt; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .clauses-col ol { padding-left: 16px; margin: 0; }
+    .clauses-col ol li { font-size: 8pt; color: #334155; line-height: 1.55; margin-bottom: 5px; }
+
     /* Payment block */
     .payment-box {
       background: #1a1a1a;
@@ -173,6 +196,53 @@
     </div>
   </div>
 
+  <!-- Conductor -->
+  <div class="section">
+    <div class="section-title">Conductor Asignado</div>
+    {% if driver %}
+    <div class="conductor-box">
+      <div class="row">
+        <div class="field">
+          <div class="field-label">Nombre</div>
+          <div class="field-value">{{ driver.full_name }}</div>
+        </div>
+        {% if driver.identification_number %}
+        <div class="field">
+          <div class="field-label">Cédula</div>
+          <div class="field-value">{{ driver.identification_number }}</div>
+        </div>
+        {% endif %}
+        {% if driver.phone %}
+        <div class="field">
+          <div class="field-label">Teléfono</div>
+          <div class="field-value">{{ driver.phone }}</div>
+        </div>
+        {% endif %}
+        {% if driver.whatsapp and driver.whatsapp != driver.phone %}
+        <div class="field">
+          <div class="field-label">WhatsApp</div>
+          <div class="field-value">{{ driver.whatsapp }}</div>
+        </div>
+        {% endif %}
+        {% if driver.driver_license_number %}
+        <div class="field">
+          <div class="field-label">Licencia de conducción</div>
+          <div class="field-value">{{ driver.driver_license_number }}</div>
+        </div>
+        {% endif %}
+        {% if driver.license_expiration_date %}
+        <div class="field">
+          <div class="field-label">Vencimiento licencia</div>
+          <div class="field-value">{{ driver.license_expiration_date.strftime('%d/%m/%Y') }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="info-row"><span class="info-value" style="color:#888;">Sin conductor asignado</span></div>
+    {% endif %}
+  </div>
+
   <!-- Distribution -->
   <div class="section">
     <div class="section-title">Distribución de Ingresos</div>
@@ -202,6 +272,77 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Itinerario del Evento -->
+  <div class="section">
+    <div class="section-title">Itinerario del Evento</div>
+    {% if timeline %}
+      {% if locations %}
+      <div class="section-subtitle">Ubicaciones</div>
+      <table class="itinerary-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Contacto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set loc_labels = {'pickup': 'Recogida', 'ceremony': 'Ceremonia', 'reception': 'Recepción', 'photoshoot': 'Sesión foto', 'other': 'Otro'} %}
+          {% for loc in locations %}
+          <tr>
+            <td style="white-space:nowrap; color:#DB2777; font-weight:600;">{{ loc_labels.get(loc.location_type, loc.location_type) }}</td>
+            <td style="font-weight:600;">{{ loc.location_name }}</td>
+            <td>{{ loc.address or '—' }}</td>
+            <td>
+              {% if loc.contact_person %}{{ loc.contact_person }}{% endif %}
+              {% if loc.contact_phone %}<br><span style="color:#64748b;">{{ loc.contact_phone }}</span>{% endif %}
+              {% if not loc.contact_person and not loc.contact_phone %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="no-data">Sin ubicaciones registradas.</div>
+      {% endif %}
+
+      {% if activities %}
+      <div class="section-subtitle">Actividades</div>
+      <table class="itinerary-table">
+        <thead>
+          <tr>
+            <th style="width:70px;">Hora</th>
+            <th>Descripción</th>
+            <th>Duración</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for act in activities %}
+          <tr>
+            <td class="time-cell">{{ act.time }}</td>
+            <td>{{ act.description }}</td>
+            <td style="white-space:nowrap; color:#64748b;">{{ act.estimated_duration or '—' }}</td>
+            <td style="color:#64748b; font-size:8.5pt;">{{ act.notes or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="no-data">Sin actividades registradas.</div>
+      {% endif %}
+
+      {% if timeline.special_instructions %}
+      <div style="margin-top:10px; background:#fef9c3; border-left:3px solid #ca8a04; padding:8px 12px; font-size:9pt; color:#713f12; border-radius:0 4px 4px 0;">
+        <strong>Instrucciones especiales:</strong> {{ timeline.special_instructions }}
+      </div>
+      {% endif %}
+    {% else %}
+    <div class="no-data">Sin evento registrado para esta reserva.</div>
+    {% endif %}
   </div>
 
   <!-- Payment block -->
@@ -276,6 +417,35 @@
     <div class="notes-box">{{ settlement.notes }}</div>
   </div>
   {% endif %}
+
+  <!-- Cláusulas -->
+  <div class="section">
+    <div class="section-title">Compromisos y Obligaciones</div>
+    <div class="clauses-wrap">
+      <div class="clauses-col">
+        <h4>Obligaciones del Conductor</h4>
+        <ol>
+          <li>Presentarse en el punto de recogida con mínimo <strong>20 minutos de anticipación</strong> al horario establecido en el itinerario.</li>
+          <li>Vestimenta formal (traje oscuro) y vehículo en óptimas condiciones de aseo interno y externo.</li>
+          <li>Cualquier novedad, retraso o inconveniente debe comunicarse de <strong>inmediato</strong> a la coordinación de {{ company_name }}.</li>
+          <li>El incumplimiento sin aviso previo mínimo de <strong>48 horas</strong> resultará en la pérdida del pago acordado y podrá restringir futuras asignaciones.</li>
+          <li>El consumo de alcohol u otras sustancias está <strong>estrictamente prohibido</strong> antes y durante el servicio.</li>
+          <li>Debe seguir el itinerario y las instrucciones especiales del evento, permaneciendo disponible durante toda la duración del servicio.</li>
+        </ol>
+      </div>
+      <div class="clauses-col">
+        <h4>Obligaciones del Propietario</h4>
+        <ol>
+          <li>Garantizar que el vehículo esté en <strong>perfectas condiciones mecánicas, eléctricas y de presentación</strong> para la fecha del evento.</li>
+          <li>En caso de falla mecánica que impida la prestación del servicio, el propietario <strong>no tendrá derecho al porcentaje acordado</strong> y {{ company_name }} gestionará un vehículo de reemplazo.</li>
+          <li>Si la falla ocurre durante el evento y genera retrasos o cancelación parcial, {{ company_name }} podrá <strong>descontar del pago</strong> los costos generados por la contingencia.</li>
+          <li>Informar cualquier novedad del vehículo con <strong>mínimo 72 horas</strong> de anticipación al evento.</li>
+          <li>El retiro del vehículo con menos de 72 horas de anticipación obliga al propietario a <strong>cubrir los costos</strong> del vehículo de reemplazo.</li>
+          <li>El mantenimiento preventivo y el seguro vigente del vehículo son <strong>responsabilidad exclusiva del propietario</strong>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <div class="footer">
