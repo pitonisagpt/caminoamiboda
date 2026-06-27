@@ -30,6 +30,7 @@ class Reservation(Base):
     quote_id: Mapped[Optional[int]] = mapped_column(ForeignKey("quotes.id", ondelete="SET NULL"), nullable=True)
     vehicle_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicles.id", ondelete="SET NULL"), nullable=True)
     driver_id: Mapped[Optional[int]] = mapped_column(ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True)
+    owner_driver_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicle_owners.id", ondelete="SET NULL"), nullable=True)
 
     event_date: Mapped[date] = mapped_column(Date(), nullable=False)
     start_time: Mapped[Optional[time]] = mapped_column(Time(), nullable=True)
@@ -52,6 +53,7 @@ class Reservation(Base):
     quote = relationship("Quote", foreign_keys=[quote_id], lazy="select")
     vehicle = relationship("Vehicle", foreign_keys=[vehicle_id], lazy="select")
     driver = relationship("Driver", foreign_keys=[driver_id], lazy="select")
+    owner_driver = relationship("VehicleOwner", foreign_keys=[owner_driver_id], lazy="select")
     timelines = relationship("EventTimeline", back_populates="reservation", lazy="select")
     payments = relationship("ReservationPayment", back_populates="reservation", lazy="select", order_by="ReservationPayment.paid_at")
 
@@ -84,6 +86,8 @@ class Reservation(Base):
 
     @property
     def display_driver(self) -> str:
+        if self.owner_driver_id and self.owner_driver:
+            return self.owner_driver.full_name
         if self.driver:
             return self.driver.full_name
         return "—"

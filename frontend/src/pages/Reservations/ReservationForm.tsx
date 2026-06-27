@@ -8,6 +8,8 @@ import { customersApi } from '../../api/customers';
 import { contactsApi } from '../../api/contacts';
 import { vehiclesApi } from '../../api/vehicles';
 import { driversApi } from '../../api/drivers';
+import { vehicleOwnersApi } from '../../api/vehicleOwners';
+import type { VehicleOwnerBasic } from '../../api/vehicleOwners';
 import { calendarApi } from '../../api/calendar';
 import type { ConflictItem } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
@@ -22,6 +24,7 @@ export default function ReservationForm() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
+  const [owners, setOwners] = useState<VehicleOwnerBasic[]>([]);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
 
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } =
@@ -29,7 +32,8 @@ export default function ReservationForm() {
       defaultValues: {
         status: 'lead',
         total_amount: '0',
-        deposit_paid: '0',  // kept for schema compat, not shown in form
+        deposit_paid: '0',
+        driver_combined: '',
         special_instructions: '',
         notes: '',
       },
@@ -40,16 +44,22 @@ export default function ReservationForm() {
     contactsApi.list().then(r => setContacts(r.data));
     vehiclesApi.list({}).then(r => setVehicles(r.data));
     driversApi.list().then(r => setDrivers(r.data));
+    vehicleOwnersApi.listBasic().then(r => setOwners(r.data));
 
     if (isEdit) {
       reservationsApi.get(Number(id)).then(r => {
         const v = r.data;
+        const driverCombined = v.owner_driver_id
+          ? `owner:${v.owner_driver_id}`
+          : v.driver_id
+          ? `driver:${v.driver_id}`
+          : '';
         reset({
           customer_id: v.customer_id?.toString() ?? '',
           contact_id: v.contact_id?.toString() ?? '',
           quote_id: v.quote_id?.toString() ?? '',
           vehicle_id: v.vehicle_id?.toString() ?? '',
-          driver_id: v.driver_id?.toString() ?? '',
+          driver_combined: driverCombined,
           event_date: v.event_date,
           start_time: v.start_time ?? '',
           end_time: v.end_time ?? '',
@@ -65,9 +75,14 @@ export default function ReservationForm() {
 
   const watchedDate    = useWatch({ control, name: 'event_date' });
   const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
-  const watchedDriver  = useWatch({ control, name: 'driver_id' });
+  const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
   const watchedStart   = useWatch({ control, name: 'start_time' });
   const watchedEnd     = useWatch({ control, name: 'end_time' });
+
+  // Extract driver_id for conflict checking (only applies to registered drivers, not owners)
+  const watchedDriverId = watchedDriverCombined?.startsWith('driver:')
+    ? Number(watchedDriverCombined.split(':')[1])
+    : null;
 
   const checkConflicts = useCallback(async () => {
     if (!watchedDate) { setConflicts([]); return; }
@@ -75,24 +90,35 @@ export default function ReservationForm() {
       const res = await calendarApi.conflicts({
         event_date: watchedDate,
         vehicle_id: watchedVehicle ? Number(watchedVehicle) : null,
-        driver_id: watchedDriver ? Number(watchedDriver) : null,
+        driver_id: watchedDriverId,
         start_time: watchedStart || null,
         end_time: watchedEnd || null,
         exclude_reservation_id: isEdit ? Number(id) : null,
       });
       setConflicts(res.data.conflicts);
     } catch { setConflicts([]); }
-  }, [watchedDate, watchedVehicle, watchedDriver, watchedStart, watchedEnd, id, isEdit]);
+  }, [watchedDate, watchedVehicle, watchedDriverId, watchedStart, watchedEnd, id, isEdit]);
 
   useEffect(() => { checkConflicts(); }, [checkConflicts]);
 
   const onSubmit = async (data: ReservationFormData) => {
+    const val = data.driver_combined || '';
+    const driverPayload: { driver_id: number | null; owner_driver_id: number | null } = {
+      driver_id: null,
+      owner_driver_id: null,
+    };
+    if (val.startsWith('owner:')) {
+      driverPayload.owner_driver_id = parseInt(val.split(':')[1]);
+    } else if (val.startsWith('driver:')) {
+      driverPayload.driver_id = parseInt(val.split(':')[1]);
+    }
+
     const payload = {
       customer_id: data.customer_id ? Number(data.customer_id) : null,
       contact_id: data.contact_id ? Number(data.contact_id) : null,
       quote_id: data.quote_id ? Number(data.quote_id) : null,
       vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : null,
-      driver_id: data.driver_id ? Number(data.driver_id) : null,
+      ...driverPayload,
       event_date: data.event_date,
       start_time: data.start_time || null,
       end_time: data.end_time || null,
@@ -212,12 +238,23 @@ export default function ReservationForm() {
               )}
             />
             <Controller
-              name="driver_id"
+              name="driver_combined"
               control={control}
               render={({ field }) => (
                 <Combobox
                   label="Conductor"
-                  options={drivers.map(d => ({ value: String(d.id), label: d.full_name }))}
+                  options={[
+                    ...drivers.map(d => ({
+                      value: `driver:${d.id}`,
+                      label: d.full_name,
+                      group: 'Conductores',
+                    })),
+                    ...owners.map(o => ({
+                      value: `owner:${o.id}`,
+                      label: `${o.full_name} (propietario)`,
+                      group: 'Propietarios',
+                    })),
+                  ]}
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar conductor..."

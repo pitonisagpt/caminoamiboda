@@ -4,6 +4,7 @@ import { ChevronDown, X } from 'lucide-react';
 export interface ComboboxOption {
   value: string;
   label: string;
+  group?: string;
 }
 
 interface ComboboxProps {
@@ -159,20 +160,30 @@ export default function Combobox({
             {filtered.length === 0 ? (
               <div className="px-3 py-2.5 text-sm text-gray-400">Sin resultados</div>
             ) : (
-              filtered.map((option, i) => (
-                <div
-                  key={option.value}
-                  onMouseDown={() => handleSelect(option)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={[
-                    'px-3 py-2.5 text-sm cursor-pointer transition-colors',
-                    option.value === value ? 'bg-pink-50 text-pink-700 font-medium' : 'text-gray-800',
-                    i === activeIndex && option.value !== value ? 'bg-gray-50' : '',
-                  ].join(' ')}
-                >
-                  {option.label}
-                </div>
-              ))
+              filtered.map((option, i) => {
+                const prevGroup = i > 0 ? filtered[i - 1].group : undefined;
+                const showGroupHeader = option.group && option.group !== prevGroup;
+                return (
+                  <div key={option.value}>
+                    {showGroupHeader && (
+                      <div className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide border-t border-gray-100 first:border-t-0">
+                        {option.group}
+                      </div>
+                    )}
+                    <div
+                      onMouseDown={() => handleSelect(option)}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      className={[
+                        'px-3 py-2.5 text-sm cursor-pointer transition-colors',
+                        option.value === value ? 'bg-pink-50 text-pink-700 font-medium' : 'text-gray-800',
+                        i === activeIndex && option.value !== value ? 'bg-gray-50' : '',
+                      ].join(' ')}
+                    >
+                      {option.label}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

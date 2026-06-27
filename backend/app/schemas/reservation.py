@@ -8,6 +8,7 @@ from app.models.reservation import ReservationStatus
 
 _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
+    "owner_driver_id",
     "event_date", "start_time", "end_time", "total_amount", "deposit_paid", "status",
     "event_category", "gcal_imported",
     "special_instructions", "notes", "created_at", "updated_at",
@@ -23,6 +24,8 @@ def _build(r) -> dict:
     d["contact_type"] = r.contact.contact_type if r.contact else None
     d["display_vehicle"] = r.display_vehicle
     d["display_driver"] = r.display_driver
+    d["owner_driver_name"] = r.owner_driver.full_name if r.owner_driver else None
+    d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
     d["owner_whatsapp"] = r.vehicle.owner_contact if r.vehicle else None
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
@@ -37,6 +40,7 @@ class ReservationCreate(BaseModel):
     quote_id: Optional[int] = None
     vehicle_id: Optional[int] = None
     driver_id: Optional[int] = None
+    owner_driver_id: Optional[int] = None
     event_date: date
     start_time: Optional[time] = None
     end_time: Optional[time] = None
@@ -54,6 +58,7 @@ class ReservationUpdate(BaseModel):
     quote_id: Optional[int] = None
     vehicle_id: Optional[int] = None
     driver_id: Optional[int] = None
+    owner_driver_id: Optional[int] = None
     event_date: Optional[date] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
@@ -74,6 +79,7 @@ class ReservationRead(BaseModel):
     quote_id: Optional[int] = None
     vehicle_id: Optional[int] = None
     driver_id: Optional[int] = None
+    owner_driver_id: Optional[int] = None
     event_date: date
     start_time: Optional[time] = None
     end_time: Optional[time] = None
@@ -91,6 +97,8 @@ class ReservationRead(BaseModel):
     contact_type: Optional[str] = None
     display_vehicle: str
     display_driver: str
+    owner_driver_name: Optional[str] = None
+    owner_driver_phone: Optional[str] = None
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     timeline_id: Optional[int] = None

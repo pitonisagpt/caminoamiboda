@@ -1,7 +1,10 @@
 import { api } from "./index";
 import type { VehicleOwner } from "../types/vehicleOwner";
 
+export type VehicleOwnerBasic = { id: number; full_name: string; phone: string | null; whatsapp: string | null };
+
 export const vehicleOwnersApi = {
+  listBasic: () => api.get<VehicleOwnerBasic[]>("/vehicle-owners/basic"),
   list: (search?: string) =>
     api.get<VehicleOwner[]>("/vehicle-owners", { params: search ? { search } : {} }),
   get: (id: number) => api.get<VehicleOwner>(`/vehicle-owners/${id}`),
