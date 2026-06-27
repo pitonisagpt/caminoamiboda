@@ -260,7 +260,7 @@ function ActivityModal({
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <option value="">Sin ubicación</option>
-              {locations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+              {locations.map(l => <option key={l.id} value={l.id}>{l.location_name} ({LOCATION_TYPE_LABELS[l.location_type]})</option>)}
             </select>
           </div>
           <div>
@@ -329,43 +329,50 @@ function buildFullMsg(t: EventTimeline): string {
   const vehicle = t.assigned_vehicle || '';
   const lines: string[] = [];
 
-  lines.push(`💍 Minuto a Minuto – ${t.event_name} – ${date}${vehicle ? ` (${vehicle})` : ''}`);
-  lines.push('');
+  const EVENT_TYPE_LABELS: Record<string, string> = {
+    wedding: 'Boda', brand_activation: 'Activación de marca',
+    audiovisual_production: 'Producción audiovisual', quinceanera: 'Quinceañera', other: 'Evento',
+  };
+  const eventTypeLabel = EVENT_TYPE_LABELS[t.event_type] ?? 'Evento';
+  lines.push(`*Minuto a Minuto – ${eventTypeLabel} · ${t.event_name}*`);
+  lines.push(`*Fecha:* ${date}`);
+  if (vehicle) lines.push(`*Vehiculo:* ${vehicle}`);
 
+  lines.push('');
   if (t.main_contact_name) {
-    lines.push(`📞 Contacto: ${t.main_contact_name}${t.main_contact_phone ? ' – ' + t.main_contact_phone : ''}`);
+    lines.push(`*Contacto:* ${t.main_contact_name}${t.main_contact_phone ? ' – ' + t.main_contact_phone : ''}`);
+  }
+  lines.push(t.assigned_driver
+    ? `*Conductor:* ${t.assigned_driver}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`
+    : `*Conductor:* Pendiente de asignar`);
+  if (t.special_instructions) {
     lines.push('');
+    lines.push(t.special_instructions);
   }
 
-  if (vehicle) lines.push(`🚗 Vehículo: ${vehicle}`);
-  if (t.assigned_driver) {
-    lines.push(`🤵 Conductor: ${t.assigned_driver}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`);
+  if (t.locations.length > 0) {
+    lines.push('');
+    lines.push(`*Ubicaciones*`);
+    const sortedLocs = [...t.locations].sort((a, b) => a.display_order - b.display_order);
+    sortedLocs.forEach(loc => {
+      const label = LOCATION_TYPE_WA_LABELS[loc.location_type];
+      lines.push(`- *${label}:* ${loc.location_name}${loc.address ? ` – ${loc.address}` : ''}`);
+      if (loc.google_maps_link) lines.push(`  ${loc.google_maps_link}`);
+    });
   }
-  lines.push('');
 
-  if (t.special_instructions) lines.push(`🎀 ${t.special_instructions}`);
-  lines.push(`📅 Fecha: ${date}`);
-  lines.push('');
-
-  const sortedLocs = [...t.locations].sort((a, b) => a.display_order - b.display_order);
-  sortedLocs.forEach(loc => {
-    const label = LOCATION_TYPE_WA_LABELS[loc.location_type];
-    let locLine = `📍 ${label}: ${loc.location_name}`;
-    if (loc.address) locLine += ` – ${loc.address}`;
-    if (loc.google_maps_link) locLine += `\n${loc.google_maps_link}`;
-    lines.push(locLine);
+  if (t.activities.length > 0) {
+    const sortedActs = [...t.activities].sort((a, b) => a.display_order - b.display_order);
+    const duration = computeDuration(sortedActs);
     lines.push('');
-  });
+    lines.push(`*Itinerario${duration ? ` (${duration})` : ''}*`);
+    sortedActs.forEach(act => {
+      lines.push(`${formatTime12h(act.time)} – ${act.description}`);
+    });
+  }
 
-  const sortedActs = [...t.activities].sort((a, b) => a.display_order - b.display_order);
-  const duration = computeDuration(sortedActs);
-  lines.push(`🕒 Itinerario${duration ? ` (${duration} de servicio)` : ''}`);
   lines.push('');
-
-  sortedActs.forEach(act => {
-    lines.push(`${formatTime12h(act.time)} – ${act.description}`);
-    lines.push('');
-  });
+  lines.push(`_Camino a mi Boda_`);
 
   return lines.join('\n').trim();
 }

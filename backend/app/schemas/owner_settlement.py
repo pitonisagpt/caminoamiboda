@@ -35,6 +35,8 @@ class OwnerSettlementRead(BaseModel):
     display_reservation: Optional[str] = None
     display_vehicle: Optional[str] = None
     display_owner: Optional[str] = None
+    amount_paid: Decimal = Decimal("0")
+    remaining_to_owner: Decimal = Decimal("0")
 
     @classmethod
     def build(cls, s) -> "OwnerSettlementRead":
@@ -61,6 +63,8 @@ class OwnerSettlementRead(BaseModel):
                 f"{v.brand} {v.model_line or ''} {v.color or ''}".strip() if v else None
             ),
             display_owner=o.full_name if o else None,
+            amount_paid=s.amount_paid,
+            remaining_to_owner=s.remaining_to_owner,
         )
 
 

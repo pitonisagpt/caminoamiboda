@@ -1,6 +1,6 @@
 import io
 import os
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional
@@ -8,12 +8,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from jinja2 import Environment, FileSystemLoader
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
+from app.models.owner_settlement_payment import OwnerSettlementPayment
 from app.models.reservation import Reservation
 from app.models.vehicle import Vehicle
 from app.models.vehicle_owner import VehicleOwner
@@ -78,11 +80,24 @@ def create_settlement(body: OwnerSettlementCreate, db: Session = Depends(get_db)
     owner_amount = (value * Decimal(pct) / Decimal(100)).quantize(Decimal("0.01"))
     company_amount = (value - owner_amount).quantize(Decimal("0.01"))
 
+    vehicle_id = body.vehicle_id or reservation.vehicle_id
+    owner_id = body.owner_id
+
+    # Auto-resolve owner from vehicle's owner_name if not explicitly provided
+    if not owner_id and vehicle_id:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+        if vehicle and vehicle.owner_name:
+            matched = db.query(VehicleOwner).filter(
+                VehicleOwner.full_name == vehicle.owner_name
+            ).first()
+            if matched:
+                owner_id = matched.id
+
     settlement = OwnerSettlement(
         settlement_number=_next_number(db),
         reservation_id=reservation.id,
-        vehicle_id=body.vehicle_id or reservation.vehicle_id,
-        owner_id=body.owner_id,
+        vehicle_id=vehicle_id,
+        owner_id=owner_id,
         reservation_value=value,
         owner_percentage=pct,
         owner_amount=owner_amount,
@@ -126,11 +141,14 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         reservation=r,
         vehicle=v,
         owner=o,
+        payments=s.payments,
         formatted_date=_format_date_es(datetime.now().date()),
         formatted_event_date=_format_date_es(r.event_date) if r else "",
         formatted_value=_format_cop(s.reservation_value),
         formatted_owner_amount=_format_cop(s.owner_amount),
         formatted_company_amount=_format_cop(s.company_amount),
+        formatted_amount_paid=_format_cop(s.amount_paid),
+        formatted_remaining=_format_cop(s.remaining_to_owner),
         display_vehicle=(
             f"{v.brand} {v.model_line or ''} {v.color or ''}".strip() if v else "—"
         ),
@@ -171,3 +189,68 @@ def download_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         filename=f"{s.settlement_number}.pdf",
     )
+
+
+# ── Settlement Payments ───────────────────────────────────────────────────────
+
+class SettlementPaymentCreate(BaseModel):
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str] = None
+
+
+class SettlementPaymentRead(BaseModel):
+    id: int
+    settlement_id: int
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+def _sync_settlement_status(settlement: OwnerSettlement, db: Session) -> None:
+    if settlement.amount_paid >= settlement.owner_amount:
+        settlement.status = "paid"
+    else:
+        settlement.status = "pending"
+    db.commit()
+
+
+@router.get("/{settlement_id}/payments", response_model=List[SettlementPaymentRead], dependencies=[Depends(require_admin)])
+def list_settlement_payments(settlement_id: int, db: Session = Depends(get_db)):
+    s = _get(settlement_id, db)
+    return s.payments
+
+
+@router.post("/{settlement_id}/payments", response_model=SettlementPaymentRead, status_code=201, dependencies=[Depends(require_admin)])
+def add_settlement_payment(settlement_id: int, body: SettlementPaymentCreate, db: Session = Depends(get_db)):
+    s = _get(settlement_id, db)
+    payment = OwnerSettlementPayment(
+        settlement_id=settlement_id,
+        amount=body.amount,
+        paid_at=body.paid_at,
+        notes=body.notes,
+    )
+    db.add(payment)
+    db.flush()
+    db.refresh(s)
+    _sync_settlement_status(s, db)
+    db.refresh(payment)
+    return payment
+
+
+@router.delete("/{settlement_id}/payments/{payment_id}", status_code=204, dependencies=[Depends(require_admin)])
+def delete_settlement_payment(settlement_id: int, payment_id: int, db: Session = Depends(get_db)):
+    payment = db.query(OwnerSettlementPayment).filter(
+        OwnerSettlementPayment.id == payment_id,
+        OwnerSettlementPayment.settlement_id == settlement_id,
+    ).first()
+    if not payment:
+        raise HTTPException(404, "Pago no encontrado")
+    db.delete(payment)
+    db.flush()
+    s = _get(settlement_id, db)
+    db.refresh(s)
+    _sync_settlement_status(s, db)

@@ -33,3 +33,18 @@ class OwnerSettlement(Base):
     reservation = relationship("Reservation", foreign_keys=[reservation_id], lazy="select")
     vehicle = relationship("Vehicle", foreign_keys=[vehicle_id], lazy="select")
     owner = relationship("VehicleOwner", foreign_keys=[owner_id], lazy="select")
+    payments = relationship(
+        "OwnerSettlementPayment",
+        back_populates="settlement",
+        lazy="select",
+        order_by="OwnerSettlementPayment.paid_at",
+        cascade="all, delete-orphan",
+    )
+
+    @property
+    def amount_paid(self) -> Decimal:
+        return sum((p.amount for p in self.payments), Decimal("0"))
+
+    @property
+    def remaining_to_owner(self) -> Decimal:
+        return max(Decimal("0"), self.owner_amount - self.amount_paid)

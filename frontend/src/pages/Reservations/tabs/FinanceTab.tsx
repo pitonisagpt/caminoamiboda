@@ -3,7 +3,7 @@ import { DollarSign, Download, FileText, Loader2, Plus, Trash2 } from 'lucide-re
 import type { Reservation } from '../../../types/reservation';
 import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
-import { ownerSettlementsApi, type OwnerSettlement } from '../../../api/ownerSettlements';
+import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment } from '../../../api/ownerSettlements';
 import { useAuth } from '../../../context/AuthContext';
 
 function formatCOP(n: number) {
@@ -38,6 +38,14 @@ export default function FinanceTab({
   const [creating, setCreating] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  const [settlementPayments, setSettlementPayments] = useState<OwnerSettlementPayment[]>([]);
+  const [addingSettlementPayment, setAddingSettlementPayment] = useState(false);
+  const [newSpAmount, setNewSpAmount] = useState('');
+  const [newSpDate, setNewSpDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [newSpNotes, setNewSpNotes] = useState('');
+  const [savingSp, setSavingSp] = useState(false);
+  const [deletingSpId, setDeletingSpId] = useState<number | null>(null);
+
   const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
   const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
   const pct = reservation.total_amount > 0
@@ -56,6 +64,11 @@ export default function FinanceTab({
       .then(r => {
         const found = r.data.find(s => s.reservation_id === reservation.id) ?? null;
         setSettlement(found);
+        if (found) {
+          ownerSettlementsApi.listPayments(found.id)
+            .then(pr => setSettlementPayments(pr.data))
+            .catch(() => {});
+        }
       })
       .catch(() => setSettlement(null));
   }, [reservation.id, isAdmin]);
@@ -99,8 +112,48 @@ export default function FinanceTab({
         owner_percentage: 70,
       });
       setSettlement(res.data);
+      setSettlementPayments([]);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleAddSettlementPayment = async () => {
+    if (!settlement || settlement === 'loading' || !newSpAmount || Number(newSpAmount) <= 0) return;
+    setSavingSp(true);
+    try {
+      await ownerSettlementsApi.addPayment(settlement.id, {
+        amount: Number(newSpAmount),
+        paid_at: newSpDate,
+        notes: newSpNotes || undefined,
+      });
+      const [paymentsRes, settlementRes] = await Promise.all([
+        ownerSettlementsApi.listPayments(settlement.id),
+        ownerSettlementsApi.get(settlement.id),
+      ]);
+      setSettlementPayments(paymentsRes.data);
+      setSettlement(settlementRes.data);
+      setNewSpAmount('');
+      setNewSpNotes('');
+      setAddingSettlementPayment(false);
+    } finally {
+      setSavingSp(false);
+    }
+  };
+
+  const handleDeleteSettlementPayment = async (paymentId: number) => {
+    if (!settlement || settlement === 'loading') return;
+    setDeletingSpId(paymentId);
+    try {
+      await ownerSettlementsApi.deletePayment(settlement.id, paymentId);
+      const [paymentsRes, settlementRes] = await Promise.all([
+        ownerSettlementsApi.listPayments(settlement.id),
+        ownerSettlementsApi.get(settlement.id),
+      ]);
+      setSettlementPayments(paymentsRes.data);
+      setSettlement(settlementRes.data);
+    } finally {
+      setDeletingSpId(null);
     }
   };
 
@@ -287,8 +340,8 @@ export default function FinanceTab({
         )}
       </div>
 
-      {/* Owner Settlement — admin only, completed reservations */}
-      {isAdmin && reservation.status === 'completed' && (
+      {/* Owner Settlement — admin only */}
+      {isAdmin && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Liquidación de propietario</h2>
 
@@ -312,57 +365,171 @@ export default function FinanceTab({
             </div>
           )}
 
-          {settlement && settlement !== 'loading' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500 font-mono">{settlement.settlement_number}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  settlement.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {settlement.status === 'paid' ? 'Pagada' : 'Pendiente'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-purple-50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-400 mb-0.5">Propietario ({settlement.owner_percentage}%)</p>
-                  <p className="text-base font-bold text-purple-700">{formatCOP(settlement.owner_amount)}</p>
+          {settlement && settlement !== 'loading' && (() => {
+            const spPaid = settlementPayments.reduce((s, p) => s + Number(p.amount), 0);
+            const spRemaining = Math.max(0, Number(settlement.owner_amount) - spPaid);
+            const spPct = settlement.owner_amount > 0
+              ? Math.round((spPaid / Number(settlement.owner_amount)) * 100)
+              : 0;
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500 font-mono">{settlement.settlement_number}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    settlement.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {settlement.status === 'paid' ? 'Pagada' : 'Pendiente'}
+                  </span>
                 </div>
-                <div className="bg-pink-50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-400 mb-0.5">Empresa ({100 - settlement.owner_percentage}%)</p>
-                  <p className="text-base font-bold text-pink-700">{formatCOP(settlement.company_amount)}</p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-purple-50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-gray-400 mb-0.5">Propietario ({settlement.owner_percentage}%)</p>
+                    <p className="text-base font-bold text-purple-700">{formatCOP(settlement.owner_amount)}</p>
+                  </div>
+                  <div className="bg-pink-50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-gray-400 mb-0.5">Empresa ({100 - settlement.owner_percentage}%)</p>
+                    <p className="text-base font-bold text-pink-700">{formatCOP(settlement.company_amount)}</p>
+                  </div>
+                </div>
+
+                {/* Abonos al propietario */}
+                <div className="border-t border-gray-100 pt-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Abonos al propietario</p>
+                    {!addingSettlementPayment && (
+                      <button
+                        onClick={() => setAddingSettlementPayment(true)}
+                        className="flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-700 cursor-pointer"
+                      >
+                        <Plus size={12} /> Agregar abono
+                      </button>
+                    )}
+                  </div>
+
+                  {settlementPayments.length === 0 && !addingSettlementPayment ? (
+                    <p className="text-xs text-gray-400">Sin abonos registrados.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {settlementPayments.map(p => (
+                        <div key={p.id} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(p.amount))}</p>
+                            <p className="text-xs text-gray-400">{formatDate(p.paid_at)}{p.notes ? ` · ${p.notes}` : ''}</p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteSettlementPayment(p.id)}
+                            disabled={deletingSpId === p.id}
+                            className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {deletingSpId === p.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {addingSettlementPayment && (
+                    <div className="border border-purple-100 rounded-xl p-3 space-y-2 bg-purple-50/30">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Monto (COP) *</label>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1000"
+                            value={newSpAmount}
+                            onChange={e => setNewSpAmount(e.target.value)}
+                            placeholder="0"
+                            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            autoFocus
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Fecha *</label>
+                          <input
+                            type="date"
+                            value={newSpDate}
+                            onChange={e => setNewSpDate(e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
+                        <input
+                          type="text"
+                          value={newSpNotes}
+                          onChange={e => setNewSpNotes(e.target.value)}
+                          placeholder="Ej: transferencia, efectivo…"
+                          className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { setAddingSettlementPayment(false); setNewSpAmount(''); setNewSpNotes(''); }}
+                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAddSettlementPayment}
+                          disabled={savingSp || !newSpAmount}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                        >
+                          {savingSp ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                          Guardar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Progress bar */}
+                  {settlement.owner_amount > 0 && (
+                    <div className="pt-1">
+                      <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>{formatCOP(spPaid)} pagado</span>
+                        <span>{spPct}%</span>
+                      </div>
+                      <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-purple-400 rounded-full transition-all"
+                          style={{ width: `${Math.min(spPct, 100)}%` }}
+                        />
+                      </div>
+                      {spRemaining > 0 && (
+                        <p className="text-xs text-gray-400 mt-1">Saldo pendiente: <span className="font-semibold text-gray-700">{formatCOP(spRemaining)}</span></p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  {settlement.pdf_path ? (
+                    <button
+                      onClick={handleDownloadPdf}
+                      disabled={pdfLoading}
+                      className="flex items-center gap-2 border border-purple-200 text-purple-700 hover:bg-purple-50 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                      Descargar PDF
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleGeneratePdf}
+                      disabled={pdfLoading}
+                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+                      Generar PDF
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="flex gap-2">
-                {settlement.pdf_path ? (
-                  <button
-                    onClick={handleDownloadPdf}
-                    disabled={pdfLoading}
-                    className="flex items-center gap-2 border border-purple-200 text-purple-700 hover:bg-purple-50 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                  >
-                    {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                    Descargar PDF
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleGeneratePdf}
-                    disabled={pdfLoading}
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                  >
-                    {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
-                    Generar PDF
-                  </button>
-                )}
-                {settlement.status === 'pending' && (
-                  <button
-                    onClick={() => ownerSettlementsApi.markPaid(settlement.id).then(r => setSettlement(r.data))}
-                    className="flex items-center gap-2 border border-green-200 text-green-700 hover:bg-green-50 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-                  >
-                    Marcar pagada
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
     </div>

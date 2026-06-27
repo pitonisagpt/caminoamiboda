@@ -235,6 +235,41 @@
     </div>
   </div>
 
+  <!-- Abonos realizados -->
+  {% if payments %}
+  <div class="section">
+    <div class="section-title">Abonos Realizados al Propietario</div>
+    <table class="dist-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Notas</th>
+          <th class="amount">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.paid_at.strftime('%d/%m/%Y') }}</td>
+          <td>{{ p.notes or '—' }}</td>
+          <td class="amount">COP ${{ "{:,.0f}".format(p.amount).replace(",", ".") }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="row-owner">
+          <td colspan="2"><strong>Total abonado</strong></td>
+          <td class="amount"><strong>{{ formatted_amount_paid }}</strong></td>
+        </tr>
+        {% if settlement.remaining_to_owner > 0 %}
+        <tr class="row-total">
+          <td colspan="2"><strong>Saldo pendiente</strong></td>
+          <td class="amount"><strong>{{ formatted_remaining }}</strong></td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   {% if settlement.notes %}
   <div class="section">
     <div class="section-title">Notas</div>

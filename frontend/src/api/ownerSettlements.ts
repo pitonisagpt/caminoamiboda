@@ -10,6 +10,8 @@ export interface OwnerSettlement {
   owner_percentage: number;
   owner_amount: number;
   company_amount: number;
+  amount_paid: number;
+  remaining_to_owner: number;
   status: 'pending' | 'paid';
   notes: string | null;
   pdf_path: string | null;
@@ -18,6 +20,15 @@ export interface OwnerSettlement {
   display_reservation: string | null;
   display_vehicle: string | null;
   display_owner: string | null;
+}
+
+export interface OwnerSettlementPayment {
+  id: number;
+  settlement_id: number;
+  amount: number;
+  paid_at: string;
+  notes: string | null;
+  created_at: string;
 }
 
 export const ownerSettlementsApi = {
@@ -41,4 +52,13 @@ export const ownerSettlementsApi = {
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  listPayments: (id: number) =>
+    api.get<OwnerSettlementPayment[]>(`/owner-settlements/${id}/payments`),
+
+  addPayment: (id: number, data: { amount: number; paid_at: string; notes?: string }) =>
+    api.post<OwnerSettlementPayment>(`/owner-settlements/${id}/payments`, data),
+
+  deletePayment: (settlementId: number, paymentId: number) =>
+    api.delete(`/owner-settlements/${settlementId}/payments/${paymentId}`),
 };
