@@ -35,6 +35,17 @@ export const timelinesApi = {
   reorderActivities: (timelineId: number, items: { id: number; display_order: number }[]) =>
     api.put(`/timelines/${timelineId}/activities/reorder`, items),
 
+  // PDF
+  downloadPdf: async (id: number, eventName: string) => {
+    const response = await api.get(`/timelines/${id}/pdf`, { responseType: 'blob' });
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Minuto-a-Minuto-${eventName}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
   // Public (no auth)
   getPublic: (token: string) => api.get<TimelinePublic>(`/public/evento/${token}`),
 };

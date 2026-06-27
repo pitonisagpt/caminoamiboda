@@ -1,9 +1,15 @@
+import io
 import uuid
+from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.event_timeline import EventTimeline
@@ -16,6 +22,20 @@ from app.schemas.event_timeline import (
 )
 
 router = APIRouter(tags=["timelines"], redirect_slashes=False)
+
+_TEMPLATE_DIR = Path(__file__).parent.parent.parent / "templates"
+_MONTHS_ES = {
+    1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+    5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+    9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre",
+}
+
+
+def _fmt_date_es(d) -> str:
+    if d is None:
+        return ""
+    return f"{d.day} de {_MONTHS_ES[d.month]} de {d.year}"
+
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -217,6 +237,54 @@ def delete_activity(timeline_id: int, activity_id: int, db: Session = Depends(ge
     act = _get_activity(timeline_id, activity_id, db)
     db.delete(act)
     db.commit()
+
+
+# ── PDF ───────────────────────────────────────────────────────────────────────
+
+@router.get("/api/timelines/{timeline_id}/pdf", dependencies=[Depends(get_current_user)])
+def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
+    timeline = _get_timeline(timeline_id, db)
+    locs, acts = _load_locs_acts(timeline_id, db)
+
+    reservation = timeline.reservation
+    customer = reservation.customer if reservation else None
+    driver = reservation.driver if reservation else None
+    planner = reservation.contact if reservation else None
+
+    env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)))
+    template = env.get_template("timeline_pdf.html")
+    html = template.render(
+        timeline=timeline,
+        locations=locs,
+        activities=acts,
+        reservation=reservation,
+        customer=customer,
+        driver=driver,
+        planner=planner,
+        formatted_date=_fmt_date_es(datetime.now().date()),
+        formatted_event_date=_fmt_date_es(timeline.event_date),
+        company_name=settings.company_name,
+        company_phone=settings.company_phone,
+        city=settings.city,
+    )
+
+    buf = io.BytesIO()
+    try:
+        from weasyprint import HTML as WeasyHTML
+        pdf_bytes = WeasyHTML(string=html, base_url=str(_TEMPLATE_DIR)).write_pdf()
+        buf.write(pdf_bytes)
+    except Exception:
+        from xhtml2pdf import pisa
+        pisa.CreatePDF(io.StringIO(html), dest=buf)
+    buf.seek(0)
+
+    safe_name = "".join(c if c.isalnum() or c in " -_" else "_" for c in (timeline.event_name or "evento"))
+    filename = f"Minuto-a-Minuto-{safe_name}.pdf"
+    return StreamingResponse(
+        buf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ── Public token endpoints (no auth) ──────────────────────────────────────────

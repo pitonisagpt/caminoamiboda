@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowLeft, Edit, Trash2, Plus, GripVertical, Copy, Check,
   MapPin, Clock, Phone, User, Car, RefreshCw, ExternalLink,
-  ChevronDown, ChevronUp, Info, MessageCircle, CalendarDays,
+  ChevronDown, ChevronUp, Info, MessageCircle, CalendarDays, Download,
 } from 'lucide-react';
 import { timelinesApi } from '../../api/timelines';
 import type {
@@ -545,6 +545,13 @@ export default function TimelineDetail() {
               <CalendarDays className="w-3.5 h-3.5" /> GCal
             </a>
           )}
+          <button
+            onClick={() => timelinesApi.downloadPdf(timelineId, timeline.event_name)}
+            className="flex items-center gap-1.5 text-sm border border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title="Descargar PDF minuto a minuto"
+          >
+            <Download className="w-3.5 h-3.5" /> PDF
+          </button>
           <Link
             to={`/eventos/${id}/editar`}
             className="flex items-center gap-1.5 text-sm border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors"

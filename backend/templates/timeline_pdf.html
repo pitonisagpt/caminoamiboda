@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; }
+
+    .page { padding: 32px 40px; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #DB2777;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+    }
+    .brand-name { font-size: 20pt; font-weight: 700; color: #DB2777; }
+    .brand-tagline { font-size: 8pt; color: #831843; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .event-title { font-size: 13pt; font-weight: 700; color: #831843; }
+
+    /* ── Document title ── */
+    .doc-title {
+      text-align: center;
+      font-size: 13pt;
+      font-weight: 700;
+      color: #831843;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 8px 0;
+      border-top: 1px solid #f3c0d9;
+      border-bottom: 1px solid #f3c0d9;
+      margin-bottom: 20px;
+    }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #DB2777;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid #fce7f3;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Two-col info ── */
+    .two-col { display: flex; gap: 24px; margin-bottom: 18px; }
+    .two-col .col { flex: 1; }
+    .info-row { display: flex; margin-bottom: 5px; font-size: 10.5pt; }
+    .info-label { color: #666; min-width: 140px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 8.5pt;
+      font-weight: 700;
+      background: #fce7f3;
+      color: #831843;
+    }
+
+    /* ── Contacts box ── */
+    .contacts-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+    .contacts-row { display: flex; gap: 0; flex-wrap: wrap; }
+    .contact-item { flex: 1; min-width: 160px; padding: 6px 12px; border-right: 1px solid #e2e8f0; }
+    .contact-item:last-child { border-right: none; }
+    .contact-role { font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .contact-name { font-size: 10pt; font-weight: 700; color: #1a1a1a; }
+    .contact-phone { font-size: 9pt; color: #DB2777; margin-top: 1px; }
+
+    /* ── Locations table ── */
+    .loc-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .loc-table th {
+      background: #831843;
+      color: #fff;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 7px 10px;
+      text-align: left;
+    }
+    .loc-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .loc-table tr:last-child td { border-bottom: none; }
+    .loc-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 8pt;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .loc-pickup    { background: #dbeafe; color: #1d4ed8; }
+    .loc-ceremony  { background: #fce7f3; color: #831843; }
+    .loc-reception { background: #dcfce7; color: #15803d; }
+    .loc-photoshoot{ background: #ffedd5; color: #c2410c; }
+    .loc-other     { background: #f1f5f9; color: #475569; }
+    .maps-link { font-size: 8pt; color: #2563eb; word-break: break-all; }
+
+    /* ── Activities table (itinerary) ── */
+    .act-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .act-table th {
+      background: #DB2777;
+      color: #fff;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 7px 10px;
+      text-align: left;
+    }
+    .act-table td { padding: 8px 10px; border-bottom: 1px solid #fce7f3; vertical-align: top; }
+    .act-table tr:nth-child(even) td { background: #fff5f9; }
+    .act-table tr:last-child td { border-bottom: none; }
+    .act-time { font-weight: 700; color: #DB2777; white-space: nowrap; width: 70px; }
+    .act-duration { color: #64748b; white-space: nowrap; font-size: 9pt; }
+    .act-notes { color: #64748b; font-size: 9pt; font-style: italic; }
+
+    /* ── Special instructions ── */
+    .notes-box {
+      background: #fef9c3;
+      border-left: 3px solid #ca8a04;
+      padding: 10px 14px;
+      font-size: 9.5pt;
+      color: #713f12;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 28px;
+      border-top: 1px solid #f3c0d9;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: #888;
+    }
+    .footer .brand { font-weight: 700; color: #DB2777; }
+
+    .no-data { font-size: 9.5pt; color: #94a3b8; font-style: italic; padding: 8px 0; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand-name">{{ company_name }}</div>
+      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
+    </div>
+    <div class="header-meta">
+      <div class="event-title">{{ timeline.event_name }}</div>
+      <div>{{ formatted_event_date }}</div>
+      {% if reservation %}<div>Reserva {{ reservation.reservation_number }}</div>{% endif %}
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="doc-title">Minuto a Minuto del Evento</div>
+
+  <!-- Event info + Reservation info -->
+  <div class="two-col">
+    <div class="col">
+      <div class="section-title">Información del Evento</div>
+      {% set type_labels = {
+        'wedding': 'Boda',
+        'quinceanera': 'Quinceañera',
+        'brand_activation': 'Activación de marca',
+        'audiovisual_production': 'Producción audiovisual',
+        'other': 'Otro'
+      } %}
+      <div class="info-row">
+        <span class="info-label">Tipo:</span>
+        <span class="info-value">{{ type_labels.get(timeline.event_type, timeline.event_type) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Fecha del evento:</span>
+        <span class="info-value">{{ formatted_event_date }}</span>
+      </div>
+      {% if timeline.assigned_vehicle %}
+      <div class="info-row">
+        <span class="info-label">Vehículo:</span>
+        <span class="info-value">{{ timeline.assigned_vehicle }}</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="col">
+      {% if reservation %}
+      <div class="section-title">Reserva</div>
+      <div class="info-row">
+        <span class="info-label">Número:</span>
+        <span class="info-value">{{ reservation.reservation_number }}</span>
+      </div>
+      {% if customer %}
+      <div class="info-row">
+        <span class="info-label">Cliente:</span>
+        <span class="info-value">
+          {% if customer.bride_name and customer.groom_name %}
+            {{ customer.bride_name }} &amp; {{ customer.groom_name }}
+          {% else %}
+            {{ customer.main_contact_name }}
+          {% endif %}
+        </span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Estado:</span>
+        <span class="info-value">
+          {% set status_labels = {
+            'lead': 'Lead', 'quoted': 'Cotizada', 'deposit_received': 'Depósito',
+            'reserved': 'Reservada', 'confirmed': 'Confirmada',
+            'completed': 'Completada', 'cancelled': 'Cancelada'
+          } %}
+          <span class="status-badge">{{ status_labels.get(reservation.status, reservation.status) }}</span>
+        </span>
+      </div>
+      {% else %}
+      <div class="section-title">Evento</div>
+      <div class="info-row"><span class="info-value" style="color:#888;">Sin reserva asociada</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Contacts -->
+  <div class="section">
+    <div class="section-title">Contactos</div>
+    <div class="contacts-box">
+      <div class="contacts-row">
+        {% if timeline.main_contact_name %}
+        <div class="contact-item">
+          <div class="contact-role">Contacto principal</div>
+          <div class="contact-name">{{ timeline.main_contact_name }}</div>
+          {% if timeline.main_contact_phone %}<div class="contact-phone">{{ timeline.main_contact_phone }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% if timeline.assigned_driver %}
+        <div class="contact-item">
+          <div class="contact-role">Conductor</div>
+          <div class="contact-name">{{ timeline.assigned_driver }}</div>
+          {% if timeline.assigned_driver_phone %}<div class="contact-phone">{{ timeline.assigned_driver_phone }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% if driver and driver.phone %}
+        {% endif %}
+        {% if planner %}
+        <div class="contact-item">
+          <div class="contact-role">Planeador</div>
+          <div class="contact-name">{{ planner.full_name }}</div>
+          {% if planner.phone %}<div class="contact-phone">{{ planner.phone }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% if not timeline.main_contact_name and not timeline.assigned_driver and not planner %}
+        <div class="contact-item"><span class="no-data">Sin contactos registrados</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Locations -->
+  <div class="section">
+    <div class="section-title">Ubicaciones</div>
+    {% if locations %}
+    <table class="loc-table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Nombre</th>
+          <th>Dirección / Maps</th>
+          <th>Contacto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set loc_labels = {'pickup': 'Recogida', 'ceremony': 'Ceremonia', 'reception': 'Recepción', 'photoshoot': 'Sesión foto', 'other': 'Otro'} %}
+        {% set loc_classes = {'pickup': 'loc-pickup', 'ceremony': 'loc-ceremony', 'reception': 'loc-reception', 'photoshoot': 'loc-photoshoot', 'other': 'loc-other'} %}
+        {% for loc in locations %}
+        <tr>
+          <td><span class="loc-type {{ loc_classes.get(loc.location_type, 'loc-other') }}">{{ loc_labels.get(loc.location_type, loc.location_type) }}</span></td>
+          <td style="font-weight:600;">{{ loc.location_name }}</td>
+          <td>
+            {% if loc.address %}<div>{{ loc.address }}</div>{% endif %}
+            {% if loc.google_maps_link %}<div class="maps-link">{{ loc.google_maps_link }}</div>{% endif %}
+            {% if not loc.address and not loc.google_maps_link %}—{% endif %}
+          </td>
+          <td>
+            {% if loc.contact_person %}<div>{{ loc.contact_person }}</div>{% endif %}
+            {% if loc.contact_phone %}<div style="color:#DB2777; font-size:9pt;">{{ loc.contact_phone }}</div>{% endif %}
+            {% if not loc.contact_person and not loc.contact_phone %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">Sin ubicaciones registradas.</div>
+    {% endif %}
+  </div>
+
+  <!-- Itinerary -->
+  <div class="section">
+    <div class="section-title">Itinerario Minuto a Minuto</div>
+    {% if activities %}
+    <table class="act-table">
+      <thead>
+        <tr>
+          <th style="width:70px;">Hora</th>
+          <th>Actividad</th>
+          <th style="width:90px;">Duración</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for act in activities %}
+        <tr>
+          <td class="act-time">{{ act.time }}</td>
+          <td style="font-weight:500;">{{ act.description }}</td>
+          <td class="act-duration">{{ act.estimated_duration or '—' }}</td>
+          <td class="act-notes">{{ act.notes or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">Sin actividades registradas.</div>
+    {% endif %}
+  </div>
+
+  <!-- Special instructions -->
+  {% if timeline.special_instructions %}
+  <div class="section">
+    <div class="section-title">Instrucciones Especiales</div>
+    <div class="notes-box">{{ timeline.special_instructions }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div><span class="brand">{{ company_name }}</span> · {{ city }}</div>
+    <div>{{ company_phone }}</div>
+    <div>Generado el {{ formatted_date }}</div>
+  </div>
+
+</div>
+</body>
+</html>

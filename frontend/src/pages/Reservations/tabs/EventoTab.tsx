@@ -10,7 +10,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
-  Copy, Check, ExternalLink, RefreshCw, MessageCircle,
+  Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText,
   User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2,
 } from 'lucide-react';
 import { timelinesApi } from '../../../api/timelines';
@@ -451,6 +451,13 @@ export default function EventoTab({
                 <CalendarDays className="w-3.5 h-3.5" /> GCal
               </a>
             )}
+            <button
+              onClick={() => timelineId && timelinesApi.downloadPdf(timelineId, timeline.event_name)}
+              className="flex items-center gap-1.5 text-xs border border-rose-200 text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              title="Descargar PDF minuto a minuto"
+            >
+              <FileText className="w-3.5 h-3.5" /> PDF
+            </button>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
