@@ -19,6 +19,8 @@ def _build(r) -> dict:
     d["remaining_balance"] = r.remaining_balance
     d["display_customer"] = r.display_customer
     d["display_contact"] = r.contact.full_name if r.contact else None
+    d["contact_phone"] = r.contact.phone if r.contact else None
+    d["contact_type"] = r.contact.contact_type if r.contact else None
     d["display_vehicle"] = r.display_vehicle
     d["display_driver"] = r.display_driver
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
@@ -85,6 +87,8 @@ class ReservationRead(BaseModel):
     notes: Optional[str] = None
     display_customer: str
     display_contact: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_type: Optional[str] = None
     display_vehicle: str
     display_driver: str
     owner_name: Optional[str] = None

@@ -481,6 +481,19 @@ export default function EventoTab({
               )}
             </div>
           )}
+          {reservation.display_contact && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-700">
+                <User className="w-4 h-4 text-gray-400 shrink-0" />
+                <span>{reservation.display_contact} <span className="text-gray-400 text-xs">(planeador)</span></span>
+              </div>
+              {reservation.contact_phone && (
+                <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
+                  <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
+                </a>
+              )}
+            </div>
+          )}
           {timeline.special_instructions && (
             <div className="col-span-2 text-gray-600 border-t border-gray-100 pt-3 mt-1">
               <p className="text-xs font-medium text-gray-500 mb-1">Instrucciones especiales</p>
@@ -503,6 +516,7 @@ export default function EventoTab({
             { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, name: timeline.assigned_driver },
             { label: 'Propietario', token: timeline.share_token_ops, phone: reservation.owner_whatsapp, name: reservation.owner_name },
             { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, name: timeline.main_contact_name },
+            ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, name: reservation.display_contact }] : []),
             { label: 'Operaciones', token: timeline.share_token_ops, phone: null, name: null },
           ].map(({ label, token, phone, name }) => {
             const link = `${window.location.origin}/evento/${token}`;
@@ -549,6 +563,7 @@ export default function EventoTab({
             { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone },
             { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp },
             { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone },
+            ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone }] : []),
             { label: 'Operaciones', name: null, phone: OPS_PHONE },
           ].map(({ label, name, phone }) => (
             <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
