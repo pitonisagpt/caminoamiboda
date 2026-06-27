@@ -542,11 +542,12 @@ export default function EventoTab({
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <MessageCircle className="w-4 h-4 text-green-600" />
-          <h3 className="font-semibold text-gray-900 text-sm">Enviar por WhatsApp</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">Enviar minuto a minuto</h3>
         </div>
         <div className="space-y-2">
           {[
             { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone },
+            { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp },
             { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone },
             { label: 'Operaciones', name: null, phone: OPS_PHONE },
           ].map(({ label, name, phone }) => (
