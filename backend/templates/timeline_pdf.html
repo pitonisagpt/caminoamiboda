@@ -342,7 +342,7 @@
   </div>
 
   <!-- Special instructions -->
-  {% if timeline.special_instructions %}
+  {% if timeline.special_instructions and timeline.special_instructions.strip() %}
   <div class="section">
     <div class="section-title">Instrucciones Especiales</div>
     <div class="notes-box">{{ timeline.special_instructions }}</div>
