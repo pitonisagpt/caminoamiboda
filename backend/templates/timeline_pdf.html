@@ -275,13 +275,14 @@
   <div class="section">
     <div class="section-title">Ubicaciones</div>
     {% if locations %}
+    {% set has_contact = locations | selectattr('contact_person') | list | length > 0 or locations | selectattr('contact_phone') | list | length > 0 %}
     <table class="loc-table">
       <thead>
         <tr>
           <th>Tipo</th>
           <th>Nombre</th>
           <th>Dirección / Maps</th>
-          <th>Contacto</th>
+          {% if has_contact %}<th>Contacto</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -296,11 +297,13 @@
             {% if loc.google_maps_link %}<div class="maps-link">{{ loc.google_maps_link }}</div>{% endif %}
             {% if not loc.address and not loc.google_maps_link %}—{% endif %}
           </td>
+          {% if has_contact %}
           <td>
             {% if loc.contact_person %}<div>{{ loc.contact_person }}</div>{% endif %}
             {% if loc.contact_phone %}<div style="color:#DB2777; font-size:9pt;">{{ loc.contact_phone }}</div>{% endif %}
             {% if not loc.contact_person and not loc.contact_phone %}—{% endif %}
           </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>
