@@ -180,7 +180,7 @@ def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
-    operational_fields = {"event_date", "vehicle_id", "driver_id", "customer_id", "status", "event_category", "special_instructions"}
+    operational_fields = {"event_date", "vehicle_id", "driver_id", "owner_driver_id", "customer_id", "status", "event_category", "special_instructions"}
     needs_timeline_sync = bool(operational_fields & set(changed.keys()))
     for field, value in changed.items():
         setattr(r, field, value)
@@ -200,7 +200,7 @@ def _sync_linked_timelines(reservation, db):
 
     new_category = calendar_category_for(reservation)
     customer = reservation.customer
-    driver = reservation.driver
+    driver = reservation.owner_driver if reservation.owner_driver_id else reservation.driver
 
     linked = db.query(EventTimeline).filter(
         EventTimeline.reservation_id == reservation.id,
@@ -209,10 +209,15 @@ def _sync_linked_timelines(reservation, db):
     for tl in linked:
         tl.calendar_category = new_category
         tl.event_date = reservation.event_date
-        tl.assigned_vehicle = reservation.display_vehicle if reservation.display_vehicle != "—" else tl.assigned_vehicle
+        display_v = reservation.display_vehicle
+        if display_v and display_v != "—":
+            tl.assigned_vehicle = display_v
+        display_name = reservation.display_customer
+        if display_name and display_name != "—":
+            tl.event_name = display_name
         if driver:
             tl.assigned_driver = driver.full_name
-            tl.assigned_driver_phone = driver.phone
+            tl.assigned_driver_phone = driver.phone or getattr(driver, 'whatsapp', None)
         if customer:
             tl.main_contact_name = customer.main_contact_name
             tl.main_contact_phone = customer.phone
