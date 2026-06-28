@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DollarSign, Download, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
+import { DollarSign, Download, FileText, Loader2, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
 import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
@@ -8,6 +8,52 @@ import { useAuth } from '../../../context/AuthContext';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
+}
+
+function buildWaUrl(phone: string | null | undefined, message: string): string {
+  const encoded = encodeURIComponent(message);
+  const num = phone ? phone.replace(/\D/g, '') : '';
+  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+}
+
+function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[]): string {
+  const firstName = reservation.display_customer.split(' ')[0];
+  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
+
+  const lines: string[] = [
+    `Hola ${firstName}, aquí está el resumen de pagos de tu reserva con Camino a mi Boda:`,
+    '',
+    `*Valor total:* ${formatCOP(reservation.total_amount)}`,
+    '',
+  ];
+
+  if (payments.length > 0) {
+    lines.push('*Abonos realizados:*');
+    payments.forEach(p => {
+      const date = new Date(p.paid_at + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
+      const note = p.notes ? ` (${p.notes})` : '';
+      lines.push(`  - ${date}: ${formatCOP(Number(p.amount))}${note}`);
+    });
+    lines.push('');
+  }
+
+  lines.push(`*Total abonado:* ${formatCOP(totalDeposit)}`);
+  lines.push(`*Saldo pendiente:* ${formatCOP(remaining)}`);
+
+  if (reservation.event_date) {
+    const evDate = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+    lines.push('');
+    lines.push(`*Fecha del evento:* ${evDate}`);
+  }
+
+  lines.push('');
+  lines.push(`La cuenta de ahorros Bancolombia es 00484248273`);
+  lines.push('');
+  lines.push('Camino a mi Boda');
+  lines.push('https://www.instagram.com/caminoamiboda');
+
+  return lines.join('\n');
 }
 
 function formatDate(d: string) {
@@ -338,6 +384,39 @@ export default function FinanceTab({
             </div>
           </div>
         )}
+      </div>
+
+      {/* WhatsApp cobro */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-4 h-4 text-green-600" />
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Enviar cobro por WhatsApp</h2>
+        </div>
+        <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-gray-700">{reservation.display_customer}</span>
+            {(reservation.customer_whatsapp || reservation.customer_phone) && (
+              <span className="text-xs text-gray-400 ml-2">
+                · {reservation.customer_whatsapp || reservation.customer_phone}
+              </span>
+            )}
+          </div>
+          {(reservation.customer_whatsapp || reservation.customer_phone) ? (
+            <a
+              href={buildWaUrl(
+                reservation.customer_whatsapp || reservation.customer_phone,
+                buildCobroMsg(reservation, payments)
+              )}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+              <MessageCircle className="w-3.5 h-3.5" /> Enviar
+            </a>
+          ) : (
+            <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
+          )}
+        </div>
       </div>
 
       {/* Owner Settlement — admin only */}

@@ -132,13 +132,20 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
     template = env.get_template("settlement.html")
 
+    from app.models.event_timeline import EventTimeline
+    from app.models.event_location import EventLocation
+    from app.models.timeline_activity import TimelineActivity
+    from app.models.reservation_payment import ReservationPayment
+
     r = s.reservation
     v = s.vehicle
     o = s.owner
-    driver = r.driver if r else None
-    timeline = r.timelines[0] if r and r.timelines else None
-    locations = sorted(timeline.locations, key=lambda l: l.display_order) if timeline else []
-    activities = sorted(timeline.activities, key=lambda a: a.display_order) if timeline else []
+    driver = (r.owner_driver if r.owner_driver_id else r.driver) if r else None
+    driver_is_owner = bool(r and r.owner_driver_id)
+    timeline = db.query(EventTimeline).filter(EventTimeline.reservation_id == r.id).first() if r else None
+    locations = db.query(EventLocation).filter(EventLocation.timeline_id == timeline.id).order_by(EventLocation.display_order).all() if timeline else []
+    activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == timeline.id).order_by(TimelineActivity.display_order).all() if timeline else []
+    reservation_payments = db.query(ReservationPayment).filter(ReservationPayment.reservation_id == r.id).order_by(ReservationPayment.paid_at).all() if r else []
 
     html = template.render(
         settlement=s,
@@ -146,10 +153,12 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         vehicle=v,
         owner=o,
         driver=driver,
+        driver_is_owner=driver_is_owner,
         timeline=timeline,
         locations=locations,
         activities=activities,
         payments=s.payments,
+        reservation_payments=reservation_payments,
         formatted_date=_format_date_es(datetime.now().date()),
         formatted_event_date=_format_date_es(r.event_date) if r else "",
         formatted_value=_format_cop(s.reservation_value),
@@ -157,9 +166,10 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         formatted_company_amount=_format_cop(s.company_amount),
         formatted_amount_paid=_format_cop(s.amount_paid),
         formatted_remaining=_format_cop(s.remaining_to_owner),
-        display_vehicle=(
-            f"{v.brand} {v.model_line or ''} {v.color or ''}".strip() if v else "—"
-        ),
+        formatted_total_paid_by_customer=_format_cop(sum(p.amount for p in reservation_payments)),
+        display_vehicle=r.display_vehicle if r else "—",
+        vehicle_plate=v.license_plate if v else None,
+        vehicle_year=v.year if v else None,
         company_name=settings.company_name,
         company_phone=settings.company_phone,
         company_owner=settings.company_owner,

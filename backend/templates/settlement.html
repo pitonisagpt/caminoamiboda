@@ -168,8 +168,14 @@
       {% endif %}
       <div class="info-row">
         <span class="info-label">Vehículo:</span>
-        <span class="info-value">{{ display_vehicle }}</span>
+        <span class="info-value">{{ display_vehicle }}{% if vehicle_year %} ({{ vehicle_year }}){% endif %}</span>
       </div>
+      {% if vehicle_plate %}
+      <div class="info-row">
+        <span class="info-label">Placa:</span>
+        <span class="info-value">{{ vehicle_plate }}</span>
+      </div>
+      {% endif %}
     </div>
     <div class="col">
       <div class="section-title">Propietario</div>
@@ -218,19 +224,13 @@
           <div class="field-value">{{ driver.phone }}</div>
         </div>
         {% endif %}
-        {% if driver.whatsapp and driver.whatsapp != driver.phone %}
-        <div class="field">
-          <div class="field-label">WhatsApp</div>
-          <div class="field-value">{{ driver.whatsapp }}</div>
-        </div>
-        {% endif %}
-        {% if driver.driver_license_number %}
+        {% if not driver_is_owner and driver.driver_license_number %}
         <div class="field">
           <div class="field-label">Licencia de conducción</div>
           <div class="field-value">{{ driver.driver_license_number }}</div>
         </div>
         {% endif %}
-        {% if driver.license_expiration_date %}
+        {% if not driver_is_owner and driver.license_expiration_date %}
         <div class="field">
           <div class="field-label">Vencimiento licencia</div>
           <div class="field-value">{{ driver.license_expiration_date.strftime('%d/%m/%Y') }}</div>
@@ -274,11 +274,42 @@
     </table>
   </div>
 
+  <!-- Pagos recibidos del cliente -->
+  {% if reservation_payments %}
+  <div class="section">
+    <div class="section-title">Pagos Recibidos del Cliente</div>
+    <table class="dist-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Notas</th>
+          <th class="amount">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in reservation_payments %}
+        <tr>
+          <td>{{ p.paid_at.strftime('%d/%m/%Y') }}</td>
+          <td>{{ p.notes or '—' }}</td>
+          <td class="amount">COP ${{ "{:,.0f}".format(p.amount).replace(",", ".") }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="row-total">
+          <td colspan="2"><strong>Total recibido del cliente</strong></td>
+          <td class="amount"><strong>{{ formatted_total_paid_by_customer }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <!-- Itinerario del Evento -->
   <div class="section">
     <div class="section-title">Itinerario del Evento</div>
     {% if timeline %}
       {% if locations %}
+      {% set has_contact = locations | selectattr('contact_person') | list | length > 0
+                        or locations | selectattr('contact_phone') | list | length > 0 %}
       <div class="section-subtitle">Ubicaciones</div>
       <table class="itinerary-table">
         <thead>
@@ -286,7 +317,7 @@
             <th>Tipo</th>
             <th>Nombre</th>
             <th>Dirección</th>
-            <th>Contacto</th>
+            {% if has_contact %}<th>Contacto</th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -296,11 +327,13 @@
             <td style="white-space:nowrap; color:#DB2777; font-weight:600;">{{ loc_labels.get(loc.location_type, loc.location_type) }}</td>
             <td style="font-weight:600;">{{ loc.location_name }}</td>
             <td>{{ loc.address or '—' }}</td>
+            {% if has_contact %}
             <td>
               {% if loc.contact_person %}{{ loc.contact_person }}{% endif %}
               {% if loc.contact_phone %}<br><span style="color:#64748b;">{{ loc.contact_phone }}</span>{% endif %}
               {% if not loc.contact_person and not loc.contact_phone %}—{% endif %}
             </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -310,14 +343,16 @@
       {% endif %}
 
       {% if activities %}
+      {% set has_duration = activities | selectattr('estimated_duration') | list | length > 0 %}
+      {% set has_notes    = activities | selectattr('notes') | list | length > 0 %}
       <div class="section-subtitle">Actividades</div>
       <table class="itinerary-table">
         <thead>
           <tr>
             <th style="width:70px;">Hora</th>
             <th>Descripción</th>
-            <th>Duración</th>
-            <th>Notas</th>
+            {% if has_duration %}<th>Duración</th>{% endif %}
+            {% if has_notes %}<th>Notas</th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -325,8 +360,8 @@
           <tr>
             <td class="time-cell">{{ act.time }}</td>
             <td>{{ act.description }}</td>
-            <td style="white-space:nowrap; color:#64748b;">{{ act.estimated_duration or '—' }}</td>
-            <td style="color:#64748b; font-size:8.5pt;">{{ act.notes or '—' }}</td>
+            {% if has_duration %}<td style="white-space:nowrap; color:#64748b;">{{ act.estimated_duration or '—' }}</td>{% endif %}
+            {% if has_notes %}<td style="color:#64748b; font-size:8.5pt;">{{ act.notes or '—' }}</td>{% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -335,7 +370,7 @@
       <div class="no-data">Sin actividades registradas.</div>
       {% endif %}
 
-      {% if timeline.special_instructions %}
+      {% if timeline.special_instructions and timeline.special_instructions.strip() %}
       <div style="margin-top:10px; background:#fef9c3; border-left:3px solid #ca8a04; padding:8px 12px; font-size:9pt; color:#713f12; border-radius:0 4px 4px 0;">
         <strong>Instrucciones especiales:</strong> {{ timeline.special_instructions }}
       </div>
@@ -402,7 +437,7 @@
         </tr>
         {% if settlement.remaining_to_owner > 0 %}
         <tr class="row-total">
-          <td colspan="2"><strong>Saldo pendiente</strong></td>
+          <td colspan="2"><strong>Saldo pendiente al propietario</strong></td>
           <td class="amount"><strong>{{ formatted_remaining }}</strong></td>
         </tr>
         {% endif %}

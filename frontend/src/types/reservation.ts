@@ -62,6 +62,8 @@ export interface Reservation extends ReservationListItem {
   contact_type: string | null;
   special_instructions: string | null;
   notes: string | null;
+  customer_phone: string | null;
+  customer_whatsapp: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
   timeline_event_name: string | null;

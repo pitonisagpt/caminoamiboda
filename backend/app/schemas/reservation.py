@@ -23,6 +23,8 @@ def _build(r) -> dict:
     d["contact_phone"] = r.contact.phone if r.contact else None
     d["contact_type"] = r.contact.contact_type if r.contact else None
     d["display_vehicle"] = r.display_vehicle
+    d["customer_phone"]    = r.customer.phone    if r.customer else None
+    d["customer_whatsapp"] = r.customer.whatsapp if r.customer else None
     d["display_driver"] = r.display_driver
     d["owner_driver_name"] = r.owner_driver.full_name if r.owner_driver else None
     d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
@@ -96,6 +98,8 @@ class ReservationRead(BaseModel):
     contact_phone: Optional[str] = None
     contact_type: Optional[str] = None
     display_vehicle: str
+    customer_phone: Optional[str] = None
+    customer_whatsapp: Optional[str] = None
     display_driver: str
     owner_driver_name: Optional[str] = None
     owner_driver_phone: Optional[str] = None
