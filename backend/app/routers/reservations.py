@@ -217,9 +217,14 @@ def _sync_linked_timelines(reservation, db):
             tl.event_name = display_name
         if driver:
             tl.assigned_driver = driver.full_name
-            tl.assigned_driver_phone = driver.phone or getattr(driver, 'whatsapp', None)
+            tl.assigned_driver_phone = driver.phone or getattr(driver, 'whatsapp', None) or None
+        elif reservation.driver_id is None and reservation.owner_driver_id is None:
+            tl.assigned_driver = None
+            tl.assigned_driver_phone = None
         if customer:
-            tl.main_contact_name = customer.main_contact_name
+            bride = getattr(customer, 'bride_name', None)
+            groom = getattr(customer, 'groom_name', None)
+            tl.main_contact_name = f"{bride} & {groom}" if bride and groom else (customer.main_contact_name or bride or groom)
             tl.main_contact_phone = customer.phone
         if reservation.special_instructions:
             tl.special_instructions = reservation.special_instructions

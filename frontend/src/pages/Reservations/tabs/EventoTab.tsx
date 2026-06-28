@@ -524,7 +524,7 @@ export default function EventoTab({
         <div className="space-y-2">
           {[
             { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, name: timeline.assigned_driver },
-            { label: 'Propietario', token: timeline.share_token_ops, phone: reservation.owner_whatsapp, name: reservation.owner_name },
+            { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, name: reservation.owner_name },
             { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, name: timeline.main_contact_name },
             ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, name: reservation.display_contact }] : []),
             { label: 'Operaciones', token: timeline.share_token_ops, phone: null, name: null },
