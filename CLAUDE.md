@@ -342,33 +342,17 @@ Widgets:
 - Timeline activities must be ordered by event time.
 - Only admins can view owner payouts and financial configuration.
 
-## Suggested MVP Delivery Order
+## MVP Delivery Status
 
-1. Auth + role-based access
-2. Vehicles, owners, drivers, customers CRUD
-3. Quotes + PDF generation
-4. Reservation lifecycle + quote conversion
-5. Timeline module + share links + driver mobile view
-6. Calendar + conflict detection
-7. WhatsApp/email automation
-8. Billing docs + owner settlements
-9. Finance and dashboard metrics
-
-## Phase 2 (Out of MVP Scope)
-
-- Electronic contracts
-- Owner portal
-- Driver portal
-- Mobile app
-- GPS tracking
-- Deep Google Maps integration
-- WhatsApp Business API full integration
-- AI customer assistant
-- Automated contract generation
-- CRM pipeline
-- Customer follow-up automation
-- Vehicle profitability analytics
-- BI dashboard
+1. ✅ Auth + role-based access
+2. ✅ Vehicles, owners, drivers, customers CRUD
+3. ✅ Quotes + PDF generation
+4. ✅ Reservation lifecycle + quote conversion
+5. ✅ Timeline module + share links + driver mobile view
+6. ✅ Calendar + conflict detection
+7. ⬜ WhatsApp/email automation (partial — cobro and minuto-a-minuto done; confirmation, reminders, driver assignment, post-event pending)
+8. ✅ Billing docs + owner settlements
+9. ✅ Finance and dashboard metrics
 
 ## Definition of MVP Success
 
@@ -378,3 +362,119 @@ The MVP is successful when operations can run daily events without spreadsheets 
 - reliable timeline execution
 - automated customer/driver comms
 - automated owner/company revenue settlement
+
+---
+
+## Phase 2: Communications & Automation
+
+Highest operational value. Eliminates the remaining manual steps in daily ops.
+
+### WhatsApp Templates (remaining)
+- Customer reservation confirmation (when status moves to `deposit_received` or `confirmed`)
+- Customer 24h reminder (day before event)
+- Driver assignment message (when driver is set)
+- Post-event follow-up (review request + photo testimonial, sent 24h after event)
+
+### Email Notifications
+- Same events as WhatsApp but via email as fallback/parallel channel
+- SMTP integration (Gmail or SendGrid)
+
+### Automated Reminder Scheduler
+- Background job (APScheduler or Celery + Redis) that fires reminders at:
+  - 7 days before event → customer + driver
+  - 24 hours before → customer + driver + ops team
+  - 3 hours before → driver + ops team
+- Reminders must be idempotent (no duplicate sends)
+
+### Electronic Contracts
+- PDF contract auto-generated from reservation data
+- Signature fields (printed) or link to DocuSign/Firma.co
+- Contract attached to reservation and sent to customer
+
+---
+
+## Phase 3: Portals & Self-Service
+
+Reduces ops team coordination overhead. Owners and drivers get read-only access to their own data.
+
+### Owner Portal
+- Owner logs in with email/password (own role)
+- Sees: their vehicles, upcoming events, settlement history, payment status
+- Cannot edit anything — read-only financial view
+- Replaces manual WhatsApp updates to owners
+
+### Driver Portal
+- Driver logs in (own role)
+- Sees: assigned events this week/month, event timeline, customer contact, locations
+- Mobile-first, optimized for phone use day-of-event
+- Currently covered by share links; portal adds auth and persistent history
+
+### Customer Portal (light)
+- Couple accesses via link or login
+- Sees: their event details, timeline, payment history, remaining balance
+- Optional: online payment via Wompi or PSE (Colombia)
+
+### PWA / Mobile
+- Progressive Web App wrapper for the existing frontend
+- Service worker for offline timeline access (critical for drivers in venues with poor signal)
+
+---
+
+## Phase 4: Intelligence & Growth
+
+Business optimization once daily ops run smoothly.
+
+### CRM Pipeline
+- Lead-to-booking funnel with conversion tracking
+- Response time tracking (how fast quotes are sent)
+- Lost deal reasons
+- Automated follow-up sequences for cold leads
+
+### Profitability BI Dashboard
+- Revenue per vehicle (which cars earn the most)
+- Revenue per owner (settlement totals over time)
+- Revenue per event type and month
+- Projected revenue based on confirmed reservations
+- Owner payment aging (how long settlements stay pending)
+
+### Customer Follow-up Automation
+- Post-event NPS / review request (WhatsApp + email)
+- Anniversary reminder (1 year after wedding → referral ask)
+- Referral tracking (which customers refer new ones)
+
+### Pricing Intelligence
+- Suggested price ranges per vehicle based on historical data
+- Peak season demand signals
+- Vehicle availability heatmap
+
+---
+
+## Phase 5: Scale & Integrations
+
+When the operation grows beyond single-operator, single-city.
+
+### WhatsApp Business API
+- Replace WhatsApp Web links with direct API sends (official Meta Business API)
+- Two-way messaging (customer replies routed to ops inbox)
+- Message delivery and read receipts
+- Required once volume makes manual WhatsApp Web impractical
+
+### GPS Tracking
+- Real-time vehicle location during active events
+- Customer-facing "where is my car" view
+- Late-departure alert to ops team
+
+### Mobile App (Native)
+- iOS + Android apps for drivers (built on React Native or Flutter)
+- Push notifications for event reminders and new assignments
+- Offline-first timeline access
+
+### Multi-City Support
+- Events in other cities (Bogotá, Cartagena, Cali)
+- City-scoped vehicle availability and pricing
+- Local partner management
+
+### AI Assistant
+- WhatsApp bot that answers availability and pricing questions automatically
+- Quote drafting from natural language ("quiero un carro clásico para boda el 14 de febrero")
+- Handoff to human ops when booking intent is confirmed
