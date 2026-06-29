@@ -414,6 +414,13 @@ Reduces ops team coordination overhead. Owners and drivers get read-only access 
 - Sees: their event details, timeline, payment history, remaining balance
 - Optional: online payment via Wompi or PSE (Colombia)
 
+### Pico y Placa — Festivos
+- The current implementation computes pico y placa from the plate digit (decree-based table, no public API exists).
+- Missing: the restriction does not apply on Colombian public holidays.
+- Add a hardcoded yearly list of `festivos_colombia` (updated once a year) to `pico_y_placa.py`.
+- When the event date is a holiday, suppress the pico y placa warning in the vehicle form and reservation calendar.
+- Show a "festivo — sin restricción" notice instead.
+
 ### PWA / Mobile
 - Progressive Web App wrapper for the existing frontend
 - Service worker for offline timeline access (critical for drivers in venues with poor signal)
