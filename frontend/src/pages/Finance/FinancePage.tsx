@@ -73,6 +73,7 @@ export default function FinancePage() {
   const [vehicles, setVehicles] = useState<VehicleRevenueStat[]>([]);
   const [totalMonths, setTotalMonths] = useState(12);
   const [loading, setLoading] = useState(true);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [agingLoading, setAgingLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
@@ -83,7 +84,7 @@ export default function FinancePage() {
       .finally(() => setAgingLoading(false));
   }, []);
 
-  // Range-dependent data
+  // Range-dependent data (main KPIs and charts)
   useEffect(() => {
     setLoading(true);
     const params = { date_from: range.from ?? undefined, date_to: range.to ?? undefined };
@@ -92,15 +93,24 @@ export default function FinancePage() {
       financeApi.ownerRevenue(params),
       financeApi.deposits(params),
       dashboardApi.revenueTrend(params),
-      financeApi.vehicleRevenue(params),
-    ]).then(([sRes, oRes, dRes, tRes, vRes]) => {
+    ]).then(([sRes, oRes, dRes, tRes]) => {
       setSummary(sRes.data);
       setOwners(oRes.data.owners);
       setDeposits(dRes.data.data);
       setTrend(tRes.data.data);
-      setVehicles(vRes.data.vehicles);
-      setTotalMonths(vRes.data.total_months);
     }).finally(() => setLoading(false));
+  }, [range.from, range.to]);
+
+  // Vehicle profitability (separate so it doesn't block KPIs)
+  useEffect(() => {
+    setVehiclesLoading(true);
+    const params = { date_from: range.from ?? undefined, date_to: range.to ?? undefined };
+    financeApi.vehicleRevenue(params)
+      .then(res => {
+        setVehicles(res.data.vehicles);
+        setTotalMonths(res.data.total_months);
+      })
+      .finally(() => setVehiclesLoading(false));
   }, [range.from, range.to]);
 
   const handleExport = async () => {
@@ -210,7 +220,7 @@ export default function FinancePage() {
             <p className="text-xs text-gray-400 mt-0.5">Eventos completados · {range.label} · {totalMonths} meses</p>
           </div>
         </div>
-        {loading ? (
+        {vehiclesLoading ? (
           <Spinner />
         ) : vehicles.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Sin datos en el período seleccionado.</p>
