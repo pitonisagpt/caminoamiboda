@@ -42,6 +42,7 @@ export interface ReservationListItem {
   deposit_paid: number;
   remaining_balance: number;
   status: ReservationStatus;
+  vehicle_is_company_owned: boolean;
   timeline_id: number | null;
   created_at: string;
 }
@@ -66,7 +67,6 @@ export interface Reservation extends ReservationListItem {
   customer_whatsapp: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
-  vehicle_is_company_owned: boolean;
   event_location: string | null;
   timeline_event_name: string | null;
   updated_at: string;

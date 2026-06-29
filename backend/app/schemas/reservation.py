@@ -132,6 +132,7 @@ class ReservationList(BaseModel):
     deposit_paid: Decimal
     remaining_balance: Decimal
     status: ReservationStatus
+    vehicle_is_company_owned: bool = False
     timeline_id: Optional[int] = None
     created_at: datetime
 

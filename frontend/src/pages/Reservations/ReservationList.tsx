@@ -261,11 +261,11 @@ export default function ReservationList() {
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(r.event_date)}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * 0.3)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </td>
                   <td className={`px-4 py-3 text-right whitespace-nowrap ${Number(r.remaining_balance) > 0 ? 'text-red-500' : 'text-green-600'}`}>
                     <p className="font-semibold">{formatCOP(r.remaining_balance)}</p>
-                    <p className="text-xs text-pink-500">empresa {formatCOP(Number(r.remaining_balance) * 0.3)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
