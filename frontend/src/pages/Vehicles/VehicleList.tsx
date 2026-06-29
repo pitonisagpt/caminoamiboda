@@ -271,7 +271,7 @@ export function VehicleList() {
               <thead>
                 <tr className="border-b border-pink-100 bg-pink-50/60">
                   {/* Photo — not sortable */}
-                  <th className="pl-4 pr-2 py-3 w-12" />
+                  <th className="pl-4 pr-2 py-3 w-24" />
                   {(
                     [
                       { label: "Placa",       key: "license_plate" as SortKey },
@@ -315,10 +315,10 @@ export function VehicleList() {
                     <tr key={v.id} className="hover:bg-pink-50/40 transition-colors duration-150">
                       {/* Photo / avatar */}
                       <td className="pl-4 pr-2 py-2">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <div className="w-20 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                           {photo
                             ? <img src={photo} alt={v.brand} className="w-full h-full object-cover" loading="lazy" />
-                            : <Car size={16} className="text-gray-300" />
+                            : <Car size={22} className="text-gray-300" />
                           }
                         </div>
                       </td>
