@@ -1,4 +1,4 @@
-import { BarChart2, Car, ChevronUp, ChevronDown, Edit, Loader2, MessageCircle, Plus, PowerOff, Search, X } from "lucide-react";
+import { BarChart2, Car, ChevronUp, ChevronDown, Edit, ExternalLink, Loader2, MessageCircle, Plus, PowerOff, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
@@ -147,10 +147,21 @@ export function VehicleList() {
           <h1 className="text-2xl font-bold text-pink-900">Vehículos</h1>
           <p className="text-sm text-gray-500 mt-1">Flota de Camino a mi Boda</p>
         </div>
-        <Button onClick={() => navigate("/vehiculos/nuevo")} size="lg">
-          <Plus size={18} />
-          Nuevo vehículo
-        </Button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/catalogo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-pink-600 border border-pink-200 rounded-xl hover:bg-pink-50 transition-colors"
+          >
+            <ExternalLink size={15} />
+            Catálogo público
+          </a>
+          <Button onClick={() => navigate("/vehiculos/nuevo")} size="lg">
+            <Plus size={18} />
+            Nuevo vehículo
+          </Button>
+        </div>
       </div>
 
       {/* Search bar */}
