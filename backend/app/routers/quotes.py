@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import get_current_user
+from app.core.files import safe_pdf_path
 from app.database import get_db
 from app.models.customer import Customer
 from app.models.quote import LocationZone, Quote, QuoteStatus
@@ -166,7 +167,7 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         if photo:
             vehicle_photo_url = photo.url
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("quote.html")
     html = template.render(
         quote=quote,
@@ -210,8 +211,9 @@ def download_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
     quote = _get_quote(quote_id, db)
     if not quote.pdf_path or not os.path.exists(quote.pdf_path):
         raise HTTPException(404, "PDF no generado aún")
+    pdf = safe_pdf_path(quote.pdf_path, Path(settings.pdf_storage_path))
     return FileResponse(
-        path=quote.pdf_path,
+        path=str(pdf),
         media_type="application/pdf",
         filename=f"{quote.quote_number}.pdf",
     )

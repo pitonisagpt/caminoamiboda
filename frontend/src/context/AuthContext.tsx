@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { authApi } from "../api/auth";
-import { TOKEN_KEY } from "../api/index";
 import type { AuthUser } from "../types/auth";
 
 interface AuthContextValue {
@@ -18,27 +17,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     authApi
       .me()
       .then((res) => setUser(res.data))
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login(email, password);
-    localStorage.setItem(TOKEN_KEY, res.data.access_token);
-    setUser(res.data.user);
+    setUser(res.data);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setUser(null);
+    authApi.logout().finally(() => {
+      setUser(null);
+      window.location.href = "/login";
+    });
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 import os
 from datetime import date
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -8,7 +9,8 @@ from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_admin
+from app.core.files import safe_pdf_path
 from app.database import get_db
 from app.models.billing_document import BillingDocument, DocumentStatus, DocumentType
 from app.models.user import User
@@ -24,7 +26,7 @@ from app.services.pdf_generator import generate_pdf
 router = APIRouter(
     prefix="/api/billing-documents",
     tags=["billing-documents"],
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 
 
@@ -124,9 +126,9 @@ def download_pdf(doc_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     if not doc.pdf_path or not os.path.exists(doc.pdf_path):
         raise HTTPException(status_code=404, detail="PDF no generado aún")
-
+    pdf = safe_pdf_path(doc.pdf_path, Path(settings.pdf_storage_path))
     return FileResponse(
-        path=doc.pdf_path,
+        path=str(pdf),
         media_type="application/pdf",
         filename=f"{doc.document_number}.pdf",
     )

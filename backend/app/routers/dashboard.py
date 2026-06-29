@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import require_admin
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
 from app.models.reservation import Reservation, ReservationStatus
@@ -28,7 +28,7 @@ def get_summary(
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_admin),
 ):
     today = date.today()
 
@@ -173,7 +173,7 @@ def revenue_trend(
     date_to: Optional[date] = Query(None),
     months: int = Query(24, ge=1, le=60),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_admin),
 ):
     today = date.today()
 
@@ -226,7 +226,7 @@ def analytics(
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_admin),
 ):
     today = date.today()
 
@@ -381,7 +381,7 @@ def vehicle_usage(
     date_to: Optional[date] = Query(None),
     vehicle_ids: Optional[str] = Query(None),  # comma-separated ints
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_admin),
 ):
     today = date.today()
 

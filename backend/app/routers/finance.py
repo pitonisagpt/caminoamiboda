@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import require_admin
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
 from app.models.reservation import Reservation, ReservationStatus
@@ -23,7 +23,7 @@ ACTIVE_STATUSES = {
 }
 
 
-@router.get("/summary", dependencies=[Depends(get_current_user)])
+@router.get("/summary", dependencies=[Depends(require_admin)])
 def finance_summary(
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
@@ -104,7 +104,7 @@ def finance_summary(
     }
 
 
-@router.get("/charts/owner-revenue", dependencies=[Depends(get_current_user)])
+@router.get("/charts/owner-revenue", dependencies=[Depends(require_admin)])
 def owner_revenue(
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
@@ -151,7 +151,7 @@ def owner_revenue(
     return {"owners": owners}
 
 
-@router.get("/charts/deposits", dependencies=[Depends(get_current_user)])
+@router.get("/charts/deposits", dependencies=[Depends(require_admin)])
 def deposits_chart(
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
@@ -197,7 +197,7 @@ def deposits_chart(
     return {"data": data}
 
 
-@router.get("/aging", dependencies=[Depends(get_current_user)])
+@router.get("/aging", dependencies=[Depends(require_admin)])
 def aging(db: Session = Depends(get_db)):
     today = date.today()
 

@@ -9,10 +9,11 @@ weasyprint>=62.0
 xhtml2pdf==0.2.16
 jinja2==3.1.4
 python-multipart==0.0.9
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
+PyJWT==2.8.0
+bcrypt==4.2.1
 openpyxl==3.1.5
 google-auth-oauthlib==1.2.0
 google-api-python-client==2.131.0
 num2words==0.5.13
+slowapi==0.1.9
+filetype==1.2.0

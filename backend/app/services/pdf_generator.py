@@ -40,7 +40,7 @@ def _amount_in_words(amount: float) -> str:
 
 
 def generate_pdf(doc: BillingDocument, settings) -> str:
-    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
 
     template_name = (
         "pdf_formal.html" if doc.document_type == DocumentType.formal else "pdf_letter.html"

@@ -253,7 +253,7 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
     driver = reservation.driver if reservation else None
     planner = reservation.contact if reservation else None
 
-    env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)))
+    env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("timeline_pdf.html")
     html = template.render(
         timeline=timeline,

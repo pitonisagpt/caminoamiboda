@@ -1,24 +1,13 @@
 import axios from "axios";
 
-const TOKEN_KEY = "cmb_token";
-
-export const api = axios.create({ baseURL: "/api" });
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+export const api = axios.create({ baseURL: "/api", withCredentials: true });
 
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
       window.location.href = "/login";
     }
     return Promise.reject(err);
   }
 );
-
-export { TOKEN_KEY };

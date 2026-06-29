@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: caminoamiboda
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/caminoamiboda
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/caminoamiboda
       COMPANY_NAME: "Camino a mi Boda"
       COMPANY_OWNER: "Juan Camilo Yepes Correa"
       COMPANY_PHONE: "+(57) 314 737 2030"
@@ -39,6 +39,8 @@ services:
       WATCHFILES_FORCE_POLLING: "true"
       GOOGLE_CALENDAR_OBSEQUIO: "${GOOGLE_CALENDAR_OBSEQUIO:-}"
       GOOGLE_CALENDAR_PUBLICIDAD: "${GOOGLE_CALENDAR_PUBLICIDAD:-}"
+      SECRET_KEY: "${SECRET_KEY}"
+      INITIAL_ADMIN_PASSWORD: "${INITIAL_ADMIN_PASSWORD}"
     volumes:
       - ./backend:/app
       - pdf_storage:/app/generated_pdfs

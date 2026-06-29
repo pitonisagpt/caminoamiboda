@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import get_current_user, require_admin
+from app.core.files import safe_pdf_path
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
 from app.models.owner_settlement_payment import OwnerSettlementPayment
@@ -129,7 +130,7 @@ def mark_paid(settlement_id: int, db: Session = Depends(get_db)):
 def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     s = _get(settlement_id, db)
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("settlement.html")
 
     from app.models.event_timeline import EventTimeline
@@ -202,8 +203,9 @@ def download_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     s = _get(settlement_id, db)
     if not s.pdf_path or not os.path.exists(s.pdf_path):
         raise HTTPException(404, "PDF no generado aún")
+    pdf = safe_pdf_path(s.pdf_path, Path(settings.pdf_storage_path))
     return FileResponse(
-        path=s.pdf_path,
+        path=str(pdf),
         media_type="application/pdf",
         filename=f"{s.settlement_number}.pdf",
     )

@@ -7,9 +7,9 @@ class Settings(BaseSettings):
     company_name: str = "Camino a mi Boda"
     company_owner: str = "Juan Camilo Yepes Correa"
     company_phone: str = "+(57) 314 737 2030"
-    company_cc: str = "1040735268"
+    company_cc: str = ""
     bank_name: str = "Bancolombia"
-    bank_account: str = "00484248273"
+    bank_account: str = ""
     city: str = "Medellín"
 
     pdf_storage_path: str = "generated_pdfs"
@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     google_calendar_ok: str = ""
     google_calendar_obsequio: str = ""
     google_calendar_publicidad: str = ""
+
+    allowed_origins: str = "http://localhost:5173,http://localhost:3000"
+    initial_admin_password: str = ""
 
     secret_key: str = "change-me-in-production-use-a-random-32-byte-hex"
     algorithm: str = "HS256"
