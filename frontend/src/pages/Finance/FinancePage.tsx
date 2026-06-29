@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Download, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import { financeApi } from '../../api/finance';
-import type { FinanceSummary, OwnerRevenueStat, DepositPoint, AgingItem } from '../../api/finance';
+import type { FinanceSummary, OwnerRevenueStat, DepositPoint, AgingItem, VehicleRevenueStat } from '../../api/finance';
 import { dashboardApi } from '../../api/dashboard';
 import type { RevenueTrendPoint } from '../../api/dashboard';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
@@ -70,8 +70,11 @@ export default function FinancePage() {
   const [owners, setOwners] = useState<OwnerRevenueStat[]>([]);
   const [deposits, setDeposits] = useState<DepositPoint[]>([]);
   const [aging, setAgingData] = useState<AgingItem[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleRevenueStat[]>([]);
+  const [totalMonths, setTotalMonths] = useState(12);
   const [loading, setLoading] = useState(true);
   const [agingLoading, setAgingLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   // Aging: once on mount
   useEffect(() => {
@@ -89,13 +92,31 @@ export default function FinancePage() {
       financeApi.ownerRevenue(params),
       financeApi.deposits(params),
       dashboardApi.revenueTrend(params),
-    ]).then(([sRes, oRes, dRes, tRes]) => {
+      financeApi.vehicleRevenue(params),
+    ]).then(([sRes, oRes, dRes, tRes, vRes]) => {
       setSummary(sRes.data);
       setOwners(oRes.data.owners);
       setDeposits(dRes.data.data);
       setTrend(tRes.data.data);
+      setVehicles(vRes.data.vehicles);
+      setTotalMonths(vRes.data.total_months);
     }).finally(() => setLoading(false));
   }, [range.from, range.to]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await financeApi.export({ date_from: range.from ?? undefined, date_to: range.to ?? undefined });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'camino-export.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const yoyBadge = summary?.yoy_change_pct != null
     ? { text: `${summary.yoy_change_pct > 0 ? '+' : ''}${summary.yoy_change_pct}%`, positive: summary.yoy_change_pct >= 0 }
@@ -113,7 +134,17 @@ export default function FinancePage() {
           <h1 className="text-2xl font-bold text-gray-900">Finanzas</h1>
           <p className="text-xs text-gray-400 mt-0.5">Métricas financieras y estado de cobros</p>
         </div>
-        <DateRangeFilter value={range} onChange={setRange} />
+        <div className="flex items-center gap-3">
+          <DateRangeFilter value={range} onChange={setRange} />
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Exportar Excel
+          </button>
+        </div>
       </div>
 
       {/* KPI cards */}
@@ -169,6 +200,62 @@ export default function FinancePage() {
         <ChartCard title="Ingresos por propietario" sub={`Eventos completados · ${range.label}`}>
           {loading ? <Spinner /> : <OwnerRevenueChart owners={owners} />}
         </ChartCard>
+      </div>
+
+      {/* Vehicle profitability table */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">Rendimiento por vehículo</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Eventos completados · {range.label} · {totalMonths} meses</p>
+          </div>
+        </div>
+        {loading ? (
+          <Spinner />
+        ) : vehicles.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8">Sin datos en el período seleccionado.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-gray-400 font-medium uppercase tracking-wide border-b border-gray-100">
+                  <th className="pb-2 pr-4">Vehículo</th>
+                  <th className="pb-2 pr-4 text-right">Eventos</th>
+                  <th className="pb-2 pr-4 text-right">Ingresos totales</th>
+                  <th className="pb-2 pr-4 text-right">Parte empresa</th>
+                  <th className="pb-2 pr-4 text-right">Ticket promedio</th>
+                  <th className="pb-2 text-right">Meses inactivos</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {vehicles.map(v => {
+                  const idleColor =
+                    v.idle_months === 0 ? 'text-green-700 bg-green-50' :
+                    v.idle_months <= 3 ? 'text-yellow-700 bg-yellow-50' :
+                    'text-red-700 bg-red-50';
+                  const idleLabel = v.idle_months === 0 ? 'Activo' : `${v.idle_months}`;
+                  return (
+                    <tr key={v.vehicle_id} className="hover:bg-pink-50/30 transition-colors">
+                      <td className="py-2.5 pr-4">
+                        <p className="font-medium text-gray-900">{v.name}</p>
+                        <p className="text-xs text-gray-400">{v.owner}</p>
+                      </td>
+                      <td className="py-2.5 pr-4 text-right font-medium text-gray-700">{v.completed_events}</td>
+                      <td className="py-2.5 pr-4 text-right font-semibold text-gray-900">{formatCOP(v.total_revenue)}</td>
+                      <td className="py-2.5 pr-4 text-right text-gray-700">{formatCOP(v.company_share)}</td>
+                      <td className="py-2.5 pr-4 text-right text-gray-700">{v.avg_ticket > 0 ? formatCOP(v.avg_ticket) : '—'}</td>
+                      <td className="py-2.5 text-right">
+                        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${idleColor}`}>
+                          {idleLabel}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Row 3: Deposits chart + Aging table */}

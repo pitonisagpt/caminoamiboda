@@ -1,8 +1,12 @@
+import io
+from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -229,3 +233,191 @@ def aging(db: Session = Depends(get_db)):
         })
 
     return {"items": items}
+
+
+def _months_set(start: date, end: date) -> set:
+    months: set = set()
+    y, m = start.year, start.month
+    while (y, m) <= (end.year, end.month):
+        months.add(f"{y:04d}-{m:02d}")
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+    return months
+
+
+def _vehicle_perf(db: Session, eff_from: date, eff_to: date) -> tuple[list, int]:
+    all_months = _months_set(eff_from, eff_to)
+    total_months = len(all_months)
+
+    vehicles = db.query(Vehicle).order_by(Vehicle.display_order).all()
+
+    completed = (
+        db.query(Reservation)
+        .filter(
+            Reservation.status == ReservationStatus.completed,
+            Reservation.event_date >= eff_from,
+            Reservation.event_date <= eff_to,
+        )
+        .all()
+    )
+
+    res_by_vehicle: dict = defaultdict(list)
+    for r in completed:
+        if r.vehicle_id:
+            res_by_vehicle[r.vehicle_id].append(r)
+
+    rows = []
+    for v in vehicles:
+        rsvs = res_by_vehicle.get(v.id, [])
+        total_rev = float(sum(r.total_amount for r in rsvs) or 0)
+        count = len(rsvs)
+        active_months = {r.event_date.strftime("%Y-%m") for r in rsvs}
+        idle = max(0, total_months - len(active_months))
+        company_share = total_rev if v.is_company_owned else total_rev * 0.30
+
+        name_parts = [v.brand]
+        if v.model_line:
+            name_parts.append(v.model_line)
+        if v.year:
+            name_parts.append(str(v.year))
+        name = " ".join(name_parts)
+        if v.color:
+            name += f" — {v.color}"
+
+        rows.append({
+            "vehicle_id": v.id,
+            "name": name,
+            "owner": "Camino a mi Boda" if v.is_company_owned else (v.owner_name or "—"),
+            "is_company_owned": v.is_company_owned,
+            "completed_events": count,
+            "total_revenue": round(total_rev),
+            "company_share": round(company_share),
+            "avg_ticket": round(total_rev / count) if count else 0,
+            "idle_months": idle,
+        })
+
+    rows.sort(key=lambda x: x["total_revenue"], reverse=True)
+    return rows, total_months
+
+
+@router.get("/charts/vehicle-revenue", dependencies=[Depends(require_admin)])
+def vehicle_revenue_chart(
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+):
+    today = date.today()
+    if not date_from and not date_to:
+        m, y = today.month - 11, today.year
+        if m <= 0:
+            m += 12
+            y -= 1
+        eff_from, eff_to = date(y, m, 1), today
+    else:
+        eff_from = date_from or date(today.year - 1, today.month, 1)
+        eff_to = date_to or today
+
+    rows, total_months = _vehicle_perf(db, eff_from, eff_to)
+    return {"vehicles": rows, "total_months": total_months}
+
+
+@router.get("/export", dependencies=[Depends(require_admin)])
+def export_excel(
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+):
+    today = date.today()
+
+    res_query = db.query(Reservation).order_by(Reservation.event_date.desc())
+    if date_from:
+        res_query = res_query.filter(Reservation.event_date >= date_from)
+    if date_to:
+        res_query = res_query.filter(Reservation.event_date <= date_to)
+    reservations = res_query.all()
+
+    if not date_from and not date_to:
+        m, y = today.month - 11, today.year
+        if m <= 0:
+            m += 12
+            y -= 1
+        perf_from, perf_to = date(y, m, 1), today
+    else:
+        perf_from = date_from or date(today.year - 1, today.month, 1)
+        perf_to = date_to or today
+
+    vehicle_rows, total_months = _vehicle_perf(db, perf_from, perf_to)
+
+    settlements = db.query(OwnerSettlement).order_by(OwnerSettlement.created_at.desc()).all()
+
+    wb = Workbook()
+
+    ws1 = wb.active
+    ws1.title = "Reservaciones"
+    ws1.append(["#", "Número", "Cliente", "Fecha evento", "Vehículo", "Conductor", "Estado",
+                 "Total (COP)", "Abono (COP)", "Saldo (COP)"])
+    for i, r in enumerate(reservations, 1):
+        ws1.append([
+            i,
+            r.reservation_number,
+            r.display_customer,
+            r.event_date.isoformat(),
+            r.display_vehicle,
+            r.display_driver,
+            r.status if isinstance(r.status, str) else r.status.value,
+            float(r.total_amount),
+            float(r.deposit_paid),
+            float(r.remaining_balance),
+        ])
+
+    ws2 = wb.create_sheet("Rendimiento por vehículo")
+    ws2.append(["Vehículo", "Propietario", "Eventos completados", "Ingresos (COP)",
+                 "Parte empresa (COP)", "Ticket promedio (COP)", "Meses inactivos",
+                 f"de {total_months} meses en rango"])
+    for row in vehicle_rows:
+        ws2.append([
+            row["name"],
+            row["owner"],
+            row["completed_events"],
+            row["total_revenue"],
+            row["company_share"],
+            row["avg_ticket"],
+            row["idle_months"],
+            total_months,
+        ])
+
+    ws3 = wb.create_sheet("Liquidaciones")
+    ws3.append(["Número", "Fecha", "Vehículo", "Propietario", "Reservación",
+                 "Valor evento (COP)", "Parte propietario (COP)", "% propietario",
+                 "Parte empresa (COP)", "Estado", "Notas"])
+    for s in settlements:
+        v_name = "—"
+        if s.vehicle:
+            parts = [s.vehicle.brand]
+            if s.vehicle.model_line:
+                parts.append(s.vehicle.model_line)
+            v_name = " ".join(parts)
+        ws3.append([
+            s.settlement_number,
+            s.created_at.date().isoformat() if s.created_at else "",
+            v_name,
+            s.owner.full_name if s.owner else "—",
+            s.reservation.reservation_number if s.reservation else "—",
+            float(s.reservation_value),
+            float(s.owner_amount),
+            s.owner_percentage,
+            float(s.company_amount),
+            s.status,
+            s.notes or "",
+        ])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="camino-export.xlsx"'},
+    )

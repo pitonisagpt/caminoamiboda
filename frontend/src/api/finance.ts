@@ -37,6 +37,18 @@ export interface AgingItem {
   status: string;
 }
 
+export interface VehicleRevenueStat {
+  vehicle_id: number;
+  name: string;
+  owner: string;
+  is_company_owned: boolean;
+  completed_events: number;
+  total_revenue: number;
+  company_share: number;
+  avg_ticket: number;
+  idle_months: number;
+}
+
 export interface DateRangeParams {
   date_from?: string | null;
   date_to?: string | null;
@@ -54,4 +66,10 @@ export const financeApi = {
 
   aging: () =>
     api.get<{ items: AgingItem[] }>('/finance/aging'),
+
+  vehicleRevenue: (params?: DateRangeParams) =>
+    api.get<{ vehicles: VehicleRevenueStat[]; total_months: number }>('/finance/charts/vehicle-revenue', { params: params ?? {} }),
+
+  export: (params?: DateRangeParams) =>
+    api.get('/finance/export', { params: params ?? {}, responseType: 'blob' }),
 };
