@@ -74,7 +74,7 @@ export default function AnalyticsSection({ range }: Props) {
       {/* Row 1: Revenue trend + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <Card title="Tendencia de ingresos" subtitle={`Eventos completados · ${range.label}`} tooltip="Ingresos totales por mes (línea gris) vs. ganancia neta de la empresa al 30% (área rosa). Solo incluye reservas con estado 'completado'.">
+          <Card title="Tendencia de ingresos" subtitle={`Eventos completados · ${range.label}`} tooltip="Ingresos totales por mes vs. ganancia neta de la empresa (100% para vehículos propios, 30% para vehículos de socios). Solo incluye reservas completadas.">
             {loading ? <Spinner /> : <RevenueTrendChart data={trend} />}
           </Card>
         </div>

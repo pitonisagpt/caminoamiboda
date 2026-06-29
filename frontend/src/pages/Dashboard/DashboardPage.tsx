@@ -73,7 +73,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             <TrendingUp size={14} />
             Facturado · {range.label}
-            <Tooltip text="Suma de reservas completadas en el período seleccionado. El 30% es la ganancia de Camino a mi Boda después de pagarle al propietario del vehículo." />
+            <Tooltip text="Suma de reservas completadas en el período. La ganancia empresa es el 100% para vehículos propios y el 30% para vehículos de socios." />
           </div>
           <p className="text-2xl font-bold text-gray-900">{formatCOP(data.finance.revenue_this_month)}</p>
           <div className="flex items-center gap-1.5 pt-1">
@@ -86,7 +86,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             <AlertCircle size={14} />
             Saldo pendiente
-            <Tooltip text="Lo que los clientes todavía deben pagar en reservas activas del período seleccionado (anticipo recibido, pero saldo sin cobrar). El 30% es la parte que le corresponde a la empresa." />
+            <Tooltip text="Lo que los clientes todavía deben pagar en reservas activas del período. La parte empresa se calcula según la propiedad del vehículo de cada reserva." />
           </div>
           <p className="text-2xl font-bold text-yellow-600">{formatCOP(data.finance.pending_collections)}</p>
           <div className="flex items-center gap-1.5 pt-1">
@@ -99,11 +99,11 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             <CheckCircle2 size={14} />
             Liquidaciones pendientes
-            <Tooltip text="Eventos ya completados en el período donde aún no se ha pagado la liquidación al propietario. El monto es el 70% del propietario; la ganancia empresa es el 30% restante." />
+            <Tooltip text="Eventos completados sin liquidación pagada al propietario. Para vehículos de socios: 70% propietario / 30% empresa. Para vehículos propios: 100% empresa." />
           </div>
           <p className="text-2xl font-bold text-purple-600">{formatCOP(data.finance.pending_owner_payments)}</p>
           <div className="flex items-center gap-1.5 pt-1">
-            <span className="text-xs text-gray-400">Propietarios (70%) ·</span>
+            <span className="text-xs text-gray-400">Propietarios ·</span>
             <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.pending_company_revenue)} empresa</span>
           </div>
         </div>

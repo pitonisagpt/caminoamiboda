@@ -33,7 +33,7 @@ export default function OwnerRevenueChart({ owners }: Props) {
           contentStyle={{ fontSize: 12 }}
           formatter={(value, name) => {
             if (name === 'revenue') return [formatCOPFull(Number(value)), 'Ingresos totales'];
-            return [formatCOPFull(Number(value)), name === 'owner_amount' ? 'Propietario (70%)' : 'Empresa (30%)'];
+            return [formatCOPFull(Number(value)), name === 'owner_amount' ? 'Propietario' : 'Empresa'];
           }}
         />
         <Bar dataKey="revenue" fill="#db2777" radius={[0, 3, 3, 0]} />

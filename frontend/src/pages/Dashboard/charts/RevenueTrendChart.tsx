@@ -46,7 +46,7 @@ export default function RevenueTrendChart({ data }: { data: RevenueTrendPoint[] 
           labelFormatter={(m) => formatMonth(String(m))}
           contentStyle={{ fontSize: 12 }}
         />
-        <Legend formatter={l => l === 'revenue' ? 'Ingresos totales' : 'Parte empresa (30%)'} wrapperStyle={{ fontSize: 12 }} />
+        <Legend formatter={l => l === 'revenue' ? 'Ingresos totales' : 'Parte empresa'} wrapperStyle={{ fontSize: 12 }} />
         <Area type="monotone" dataKey="revenue" stroke="#db2777" strokeWidth={2} fill="url(#revGrad)" dot={false} />
         <Area type="monotone" dataKey="company_share" stroke="#ca8a04" strokeWidth={1.5} fill="url(#compGrad)" dot={false} strokeDasharray="4 2" />
       </AreaChart>

@@ -38,7 +38,7 @@ export default function VehicleRevenueChart({ vehicles }: Props) {
           contentStyle={{ fontSize: 12 }}
           formatter={(value, name) => [
             formatCOPFull(Number(value)),
-            name === 'revenue' ? 'Ingresos totales' : 'Empresa (30%)',
+            name === 'revenue' ? 'Ingresos totales' : 'Parte empresa',
           ]}
         />
         <Bar
