@@ -225,6 +225,9 @@ export default function FinanceTab({
     }
   };
 
+  const companyPct = reservation.vehicle_is_company_owned ? 1 : 0.3;
+  const ownerPct   = reservation.vehicle_is_company_owned ? 0 : 0.7;
+
   return (
     <div className="space-y-4">
       {/* Financial summary */}
@@ -235,19 +238,19 @@ export default function FinanceTab({
           <div className="bg-gray-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-lg font-bold text-gray-900">{formatCOP(reservation.total_amount)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.total_amount * 0.3)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Depósitos</p>
             <p className="text-lg font-bold text-green-700">{formatCOP(totalDeposit)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(totalDeposit * 0.3)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>
           </div>
           <div className={`rounded-xl p-4 text-center ${remaining > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
             <p className={`text-lg font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-700'}`}>
               {formatCOP(remaining)}
             </p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(remaining * 0.3)}</p>
+            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>
           </div>
         </div>
 
@@ -268,20 +271,24 @@ export default function FinanceTab({
         {/* Split */}
         {reservation.total_amount > 0 && (
           <div className="border-t border-gray-100 pt-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Distribución (70/30)</p>
-            <div className="flex justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <DollarSign size={14} className="text-purple-400" />
-                <span className="text-gray-600">Propietario (70%)</span>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {reservation.vehicle_is_company_owned ? 'Distribución (100% empresa)' : 'Distribución (70/30)'}
+            </p>
+            {!reservation.vehicle_is_company_owned && (
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <DollarSign size={14} className="text-purple-400" />
+                  <span className="text-gray-600">Propietario ({Math.round(ownerPct * 100)}%)</span>
+                </div>
+                <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * ownerPct)}</span>
               </div>
-              <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * 0.7)}</span>
-            </div>
+            )}
             <div className="flex justify-between text-sm">
               <div className="flex items-center gap-2">
                 <DollarSign size={14} className="text-pink-400" />
-                <span className="text-gray-600">Empresa (30%)</span>
+                <span className="text-gray-600">Empresa ({Math.round(companyPct * 100)}%)</span>
               </div>
-              <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * 0.3)}</span>
+              <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * companyPct)}</span>
             </div>
           </div>
         )}
@@ -424,6 +431,15 @@ export default function FinanceTab({
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Liquidación de propietario</h2>
 
+          {reservation.vehicle_is_company_owned ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <p className="text-sm font-semibold text-green-800">Vehículo propiedad de Camino a mi Boda</p>
+              <p className="text-sm text-green-700 mt-0.5">
+                El 100% del ingreso ({formatCOP(reservation.total_amount)}) queda en la empresa. No se genera liquidación de propietario.
+              </p>
+            </div>
+          ) : (
+            <>
           {settlement === 'loading' && (
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <Loader2 size={14} className="animate-spin" /> Cargando...
@@ -608,6 +624,8 @@ export default function FinanceTab({
               </div>
             );
           })()}
+            </>
+          )}
         </div>
       )}
     </div>

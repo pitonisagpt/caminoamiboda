@@ -166,7 +166,9 @@ export default function Combobox({
                 return (
                   <div key={option.value}>
                     {showGroupHeader && (
-                      <div className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide border-t border-gray-100 first:border-t-0">
+                      <div className={`px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide border-t border-gray-100 first:border-t-0 ${
+                        option.group === 'Fuera de zona' ? 'text-orange-500' : 'text-gray-400'
+                      }`}>
                         {option.group}
                       </div>
                     )}

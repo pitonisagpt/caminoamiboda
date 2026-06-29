@@ -10,7 +10,7 @@ _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
     "owner_driver_id",
     "event_date", "start_time", "end_time", "total_amount", "deposit_paid", "status",
-    "event_category", "gcal_imported",
+    "event_category", "event_location", "gcal_imported",
     "special_instructions", "notes", "created_at", "updated_at",
 ]
 
@@ -30,6 +30,7 @@ def _build(r) -> dict:
     d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
     d["owner_whatsapp"] = r.vehicle.owner_contact if r.vehicle else None
+    d["vehicle_is_company_owned"] = r.vehicle.is_company_owned if r.vehicle else False
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
     d["timeline_id"] = tls[0].id if tls else None
     d["timeline_event_name"] = tls[0].event_name if tls else None
@@ -50,6 +51,7 @@ class ReservationCreate(BaseModel):
     deposit_paid: Decimal = Decimal("0")
     status: ReservationStatus = ReservationStatus.lead
     event_category: str = "standard"
+    event_location: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
 
@@ -68,6 +70,7 @@ class ReservationUpdate(BaseModel):
     deposit_paid: Optional[Decimal] = None
     status: Optional[ReservationStatus] = None
     event_category: Optional[str] = None
+    event_location: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
 
@@ -90,6 +93,7 @@ class ReservationRead(BaseModel):
     remaining_balance: Decimal
     status: ReservationStatus
     event_category: str = "standard"
+    event_location: Optional[str] = None
     gcal_imported: bool = False
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
@@ -105,6 +109,7 @@ class ReservationRead(BaseModel):
     owner_driver_phone: Optional[str] = None
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
+    vehicle_is_company_owned: bool = False
     timeline_id: Optional[int] = None
     timeline_event_name: Optional[str] = None
     created_at: datetime

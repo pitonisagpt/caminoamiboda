@@ -40,6 +40,7 @@ class Reservation(Base):
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="lead")
 
     event_category: Mapped[str] = mapped_column(String(20), nullable=False, default="standard")
+    event_location: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     gcal_imported: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     special_instructions: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)

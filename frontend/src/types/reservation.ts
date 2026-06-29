@@ -66,6 +66,8 @@ export interface Reservation extends ReservationListItem {
   customer_whatsapp: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
+  vehicle_is_company_owned: boolean;
+  event_location: string | null;
   timeline_event_name: string | null;
   updated_at: string;
 }
@@ -90,6 +92,7 @@ export interface ReservationFormData {
   total_amount: string;
   deposit_paid: string;
   status: ReservationStatus;
+  event_location: string;
   special_instructions: string;
   notes: string;
 }

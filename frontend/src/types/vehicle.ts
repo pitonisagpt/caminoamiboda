@@ -34,12 +34,14 @@ export interface VehicleListItem {
   score_total: number | null;
   pico_y_placa_day: string | null;
   owner_contact: string | null;
+  allowed_locations: string[] | null;
   photos: VehiclePhoto[];
 }
 
 export interface Vehicle extends VehicleListItem {
   capacity: number | null;
   owner_name: string | null;
+  is_company_owned: boolean;
   pico_y_placa_hours: string | null;
   description: string | null;
   created_at: string;
@@ -59,6 +61,7 @@ export interface VehicleFormData {
   status: VehicleStatus;
   owner_name: string;
   owner_contact: string;
+  is_company_owned: boolean;
   price_medellin: string;
   price_rionegro: string;
   score_elegance: string;

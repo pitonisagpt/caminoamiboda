@@ -34,6 +34,7 @@ export default function ReservationForm() {
         total_amount: '0',
         deposit_paid: '0',
         driver_combined: '',
+        event_location: '',
         special_instructions: '',
         notes: '',
       },
@@ -66,6 +67,7 @@ export default function ReservationForm() {
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
+          event_location: v.event_location ?? '',
           special_instructions: v.special_instructions ?? '',
           notes: v.notes ?? '',
         });
@@ -78,6 +80,14 @@ export default function ReservationForm() {
   const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
   const watchedStart   = useWatch({ control, name: 'start_time' });
   const watchedEnd     = useWatch({ control, name: 'end_time' });
+  const watchedZone    = useWatch({ control, name: 'event_location' });
+
+  const compatibleVehicles = vehicles.filter(v =>
+    !watchedZone || !v.allowed_locations || v.allowed_locations.includes(watchedZone)
+  );
+  const outOfZoneVehicles = watchedZone ? vehicles.filter((v: any) =>
+    v.allowed_locations?.length && !v.allowed_locations.includes(watchedZone)
+  ) : [];
 
   // Extract driver_id for conflict checking (only applies to registered drivers, not owners)
   const watchedDriverId = watchedDriverCombined?.startsWith('driver:')
@@ -125,6 +135,7 @@ export default function ReservationForm() {
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
       status: data.status,
+      event_location: data.event_location || null,
       special_instructions: data.special_instructions || null,
       notes: data.notes || null,
     };
@@ -220,6 +231,16 @@ export default function ReservationForm() {
             </div>
           </div>
 
+          <div>
+            <label className={labelCls}>Zona del evento</label>
+            <select {...register('event_location')} className={inputCls}>
+              <option value="">Sin especificar</option>
+              <option value="medellin">Medellín</option>
+              <option value="rionegro">Rionegro / Llanogrande</option>
+              <option value="carmen_de_viboral">Carmen de Viboral</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <Controller
               name="vehicle_id"
@@ -227,10 +248,18 @@ export default function ReservationForm() {
               render={({ field }) => (
                 <Combobox
                   label="Vehículo"
-                  options={vehicles.map(v => ({
-                    value: String(v.id),
-                    label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
-                  }))}
+                  options={[
+                    ...compatibleVehicles.map((v: any) => ({
+                      value: String(v.id),
+                      label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
+                      group: watchedZone ? 'Compatible con la zona' : undefined,
+                    })),
+                    ...outOfZoneVehicles.map((v: any) => ({
+                      value: String(v.id),
+                      label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
+                      group: 'Fuera de zona',
+                    })),
+                  ]}
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar vehículo..."

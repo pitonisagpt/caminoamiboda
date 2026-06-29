@@ -56,11 +56,17 @@ def finance_summary(
         Reservation.event_date <= eff_to,
     ]
 
-    revenue_period = float(
-        db.query(func.coalesce(func.sum(Reservation.total_amount), 0))
+    completed_period = (
+        db.query(Reservation, Vehicle)
+        .outerjoin(Vehicle, Reservation.vehicle_id == Vehicle.id)
         .filter(Reservation.status == ReservationStatus.completed, *period_filters)
-        .scalar() or 0
+        .all()
     )
+    revenue_period = float(sum(r.total_amount for r, _ in completed_period) or 0)
+    company_revenue_period = float(sum(
+        r.total_amount if (v and v.is_company_owned) else r.total_amount * Decimal("0.30")
+        for r, v in completed_period
+    ) or 0)
 
     deposits_received_period = float(
         db.query(func.coalesce(func.sum(Reservation.deposit_paid), 0))
@@ -91,7 +97,7 @@ def finance_summary(
         "revenue_last_year": revenue_last_year,
         "yoy_change_pct": yoy_change_pct,
         "revenue_period": revenue_period,
-        "company_revenue_period": round(revenue_period * 0.30),
+        "company_revenue_period": round(company_revenue_period),
         "deposits_received_period": deposits_received_period,
         "outstanding_balance_total": outstanding_balance_total,
         "pending_owner_payments": pending_owner_payments,
@@ -119,21 +125,26 @@ def owner_revenue(
 
     owner_map: dict = {}
     for reservation, vehicle in rows:
-        owner_name = (vehicle.owner_name if vehicle and vehicle.owner_name else "Sin propietario")
+        is_company = vehicle.is_company_owned if vehicle else False
+        owner_name = (
+            "Camino a mi Boda" if is_company
+            else (vehicle.owner_name if vehicle and vehicle.owner_name else "Sin propietario")
+        )
         if owner_name not in owner_map:
-            owner_map[owner_name] = {"owner_name": owner_name, "completed_count": 0, "total_revenue": 0.0}
+            owner_map[owner_name] = {"owner_name": owner_name, "completed_count": 0, "total_revenue": 0.0, "is_company": is_company}
         owner_map[owner_name]["completed_count"] += 1
         owner_map[owner_name]["total_revenue"] += float(reservation.total_amount)
 
     owners = []
     for entry in owner_map.values():
         rev = entry["total_revenue"]
+        is_co = entry["is_company"]
         owners.append({
             "owner_name": entry["owner_name"],
             "completed_count": entry["completed_count"],
             "total_revenue": rev,
-            "owner_amount": round(rev * 0.70),
-            "company_amount": round(rev * 0.30),
+            "owner_amount": 0 if is_co else round(rev * 0.70),
+            "company_amount": round(rev) if is_co else round(rev * 0.30),
         })
 
     owners.sort(key=lambda x: x["total_revenue"], reverse=True)

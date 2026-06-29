@@ -45,6 +45,7 @@ export function VehicleForm() {
   const [saving, setSaving] = useState(false);
   const [owners, setOwners] = useState<VehicleOwner[]>([]);
   const [ownerContact, setOwnerContact] = useState("");
+  const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
 
   useEffect(() => {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
@@ -55,8 +56,11 @@ export function VehicleForm() {
       vehicle_type: "car",
       location: "medellin",
       status: "active",
+      is_company_owned: false,
     },
   });
+
+  const isCompanyOwned = watch("is_company_owned");
 
   const plate = watch("license_plate") ?? "";
   const vehicleType = watch("vehicle_type") ?? "car";
@@ -84,6 +88,7 @@ export function VehicleForm() {
     vehiclesApi.get(Number(id)).then((res) => {
       const v = res.data;
       setOwnerContact(v.owner_contact ?? "");
+      setAllowedLocations(v.allowed_locations ?? []);
       reset({
         license_plate: v.license_plate,
         brand: v.brand,
@@ -97,6 +102,7 @@ export function VehicleForm() {
         status: v.status,
         owner_name: v.owner_name ?? "",
         owner_contact: v.owner_contact ?? "",
+        is_company_owned: v.is_company_owned ?? false,
         price_medellin: v.price_medellin?.toString() ?? "",
         price_rionegro: v.price_rionegro?.toString() ?? "",
         score_elegance: v.score_elegance?.toString() ?? "",
@@ -124,8 +130,10 @@ export function VehicleForm() {
         capacity: data.capacity ? parseInt(data.capacity) : null,
         location: data.location,
         status: data.status,
-        owner_name: data.owner_name || null,
-        owner_contact: data.owner_contact || null,
+        owner_name: data.is_company_owned ? null : (data.owner_name || null),
+        owner_contact: data.is_company_owned ? null : (data.owner_contact || null),
+        is_company_owned: data.is_company_owned,
+        allowed_locations: allowedLocations.length > 0 ? allowedLocations : null,
         price_medellin: data.price_medellin ? parseFloat(data.price_medellin) : null,
         price_rionegro: data.price_rionegro ? parseFloat(data.price_rionegro) : null,
         score_elegance: data.score_elegance ? parseInt(data.score_elegance) : null,
@@ -241,6 +249,35 @@ export function VehicleForm() {
               { value: "pending", label: "Pendiente" },
             ]}
           />
+          <div className="sm:col-span-2 space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Zonas de operación
+              <span className="ml-2 text-xs font-normal text-gray-400">(sin selección = opera en todas)</span>
+            </label>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { value: "medellin", label: "Medellín" },
+                { value: "rionegro", label: "Rionegro / Llanogrande" },
+                { value: "carmen_de_viboral", label: "Carmen de Viboral" },
+              ].map(zone => (
+                <label key={zone.value} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                    checked={allowedLocations.includes(zone.value)}
+                    onChange={e => {
+                      setAllowedLocations(prev =>
+                        e.target.checked
+                          ? [...prev, zone.value]
+                          : prev.filter(z => z !== zone.value)
+                      );
+                    }}
+                  />
+                  <span className="text-sm text-gray-700">{zone.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </CardBody>
       </Card>
 
@@ -258,45 +295,69 @@ export function VehicleForm() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Propietario</h2>
-            <a
-              href="/propietarios/nuevo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-pink-500 hover:text-pink-700 transition-colors"
-            >
-              <ExternalLink size={12} />
-              Agregar nuevo propietario
-            </a>
+            {!isCompanyOwned && (
+              <a
+                href="/propietarios/nuevo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-pink-500 hover:text-pink-700 transition-colors"
+              >
+                <ExternalLink size={12} />
+                Agregar nuevo propietario
+              </a>
+            )}
           </div>
         </CardHeader>
-        <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Controller
-            name="owner_name"
-            control={control}
-            render={({ field }) => (
-              <Combobox
-                label="Propietario"
-                options={owners.map(o => ({ value: o.full_name, label: o.full_name }))}
-                value={field.value ?? ''}
-                onChange={val => {
-                  field.onChange(val);
-                  const selected = owners.find(o => o.full_name === val);
-                  const contact = selected?.whatsapp || selected?.phone || '';
-                  setValue('owner_contact', contact);
-                  setOwnerContact(contact);
-                }}
-                placeholder="Buscar propietario..."
+        <CardBody className="space-y-4">
+          {/* Company-owned toggle */}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div className="relative">
+              <input
+                type="checkbox"
+                className="sr-only"
+                {...register("is_company_owned")}
               />
-            )}
-          />
-          <Input
-            label="Contacto del dueño"
-            value={ownerContact}
-            onChange={() => {}}
-            readOnly
-            disabled
-            placeholder="Se llena automáticamente al seleccionar propietario"
-          />
+              <div className={`w-10 h-6 rounded-full transition-colors ${isCompanyOwned ? 'bg-pink-600' : 'bg-gray-200'}`} />
+              <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isCompanyOwned ? 'translate-x-4' : ''}`} />
+            </div>
+            <span className="text-sm font-medium text-gray-700">Vehículo de Camino a mi Boda</span>
+          </label>
+
+          {isCompanyOwned ? (
+            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              El 100% del ingreso de este vehículo queda en la empresa. No se generan liquidaciones de propietario.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Controller
+                name="owner_name"
+                control={control}
+                render={({ field }) => (
+                  <Combobox
+                    label="Propietario"
+                    options={owners.map(o => ({ value: o.full_name, label: o.full_name }))}
+                    value={field.value ?? ''}
+                    onChange={val => {
+                      field.onChange(val);
+                      const selected = owners.find(o => o.full_name === val);
+                      const contact = selected?.whatsapp || selected?.phone || '';
+                      setValue('owner_contact', contact);
+                      setOwnerContact(contact);
+                    }}
+                    placeholder="Buscar propietario..."
+                  />
+                )}
+              />
+              <Input
+                label="Contacto del dueño"
+                value={ownerContact}
+                onChange={() => {}}
+                readOnly
+                disabled
+                placeholder="Se llena automáticamente al seleccionar propietario"
+              />
+            </div>
+          )}
         </CardBody>
       </Card>
 
