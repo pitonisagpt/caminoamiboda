@@ -72,6 +72,7 @@ def get_summary(
             "total_amount": float(r.total_amount),
             "remaining_balance": float(r.remaining_balance),
             "vehicle_photo_url": _vehicle_photo_url(r),
+            "vehicle_is_company_owned": r.vehicle.is_company_owned if r.vehicle else False,
         })
 
     # --- Reservations by status (always all-time snapshot) ---
@@ -93,8 +94,12 @@ def get_summary(
         )
         .all()
     )
-    revenue_in_period = sum(
-        r.total_amount for r in period_res if r.status == ReservationStatus.completed
+    completed_in_period = [r for r in period_res if r.status == ReservationStatus.completed]
+
+    revenue_in_period = sum(r.total_amount for r in completed_in_period) or Decimal("0")
+    company_revenue_in_period = sum(
+        r.total_amount if (r.vehicle and r.vehicle.is_company_owned) else r.total_amount * Decimal("0.30")
+        for r in completed_in_period
     ) or Decimal("0")
 
     pending_collections = sum(
@@ -108,14 +113,16 @@ def get_summary(
         .all()
     }
     unsettled_completed = [
-        r for r in period_res
-        if r.status == ReservationStatus.completed and r.id not in paid_reservation_ids
+        r for r in completed_in_period
+        if r.id not in paid_reservation_ids
     ]
     pending_owner_payments = sum(
-        r.total_amount * Decimal("0.70") for r in unsettled_completed
+        Decimal("0") if (r.vehicle and r.vehicle.is_company_owned) else r.total_amount * Decimal("0.70")
+        for r in unsettled_completed
     ) or Decimal("0")
     pending_company_revenue = sum(
-        r.total_amount * Decimal("0.30") for r in unsettled_completed
+        r.total_amount if (r.vehicle and r.vehicle.is_company_owned) else r.total_amount * Decimal("0.30")
+        for r in unsettled_completed
     ) or Decimal("0")
 
     # --- Vehicles by status (always all-time snapshot) ---
@@ -137,6 +144,7 @@ def get_summary(
             "total_amount": float(r.total_amount),
             "remaining_balance": float(r.remaining_balance),
             "vehicle_photo_url": _vehicle_photo_url(r),
+            "vehicle_is_company_owned": r.vehicle.is_company_owned if r.vehicle else False,
         }
         for r in period_events
     ]
@@ -148,6 +156,7 @@ def get_summary(
         "vehicles_by_status": vehicles_by_status,
         "finance": {
             "revenue_this_month": float(revenue_in_period),
+            "company_revenue_this_month": float(company_revenue_in_period),
             "pending_collections": float(pending_collections),
             "pending_owner_payments": float(pending_owner_payments),
             "pending_company_revenue": float(pending_company_revenue),
@@ -204,7 +213,7 @@ def revenue_trend(
         data.append({
             "month": row.month.strftime("%Y-%m"),
             "revenue": rev,
-            "company_share": round(rev * 0.30),
+            "company_share": round(rev * 0.30),  # approximate: monthly aggregate can't distinguish per-vehicle ownership
             "count": row.count,
         })
 
@@ -480,7 +489,7 @@ def vehicle_usage(
             "event_count": row.event_count,
             "completed_count": completed,
             "total_revenue": rev,
-            "company_share": round(rev * 0.30),
+            "company_share": round(rev) if v.is_company_owned else round(rev * 0.30),
             "avg_revenue": round(rev / completed) if completed else 0,
             "last_event_date": last_date.isoformat() if last_date else None,
             "next_event_date": next_date.isoformat() if next_date else None,

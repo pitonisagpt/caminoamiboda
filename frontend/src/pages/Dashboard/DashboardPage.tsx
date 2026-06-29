@@ -78,7 +78,7 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold text-gray-900">{formatCOP(data.finance.revenue_this_month)}</p>
           <div className="flex items-center gap-1.5 pt-1">
             <span className="text-xs text-gray-400">Ganancia empresa</span>
-            <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.revenue_this_month * 0.30)}</span>
+            <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.company_revenue_this_month)}</span>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                     {r.remaining_balance > 0 && (
                       <p className="text-xs text-red-500 font-medium">{formatCOP(r.remaining_balance)} pendiente</p>
                     )}
-                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * 0.3)}</p>
+                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </div>
                 </div>
               ))}
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                          <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * 0.3)}</p>
+                          <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                         </td>
                         <td className="px-5 py-3 text-right hidden sm:table-cell whitespace-nowrap">
                           {Number(r.remaining_balance) > 0

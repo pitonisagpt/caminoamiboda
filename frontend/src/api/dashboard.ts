@@ -11,6 +11,7 @@ export interface UpcomingReservation {
   total_amount: number;
   remaining_balance: number;
   vehicle_photo_url: string | null;
+  vehicle_is_company_owned: boolean;
 }
 
 export interface DashboardSummary {
@@ -20,6 +21,7 @@ export interface DashboardSummary {
   vehicles_by_status: Record<string, number>;
   finance: {
     revenue_this_month: number;
+    company_revenue_this_month: number;
     pending_collections: number;
     pending_owner_payments: number;
     pending_company_revenue: number;
