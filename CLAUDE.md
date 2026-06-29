@@ -560,3 +560,69 @@ Features focused on increasing conversion rate, average ticket, and lead volume.
 - Publish vehicle availability to Colombian wedding marketplaces (Bodas.com.co, matrimoniofeliz.com)
 - Receive leads directly into the reservation system
 - Sync availability bidirectionally to prevent double-booking
+
+---
+
+## Phase 7: Instagram & WhatsApp Sales Channel
+
+The real customer acquisition funnel in Colombia is Instagram → DM → WhatsApp → close.
+Today every sale happens outside the platform. This phase brings that flow in.
+
+### Context: How Colombian Wedding Clients Actually Buy
+- Discovery happens on Instagram (reels, tagged photos, stories)
+- First contact is always a DM or WhatsApp message, never a form
+- The first response time is critical — if not answered in under 5 minutes, the prospect moves on
+- Closing happens on WhatsApp over days or weeks of conversation
+- The platform today captures nothing from this flow
+
+---
+
+### Unified Inbox (WhatsApp + Instagram DMs)
+- Integrate with a tool like **Kommo** (amoCRM), **Leadsales**, or **Treble.ai**
+  - All WhatsApp and Instagram DM conversations in one inbox
+  - Assign conversations to team members
+  - Tag leads by stage: interesado / cotizando / negociando / cerrado / perdido
+  - Full conversation history per customer
+- Connect via webhook: new leads from the inbox auto-create a `Customer` record in the system with status `lead` and the event date if captured
+- Goal: double response capacity without hiring, zero dropped conversations
+
+### Automatic First Response Bot
+- When a new DM or WhatsApp arrives for the first time, send an instant reply:
+  > *"Hola! Gracias por escribirnos a Camino a mi Boda. Para enviarte información y disponibilidad, ¿cuál es la fecha de tu evento y en qué ciudad?"*
+- Captures the event date before the prospect contacts a competitor
+- After the auto-reply, a human takes over
+- Implementation: WhatsApp Business API or through the unified inbox tool's bot builder
+
+### Lead Pipeline Dashboard
+- Visible in the admin: funnel view of all active leads
+  - Columns: Nuevo → Contactado → Cotización enviada → Negociando → Ganado / Perdido
+  - Number of days in each stage
+  - Source: Instagram DM / WhatsApp / Web form / Referido / Marketplace
+- Response time KPI: average minutes from first contact to first reply (critical metric for wedding market)
+- Weekly report: new leads, quotes sent, conversion rate, lost reasons
+
+### Instagram as Real Portfolio
+- Not a system feature — operational guidance for content that converts:
+  - Reels: 15–30 sec of the car in motion on a wedding day (highest reach)
+  - Photos: car + couple at location, venue tagged
+  - Stories: behind the scenes — car prepped, driver ready, arrival moment
+  - Highlights organized by vehicle or style (vintage, clásico, romántico)
+- In-system support: after each completed event, ops gets a prompt to upload event photos and tag them to the vehicle — these feed both the admin gallery and the catalog
+
+### Link in Bio — Conversion Page
+- Replace a plain link to the catalog with a mini landing page:
+  - Ver vehículos disponibles → catalog
+  - Consultar mi fecha → availability check form (captures date + WhatsApp)
+  - Ver precios → price calculator
+  - Hablar con nosotros → WhatsApp direct link
+- Captures lead intent before they leave Instagram
+
+### SEO Content for Organic Discovery
+- Couples in Colombia search Google for "carros clásicos para bodas Medellín", "carro antiguo boda oriente antioqueño", etc.
+- A simple blog with 5–10 articles captures this traffic without paid ads:
+  - "Cómo elegir el carro para tu boda en Medellín"
+  - "Cuánto cuesta un carro clásico para boda en el oriente antioqueño"
+  - "Los mejores vehículos vintage para bodas en El Carmen de Viboral"
+  - "Diferencia entre carro clásico, vintage y moderno para tu boda"
+- Articles link to specific vehicle pages in the catalog
+- Zero ongoing cost once written; compounds over time
