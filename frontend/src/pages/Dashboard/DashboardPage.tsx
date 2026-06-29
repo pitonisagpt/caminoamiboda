@@ -91,7 +91,7 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold text-yellow-600">{formatCOP(data.finance.pending_collections)}</p>
           <div className="flex items-center gap-1.5 pt-1">
             <span className="text-xs text-gray-400">Por cobrar a clientes ·</span>
-            <span className="text-xs font-semibold text-yellow-600">{formatCOP(data.finance.pending_collections * 0.30)} empresa</span>
+            <span className="text-xs font-semibold text-yellow-600">{formatCOP(data.finance.company_pending_collections)} empresa</span>
           </div>
         </div>
 

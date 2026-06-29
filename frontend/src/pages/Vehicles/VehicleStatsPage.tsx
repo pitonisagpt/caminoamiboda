@@ -54,10 +54,11 @@ export default function VehicleStatsPage() {
     : '…';
 
   // Map monthly_trend to RevenueTrendPoint shape
+  const isCompanyOwned = vehicle?.is_company_owned ?? false;
   const trendData: RevenueTrendPoint[] = (stats?.monthly_trend ?? []).map(m => ({
     month: m.month,
     revenue: m.revenue,
-    company_share: Math.round(m.revenue * 0.30),
+    company_share: Math.round(m.revenue * (isCompanyOwned ? 1 : 0.30)),
     count: m.count,
   }));
 
@@ -100,7 +101,7 @@ export default function VehicleStatsPage() {
             <SummaryCard label="Total eventos" value={String(stats.summary.total_events)} sub={`${stats.summary.upcoming_count} próximos`} />
             <SummaryCard label="Completados" value={String(stats.summary.completed_events)} />
             <SummaryCard label="Ingresos totales" value={formatCOPShort(stats.summary.total_revenue)} sub={formatCOP(stats.summary.total_revenue)} />
-            <SummaryCard label="Empresa (30%)" value={formatCOPShort(stats.summary.company_share)} sub={`Prom. ${formatCOPShort(stats.summary.avg_revenue_per_event)}/evento`} />
+            <SummaryCard label={isCompanyOwned ? 'Empresa (100%)' : 'Empresa (30%)'} value={formatCOPShort(stats.summary.company_share)} sub={`Prom. ${formatCOPShort(stats.summary.avg_revenue_per_event)}/evento`} />
           </div>
 
           {/* Row 1: Revenue trend + Status breakdown */}

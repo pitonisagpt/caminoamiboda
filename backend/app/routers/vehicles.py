@@ -134,7 +134,7 @@ def vehicle_stats(
         "completed_events": comp_count,
         "upcoming_count": len(upcoming),
         "total_revenue": total_rev,
-        "company_share": round(total_rev * 0.30),
+        "company_share": round(total_rev) if vehicle.is_company_owned else round(total_rev * 0.30),
         "avg_revenue_per_event": round(total_rev / comp_count) if comp_count else 0,
         "first_event_date": min(all_dates).isoformat() if all_dates else None,
         "last_event_date": max(d for d in all_dates if d <= today).isoformat() if any(d <= today for d in all_dates) else None,

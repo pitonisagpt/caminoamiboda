@@ -102,9 +102,11 @@ def get_summary(
         for r in completed_in_period
     ) or Decimal("0")
 
-    pending_collections = sum(
-        r.remaining_balance for r in period_res
-        if r.status in ACTIVE_STATUSES
+    active_in_period = [r for r in period_res if r.status in ACTIVE_STATUSES]
+    pending_collections = sum(r.remaining_balance for r in active_in_period) or Decimal("0")
+    company_pending_collections = sum(
+        r.remaining_balance if (r.vehicle and r.vehicle.is_company_owned) else r.remaining_balance * Decimal("0.30")
+        for r in active_in_period
     ) or Decimal("0")
 
     paid_reservation_ids = {
@@ -158,6 +160,7 @@ def get_summary(
             "revenue_this_month": float(revenue_in_period),
             "company_revenue_this_month": float(company_revenue_in_period),
             "pending_collections": float(pending_collections),
+            "company_pending_collections": float(company_pending_collections),
             "pending_owner_payments": float(pending_owner_payments),
             "pending_company_revenue": float(pending_company_revenue),
         },
@@ -174,49 +177,47 @@ def revenue_trend(
 ):
     today = date.today()
 
-    if date_from or date_to:
-        date_filters = [
-            Reservation.status == ReservationStatus.completed,
-            Reservation.total_amount > 0,
-        ]
-        if date_from:
-            date_filters.append(Reservation.event_date >= date_from)
-        if date_to:
-            date_filters.append(Reservation.event_date <= date_to)
-    else:
+    base_filters = [
+        Reservation.status == ReservationStatus.completed,
+        Reservation.total_amount > 0,
+    ]
+    if date_from:
+        base_filters.append(Reservation.event_date >= date_from)
+    elif not date_to:
         cutoff_month = today.month - months % 12
         cutoff_year  = today.year - months // 12 - (1 if cutoff_month <= 0 else 0)
         if cutoff_month <= 0:
             cutoff_month += 12
-        cutoff = date(cutoff_year, cutoff_month, 1)
-        date_filters = [
-            Reservation.status == ReservationStatus.completed,
-            Reservation.total_amount > 0,
-            Reservation.event_date >= cutoff,
-        ]
+        base_filters.append(Reservation.event_date >= date(cutoff_year, cutoff_month, 1))
+    if date_to:
+        base_filters.append(Reservation.event_date <= date_to)
 
     rows = (
-        db.query(
-            func.date_trunc("month", Reservation.event_date).label("month"),
-            func.sum(Reservation.total_amount).label("revenue"),
-            func.count(Reservation.id).label("count"),
-        )
-        .filter(*date_filters)
-        .group_by("month")
-        .order_by("month")
+        db.query(Reservation, Vehicle)
+        .outerjoin(Vehicle, Reservation.vehicle_id == Vehicle.id)
+        .filter(*base_filters)
         .all()
     )
 
-    data = []
-    for row in rows:
-        rev = float(row.revenue or 0)
-        data.append({
-            "month": row.month.strftime("%Y-%m"),
-            "revenue": rev,
-            "company_share": round(rev * 0.30),  # approximate: monthly aggregate can't distinguish per-vehicle ownership
-            "count": row.count,
-        })
+    monthly: dict = {}
+    for r, v in rows:
+        key = r.event_date.strftime("%Y-%m")
+        if key not in monthly:
+            monthly[key] = {"revenue": 0.0, "company_share": 0.0, "count": 0}
+        rev = float(r.total_amount)
+        monthly[key]["revenue"] += rev
+        monthly[key]["company_share"] += rev if (v and v.is_company_owned) else rev * 0.30
+        monthly[key]["count"] += 1
 
+    data = [
+        {
+            "month": k,
+            "revenue": round(v["revenue"]),
+            "company_share": round(v["company_share"]),
+            "count": v["count"],
+        }
+        for k, v in sorted(monthly.items())
+    ]
     return {"data": data}
 
 

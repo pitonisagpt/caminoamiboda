@@ -23,6 +23,7 @@ export interface DashboardSummary {
     revenue_this_month: number;
     company_revenue_this_month: number;
     pending_collections: number;
+    company_pending_collections: number;
     pending_owner_payments: number;
     pending_company_revenue: number;
   };
