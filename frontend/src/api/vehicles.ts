@@ -58,6 +58,10 @@ export const vehiclesApi = {
     return api.delete(`/vehicles/${id}`);
   },
 
+  reorder(items: { id: number; display_order: number }[]) {
+    return api.put<{ ok: boolean }>("/vehicles/reorder", items);
+  },
+
   uploadPhotos(vehicleId: number, files: File[]) {
     const form = new FormData();
     files.forEach((f) => form.append("files", f));

@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -56,6 +56,8 @@ class Vehicle(Base):
     score_comfort: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     score_romance: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
 
+    display_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     photo_urls: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array
 
@@ -65,7 +67,7 @@ class Vehicle(Base):
     photos: Mapped[list] = relationship(
         "VehiclePhoto",
         cascade="all, delete-orphan",
-        order_by="VehiclePhoto.display_order",
+        order_by="VehiclePhoto.display_order.asc()",
         lazy="select",
     )
 

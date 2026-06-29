@@ -22,6 +22,8 @@ export interface VehicleListItem {
   year: number | null;
   vehicle_type: VehicleType;
   body_type: string | null;
+  capacity: number | null;
+  display_order: number;
   location: VehicleLocation;
   status: VehicleStatus;
   price_medellin: number | null;
@@ -39,7 +41,6 @@ export interface VehicleListItem {
 }
 
 export interface Vehicle extends VehicleListItem {
-  capacity: number | null;
   owner_name: string | null;
   is_company_owned: boolean;
   pico_y_placa_hours: string | null;

@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
 from app.models.user import User
-from app.schemas.vehicle import VehicleCreate, VehicleList, VehiclePublic, VehicleRead, VehicleUpdate
+from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehiclePublic, VehicleRead, VehicleUpdate
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"], redirect_slashes=False)
 
@@ -26,7 +26,7 @@ def list_vehicles(
     vehicle_type: Optional[VehicleType] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Vehicle).order_by(Vehicle.brand, Vehicle.model_line)
+    query = db.query(Vehicle).order_by(Vehicle.display_order)
     if status:
         query = query.filter(Vehicle.status == status)
     else:
@@ -47,7 +47,7 @@ def list_all_vehicles(
     db: Session = Depends(get_db),
 ):
     """Admin endpoint that returns all vehicles regardless of status."""
-    query = db.query(Vehicle).order_by(Vehicle.brand, Vehicle.model_line)
+    query = db.query(Vehicle).order_by(Vehicle.display_order)
     if status:
         query = query.filter(Vehicle.status == status)
     if location:
@@ -55,6 +55,14 @@ def list_all_vehicles(
     if vehicle_type:
         query = query.filter(Vehicle.vehicle_type == vehicle_type)
     return _serialize_list(query.all())
+
+
+@router.put("/reorder", dependencies=[Depends(require_admin)])
+def reorder_vehicles(items: List[ReorderItem], db: Session = Depends(get_db)):
+    for item in items:
+        db.query(Vehicle).filter(Vehicle.id == item.id).update({"display_order": item.display_order})
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/{vehicle_id}", response_model=VehiclePublic)

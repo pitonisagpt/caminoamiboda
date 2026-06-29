@@ -64,10 +64,16 @@ class VehicleUpdate(BaseModel):
 _BASE_SCALARS = [
     "id", "license_plate", "brand", "model_line", "color", "year",
     "vehicle_type", "body_type", "capacity", "location", "status",
+    "display_order",
     "price_medellin", "price_rionegro",
     "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
     "description",
 ]
+
+
+class ReorderItem(BaseModel):
+    id: int
+    display_order: int
 
 
 def _load_photos(vehicle) -> List[VehiclePhotoRead]:
@@ -162,6 +168,7 @@ class VehicleList(BaseModel):
     capacity: Optional[int] = None
     location: VehicleLocation
     status: VehicleStatus
+    display_order: int = 0
     price_medellin: Optional[float] = None
     price_rionegro: Optional[float] = None
     score_elegance: Optional[int] = None
