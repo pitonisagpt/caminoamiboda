@@ -6,7 +6,6 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from openpyxl import Workbook
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -329,6 +328,8 @@ def export_excel(
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
+    from openpyxl import Workbook  # lazy import — only needed on export
+
     today = date.today()
 
     res_query = db.query(Reservation).order_by(Reservation.event_date.desc())
