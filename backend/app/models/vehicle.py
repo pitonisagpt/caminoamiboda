@@ -69,6 +69,7 @@ class Vehicle(Base):
         cascade="all, delete-orphan",
         order_by="VehiclePhoto.display_order.asc()",
         lazy="select",
+        uselist=True,
     )
 
     @property

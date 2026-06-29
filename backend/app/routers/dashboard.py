@@ -54,9 +54,10 @@ def get_summary(
 
     def _vehicle_photo_url(reservation) -> str | None:
         v = reservation.vehicle
-        if not v or not v.photos:
+        if not v:
             return None
-        first = next((p for p in v.photos if p.is_visible), None)
+        photos = v.photos if isinstance(v.photos, list) else ([v.photos] if v.photos else [])
+        first = next((p for p in photos if p.is_visible), None)
         return f"/api/uploads/vehicles/{first.file_name}" if first else None
 
     upcoming = []
@@ -464,9 +465,10 @@ def vehicle_usage(
     vehicles_map = {v.id: v for v in veh_query.all()}
 
     def _photo_url(vehicle: Vehicle) -> Optional[str]:
-        if not vehicle or not vehicle.photos:
+        if not vehicle:
             return None
-        first = next((p for p in vehicle.photos if p.is_visible), None)
+        photos = vehicle.photos if isinstance(vehicle.photos, list) else ([vehicle.photos] if vehicle.photos else [])
+        first = next((p for p in photos if p.is_visible), None)
         return f"/api/uploads/vehicles/{first.file_name}" if first else None
 
     result = []
