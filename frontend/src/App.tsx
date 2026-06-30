@@ -33,6 +33,7 @@ import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
 import CalendarPage from "./pages/Calendar/CalendarPage";
+import LocationCatalogPage from "./pages/LocationCatalog/LocationCatalogPage";
 import { timelinesApi } from "./api/timelines";
 
 function TimelineRedirect() {
@@ -89,6 +90,9 @@ export default function App() {
 
             {/* Calendar */}
             <Route path="calendario" element={<CalendarPage />} />
+
+            {/* Location Catalog */}
+            <Route path="ubicaciones" element={<LocationCatalogPage />} />
 
             {/* Reservations */}
             <Route path="reservas" element={<ReservationList />} />

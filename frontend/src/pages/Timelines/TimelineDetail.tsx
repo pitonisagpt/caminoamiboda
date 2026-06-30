@@ -24,10 +24,14 @@ import {
   ChevronDown, ChevronUp, Info, MessageCircle, CalendarDays, Download,
 } from 'lucide-react';
 import { timelinesApi } from '../../api/timelines';
+import { catalogLocationsApi } from '../../api/catalogLocations';
+import Combobox from '../../components/ui/Combobox';
+import type { ComboboxOption } from '../../components/ui/Combobox';
 import type {
   EventTimeline, EventLocation, TimelineActivity,
   LocationType, LocationFormData, ActivityFormData,
 } from '../../types/timeline';
+import type { CatalogLocation } from '../../types/catalogLocation';
 
 const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   pickup: 'Recogida',
@@ -137,9 +141,37 @@ function LocationModal({
     contact_phone: initial?.contact_phone || '',
     notes: initial?.notes || '',
   });
+  const [catalog, setCatalog] = useState<CatalogLocation[]>([]);
+  const [catalogOptions, setCatalogOptions] = useState<ComboboxOption[]>([]);
 
   const f = (k: keyof LocationFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  useEffect(() => {
+    catalogLocationsApi.list({}).then(r => {
+      setCatalog(r.data);
+      setCatalogOptions(r.data.map(c => ({
+        value: String(c.id),
+        label: c.address ? `${c.name} — ${c.address}` : c.name,
+      })));
+    }).catch(() => {});
+  }, []);
+
+  const handleCatalogSelect = (val: string) => {
+    if (!val) return;
+    const found = catalog.find(c => c.id === Number(val));
+    if (found) {
+      setForm({
+        location_name: found.name,
+        location_type: (found.location_type as LocationType),
+        address: found.address || '',
+        google_maps_link: found.google_maps_link || '',
+        contact_person: found.contact_person || '',
+        contact_phone: found.contact_phone || '',
+        notes: found.notes || '',
+      });
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -149,6 +181,17 @@ function LocationModal({
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
         </div>
         <div className="px-6 py-4 space-y-3">
+          {catalogOptions.length > 0 && (
+            <div>
+              <Combobox
+                label="Buscar en catálogo (opcional)"
+                options={catalogOptions}
+                value=""
+                onChange={handleCatalogSelect}
+                placeholder="Buscar ubicación guardada..."
+              />
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
             <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Catedral de Laureles" />
