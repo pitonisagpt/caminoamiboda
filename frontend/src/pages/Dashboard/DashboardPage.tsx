@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, Car, ClipboardList, TrendingUp, AlertCircle, CheckCircle2, Loader2, Info } from 'lucide-react';
 import { dashboardApi, type DashboardSummary } from '../../api/dashboard';
 import { RESERVATION_STATUS_LABEL, RESERVATION_STATUS_COLOR } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
 import AnalyticsSection from './AnalyticsSection';
 import VehicleStatsSection from './VehicleStatsSection';
-import DateRangeFilter, { DEFAULT_RANGE, type DateRange } from './DateRangeFilter';
+import DateRangeFilter, { DEFAULT_RANGE, buildPresets, type DateRange } from './DateRangeFilter';
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -29,11 +29,49 @@ const STATUS_ORDER: ReservationStatus[] = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [range, setRange] = useState<DateRange>(DEFAULT_RANGE);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [eventsPage, setEventsPage] = useState(1);
   const EVENTS_PAGE_SIZE = 20;
+
+  // Derive range from URL — preset param, or custom from+to
+  const rangeFromUrl = (): DateRange => {
+    const preset = searchParams.get('range');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    if (preset === 'custom' && (from || to)) {
+      return {
+        preset: 'custom',
+        label: `${from || '…'} → ${to || '…'}`,
+        from: from,
+        to: to,
+      };
+    }
+    const PRESETS_MAP = buildPresets();
+    return PRESETS_MAP.find(p => p.preset === preset) ?? DEFAULT_RANGE;
+  };
+
+  const range = rangeFromUrl();
+
+  const setRange = (r: DateRange) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (r.preset === DEFAULT_RANGE.preset) {
+        next.delete('range');
+      } else {
+        next.set('range', r.preset);
+      }
+      if (r.preset === 'custom') {
+        if (r.from) next.set('from', r.from); else next.delete('from');
+        if (r.to) next.set('to', r.to); else next.delete('to');
+      } else {
+        next.delete('from');
+        next.delete('to');
+      }
+      return next;
+    }, { replace: true });
+  };
 
   useEffect(() => {
     setLoading(true);

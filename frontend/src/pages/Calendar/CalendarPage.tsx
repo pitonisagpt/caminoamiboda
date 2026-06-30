@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { calendarApi, type CalendarEvent } from '../../api/calendar';
 
@@ -33,12 +33,33 @@ const LEGEND = [
 
 export default function CalendarPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+  // year, month (0-indexed), selectedDay from URL
+  const year = Number(searchParams.get('year') ?? now.getFullYear());
+  const month = Number(searchParams.get('month') ?? now.getMonth());
+  const selectedDay = searchParams.get('day') ?? null;
+
+  function setYearMonth(y: number, m: number) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (y !== now.getFullYear()) next.set('year', String(y)); else next.delete('year');
+      if (m !== now.getMonth()) next.set('month', String(m)); else next.delete('month');
+      next.delete('day');
+      return next;
+    }, { replace: true });
+  }
+
+  function setSelectedDay(day: string | null) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (day) next.set('day', day); else next.delete('day');
+      return next;
+    }, { replace: true });
+  }
 
   const load = useCallback((y: number, m: number) => {
     setLoading(true);
@@ -53,21 +74,23 @@ export default function CalendarPage() {
   useEffect(() => { load(year, month); }, [year, month, load]);
 
   const prev = () => {
-    if (month === 0) { setYear(y => y - 1); setMonth(11); }
-    else setMonth(m => m - 1);
-    setSelectedDay(null);
+    if (month === 0) setYearMonth(year - 1, 11);
+    else setYearMonth(year, month - 1);
   };
 
   const next = () => {
-    if (month === 11) { setYear(y => y + 1); setMonth(0); }
-    else setMonth(m => m + 1);
-    setSelectedDay(null);
+    if (month === 11) setYearMonth(year + 1, 0);
+    else setYearMonth(year, month + 1);
   };
 
   const goToday = () => {
-    setYear(now.getFullYear());
-    setMonth(now.getMonth());
-    setSelectedDay(toYMD(now));
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('year');
+      next.delete('month');
+      next.set('day', toYMD(now));
+      return next;
+    }, { replace: true });
   };
 
   // Build grid

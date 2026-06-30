@@ -47,6 +47,7 @@ function buildPresets(): { preset: string; label: string; from: string | null; t
   ];
 }
 
+export { buildPresets };
 const PRESETS = buildPresets();
 export const DEFAULT_RANGE: DateRange = PRESETS.find(p => p.preset === 'mtd')!;
 
