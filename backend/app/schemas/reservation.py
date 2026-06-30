@@ -31,6 +31,12 @@ def _build(r) -> dict:
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
     d["owner_whatsapp"] = r.vehicle.owner_contact if r.vehicle else None
     d["vehicle_is_company_owned"] = r.vehicle.is_company_owned if r.vehicle else False
+    if r.vehicle:
+        photos = r.vehicle.photos if isinstance(r.vehicle.photos, list) else ([r.vehicle.photos] if r.vehicle.photos else [])
+        first_photo = next((p for p in photos if p.is_visible), None)
+        d["vehicle_photo_url"] = f"/api/uploads/vehicles/{first_photo.file_name}" if first_photo else None
+    else:
+        d["vehicle_photo_url"] = None
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
     d["timeline_id"] = tls[0].id if tls else None
     d["timeline_event_name"] = tls[0].event_name if tls else None
@@ -133,6 +139,7 @@ class ReservationList(BaseModel):
     remaining_balance: Decimal
     status: ReservationStatus
     vehicle_is_company_owned: bool = False
+    vehicle_photo_url: Optional[str] = None
     timeline_id: Optional[int] = None
     created_at: datetime
 

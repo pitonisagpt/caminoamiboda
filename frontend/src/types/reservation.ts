@@ -43,6 +43,7 @@ export interface ReservationListItem {
   remaining_balance: number;
   status: ReservationStatus;
   vehicle_is_company_owned: boolean;
+  vehicle_photo_url: string | null;
   timeline_id: number | null;
   created_at: string;
 }

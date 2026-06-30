@@ -257,7 +257,20 @@ export default function ReservationList() {
                 >
                   <td className="px-4 py-3 font-mono text-xs text-gray-400">{r.reservation_number}</td>
                   <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{r.display_customer}</td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{r.display_vehicle}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {r.vehicle_photo_url ? (
+                        <img
+                          src={r.vehicle_photo_url}
+                          alt={r.display_vehicle}
+                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
+                      )}
+                      <span className="text-gray-500 text-sm truncate max-w-[120px]">{r.display_vehicle}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(r.event_date)}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
