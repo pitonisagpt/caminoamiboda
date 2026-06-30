@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, Download, LocateFixed } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, LocateFixed, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import type { CatalogLocation, CatalogLocationFormData, LocationType } from '../../types/catalogLocation';
 
@@ -177,9 +177,12 @@ export default function LocationCatalogPage() {
   const [typeFilter, setTypeFilter] = useState<LocationType | ''>('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [modal, setModal] = useState<{ open: boolean; editing?: CatalogLocation | null }>({ open: false });
-  const [importing, setImporting] = useState(false);
   const [resolvingCoords, setResolvingCoords] = useState(false);
   const [resolveResult, setResolveResult] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<'name' | 'location_type' | 'address'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = async () => {
@@ -192,7 +195,7 @@ export default function LocationCatalogPage() {
     }
   };
 
-  useEffect(() => { load(); }, [search, typeFilter]);
+  useEffect(() => { load(); setPage(1); }, [search, typeFilter]);
 
   const handleSearchInput = (val: string) => {
     setInputSearch(val);
@@ -225,17 +228,6 @@ export default function LocationCatalogPage() {
     load();
   };
 
-  const handleImport = async () => {
-    setImporting(true);
-    try {
-      const res = await catalogLocationsApi.importFromEvents();
-      load();
-      if (res.data.imported === 0) alert('No hay ubicaciones nuevas para importar.');
-    } finally {
-      setImporting(false);
-    }
-  };
-
   const handleResolveCoords = async () => {
     setResolvingCoords(true);
     setResolveResult(null);
@@ -251,6 +243,12 @@ export default function LocationCatalogPage() {
     }
   };
 
+  const handleSort = (col: 'name' | 'location_type' | 'address') => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('asc'); }
+    setPage(1);
+  };
+
   // Build coordinate map from DB values
   const coordsMap = new Map<number, [number, number]>();
   for (const l of locations) {
@@ -261,6 +259,14 @@ export default function LocationCatalogPage() {
 
   const withCoords = locations.filter(l => coordsMap.has(l.id)).length;
   const withoutCoords = locations.length - withCoords;
+
+  const sortedLocations = [...locations].sort((a, b) => {
+    const av = (a[sortCol] ?? '').toString().toLowerCase();
+    const bv = (b[sortCol] ?? '').toString().toLowerCase();
+    return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  const totalPages = Math.max(1, Math.ceil(sortedLocations.length / PAGE_SIZE));
+  const pagedLocations = sortedLocations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // Determine which locations to show on map
   const visibleLocs = selectedIds.size > 0
@@ -284,14 +290,6 @@ export default function LocationCatalogPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handleImport}
-            disabled={importing}
-            className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
-            <Download size={15} />
-            {importing ? 'Importando…' : 'Importar de eventos'}
-          </button>
           {withoutCoords > 0 && (
             <button
               onClick={handleResolveCoords}
@@ -387,14 +385,24 @@ export default function LocationCatalogPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Dirección</th>
+                    {(['name', 'location_type', 'address'] as const).map((col, i) => (
+                      <th key={col}
+                        onClick={() => handleSort(col)}
+                        className={`text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-700 select-none${col === 'address' ? ' hidden md:table-cell' : ''}`}
+                      >
+                        <span className="flex items-center gap-1">
+                          {['Nombre', 'Tipo', 'Dirección'][i]}
+                          {sortCol === col
+                            ? sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            : <ChevronUp size={12} className="opacity-20" />}
+                        </span>
+                      </th>
+                    ))}
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {locations.map(loc => {
+                  {pagedLocations.map(loc => {
                     const isSelected = selectedIds.has(loc.id);
                     const hasCoords = coordsMap.has(loc.id);
                     return (
@@ -439,12 +447,19 @@ export default function LocationCatalogPage() {
               </table>
             </div>
           )}
-          <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-            <span>{locations.length} {locations.length === 1 ? 'ubicación' : 'ubicaciones'} · {withCoords} en mapa</span>
-            {selectedIds.size === 0
-              ? <span>Clic en una fila para enfocar en el mapa</span>
-              : <span className="text-pink-600">{selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>
-            }
+          <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between flex-wrap gap-2">
+            <span>{locations.length} {locations.length === 1 ? 'ubicación' : 'ubicaciones'} · {withCoords} en mapa
+              {selectedIds.size > 0 && <span className="text-pink-600 ml-2">· {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 cursor-pointer"><ChevronLeft size={13} /></button>
+                <span>{page} / {totalPages}</span>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 cursor-pointer"><ChevronRight size={13} /></button>
+              </div>
+            )}
           </div>
         </div>
 

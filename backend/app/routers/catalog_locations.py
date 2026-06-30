@@ -36,7 +36,7 @@ def _nominatim(query: str) -> tuple[float, float] | None:
     try:
         url = (
             "https://nominatim.openstreetmap.org/search"
-            f"?q={urllib.parse.quote(query)}&format=json&limit=1"
+            f"?q={urllib.parse.quote(query)}&format=json&limit=1&countrycodes=co"
         )
         req = urllib.request.Request(url, headers={"User-Agent": _UA})
         with urllib.request.urlopen(req, timeout=8) as resp:
@@ -59,12 +59,17 @@ def _geocode(loc: CatalogLocation) -> tuple[float, float] | None:
     queries += [
         f"{loc.name}, Medellín, Colombia",
         f"{loc.name}, Antioquia, Colombia",
+        f"{loc.name}, Colombia",
+        loc.name,
     ]
     for q in queries:
-        result = _nominatim(q)
-        if result:
-            return result
-        time.sleep(1.1)
+        try:
+            result = _nominatim(q)
+            if result:
+                return result
+            time.sleep(1.1)
+        except Exception:
+            time.sleep(1.1)
     return None
 
 router = APIRouter(
@@ -151,6 +156,31 @@ def import_from_events(db: Session = Depends(get_db)):
 
     db.commit()
     return {"imported": imported}
+
+
+def sync_to_catalog(db: Session, event_location: "EventLocation") -> None:
+    """Upsert an event location into the catalog by name, then geocode if missing coords."""
+    key = event_location.location_name.strip().lower()
+    existing = db.query(CatalogLocation).filter(
+        CatalogLocation.name.ilike(key)
+    ).first()
+    if existing is None:
+        existing = CatalogLocation(
+            name=event_location.location_name.strip(),
+            location_type=event_location.location_type,
+            address=event_location.address,
+            google_maps_link=event_location.google_maps_link,
+            contact_person=event_location.contact_person,
+            contact_phone=event_location.contact_phone,
+            notes=event_location.notes,
+        )
+        db.add(existing)
+        db.flush()  # get id without committing
+    # Geocode if coordinates are missing
+    if existing.lat is None or existing.lng is None:
+        coords = _geocode(existing)
+        if coords:
+            existing.lat, existing.lng = coords
 
 
 @router.post("/resolve-coords", response_model=dict)

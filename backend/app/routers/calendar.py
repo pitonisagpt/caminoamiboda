@@ -8,6 +8,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.event_timeline import EventTimeline
+from app.models.vehicle_photo import VehiclePhoto
 from app.services.conflicts import find_conflicts
 
 router = APIRouter(tags=["calendar"], redirect_slashes=False)
@@ -39,6 +40,20 @@ def calendar_events(
         .options(selectinload(Reservation.timelines))
         .all()
     )
+    # Pre-fetch first visible photo per vehicle
+    vehicle_ids = [r.vehicle_id for r in reservations if r.vehicle_id]
+    photo_map: dict[int, str] = {}
+    if vehicle_ids:
+        photos = (
+            db.query(VehiclePhoto)
+            .filter(VehiclePhoto.vehicle_id.in_(vehicle_ids), VehiclePhoto.is_visible == True)  # noqa: E712
+            .order_by(VehiclePhoto.display_order)
+            .all()
+        )
+        for p in photos:
+            if p.vehicle_id not in photo_map:
+                photo_map[p.vehicle_id] = f"/api/uploads/vehicles/{p.file_name}"
+
     for r in reservations:
         customer = r.display_customer
         vehicle = r.display_vehicle
@@ -62,6 +77,7 @@ def calendar_events(
             "timeline_id": r.timelines[0].id if has_timeline else None,
             "start_time": r.start_time.strftime("%H:%M") if r.start_time else None,
             "end_time": r.end_time.strftime("%H:%M") if r.end_time else None,
+            "vehicle_photo_url": photo_map.get(r.vehicle_id) if r.vehicle_id else None,
         })
 
     # Timelines — only standalone ones (linked timelines are already shown via their reservation)

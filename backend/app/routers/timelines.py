@@ -14,6 +14,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.event_timeline import EventTimeline
 from app.models.event_location import EventLocation
+from app.routers.catalog_locations import sync_to_catalog
 from app.models.timeline_activity import TimelineActivity
 from app.schemas.event_timeline import (
     ActivityCreate, ActivityRead, ActivityReorderItem, ActivityUpdate,
@@ -168,6 +169,11 @@ def create_location(timeline_id: int, body: LocationCreate, db: Session = Depend
     db.commit()
     db.refresh(loc)
     _gcal_sync(tl, db, "on location create")
+    try:
+        sync_to_catalog(db, loc)
+        db.commit()
+    except Exception:
+        pass
     return loc
 
 
@@ -180,6 +186,11 @@ def update_location(timeline_id: int, location_id: int, body: LocationUpdate, db
     db.commit()
     db.refresh(loc)
     _gcal_sync(tl, db, "on location update")
+    try:
+        sync_to_catalog(db, loc)
+        db.commit()
+    except Exception:
+        pass
     return loc
 
 

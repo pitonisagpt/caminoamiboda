@@ -15,6 +15,7 @@ export interface CalendarEvent {
   timeline_id?: number | null;
   start_time?: string | null;
   end_time?: string | null;
+  vehicle_photo_url?: string | null;
 }
 
 export interface ConflictItem {

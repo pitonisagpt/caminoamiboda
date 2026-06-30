@@ -196,6 +196,12 @@ export default function DashboardPage() {
                     <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full ${RESERVATION_STATUS_COLOR[r.status as ReservationStatus] ?? 'bg-gray-100 text-gray-600'}`}>
                       {RESERVATION_STATUS_LABEL[r.status as ReservationStatus] ?? r.status}
                     </span>
+                    {(() => {
+                      const diff = Math.round((new Date(r.date + 'T12:00:00').getTime() - new Date().setHours(12,0,0,0)) / 86400000);
+                      if (diff === 0) return <p className="text-[11px] font-semibold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">hoy</p>;
+                      if (diff === 1) return <p className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">mañana</p>;
+                      return <p className="text-[11px] text-gray-400">en {diff} días</p>;
+                    })()}
                     {r.remaining_balance > 0 && (
                       <p className="text-xs text-red-500 font-medium">{formatCOP(r.remaining_balance)} pendiente</p>
                     )}

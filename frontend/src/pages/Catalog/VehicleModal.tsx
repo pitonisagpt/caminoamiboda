@@ -165,7 +165,7 @@ export function VehicleModal({ vehicle, onClose }: Props) {
                     className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
                     title={`Pico y Placa en Medellín: ${PICO_HOURS}`}
                   >
-                    P&P {vehicle.pico_y_placa_day}
+                    Pico y placa {vehicle.pico_y_placa_day}
                   </span>
                 )}
               </div>
@@ -191,9 +191,12 @@ export function VehicleModal({ vehicle, onClose }: Props) {
               )}
               {vehicle.price_rionegro && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Rionegro</span>
+                  <span className="text-gray-600">Llanogrande</span>
                   <span className="font-semibold text-gray-900">{formatCOP(vehicle.price_rionegro)}</span>
                 </div>
+              )}
+              {(vehicle.price_medellin || vehicle.price_rionegro) && (
+                <p className="text-[11px] text-gray-400">Para otras zonas, consultar precio</p>
               )}
               {!vehicle.price_medellin && !vehicle.price_rionegro && (
                 <p className="text-sm text-gray-400">Precio a consultar</p>

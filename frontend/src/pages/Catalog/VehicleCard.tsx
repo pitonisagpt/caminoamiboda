@@ -82,7 +82,7 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
               title={`Pico y Placa en Medellín: ${PICO_HOURS}`}
             >
-              P&P {vehicle.pico_y_placa_day}
+              Pico y placa {vehicle.pico_y_placa_day}
             </span>
           )}
         </div>
@@ -122,10 +122,22 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
         )}
 
         {/* Price */}
-        {minPrice !== null && (
-          <p className="text-sm font-semibold text-gray-800">
-            Desde {formatCOP(minPrice)}
-          </p>
+        {(vehicle.price_medellin != null || vehicle.price_rionegro != null) && (
+          <div className="space-y-0.5">
+            {vehicle.price_medellin != null && (
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Medellín</span>
+                <span className="ml-2 font-semibold text-gray-900">{formatCOP(vehicle.price_medellin)}</span>
+              </p>
+            )}
+            {vehicle.price_rionegro != null && (
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Llanogrande</span>
+                <span className="ml-2 font-semibold text-gray-900">{formatCOP(vehicle.price_rionegro)}</span>
+              </p>
+            )}
+            <p className="text-[11px] text-gray-400">Para otras zonas, consultar precio</p>
+          </div>
         )}
 
         {/* CTA */}

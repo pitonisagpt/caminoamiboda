@@ -34,6 +34,9 @@ import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
 import CalendarPage from "./pages/Calendar/CalendarPage";
 import LocationCatalogPage from "./pages/LocationCatalog/LocationCatalogPage";
+import BlogAdminPage from "./pages/Blog/BlogAdminPage";
+import BlogListPage from "./pages/Blog/BlogListPage";
+import BlogPostPage from "./pages/Blog/BlogPostPage";
 import { timelinesApi } from "./api/timelines";
 
 function TimelineRedirect() {
@@ -61,6 +64,10 @@ export default function App() {
           <Route element={<CatalogLayout />}>
             <Route path="catalogo" element={<CatalogPage />} />
           </Route>
+
+          {/* Public blog — no auth */}
+          <Route path="/blog" element={<BlogListPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
 
           {/* Public event view — no auth */}
           <Route path="/evento/:token" element={<EventoPage />} />
@@ -135,6 +142,16 @@ export default function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <FinancePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Blog admin — admin only */}
+            <Route
+              path="blog-admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <BlogAdminPage />
                 </ProtectedRoute>
               }
             />
