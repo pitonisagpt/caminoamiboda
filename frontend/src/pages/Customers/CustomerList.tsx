@@ -1,6 +1,6 @@
 import { Heart, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
 import { Button } from "../../components/ui/Button";
 import type { Customer } from "../../types/customer";
@@ -21,22 +21,31 @@ function toWhatsAppUrl(phone: string | null, name: string): string {
 
 export function CustomerList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = (q?: string) => {
+  const q = searchParams.get("q") ?? "";
+  const [inputSearch, setInputSearch] = useState(q);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (inputSearch) next.set("q", inputSearch); else next.delete("q");
+        return next;
+      }, { replace: true });
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [inputSearch]);
+
+  useEffect(() => {
     setLoading(true);
-    customersApi.list(q).then((r) => setCustomers(r.data)).finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    load(search || undefined);
-  };
+    customersApi.list(q || undefined).then((r) => setCustomers(r.data)).finally(() => setLoading(false));
+  }, [q]);
 
   const handleDelete = async (c: Customer) => {
     const name = c.main_contact_name;
@@ -63,19 +72,16 @@ export function CustomerList() {
       </div>
 
       {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, teléfono o email..."
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
-          />
-        </div>
-        <Button type="submit" variant="secondary">Buscar</Button>
-      </form>
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={inputSearch}
+          onChange={(e) => setInputSearch(e.target.value)}
+          placeholder="Buscar por nombre, teléfono o email..."
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+        />
+      </div>
 
       {/* Table */}
       {loading ? (

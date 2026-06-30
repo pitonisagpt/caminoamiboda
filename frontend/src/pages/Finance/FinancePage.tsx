@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Download, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import { financeApi } from '../../api/finance';
 import type { FinanceSummary, OwnerRevenueStat, DepositPoint, AgingItem, VehicleRevenueStat } from '../../api/finance';
@@ -7,7 +7,7 @@ import { dashboardApi } from '../../api/dashboard';
 import type { RevenueTrendPoint } from '../../api/dashboard';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
-import DateRangeFilter, { DEFAULT_RANGE, type DateRange } from '../Dashboard/DateRangeFilter';
+import DateRangeFilter, { DEFAULT_RANGE, buildPresets, type DateRange } from '../Dashboard/DateRangeFilter';
 import RevenueTrendChart from '../Dashboard/charts/RevenueTrendChart';
 import OwnerRevenueChart from './charts/OwnerRevenueChart';
 import DepositsChart from './charts/DepositsChart';
@@ -64,7 +64,33 @@ function ChartCard({ title, sub, children }: { title: string; sub?: string; chil
 
 export default function FinancePage() {
   const navigate = useNavigate();
-  const [range, setRange] = useState<DateRange>(DEFAULT_RANGE);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const rangeFromUrl = (): DateRange => {
+    const preset = searchParams.get('range');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    if (preset === 'custom' && (from || to)) {
+      return { preset: 'custom', label: `${from || '…'} → ${to || '…'}`, from, to };
+    }
+    return buildPresets().find(p => p.preset === preset) ?? DEFAULT_RANGE;
+  };
+
+  const range = rangeFromUrl();
+
+  const setRange = (r: DateRange) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (r.preset === DEFAULT_RANGE.preset) next.delete('range'); else next.set('range', r.preset);
+      if (r.preset === 'custom') {
+        if (r.from) next.set('from', r.from); else next.delete('from');
+        if (r.to) next.set('to', r.to); else next.delete('to');
+      } else {
+        next.delete('from'); next.delete('to');
+      }
+      return next;
+    }, { replace: true });
+  };
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [trend, setTrend] = useState<RevenueTrendPoint[]>([]);
   const [owners, setOwners] = useState<OwnerRevenueStat[]>([]);
