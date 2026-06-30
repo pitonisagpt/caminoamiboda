@@ -8,6 +8,10 @@ import {
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
+import { vehiclesApi } from '../../api/vehicles';
+import type { VehicleListItem } from '../../api/vehicles';
+import Combobox from '../../components/ui/Combobox';
+import type { ComboboxOption } from '../../components/ui/Combobox';
 
 const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
   { value: 'all',              label: 'Todas' },
@@ -56,6 +60,9 @@ export default function ReservationList() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Filters & sort
+  const [vehicleOptions, setVehicleOptions] = useState<ComboboxOption[]>([]);
+  const [vehicleFilter, setVehicleFilter] = useState('');
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all');
@@ -78,8 +85,19 @@ export default function ReservationList() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [search]);
 
+  // Load vehicles for filter combobox
+  useEffect(() => {
+    vehiclesApi.list().then(r => {
+      const opts: ComboboxOption[] = (r.data as VehicleListItem[]).map(v => ({
+        value: String(v.id),
+        label: [v.brand, v.model_line, v.color].filter(Boolean).join(' '),
+      }));
+      setVehicleOptions(opts);
+    });
+  }, []);
+
   // Reset page on filter change
-  useEffect(() => { setPage(1); }, [statusFilter, categoryFilter, dateFrom, dateTo, sortBy, sortDir]);
+  useEffect(() => { setPage(1); }, [statusFilter, categoryFilter, vehicleFilter, dateFrom, dateTo, sortBy, sortDir]);
 
   // Fetch
   useEffect(() => {
@@ -87,6 +105,7 @@ export default function ReservationList() {
     reservationsApi.list({
       status: statusFilter === 'all' ? undefined : statusFilter,
       event_category: categoryFilter === 'all' ? undefined : categoryFilter,
+      vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
       search: debouncedSearch || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -97,7 +116,7 @@ export default function ReservationList() {
     })
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
-  }, [statusFilter, categoryFilter, debouncedSearch, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilter, categoryFilter, vehicleFilter, debouncedSearch, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     if (sortBy === col) {
@@ -148,7 +167,7 @@ export default function ReservationList() {
         </button>
       </div>
 
-      {/* Search + date range */}
+      {/* Search + date range + vehicle filter */}
       <div className="flex flex-wrap gap-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -174,6 +193,14 @@ export default function ReservationList() {
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
           title="Hasta"
         />
+        <div className="w-52">
+          <Combobox
+            options={vehicleOptions}
+            value={vehicleFilter}
+            onChange={v => { setVehicleFilter(v); setPage(1); }}
+            placeholder="Todos los carros"
+          />
+        </div>
       </div>
 
       {/* Status filter pills */}

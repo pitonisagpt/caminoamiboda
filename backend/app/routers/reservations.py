@@ -59,6 +59,7 @@ _SORT_COLS = {
 def list_reservations(
     status: Optional[ReservationStatus] = Query(None),
     event_category: Optional[str] = Query(None),
+    vehicle_id: Optional[int] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("event_date"),
     sort_dir: str = Query("desc"),
@@ -76,6 +77,8 @@ def list_reservations(
         q = q.filter(Reservation.status == status)
     if event_category:
         q = q.filter(Reservation.event_category == event_category)
+    if vehicle_id:
+        q = q.filter(Reservation.vehicle_id == vehicle_id)
     if date_from:
         q = q.filter(Reservation.event_date >= date_from)
     if date_to:
