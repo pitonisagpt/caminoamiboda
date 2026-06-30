@@ -381,6 +381,51 @@ function buildFullMsg(t: EventTimeline): string {
   return lines.join('\n').trim();
 }
 
+function buildDriverReminderMsg(t: EventTimeline): string {
+  const [ey, em, ed] = t.event_date.split('-').map(Number);
+  const today = new Date();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const eventLocal = new Date(ey, em - 1, ed);
+  const diffDays = Math.round((eventLocal.getTime() - todayLocal.getTime()) / 86400000);
+  const daysLabel = diffDays === 0 ? 'hoy' : diffDays === 1 ? 'mañana' : `en ${diffDays} días`;
+
+  const dateStr = new Date(t.event_date + 'T00:00:00').toLocaleDateString('es-CO', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  const lines: string[] = [];
+  lines.push(`Hola ${t.assigned_driver || 'Conductor'}, te escribimos de Camino a mi Boda.`);
+  lines.push('');
+  lines.push(`El evento es ${daysLabel}.`);
+  lines.push('');
+  lines.push(`Fecha: ${dateStr}`);
+  if (t.main_contact_name) lines.push(`Clientes: ${t.main_contact_name}`);
+  if (t.assigned_vehicle) lines.push(`Vehículo: ${t.assigned_vehicle}`);
+
+  const sortedLocs = [...t.locations].sort((a, b) => a.display_order - b.display_order);
+  if (sortedLocs.length > 0) {
+    lines.push('');
+    lines.push('Puntos del recorrido:');
+    sortedLocs.forEach(loc => {
+      const label = loc.location_type === 'other' ? loc.location_name : LOCATION_TYPE_WA_LABELS[loc.location_type];
+      const addr = loc.address || loc.location_name;
+      lines.push(loc.google_maps_link ? `- ${label}: ${addr} → ${loc.google_maps_link}` : `- ${label}: ${addr}`);
+    });
+  }
+
+  const sortedActs = [...t.activities].sort((a, b) => a.display_order - b.display_order);
+  if (sortedActs.length > 0) {
+    lines.push('');
+    lines.push(`Hora de inicio: ${formatTime12h(sortedActs[0].time)}`);
+  }
+
+  lines.push('');
+  lines.push('Equipo Camino a mi Boda');
+  lines.push('www.instagram.com/caminoamiboda');
+
+  return lines.join('\n').trim();
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function TimelineDetail() {
   const { id } = useParams();
@@ -655,7 +700,30 @@ export default function TimelineDetail() {
           <h2 className="font-semibold text-gray-900">Enviar por WhatsApp</h2>
         </div>
         <div className="space-y-2">
-          {/* Conductor */}
+          {/* Recordatorio al conductor */}
+          <div className="flex items-center justify-between gap-3 bg-rose-50 rounded-lg px-3 py-2.5">
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-700">Recordatorio al conductor</span>
+              {timeline.assigned_driver && (
+                <span className="text-sm text-gray-500 ml-2">{timeline.assigned_driver}</span>
+              )}
+              <p className="text-xs text-gray-400 mt-0.5">Fecha, ubicaciones clave, días restantes</p>
+            </div>
+            {timeline.assigned_driver_phone ? (
+              <a
+                href={buildWaUrl(timeline.assigned_driver_phone, buildDriverReminderMsg(timeline))}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> Recordatorio
+              </a>
+            ) : (
+              <span className="text-xs text-gray-400 shrink-0" title="Sin número de conductor">Sin teléfono</span>
+            )}
+          </div>
+
+          {/* Conductor — minuto a minuto completo */}
           <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
             <div className="min-w-0">
               <span className="text-sm font-medium text-gray-700">Conductor</span>
