@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BookUser, ExternalLink, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { contactsApi } from '../../api/contacts';
 import type { Contact, ContactStatus, ContactType } from '../../types/contact';
@@ -36,41 +36,43 @@ function formatRelativeDate(iso: string | null): string {
 
 export default function ContactList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<ContactType | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<ContactStatus | 'all'>('all');
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [waLoadingId, setWaLoadingId] = useState<number | null>(null);
-  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = (params: { search?: string; contact_type?: ContactType; status?: ContactStatus } = {}) => {
-    setLoading(true);
-    contactsApi.list(params)
-      .then(r => setContacts(r.data))
-      .finally(() => setLoading(false));
+  const q = searchParams.get('q') ?? '';
+  const typeFilter = (searchParams.get('type') ?? 'all') as ContactType | 'all';
+  const statusFilter = (searchParams.get('status') ?? 'all') as ContactStatus | 'all';
+
+  const [inputSearch, setInputSearch] = useState(q);
+
+  function setFilter(key: string, value: string) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value && value !== 'all') next.set(key, value); else next.delete(key);
+      return next;
+    }, { replace: true });
+  }
+
+  const handleSearchChange = (val: string) => {
+    setInputSearch(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setFilter('q', val), 300);
   };
 
   useEffect(() => {
+    setLoading(true);
     const params: Record<string, string> = {};
     if (typeFilter !== 'all') params.contact_type = typeFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
-    if (search) params.search = search;
-    load(params as any);
-  }, [typeFilter, statusFilter]);
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    if (searchRef.current) clearTimeout(searchRef.current);
-    searchRef.current = setTimeout(() => {
-      const params: Record<string, string> = {};
-      if (typeFilter !== 'all') params.contact_type = typeFilter;
-      if (statusFilter !== 'all') params.status = statusFilter;
-      if (val) params.search = val;
-      load(params as any);
-    }, 300);
-  };
+    if (q) params.search = q;
+    contactsApi.list(params as any)
+      .then(r => setContacts(r.data))
+      .finally(() => setLoading(false));
+  }, [q, typeFilter, statusFilter]);
 
   const handleWhatsApp = async (c: Contact) => {
     if (!c.phone) return;
@@ -117,7 +119,7 @@ export default function ContactList() {
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            value={search}
+            value={inputSearch}
             onChange={e => handleSearchChange(e.target.value)}
             placeholder="Buscar por nombre, ciudad, email..."
             className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
@@ -127,7 +129,7 @@ export default function ContactList() {
           {TYPE_FILTERS.map(f => (
             <button
               key={f.value}
-              onClick={() => setTypeFilter(f.value)}
+              onClick={() => setFilter('type', f.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 typeFilter === f.value
                   ? 'bg-pink-600 text-white'
@@ -141,7 +143,7 @@ export default function ContactList() {
           {STATUS_FILTERS.map(f => (
             <button
               key={f.value}
-              onClick={() => setStatusFilter(f.value)}
+              onClick={() => setFilter('status', f.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 statusFilter === f.value
                   ? 'bg-gray-800 text-white'
@@ -163,7 +165,7 @@ export default function ContactList() {
       {!loading && contacts.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <BookUser size={40} className="mx-auto mb-3 opacity-30" />
-          <p>No hay contactos{search ? ' con esa búsqueda' : ''}.</p>
+          <p>No hay contactos{q ? ' con esa búsqueda' : ''}.</p>
         </div>
       )}
 

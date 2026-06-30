@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
@@ -9,7 +9,7 @@ import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { vehiclesApi } from '../../api/vehicles';
-import type { VehicleListItem } from '../../api/vehicles';
+import type { VehicleListItem } from '../../types/vehicle';
 import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
 
@@ -52,41 +52,66 @@ function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 
     : <ChevronDown className="w-3.5 h-3.5 text-pink-600 inline ml-1" />;
 }
 
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function ReservationList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [data, setData] = useState<ReservationPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  // Filters & sort
   const [vehicleOptions, setVehicleOptions] = useState<ComboboxOption[]>([]);
-  const [vehicleFilter, setVehicleFilter] = useState('');
-
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState<SortKey>('event_date');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
-  const [dateFrom, setDateFrom] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  });
-  const [dateTo, setDateTo] = useState('');
 
-  // Debounce search
+  // All filter/sort/page state from URL
+  const statusFilter = (searchParams.get('status') ?? 'all') as ReservationStatus | 'all';
+  const categoryFilter = searchParams.get('category') ?? 'all';
+  const vehicleFilter = searchParams.get('vehicle') ?? '';
+  const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
+  const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
+  const page = Number(searchParams.get('page') ?? '1');
+  const dateFrom = searchParams.get('from') ?? localToday();
+  const dateTo = searchParams.get('to') ?? '';
+  const q = searchParams.get('q') ?? '';
+
+  // Local input state for debounced search
+  const [inputSearch, setInputSearch] = useState(q);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function setFilter(key: string, value: string) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value && value !== 'all' && value !== '') next.set(key, value); else next.delete(key);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  }
+
+  function goToPage(p: number) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (p === 1) next.delete('page'); else next.set('page', String(p));
+      return next;
+    }, { replace: true });
+  }
+
+  // Debounce search → write to URL
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (inputSearch) next.set('q', inputSearch); else next.delete('q');
+        next.delete('page');
+        return next;
+      }, { replace: true });
     }, 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [search]);
+  }, [inputSearch]);
 
   // Load vehicles for filter combobox
   useEffect(() => {
@@ -99,9 +124,6 @@ export default function ReservationList() {
     });
   }, []);
 
-  // Reset page on filter change
-  useEffect(() => { setPage(1); }, [statusFilter, categoryFilter, vehicleFilter, dateFrom, dateTo, sortBy, sortDir]);
-
   // Fetch
   useEffect(() => {
     setLoading(true);
@@ -109,7 +131,7 @@ export default function ReservationList() {
       status: statusFilter === 'all' ? undefined : statusFilter,
       event_category: categoryFilter === 'all' ? undefined : categoryFilter,
       vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
-      search: debouncedSearch || undefined,
+      search: q || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
       page,
@@ -119,15 +141,17 @@ export default function ReservationList() {
     })
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
-  }, [statusFilter, categoryFilter, vehicleFilter, debouncedSearch, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilter, categoryFilter, vehicleFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
-    if (sortBy === col) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(col);
-      setSortDir('desc');
-    }
+    const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (col !== 'event_date') next.set('sort', col); else next.delete('sort');
+      if (newDir !== 'asc') next.set('dir', newDir); else next.delete('dir');
+      next.delete('page');
+      return next;
+    }, { replace: true });
   };
 
   const handleDelete = async (r: ReservationListItem) => {
@@ -177,22 +201,22 @@ export default function ReservationList() {
           <input
             type="text"
             placeholder="Buscar por cliente, teléfono, número..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value={inputSearch}
+            onChange={e => setInputSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
           />
         </div>
         <input
           type="date"
           value={dateFrom}
-          onChange={e => setDateFrom(e.target.value)}
+          onChange={e => setFilter('from', e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
           title="Desde"
         />
         <input
           type="date"
           value={dateTo}
-          onChange={e => setDateTo(e.target.value)}
+          onChange={e => setFilter('to', e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
           title="Hasta"
         />
@@ -200,7 +224,7 @@ export default function ReservationList() {
           <Combobox
             options={vehicleOptions}
             value={vehicleFilter}
-            onChange={v => { setVehicleFilter(v); setPage(1); }}
+            onChange={v => setFilter('vehicle', v)}
             placeholder="Todos los carros"
           />
         </div>
@@ -211,7 +235,7 @@ export default function ReservationList() {
         {STATUS_FILTERS.map(f => (
           <button
             key={f.value}
-            onClick={() => setStatusFilter(f.value)}
+            onClick={() => setFilter('status', f.value)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
               statusFilter === f.value
                 ? 'bg-pink-600 text-white'
@@ -225,7 +249,7 @@ export default function ReservationList() {
         {CATEGORY_FILTERS.map(f => (
           <button
             key={f.value}
-            onClick={() => setCategoryFilter(f.value)}
+            onClick={() => setFilter('category', f.value)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
               categoryFilter === f.value
                 ? 'bg-purple-600 text-white'
@@ -358,7 +382,7 @@ export default function ReservationList() {
               <span>Filas por página:</span>
               <select
                 value={pageSize}
-                onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+                onChange={e => { setPageSize(Number(e.target.value)); goToPage(1); }}
                 className="border border-gray-200 rounded-md px-2 py-1 text-sm focus:outline-none cursor-pointer"
               >
                 {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
@@ -369,7 +393,7 @@ export default function ReservationList() {
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setPage(1)}
+                onClick={() => goToPage(1)}
                 disabled={page === 1}
                 className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
@@ -381,7 +405,7 @@ export default function ReservationList() {
                 return (
                   <button
                     key={p}
-                    onClick={() => setPage(p)}
+                    onClick={() => goToPage(p)}
                     className={`w-8 h-8 rounded text-sm font-medium cursor-pointer ${
                       p === page ? 'bg-pink-600 text-white' : 'hover:bg-gray-100 text-gray-600'
                     }`}
@@ -391,7 +415,7 @@ export default function ReservationList() {
                 );
               })}
               <button
-                onClick={() => setPage(pages)}
+                onClick={() => goToPage(pages)}
                 disabled={page === pages}
                 className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >

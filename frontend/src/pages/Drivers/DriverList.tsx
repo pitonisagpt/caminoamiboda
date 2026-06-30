@@ -1,6 +1,6 @@
 import { Loader2, MessageCircle, Pencil, Plus, Truck, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { driversApi } from "../../api/drivers";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
@@ -30,10 +30,20 @@ function toWhatsAppUrl(phone: string | null, name: string): string {
 
 export function DriverList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "active" | "inactive">("active");
+  const filter = (searchParams.get('status') ?? 'active') as "all" | "active" | "inactive";
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  function setFilter(value: "all" | "active" | "inactive") {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      // 'active' is the default — omit from URL to keep it clean
+      if (value && value !== 'active') next.set('status', value); else next.delete('status');
+      return next;
+    }, { replace: true });
+  }
 
   useEffect(() => {
     setLoading(true);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Download, FileText, Loader2, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
 import type { QuoteListItem, QuoteStatus } from '../../types/quote';
@@ -26,9 +26,18 @@ function formatCOP(n: number) {
 
 export default function QuoteList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [quotes, setQuotes] = useState<QuoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all');
+  const statusFilter = (searchParams.get('status') ?? 'all') as QuoteStatus | 'all';
+
+  function setStatusFilter(value: QuoteStatus | 'all') {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value && value !== 'all') next.set('status', value); else next.delete('status');
+      return next;
+    }, { replace: true });
+  }
   const [generatingPdf, setGeneratingPdf] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [waLoading, setWaLoading] = useState<number | null>(null);

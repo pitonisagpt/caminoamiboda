@@ -1,5 +1,6 @@
 import { Loader2, SlidersHorizontal, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
@@ -257,15 +258,64 @@ function FilterPanel({
   );
 }
 
+// ─── URL helpers for arrays ────────────────────────────────────────────────
+const toParam = (arr: (string | number)[]): string | null =>
+  arr.length ? arr.map(String).join(",") : null;
+const fromParam = (s: string | null): string[] =>
+  s ? s.split(",").filter(Boolean) : [];
+
 // ─── Main page ─────────────────────────────────────────────────────────────
 export function CatalogPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [sort, setSort] = useState<SortKey>("default");
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<VehicleListItem | null>(null);
+
+  // Derive filters from URL — no useState, client-side filtering only
+  const filters: Filters = {
+    type: (searchParams.get("type") ?? "all") as Filters["type"],
+    brands: fromParam(searchParams.get("brands")),
+    colors: fromParam(searchParams.get("colors")),
+    decades: fromParam(searchParams.get("decades")).map(Number),
+    bodyTypes: fromParam(searchParams.get("bodyTypes")),
+    capacities: fromParam(searchParams.get("capacities")).map(Number),
+    locations: fromParam(searchParams.get("locations")),
+    priceMin: searchParams.get("priceMin") ?? "",
+    priceMax: searchParams.get("priceMax") ?? "",
+  };
+  const sort = (searchParams.get("sort") ?? "default") as SortKey;
+
+  function setFilters(f: Filters) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      // type
+      if (f.type && f.type !== "all") next.set("type", f.type); else next.delete("type");
+      // arrays
+      const arrKeys: Array<[keyof Filters, string]> = [
+        ["brands", "brands"], ["colors", "colors"], ["decades", "decades"],
+        ["bodyTypes", "bodyTypes"], ["capacities", "capacities"], ["locations", "locations"],
+      ];
+      for (const [fk, pk] of arrKeys) {
+        const arr = f[fk] as (string | number)[];
+        const v = toParam(arr);
+        if (v) next.set(pk, v); else next.delete(pk);
+      }
+      // price
+      if (f.priceMin) next.set("priceMin", f.priceMin); else next.delete("priceMin");
+      if (f.priceMax) next.set("priceMax", f.priceMax); else next.delete("priceMax");
+      return next;
+    }, { replace: true });
+  }
+
+  function setSort(s: SortKey) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (s && s !== "default") next.set("sort", s); else next.delete("sort");
+      return next;
+    }, { replace: true });
+  }
 
   useEffect(() => {
     axios

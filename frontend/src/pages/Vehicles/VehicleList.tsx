@@ -28,8 +28,8 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -230,16 +230,32 @@ function SortableVehicleRow({
 // ─── Main component ────────────────────────────────────────────────────────
 export function VehicleList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deactivating, setDeactivating] = useState<number | null>(null);
   const [waVehicle, setWaVehicle] = useState<VehicleListItem | null>(null);
   const [waDate, setWaDate] = useState(todayISO());
-  const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("display_order");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const search = searchParams.get('q') ?? '';
+  const sortKey = (searchParams.get('sort') ?? 'display_order') as SortKey;
+  const sortDir = (searchParams.get('dir') ?? 'asc') as SortDir;
+  const [inputSearch, setInputSearch] = useState(search);
+
+  const handleSearchChange = (val: string) => {
+    setInputSearch(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (val) next.set('q', val); else next.delete('q');
+        return next;
+      }, { replace: true });
+    }, 300);
+  };
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -285,8 +301,13 @@ export function VehicleList() {
   }, [vehicles, search, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { setSortKey(key); setSortDir("asc"); }
+    const newDir = sortKey === key ? (sortDir === "asc" ? "desc" : "asc") : "asc";
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (key !== 'display_order') next.set('sort', key); else next.delete('sort');
+      if (newDir !== 'asc') next.set('dir', newDir); else next.delete('dir');
+      return next;
+    }, { replace: true });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -364,13 +385,13 @@ export function VehicleList() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
             type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value={inputSearch}
+            onChange={e => handleSearchChange(e.target.value)}
             placeholder="Buscar por placa, marca, color…"
             className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
           />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+          {inputSearch && (
+            <button onClick={() => handleSearchChange("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
               <X size={13} />
             </button>
           )}
@@ -496,7 +517,7 @@ export function VehicleList() {
                       {/* Drag handle column */}
                       <th
                         className="pl-3 pr-1 py-3 w-8 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider select-none cursor-pointer hover:text-pink-900"
-                        onClick={() => { setSortKey("display_order"); setSortDir("asc"); }}
+                        onClick={() => { setSearchParams(prev => { const n = new URLSearchParams(prev); n.delete('sort'); n.delete('dir'); return n; }, { replace: true }); }}
                         title="Volver al orden predeterminado"
                       >
                         {sortKey === "display_order" && sortDir === "asc" ? (

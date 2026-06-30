@@ -15,6 +15,7 @@ export interface ReservationPayment {
 export interface ReservationListParams {
   status?: ReservationStatus;
   event_category?: string;
+  vehicle_id?: number;
   search?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';
