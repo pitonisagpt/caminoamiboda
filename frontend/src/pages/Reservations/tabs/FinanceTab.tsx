@@ -75,7 +75,7 @@ export default function FinanceTab({
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [addingPayment, setAddingPayment] = useState(false);
   const [newAmount, setNewAmount] = useState('');
-  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [newDate, setNewDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
   const [newNotes, setNewNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -87,7 +87,7 @@ export default function FinanceTab({
   const [settlementPayments, setSettlementPayments] = useState<OwnerSettlementPayment[]>([]);
   const [addingSettlementPayment, setAddingSettlementPayment] = useState(false);
   const [newSpAmount, setNewSpAmount] = useState('');
-  const [newSpDate, setNewSpDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [newSpDate, setNewSpDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
   const [newSpNotes, setNewSpNotes] = useState('');
   const [savingSp, setSavingSp] = useState(false);
   const [deletingSpId, setDeletingSpId] = useState<number | null>(null);
