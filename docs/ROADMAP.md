@@ -117,26 +117,82 @@ Enforce en crear/actualizar reserva: retornar HTTP 409 con detalles del conflict
 
 **Por qué:** Mensajes automatizados reemplazan la coordinación manual por WhatsApp que consume tiempo de ops diariamente.
 
-#### 5.1 Plantillas WhatsApp (`wa.me` deep-links)
+#### 5.1 Plantillas WhatsApp (`wa.me` deep-links) — ya implementado
 
 Plantillas pre-armadas con datos del evento auto-completados, accesibles desde reserva y timeline:
-- Confirmación de reserva al cliente
+- Confirmación de reserva al cliente ✅
 - Recordatorio 24h antes al cliente
 - Mensaje de asignación al conductor
 - Follow-up post-evento (reseña + testimonio)
 
-#### 5.2 Notificaciones Email
+---
 
-- Confirmación al cliente (adjunto PDF)
-- Liquidación al propietario (adjunto PDF)
-- Config SMTP en `.env` (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`)
-- Backend: `email_service.py` con `smtplib` o `fastapi-mail`
+#### 5.2 Automatización de Email (Gmail SMTP) — sin costo
 
-#### 5.3 Recordatorios automáticos
+**Por qué empezar aquí:** costo cero, sin aprobaciones externas, cubre el mismo flujo operativo que WhatsApp.
 
-Tabla `reminder_log` — registra qué se envió (7d / 24h / 3h antes del evento), a quién, por qué canal.
+**Configuración:**
+- Canal: Gmail SMTP con App Password (configurado en `.env` — nunca hardcodeado)
+- Variables: `GMAIL_USER`, `GMAIL_APP_PASSWORD`
+- Librería: `smtplib` + `email.mime` (stdlib) o `aiosmtplib` para async — sin dependencias externas
+- Capacidad: ~500 emails/día, suficiente para el volumen actual
 
-APScheduler en FastAPI verifica próximas reservas y genera URLs de WhatsApp.
+**Triggers transaccionales (4 eventos):**
+
+| Evento | Destinatario | Cuándo |
+|---|---|---|
+| Confirmación de reserva | Cliente | Al mover estado a `deposit_received` o `confirmed` |
+| Recordatorio 24h | Cliente + Conductor | Día anterior al evento (scheduler) |
+| Asignación de conductor | Conductor | Al asignar `driver_id` a una reserva |
+| Follow-up post-evento | Cliente | 24h después de evento `completed` (scheduler) |
+
+**Implementación:**
+- `backend/app/services/email_service.py` — función `send_email(to, subject, html, attachments=[])`
+- Plantillas HTML con logo y paleta rosa; fallback texto plano
+- Los triggers transaccionales se enganchan en los endpoints de cambio de estado en `reservations.py`
+- Los triggers por tiempo usan el scheduler de 5.3
+
+**Idempotencia:** tabla `reminder_log(reservation_id, event_type, channel, sent_at)` — verificar antes de enviar para evitar duplicados.
+
+---
+
+#### 5.3 Scheduler de Recordatorios Automáticos
+
+**Librería:** APScheduler (sin Redis — corre dentro del proceso FastAPI, suficiente para este volumen)
+
+**Job:** cada hora revisa reservas próximas y envía recordatorios pendientes según ventanas:
+- 7 días antes → email al cliente
+- 24 horas antes → email al cliente + conductor + equipo ops
+- 3 horas antes → email al conductor + equipo ops
+
+Los recordatorios se marcan en `reminder_log` para no re-enviarse.
+
+---
+
+#### 5.4 WhatsApp Business API (Meta Cloud API) — costo bajo, requiere aprobación
+
+**Cuándo implementar:** cuando el volumen de eventos justifique el costo o cuando los clientes pidan confirmaciones por WhatsApp directamente (más tasa de apertura que email).
+
+**Modelo de costos (Colombia, junio 2026):**
+- Conversaciones iniciadas por el negocio (utility): ~$0.035–0.05 USD c/u
+- **Conversaciones iniciadas por el cliente: las primeras 1.000/mes son GRATIS**
+- A 30 eventos/mes × 4 mensajes ≈ $5–6 USD/mes total si el negocio inicia todo
+
+**Estrategia tier gratuito — conversación iniciada por cliente:**
+Después de una reserva confirmada, enviar al cliente un email (o mensaje manual) con un link `wa.me` que diga "¿Tienes alguna pregunta? Escríbenos por aquí". Cuando el cliente escribe primero, se abre una ventana de servicio de 24h que cuenta como conversación gratuita. Dentro de esa ventana se puede enviar la confirmación, el minuto a minuto y el recordatorio sin costo.
+
+Esto no automatiza el 100% del flujo, pero puede reducir el costo a casi cero para clientes que respondan el wa.me inicial.
+
+**Requisitos para activar la API:**
+1. Cuenta Meta Business verificada (~1–2 semanas de proceso)
+2. Número de teléfono dedicado para WhatsApp Business (no puede ser el número personal)
+3. Plantillas de mensaje aprobadas por Meta por categoría (utility, marketing)
+4. Variables de entorno: `META_WHATSAPP_TOKEN`, `META_PHONE_NUMBER_ID`
+
+**Implementación futura:**
+- `backend/app/services/whatsapp_service.py` — wrapper sobre `POST https://graph.facebook.com/v19.0/{phone_id}/messages`
+- Mismos 4 triggers que email (5.2), corriendo en paralelo o como canal alternativo
+- `reminder_log` ya trackea el canal (`email` / `whatsapp`) — sin cambios de esquema
 
 ---
 
