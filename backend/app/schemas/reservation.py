@@ -11,6 +11,7 @@ _SCALARS = [
     "owner_driver_id",
     "event_date", "start_time", "end_time", "total_amount", "deposit_paid", "status",
     "event_category", "event_location", "gcal_imported",
+    "is_tentative", "event_date_notes",
     "special_instructions", "notes", "created_at", "updated_at",
 ]
 
@@ -58,6 +59,8 @@ class ReservationCreate(BaseModel):
     status: ReservationStatus = ReservationStatus.lead
     event_category: str = "standard"
     event_location: Optional[str] = None
+    is_tentative: bool = False
+    event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
 
@@ -77,6 +80,8 @@ class ReservationUpdate(BaseModel):
     status: Optional[ReservationStatus] = None
     event_category: Optional[str] = None
     event_location: Optional[str] = None
+    is_tentative: Optional[bool] = None
+    event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
 
@@ -101,6 +106,8 @@ class ReservationRead(BaseModel):
     event_category: str = "standard"
     event_location: Optional[str] = None
     gcal_imported: bool = False
+    is_tentative: bool = False
+    event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
     display_customer: str
@@ -138,6 +145,8 @@ class ReservationList(BaseModel):
     deposit_paid: Decimal
     remaining_balance: Decimal
     status: ReservationStatus
+    is_tentative: bool = False
+    event_date_notes: Optional[str] = None
     vehicle_is_company_owned: bool = False
     vehicle_photo_url: Optional[str] = None
     timeline_id: Optional[int] = None

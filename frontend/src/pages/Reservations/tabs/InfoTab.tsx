@@ -36,7 +36,15 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Evento</h2>
         <div className="flex items-start gap-2 text-sm">
           <Calendar size={16} className="text-pink-400 mt-0.5 shrink-0" />
-          <span className="text-gray-700 capitalize">{formatDate(reservation.event_date)}</span>
+          <div>
+            <span className="text-gray-700 capitalize">{formatDate(reservation.event_date)}</span>
+            {reservation.is_tentative && (
+              <span className="ml-2 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-yellow-100 text-yellow-700 align-middle">~ tentativa</span>
+            )}
+            {reservation.is_tentative && reservation.event_date_notes && (
+              <p className="text-xs text-yellow-700 mt-0.5">{reservation.event_date_notes}</p>
+            )}
+          </div>
         </div>
         {reservation.display_vehicle !== '—' && (
           <div className="flex items-center gap-2 text-sm">

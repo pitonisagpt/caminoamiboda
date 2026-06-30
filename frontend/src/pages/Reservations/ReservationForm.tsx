@@ -35,6 +35,8 @@ export default function ReservationForm() {
         deposit_paid: '0',
         driver_combined: '',
         event_location: '',
+        is_tentative: false,
+        event_date_notes: '',
         special_instructions: '',
         notes: '',
       },
@@ -68,6 +70,8 @@ export default function ReservationForm() {
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
           event_location: v.event_location ?? '',
+          is_tentative: v.is_tentative ?? false,
+          event_date_notes: v.event_date_notes ?? '',
           special_instructions: v.special_instructions ?? '',
           notes: v.notes ?? '',
         });
@@ -75,7 +79,8 @@ export default function ReservationForm() {
     }
   }, [id, isEdit, reset]);
 
-  const watchedDate    = useWatch({ control, name: 'event_date' });
+  const watchedDate      = useWatch({ control, name: 'event_date' });
+  const watchedTentative = useWatch({ control, name: 'is_tentative' });
   const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
   const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
   const watchedStart   = useWatch({ control, name: 'start_time' });
@@ -136,6 +141,8 @@ export default function ReservationForm() {
       deposit_paid: data.deposit_paid,
       status: data.status,
       event_location: data.event_location || null,
+      is_tentative: data.is_tentative,
+      event_date_notes: data.event_date_notes || null,
       special_instructions: data.special_instructions || null,
       notes: data.notes || null,
     };
@@ -210,6 +217,22 @@ export default function ReservationForm() {
               className={inputCls}
             />
             {errors.event_date && <p className="text-xs text-red-500 mt-1">{errors.event_date.message}</p>}
+            <label className="flex items-center gap-2 mt-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                {...register('is_tentative')}
+                className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+              />
+              <span className="text-xs text-gray-600">Fecha tentativa (el cliente aún no confirma el día exacto)</span>
+            </label>
+            {watchedTentative && (
+              <input
+                type="text"
+                placeholder="Ej: Marzo 2027, primer quincena de junio..."
+                {...register('event_date_notes')}
+                className={`${inputCls} mt-2`}
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -42,6 +42,8 @@ export interface ReservationListItem {
   deposit_paid: number;
   remaining_balance: number;
   status: ReservationStatus;
+  is_tentative: boolean;
+  event_date_notes: string | null;
   vehicle_is_company_owned: boolean;
   vehicle_photo_url: string | null;
   timeline_id: number | null;
@@ -93,6 +95,8 @@ export interface ReservationFormData {
   total_amount: string;
   deposit_paid: string;
   status: ReservationStatus;
+  is_tentative: boolean;
+  event_date_notes: string;
   event_location: string;
   special_instructions: string;
   notes: string;

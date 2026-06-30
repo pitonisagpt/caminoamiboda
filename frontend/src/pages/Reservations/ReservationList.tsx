@@ -325,7 +325,12 @@ export default function ReservationList() {
                       <span className="text-gray-500 text-sm truncate max-w-[120px]">{r.display_vehicle}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(r.event_date)}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    {formatDate(r.event_date)}
+                    {r.is_tentative && (
+                      <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-yellow-100 text-yellow-700 align-middle">~ tentativa</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
                     <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>

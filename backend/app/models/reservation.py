@@ -43,6 +43,9 @@ class Reservation(Base):
     event_location: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     gcal_imported: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    is_tentative: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    event_date_notes: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
     special_instructions: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
 
