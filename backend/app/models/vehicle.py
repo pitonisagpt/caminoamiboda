@@ -58,6 +58,10 @@ class Vehicle(Base):
 
     display_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
+    pyp_day_override: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    pyp_valid_from: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    pyp_valid_to: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     photo_urls: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array
 

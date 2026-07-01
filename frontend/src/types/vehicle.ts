@@ -44,6 +44,9 @@ export interface Vehicle extends VehicleListItem {
   owner_name: string | null;
   is_company_owned: boolean;
   pico_y_placa_hours: string | null;
+  pyp_day_override: string | null;
+  pyp_valid_from: string | null;
+  pyp_valid_to: string | null;
   description: string | null;
   created_at: string;
   updated_at: string;
@@ -72,4 +75,7 @@ export interface VehicleFormData {
   score_romance: string;
   description: string;
   photo_urls: string; // kept for form register compatibility, not submitted
+  pyp_day_override: string;
+  pyp_valid_from: string;
+  pyp_valid_to: string;
 }

@@ -112,6 +112,9 @@ export function VehicleForm() {
         score_romance: v.score_romance?.toString() ?? "",
         description: v.description ?? "",
         photo_urls: "",
+        pyp_day_override: v.pyp_day_override ?? "",
+        pyp_valid_from: v.pyp_valid_from ? v.pyp_valid_from.split("T")[0] : "",
+        pyp_valid_to: v.pyp_valid_to ? v.pyp_valid_to.split("T")[0] : "",
       });
     }).finally(() => setLoadingDoc(false));
   }, [id, isEditing, reset]);
@@ -142,6 +145,9 @@ export function VehicleForm() {
         score_comfort: data.score_comfort ? parseInt(data.score_comfort) : null,
         score_romance: data.score_romance ? parseInt(data.score_romance) : null,
         description: data.description || null,
+        pyp_day_override: data.pyp_day_override || null,
+        pyp_valid_from: data.pyp_valid_from || null,
+        pyp_valid_to: data.pyp_valid_to || null,
       };
 
       if (isEditing && id) {
@@ -391,6 +397,34 @@ export function VehicleForm() {
           ))}
         </CardBody>
       </Card>
+
+      {/* Pico y Placa override */}
+      {location === "medellin" && (
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Pico y Placa — sobreescribir</h2>
+              <p className="text-xs text-gray-400 mt-0.5">El sistema calcula el día automáticamente por placa. Usa este campo solo si el decreto cambia o necesitas corregirlo manualmente.</p>
+            </div>
+          </CardHeader>
+          <CardBody className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Select
+              label="Día de restricción (override)"
+              {...register("pyp_day_override")}
+              options={[
+                { value: "", label: "— Usar calculado automáticamente —" },
+                { value: "Lunes", label: "Lunes" },
+                { value: "Martes", label: "Martes" },
+                { value: "Miércoles", label: "Miércoles" },
+                { value: "Jueves", label: "Jueves" },
+                { value: "Viernes", label: "Viernes" },
+              ]}
+            />
+            <Input label="Válido desde" {...register("pyp_valid_from")} type="date" />
+            <Input label="Válido hasta" {...register("pyp_valid_to")} type="date" />
+          </CardBody>
+        </Card>
+      )}
 
       {/* Photos */}
       <Card>

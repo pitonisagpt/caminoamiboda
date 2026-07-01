@@ -45,3 +45,4 @@ class CatalogLocationRead(BaseModel):
     lng: Optional[float] = None
     created_at: datetime
     updated_at: datetime
+    usage_count: int = 0

@@ -6,7 +6,7 @@ import urllib.request
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import or_
+from sqlalchemy import func, or_, select as sa_select
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -93,7 +93,14 @@ def list_catalog_locations(
     type: Optional[LocationType] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(CatalogLocation)
+    usage_sq = (
+        sa_select(func.count())
+        .where(func.lower(EventLocation.location_name) == func.lower(CatalogLocation.name))
+        .correlate(CatalogLocation)
+        .scalar_subquery()
+    )
+
+    query = db.query(CatalogLocation, usage_sq.label("usage_count"))
     if q:
         like = f"%{q}%"
         query = query.filter(
@@ -101,7 +108,14 @@ def list_catalog_locations(
         )
     if type:
         query = query.filter(CatalogLocation.location_type == type)
-    return query.order_by(CatalogLocation.name).all()
+
+    rows = query.order_by(CatalogLocation.name).all()
+    result = []
+    for loc, count in rows:
+        d = {c.key: getattr(loc, c.key) for c in loc.__table__.columns}
+        d["usage_count"] = count or 0
+        result.append(d)
+    return result
 
 
 @router.post("", response_model=CatalogLocationRead, status_code=201)

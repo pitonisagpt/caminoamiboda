@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
 
 from app.models.vehicle import VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
-from app.services.pico_y_placa import PICO_HOURS, compute_pico_y_placa
+from app.services.pico_y_placa import PICO_HOURS, compute_pico_y_placa, get_effective_pyp
 
 
 class VehicleBase(BaseModel):
@@ -34,6 +34,9 @@ class VehicleCreate(VehicleBase):
     owner_contact: Optional[str] = None
     is_company_owned: bool = False
     allowed_locations: Optional[List[str]] = None
+    pyp_day_override: Optional[str] = None
+    pyp_valid_from: Optional[date] = None
+    pyp_valid_to: Optional[date] = None
 
 
 class VehicleUpdate(BaseModel):
@@ -59,6 +62,9 @@ class VehicleUpdate(BaseModel):
     score_comfort: Optional[int] = None
     score_romance: Optional[int] = None
     description: Optional[str] = None
+    pyp_day_override: Optional[str] = None
+    pyp_valid_from: Optional[date] = None
+    pyp_valid_to: Optional[date] = None
 
 
 _BASE_SCALARS = [
@@ -68,6 +74,7 @@ _BASE_SCALARS = [
     "price_medellin", "price_rionegro",
     "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
     "description",
+    "pyp_day_override", "pyp_valid_from", "pyp_valid_to",
 ]
 
 
@@ -93,9 +100,7 @@ def _load_photos(vehicle) -> List[VehiclePhotoRead]:
 def _build_dict(vehicle, extra: list) -> dict:
     d = {f: getattr(vehicle, f, None) for f in _BASE_SCALARS + extra}
     d["photos"] = _load_photos(vehicle)
-    pico = compute_pico_y_placa(
-        vehicle.license_plate, vehicle.vehicle_type.value, vehicle.location.value
-    )
+    pico = get_effective_pyp(vehicle)
     d["pico_y_placa_day"] = pico
     d["pico_y_placa_hours"] = PICO_HOURS if pico else None
     d["score_total"] = vehicle.score_total
@@ -111,6 +116,9 @@ class VehicleRead(VehicleBase):
     score_total: Optional[int] = None
     pico_y_placa_day: Optional[str] = None
     pico_y_placa_hours: Optional[str] = None
+    pyp_day_override: Optional[str] = None
+    pyp_valid_from: Optional[date] = None
+    pyp_valid_to: Optional[date] = None
     photos: List[VehiclePhotoRead] = []
     created_at: datetime
     updated_at: datetime

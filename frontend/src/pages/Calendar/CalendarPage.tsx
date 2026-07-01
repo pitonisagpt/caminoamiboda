@@ -200,12 +200,12 @@ export default function CalendarPage() {
                             <div
                               key={e.id}
                               onClick={ev => { ev.stopPropagation(); handleEventClick(e); }}
-                              className="flex items-center gap-1 truncate text-white text-[10px] font-medium px-1.5 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity"
+                              className="flex items-center gap-1.5 truncate text-white text-[10px] font-medium px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: e.color }}
                               title={e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ${e.title}` : e.title}
                             >
                               {e.vehicle_photo_url && (
-                                <img src={e.vehicle_photo_url} alt="" className="w-3.5 h-3.5 rounded-full object-cover shrink-0 opacity-90" />
+                                <img src={e.vehicle_photo_url} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-white/40" />
                               )}
                               {e.start_time && <span className="opacity-80 mr-0.5">{e.start_time}</span>}
                               {e.title}

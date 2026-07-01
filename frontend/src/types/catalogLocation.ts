@@ -11,6 +11,7 @@ export interface CatalogLocation {
   notes?: string;
   lat?: number | null;
   lng?: number | null;
+  usage_count: number;
   created_at: string;
   updated_at: string;
 }

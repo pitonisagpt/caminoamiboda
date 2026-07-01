@@ -1,9 +1,12 @@
-import { Loader2, SlidersHorizontal, Users, X } from "lucide-react";
+import { Loader2, SlidersHorizontal, Star, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
+import { AvailabilityWidget } from "./AvailabilityWidget";
+import { InstagramGrid } from "./InstagramGrid";
+import { reviewsApi, type Review } from "../../api/reviews";
 import type { VehicleListItem, VehicleLocation } from "../../types/vehicle";
 
 // ─── Color normalization ───────────────────────────────────────────────────
@@ -272,6 +275,7 @@ export function CatalogPage() {
   const [error, setError] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<VehicleListItem | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // Derive filters from URL — no useState, client-side filtering only
   const filters: Filters = {
@@ -323,6 +327,7 @@ export function CatalogPage() {
       .then(res => setVehicles(res.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+    reviewsApi.listPublic().then((r: { data: Review[] }) => setReviews(r.data)).catch(() => {});
   }, []);
 
   const availableBrands = useMemo(
@@ -555,6 +560,44 @@ export function CatalogPage() {
       )}
 
       {selected && <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />}
+
+      {/* Reviews section */}
+      {reviews.length > 0 && (
+        <div className="mt-16 space-y-6">
+          <h2 className="text-2xl font-brand text-pink-600 text-center">Lo que dicen nuestros clientes</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {reviews.map(r => (
+              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} size={14} className={s <= r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                  ))}
+                  {r.source === 'google' && (
+                    <span className="ml-auto text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">Google</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">"{r.body}"</p>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{r.author_name}</p>
+                  {r.event_date && (
+                    <p className="text-xs text-gray-400">{new Date(r.event_date + 'T12:00:00').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Availability widget */}
+      <div className="mt-16 max-w-lg mx-auto">
+        <AvailabilityWidget />
+      </div>
+
+      {/* Instagram grid */}
+      <div className="mt-16">
+        <InstagramGrid />
+      </div>
     </>
   );
 }

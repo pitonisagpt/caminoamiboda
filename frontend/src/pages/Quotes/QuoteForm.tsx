@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import Combobox from '../../components/ui/Combobox';
@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
 import { customersApi } from '../../api/customers';
 import { api } from '../../api/index';
+import { addonPackagesApi, type AddonPackage } from '../../api/addonPackages';
 import type { Customer } from '../../types/customer';
 import type { VehicleListItem } from '../../types/vehicle';
 import type { Quote, QuoteFormData, LocationZone, QuoteStatus } from '../../types/quote';
@@ -21,6 +22,9 @@ export default function QuoteForm() {
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
+  const [addonPackages, setAddonPackages] = useState<AddonPackage[]>([]);
+  const [selectedBouquetId, setSelectedBouquetId] = useState<number | null>(null);
+  const [extraHours, setExtraHours] = useState(0);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [existingStatus, setExistingStatus] = useState<QuoteStatus>('draft');
@@ -52,10 +56,26 @@ export default function QuoteForm() {
   const selectedVehicleId = watch('vehicle_id');
   const selectedZone = watch('location_zone');
 
-  // Load customers and vehicles
+  const bouquetPackages = addonPackages.filter(p => p.type === 'bouquet');
+  const hourPackage = addonPackages.find(p => p.type === 'extra_hour');
+
+  const addonsTotal = useMemo(() => {
+    let total = 0;
+    if (selectedBouquetId) {
+      const pkg = bouquetPackages.find(p => p.id === selectedBouquetId);
+      if (pkg) total += pkg.price;
+    }
+    if (extraHours > 0 && hourPackage) {
+      total += hourPackage.price * extraHours;
+    }
+    return total;
+  }, [selectedBouquetId, extraHours, bouquetPackages, hourPackage]);
+
+  // Load customers, vehicles, and addon packages
   useEffect(() => {
     customersApi.list().then(r => setCustomers(r.data));
     api.get<VehicleListItem[]>('/vehicles').then(r => setVehicles(r.data));
+    addonPackagesApi.list().then(r => setAddonPackages(r.data));
   }, []);
 
   // Auto-fill price when vehicle or zone changes
@@ -108,6 +128,9 @@ export default function QuoteForm() {
         deposit_amount: data.deposit_amount ? Number(data.deposit_amount) : null,
         payment_instructions: data.payment_instructions || null,
         notes: data.notes || null,
+        extra_hours: extraHours,
+        addon_package_ids: selectedBouquetId ? [selectedBouquetId] : [],
+        addons_total: addonsTotal,
         customer_id: data.use_existing_customer ? (Number(data.customer_id) || null) : null,
         customer_name: data.use_existing_customer ? null : (data.customer_name || null),
         customer_phone: data.use_existing_customer ? null : (data.customer_phone || null),
@@ -321,6 +344,60 @@ export default function QuoteForm() {
           />
         </div>
       </div>
+
+      {/* ── Add-ons opcionales ── */}
+      {addonPackages.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Add-ons opcionales</h2>
+
+          {bouquetPackages.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600 font-medium">Paquete de ramo</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBouquetId(null)}
+                  className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedBouquetId === null ? 'border-pink-600 bg-pink-50 text-pink-700' : 'border-gray-200 text-gray-600 hover:border-pink-200'}`}
+                >
+                  Sin ramo
+                </button>
+                {bouquetPackages.map(pkg => (
+                  <button
+                    key={pkg.id}
+                    type="button"
+                    onClick={() => setSelectedBouquetId(pkg.id === selectedBouquetId ? null : pkg.id)}
+                    className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${pkg.id === selectedBouquetId ? 'border-pink-600 bg-pink-50 text-pink-700' : 'border-gray-200 text-gray-600 hover:border-pink-200'}`}
+                    title={pkg.description ?? undefined}
+                  >
+                    {pkg.name} <span className="text-xs opacity-70">+{pkg.price.toLocaleString('es-CO')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {hourPackage && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600 font-medium">Horas adicionales</p>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setExtraHours(h => Math.max(0, h - 1))}
+                  className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 cursor-pointer text-lg leading-none">−</button>
+                <span className="w-8 text-center font-semibold text-gray-900">{extraHours}</span>
+                <button type="button" onClick={() => setExtraHours(h => Math.min(8, h + 1))}
+                  className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 cursor-pointer text-lg leading-none">+</button>
+                <span className="text-xs text-gray-400 ml-1">× {hourPackage.price.toLocaleString('es-CO')} / hora</span>
+              </div>
+            </div>
+          )}
+
+          {addonsTotal > 0 && (
+            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+              <span className="text-sm text-gray-500">Total add-ons</span>
+              <span className="text-sm font-semibold text-pink-700">+ ${addonsTotal.toLocaleString('es-CO')}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Estado (solo en edición) ── */}
       {isEdit && (

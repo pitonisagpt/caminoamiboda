@@ -37,6 +37,8 @@ import LocationCatalogPage from "./pages/LocationCatalog/LocationCatalogPage";
 import BlogAdminPage from "./pages/Blog/BlogAdminPage";
 import BlogListPage from "./pages/Blog/BlogListPage";
 import BlogPostPage from "./pages/Blog/BlogPostPage";
+import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
+import ReviewsPage from "./pages/Admin/ReviewsPage";
 import { timelinesApi } from "./api/timelines";
 
 function TimelineRedirect() {
@@ -178,6 +180,22 @@ export default function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <UserForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/add-ons"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AddonPackagesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/opiniones"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ReviewsPage />
                 </ProtectedRoute>
               }
             />

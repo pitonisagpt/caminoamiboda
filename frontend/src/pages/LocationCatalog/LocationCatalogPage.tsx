@@ -398,6 +398,7 @@ export default function LocationCatalogPage() {
                         </span>
                       </th>
                     ))}
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Usos</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -427,6 +428,12 @@ export default function LocationCatalogPage() {
                         </td>
                         <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell max-w-xs truncate">
                           {loc.address || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right hidden sm:table-cell">
+                          {loc.usage_count > 0
+                            ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-pink-50 text-pink-600">{loc.usage_count}</span>
+                            : <span className="text-xs text-gray-300">—</span>
+                          }
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1 justify-end" onClick={e => e.stopPropagation()}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, MapPin, Menu, TrendingUp, Truck, User, Users } from "lucide-react";
+import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, MapPin, Menu, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/Badge";
@@ -133,9 +133,11 @@ export function Layout() {
           {isAdmin && (
             <>
               <SidebarSection label="Administración" collapsed={c} />
-              <NavItem to="/propietarios"   icon={User}     label="Propietarios" onClick={closeSidebar} collapsed={c} />
-              <NavItem to="/admin/usuarios" icon={Users}    label="Usuarios"     onClick={closeSidebar} collapsed={c} />
-              <NavItem to="/blog-admin"     icon={BookOpen} label="Blog"         onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/propietarios"     icon={User}     label="Propietarios" onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/admin/usuarios"   icon={Users}    label="Usuarios"     onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/blog-admin"       icon={BookOpen} label="Blog"         onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/admin/add-ons"    icon={Package}  label="Add-ons"      onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/admin/opiniones"  icon={Star}     label="Opiniones"    onClick={closeSidebar} collapsed={c} />
             </>
           )}
 

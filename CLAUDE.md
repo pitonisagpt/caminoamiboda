@@ -530,8 +530,17 @@ Features focused on increasing conversion rate, average ticket, and lead volume.
 ### Customer Reviews Integration
 - After post-event follow-up, capture a short testimonial (text + star rating)
 - Display reviews per vehicle in the catalog
-- Option to import Google Reviews via API
 - Social proof at the exact moment of decision
+- Admin CRUD at `/admin/opiniones` — source field: `google` (badge azul) or `manual` ✅ done
+
+#### Google Reviews Auto-Sync (planned)
+- Fetch reviews automatically from Google Maps via **Google Places API**
+- Requires: `GOOGLE_PLACES_API_KEY` env var + `place_id` of the business on Google Maps
+- Backend job: `GET /maps/api/place/details/json?place_id={id}&fields=reviews&key={key}`
+- Upsert fetched reviews into `reviews` table with `source='google'`, skip duplicates by matching `author_name + body`
+- New endpoint: `POST /api/reviews/sync-google` (admin only)
+- Sidebar button or cron job (daily) to keep reviews fresh
+- No manual copy-paste needed once configured
 
 ### Packages and Combos
 - Quote multiple vehicles together as a single package (e.g. novia + sidecar)

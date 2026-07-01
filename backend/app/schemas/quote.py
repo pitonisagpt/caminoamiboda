@@ -23,6 +23,9 @@ class QuoteBase(BaseModel):
     deposit_amount: Optional[Decimal] = None
     payment_instructions: Optional[str] = None
     notes: Optional[str] = None
+    extra_hours: int = 0
+    addon_package_ids: Optional[list] = None
+    addons_total: Decimal = Decimal("0")
 
 
 class QuoteCreate(QuoteBase):
@@ -56,6 +59,7 @@ _QUOTE_SCALARS = [
     "pickup_location", "ceremony_location", "reception_location",
     "total_price", "deposit_amount", "payment_instructions",
     "notes", "status", "pdf_path", "share_token",
+    "extra_hours", "addon_package_ids", "addons_total",
     "created_at", "updated_at",
 ]
 

@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional
 
 DIGIT_TO_DAY = {
@@ -27,3 +28,33 @@ def compute_pico_y_placa(
     except IndexError:
         return None
     return DIGIT_TO_DAY.get(digit)
+
+
+def get_effective_pyp(vehicle, event_date: Optional[date] = None) -> Optional[str]:
+    """Return the effective pico y placa day for a vehicle on a given date.
+
+    Uses the admin override if it is set and the event_date falls within the
+    valid range. Falls back to the computed value from the plate digit.
+    """
+    override = getattr(vehicle, "pyp_day_override", None)
+    if override:
+        valid_from = getattr(vehicle, "pyp_valid_from", None)
+        valid_to = getattr(vehicle, "pyp_valid_to", None)
+        check_date = event_date or date.today()
+        in_range = True
+        if valid_from and isinstance(valid_from, date):
+            in_range = in_range and check_date >= valid_from
+        elif valid_from:
+            in_range = in_range and check_date >= valid_from.date()
+        if valid_to and isinstance(valid_to, date):
+            in_range = in_range and check_date <= valid_to
+        elif valid_to:
+            in_range = in_range and check_date <= valid_to.date()
+        if in_range:
+            return override
+
+    return compute_pico_y_placa(
+        vehicle.license_plate,
+        vehicle.vehicle_type.value,
+        vehicle.location.value,
+    )
