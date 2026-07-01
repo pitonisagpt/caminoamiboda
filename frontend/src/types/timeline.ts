@@ -22,6 +22,7 @@ export interface EventLocation {
   contact_person: string | null;
   contact_phone: string | null;
   notes: string | null;
+  road_access_notes: string | null;
   display_order: number;
 }
 
@@ -113,6 +114,7 @@ export interface LocationFormData {
   contact_person: string;
   contact_phone: string;
   notes: string;
+  road_access_notes: string;
 }
 
 export interface ActivityFormData {

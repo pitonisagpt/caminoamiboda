@@ -180,7 +180,7 @@ function LocationModal({ initial, onSave, onClose }: {
     location_name: initial?.location_name || '', location_type: initial?.location_type || 'other',
     address: initial?.address || '', google_maps_link: initial?.google_maps_link || '',
     contact_person: initial?.contact_person || '', contact_phone: initial?.contact_phone || '',
-    notes: initial?.notes || '',
+    notes: initial?.notes || '', road_access_notes: initial?.road_access_notes || '',
   });
   const [catalog, setCatalog] = useState<CatalogLocation[]>([]);
   const [catalogOptions, setCatalogOptions] = useState<ComboboxOption[]>([]);
@@ -209,6 +209,7 @@ function LocationModal({ initial, onSave, onClose }: {
         contact_person: found.contact_person || '',
         contact_phone: found.contact_phone || '',
         notes: found.notes || '',
+        road_access_notes: '',
       });
     }
   };

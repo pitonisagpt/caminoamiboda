@@ -17,6 +17,7 @@ class LocationBase(BaseModel):
     contact_person: Optional[str] = None
     contact_phone: Optional[str] = None
     notes: Optional[str] = None
+    road_access_notes: Optional[str] = None
     display_order: int = 0
 
 
@@ -32,6 +33,7 @@ class LocationUpdate(BaseModel):
     contact_person: Optional[str] = None
     contact_phone: Optional[str] = None
     notes: Optional[str] = None
+    road_access_notes: Optional[str] = None
     display_order: Optional[int] = None
 
 

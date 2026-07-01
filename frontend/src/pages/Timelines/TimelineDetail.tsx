@@ -140,6 +140,7 @@ function LocationModal({
     contact_person: initial?.contact_person || '',
     contact_phone: initial?.contact_phone || '',
     notes: initial?.notes || '',
+    road_access_notes: initial?.road_access_notes || '',
   });
   const [catalog, setCatalog] = useState<CatalogLocation[]>([]);
   const [catalogOptions, setCatalogOptions] = useState<ComboboxOption[]>([]);
@@ -169,6 +170,7 @@ function LocationModal({
         contact_person: found.contact_person || '',
         contact_phone: found.contact_phone || '',
         notes: found.notes || '',
+        road_access_notes: '',
       });
     }
   };
@@ -225,6 +227,10 @@ function LocationModal({
               <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
               <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Entrar por la puerta sur" />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Acceso vial</label>
+            <input value={form.road_access_notes} onChange={f('road_access_notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="¿Portería, carretera estrecha, cobro de ingreso, acceso restringido?" />
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
@@ -524,6 +530,7 @@ export default function TimelineDetail() {
       contact_person: data.contact_person || null,
       contact_phone: data.contact_phone || null,
       notes: data.notes || null,
+      road_access_notes: data.road_access_notes || null,
     };
     if (locModal.editing) {
       await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload);

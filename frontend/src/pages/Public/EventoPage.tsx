@@ -57,6 +57,11 @@ function LocationCard({ loc }: { loc: EventLocation }) {
             )}
           </div>
           {loc.notes && <p className="text-sm text-gray-500 mt-2 italic">{loc.notes}</p>}
+          {loc.road_access_notes && (
+            <p className="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 mt-2">
+              <span className="font-semibold">Acceso vial:</span> {loc.road_access_notes}
+            </p>
+          )}
         </div>
         {loc.google_maps_link && (
           <a
