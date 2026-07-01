@@ -3,7 +3,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -50,6 +51,10 @@ class Quote(Base):
 
     notes: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+
+    extra_hours: Mapped[int] = mapped_column(Integer(), nullable=False, default=0, server_default='0')
+    addon_package_ids: Mapped[Optional[list]] = mapped_column(JSONB(), nullable=True, default=list)
+    addons_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"), server_default='0')
     pdf_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     share_token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
 

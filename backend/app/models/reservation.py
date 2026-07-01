@@ -3,7 +3,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Numeric, String, Text, Time, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text, Time, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -45,6 +46,10 @@ class Reservation(Base):
 
     is_tentative: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     event_date_notes: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    extra_hours: Mapped[int] = mapped_column(Integer(), nullable=False, default=0, server_default='0')
+    addon_package_ids: Mapped[Optional[list]] = mapped_column(JSONB(), nullable=True, default=list)
+    addons_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"), server_default='0')
 
     special_instructions: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)

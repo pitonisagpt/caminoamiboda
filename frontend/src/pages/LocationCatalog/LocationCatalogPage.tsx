@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, LocateFixed, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import type { CatalogLocation, CatalogLocationFormData, LocationType } from '../../types/catalogLocation';
 
@@ -177,8 +177,6 @@ export default function LocationCatalogPage() {
   const [typeFilter, setTypeFilter] = useState<LocationType | ''>('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [modal, setModal] = useState<{ open: boolean; editing?: CatalogLocation | null }>({ open: false });
-  const [resolvingCoords, setResolvingCoords] = useState(false);
-  const [resolveResult, setResolveResult] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<'name' | 'location_type' | 'address'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
@@ -196,6 +194,16 @@ export default function LocationCatalogPage() {
   };
 
   useEffect(() => { load(); setPage(1); }, [search, typeFilter]);
+
+  // Auto-geocode on initial mount only
+  const autoResolvedRef = useRef(false);
+  useEffect(() => {
+    if (autoResolvedRef.current || loading) return;
+    if (locations.some(l => l.lat == null || l.lng == null)) {
+      autoResolvedRef.current = true;
+      catalogLocationsApi.resolveCoords().then(() => load()).catch(() => {});
+    }
+  }, [locations, loading]);
 
   const handleSearchInput = (val: string) => {
     setInputSearch(val);
@@ -228,21 +236,6 @@ export default function LocationCatalogPage() {
     load();
   };
 
-  const handleResolveCoords = async () => {
-    setResolvingCoords(true);
-    setResolveResult(null);
-    try {
-      const res = await catalogLocationsApi.resolveCoords();
-      const { resolved, total } = res.data;
-      setResolveResult(total === 0 ? 'Todas las ubicaciones ya tienen coordenadas.' : `${resolved} de ${total} ubicaciones geocodificadas.`);
-      load();
-    } catch {
-      setResolveResult('Error al resolver coordenadas.');
-    } finally {
-      setResolvingCoords(false);
-    }
-  };
-
   const handleSort = (col: 'name' | 'location_type' | 'address') => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortCol(col); setSortDir('asc'); }
@@ -256,9 +249,6 @@ export default function LocationCatalogPage() {
       coordsMap.set(l.id, [l.lat, l.lng]);
     }
   }
-
-  const withCoords = locations.filter(l => coordsMap.has(l.id)).length;
-  const withoutCoords = locations.length - withCoords;
 
   const sortedLocations = [...locations].sort((a, b) => {
     const av = (a[sortCol] ?? '').toString().toLowerCase();
@@ -290,17 +280,6 @@ export default function LocationCatalogPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {withoutCoords > 0 && (
-            <button
-              onClick={handleResolveCoords}
-              disabled={resolvingCoords}
-              title={`${withoutCoords} ubicaciones sin coordenadas`}
-              className="flex items-center gap-2 border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-            >
-              <LocateFixed size={15} />
-              {resolvingCoords ? 'Geocodificando…' : `Resolver coordenadas (${withoutCoords})`}
-            </button>
-          )}
           <button
             onClick={() => setModal({ open: true, editing: null })}
             className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
@@ -311,12 +290,6 @@ export default function LocationCatalogPage() {
         </div>
       </div>
 
-      {resolveResult && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-sm text-amber-800 flex items-center justify-between">
-          <span>{resolveResult}</span>
-          <button onClick={() => setResolveResult(null)} className="text-amber-500 hover:text-amber-700 cursor-pointer ml-4"><X size={14} /></button>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -455,7 +428,7 @@ export default function LocationCatalogPage() {
             </div>
           )}
           <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between flex-wrap gap-2">
-            <span>{locations.length} {locations.length === 1 ? 'ubicación' : 'ubicaciones'} · {withCoords} en mapa
+            <span>{locations.length} {locations.length === 1 ? 'ubicación' : 'ubicaciones'} · {coordsMap.size} en mapa
               {selectedIds.size > 0 && <span className="text-pink-600 ml-2">· {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>}
             </span>
             {totalPages > 1 && (
@@ -471,7 +444,7 @@ export default function LocationCatalogPage() {
         </div>
 
         {/* Leaflet Map */}
-        <div className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden" style={{ minHeight: '480px' }}>
+        <div className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden relative" style={{ minHeight: '480px' }}>
           <style>{`
             .leaflet-popup-content-wrapper {
               border-radius: 14px !important;
@@ -560,6 +533,22 @@ export default function LocationCatalogPage() {
               );
             })}
           </MapContainer>
+
+          {/* Overlay: locations without coordinates */}
+          {(() => {
+            const unlocated = locations.filter(l => !coordsMap.has(l.id) && (selectedIds.size === 0 || selectedIds.has(l.id)));
+            if (unlocated.length === 0) return null;
+            return (
+              <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[220px]">
+                <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
+                <ul className="space-y-0.5">
+                  {unlocated.map(l => (
+                    <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.name}>• {l.name}</li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
