@@ -19,6 +19,7 @@ class CustomerBase(BaseModel):
     bride_name: Optional[str] = None
     groom_name: Optional[str] = None
     main_contact_name: str
+    identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
 
@@ -41,6 +42,7 @@ class CustomerUpdate(BaseModel):
     bride_name: Optional[str] = None
     groom_name: Optional[str] = None
     main_contact_name: Optional[str] = None
+    identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
     email: Optional[str] = None

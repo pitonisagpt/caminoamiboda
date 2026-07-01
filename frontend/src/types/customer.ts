@@ -3,6 +3,7 @@ export interface Customer {
   bride_name: string | null;
   groom_name: string | null;
   main_contact_name: string;
+  identification_number: string | null;
   phone: string | null;
   whatsapp: string | null;
   email: string | null;
@@ -18,6 +19,7 @@ export interface CustomerFormData {
   bride_name: string;
   groom_name: string;
   main_contact_name: string;
+  identification_number: string;
   phone: string;
   whatsapp: string;
   email: string;

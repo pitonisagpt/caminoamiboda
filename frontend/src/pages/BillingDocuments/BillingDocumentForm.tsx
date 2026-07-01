@@ -1,13 +1,15 @@
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Plus, Trash2, UserSearch } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { billingDocumentsApi } from "../../api/billingDocuments";
+import { customersApi } from "../../api/customers";
 import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { TextArea } from "../../components/ui/TextArea";
+import type { Customer } from "../../types/customer";
 import type { BillingDocumentFormData } from "../../types";
 
 const DEFAULT_PAYMENT = `Transferencia bancaria a la cuenta de ahorros Bancolombia 00484248273 a nombre de JUAN CAMILO YEPES CORREA, C.C. 1040735268`;
@@ -50,6 +52,34 @@ export function BillingDocumentForm() {
   const [loading, setLoading] = useState(false);
   const [loadingDoc, setLoadingDoc] = useState(isEditing);
   const [routeStops, setRouteStops] = useState<string[]>([""]);
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [customerResults, setCustomerResults] = useState<Customer[]>([]);
+  const [showCustomerDrop, setShowCustomerDrop] = useState(false);
+  const customerSearchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCustomerSearch = (q: string) => {
+    setCustomerQuery(q);
+    if (customerSearchRef.current) clearTimeout(customerSearchRef.current);
+    if (!q.trim()) { setCustomerResults([]); setShowCustomerDrop(false); return; }
+    customerSearchRef.current = setTimeout(async () => {
+      try {
+        const res = await customersApi.list(q);
+        setCustomerResults(res.data);
+        setShowCustomerDrop(true);
+      } catch { setCustomerResults([]); }
+    }, 300);
+  };
+
+  const applyCustomer = (c: Customer) => {
+    const fullName = [c.bride_name, c.groom_name].filter(Boolean).join(' & ') || c.main_contact_name;
+    setValue("client_name", fullName);
+    if (c.identification_number) setValue("client_id_number", c.identification_number);
+    if (c.phone) setValue("client_phone", c.phone);
+    if (c.email) setValue("client_email", c.email);
+    setCustomerQuery("");
+    setCustomerResults([]);
+    setShowCustomerDrop(false);
+  };
 
   const {
     register,
@@ -231,6 +261,33 @@ export function BillingDocumentForm() {
           <CardBody>
             <SectionTitle>Información del cliente</SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Customer quick-search */}
+              <div className="sm:col-span-2 relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <span className="flex items-center gap-1.5"><UserSearch size={14} /> Buscar cliente existente</span>
+                </label>
+                <input
+                  type="text"
+                  value={customerQuery}
+                  onChange={e => handleCustomerSearch(e.target.value)}
+                  onBlur={() => setTimeout(() => setShowCustomerDrop(false), 150)}
+                  placeholder="Nombre de la novia, novio o contacto..."
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+                {showCustomerDrop && customerResults.length > 0 && (
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {customerResults.map((c: Customer) => (
+                      <button key={c.id} type="button" onMouseDown={() => applyCustomer(c)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-pink-50 text-sm cursor-pointer border-b border-gray-50 last:border-0">
+                        <p className="font-medium text-gray-900">
+                          {[c.bride_name, c.groom_name].filter(Boolean).join(' & ') || c.main_contact_name}
+                        </p>
+                        {c.identification_number && <p className="text-xs text-gray-400">CC {c.identification_number}</p>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="sm:col-span-2">
                 <Input
                   label="Nombre del cliente o empresa"

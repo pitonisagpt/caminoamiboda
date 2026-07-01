@@ -24,6 +24,7 @@ export function CustomerForm() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CustomerFormData>({
     defaultValues: {
       bride_name: "", groom_name: "", main_contact_name: "",
+      identification_number: "",
       phone: "", whatsapp: "", email: "",
       wedding_date: "", instagram: "", referral_source: "", notes: "",
     },
@@ -37,6 +38,7 @@ export function CustomerForm() {
         bride_name: c.bride_name ?? "",
         groom_name: c.groom_name ?? "",
         main_contact_name: c.main_contact_name,
+        identification_number: c.identification_number ?? "",
         phone: c.phone ?? "",
         whatsapp: c.whatsapp ?? "",
         email: c.email ?? "",
@@ -55,6 +57,7 @@ export function CustomerForm() {
         bride_name: data.bride_name || null,
         groom_name: data.groom_name || null,
         main_contact_name: data.main_contact_name,
+        identification_number: data.identification_number || null,
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
         email: data.email || null,
@@ -106,6 +109,12 @@ export function CustomerForm() {
             {...register("main_contact_name", { required: "El contacto es obligatorio" })}
             error={errors.main_contact_name?.message}
             placeholder="María García"
+            className="sm:col-span-2"
+          />
+          <Input
+            label="Cédula (opcional)"
+            {...register("identification_number")}
+            placeholder="1040735268"
             className="sm:col-span-2"
           />
         </CardBody>

@@ -19,6 +19,7 @@ class Customer(Base):
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     wedding_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    identification_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     referral_source: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
