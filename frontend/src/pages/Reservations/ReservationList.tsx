@@ -48,8 +48,8 @@ function formatCOP(n: number) {
 function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 'asc' | 'desc' }) {
   if (col !== current) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 inline ml-1" />;
   return dir === 'asc'
-    ? <ChevronUp className="w-3.5 h-3.5 text-pink-600 inline ml-1" />
-    : <ChevronDown className="w-3.5 h-3.5 text-pink-600 inline ml-1" />;
+    ? <ChevronUp className="w-3.5 h-3.5 text-brand-500 inline ml-1" />
+    : <ChevronDown className="w-3.5 h-3.5 text-brand-500 inline ml-1" />;
 }
 
 function localToday() {
@@ -188,7 +188,7 @@ export default function ReservationList() {
         </div>
         <button
           onClick={() => navigate('/reservas/nueva')}
-          className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
         >
           <Plus size={16} /> Nueva reserva
         </button>
@@ -203,21 +203,21 @@ export default function ReservationList() {
             placeholder="Buscar por cliente, teléfono, número..."
             value={inputSearch}
             onChange={e => setInputSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <input
           type="date"
           value={dateFrom}
           onChange={e => setFilter('from', e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
           title="Desde"
         />
         <input
           type="date"
           value={dateTo}
           onChange={e => setFilter('to', e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
           title="Hasta"
         />
         <div className="w-52">
@@ -238,8 +238,8 @@ export default function ReservationList() {
             onClick={() => setFilter('status', f.value)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
               statusFilter === f.value
-                ? 'bg-pink-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-pink-300 hover:text-pink-700'
+                ? 'bg-brand-700 text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600'
             }`}
           >
             {f.label}
@@ -263,7 +263,7 @@ export default function ReservationList() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex justify-center py-16 text-pink-400">
+        <div className="flex justify-center py-16 text-brand-400">
           <Loader2 className="animate-spin" size={32} />
         </div>
       )}
@@ -333,11 +333,11 @@ export default function ReservationList() {
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </td>
                   <td className={`px-4 py-3 text-right whitespace-nowrap ${Number(r.remaining_balance) > 0 ? 'text-red-500' : 'text-green-600'}`}>
                     <p className="font-semibold">{formatCOP(r.remaining_balance)}</p>
-                    <p className="text-xs text-pink-500">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    <p className="text-xs text-brand-700">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
@@ -345,32 +345,32 @@ export default function ReservationList() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-0.5" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => r.timeline_id
                           ? navigate(`/eventos/${r.timeline_id}`)
                           : navigate(`/reservas/${r.id}`)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        aria-label={r.timeline_id ? 'Ver evento' : 'Sin evento'}
+                        className={`p-2.5 rounded-lg transition-colors cursor-pointer ${
                           r.timeline_id
-                            ? 'text-pink-500 hover:bg-pink-50'
+                            ? 'text-brand-600 hover:bg-brand-50'
                             : 'text-gray-200 hover:text-gray-400 hover:bg-gray-100'
                         }`}
-                        title={r.timeline_id ? 'Ver evento' : 'Sin evento'}
                       >
                         <CalendarClock size={14} />
                       </button>
                       <button
                         onClick={() => navigate(`/reservas/${r.id}/editar`)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
-                        title="Editar"
+                        aria-label="Editar reserva"
+                        className="p-2.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(r)}
                         disabled={deletingId === r.id}
-                        className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
-                        title="Eliminar"
+                        aria-label="Eliminar reserva"
+                        className="p-2.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         {deletingId === r.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
@@ -412,7 +412,7 @@ export default function ReservationList() {
                     key={p}
                     onClick={() => goToPage(p)}
                     className={`w-8 h-8 rounded text-sm font-medium cursor-pointer ${
-                      p === page ? 'bg-pink-600 text-white' : 'hover:bg-gray-100 text-gray-600'
+                      p === page ? 'bg-brand-700 text-white' : 'hover:bg-gray-100 text-gray-600'
                     }`}
                   >
                     {p}

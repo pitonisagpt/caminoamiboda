@@ -4,22 +4,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        pink: {
-          DEFAULT: "#DB2777",
-          50: "#FDF2F8",
-          100: "#FCE7F3",
-          200: "#FBCFE8",
-          300: "#F9A8D4",
-          400: "#F472B6",
-          500: "#EC4899",
-          600: "#DB2777",
-          700: "#BE185D",
-          800: "#9D174D",
-          900: "#831843",
+        // Brand primary: Teal Vibrante #21b2b8 (from official portfolio)
+        brand: {
+          50:      "#f0fbfb",
+          100:     "#d0f4f5",
+          200:     "#a5eaec",
+          300:     "#6fd9dc",
+          400:     "#3dc4c9",
+          500:     "#21b2b8",
+          DEFAULT: "#21b2b8",
+          600:     "#1a8f94",
+          700:     "#166f73",
+          800:     "#135659",
+          900:     "#0f4245",
+        },
+        // Accent: Rosa Pastel / Blush #f5b7b1
+        blush: {
+          50:      "#fef6f5",
+          100:     "#fce8e6",
+          200:     "#f8cdc9",
+          300:     "#f5b7b1",
+          DEFAULT: "#f5b7b1",
+          400:     "#ef9b94",
+          500:     "#e67d74",
         },
         gold: {
           DEFAULT: "#CA8A04",
-          50: "#FEFCE8",
+          50:  "#FEFCE8",
           100: "#FEF9C3",
           200: "#FEF08A",
           300: "#FDE047",
@@ -32,8 +43,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        brand: ["'Great Vibes'", "cursive"],
+        sans:    ["Inter", "system-ui", "sans-serif"],
+        brand:   ["'Dancing Script'", "cursive"],
+        display: ["'Montserrat'", "system-ui", "sans-serif"],
       },
     },
   },

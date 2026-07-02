@@ -11,8 +11,8 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
-        <div className="text-pink-400 text-sm">Cargando...</div>
+      <div className="min-h-screen bg-brand-50 flex items-center justify-center">
+        <div className="text-brand-400 text-sm">Cargando...</div>
       </div>
     );
   }

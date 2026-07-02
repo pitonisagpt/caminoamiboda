@@ -86,7 +86,7 @@ function ScoreBar({ total }: { total: number | null }) {
   return (
     <div className="flex items-center gap-2">
       <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className="h-full bg-pink-400 rounded-full" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-brand-400 rounded-full" style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs font-mono text-gray-700">{total}/25</span>
     </div>
@@ -137,7 +137,7 @@ function SortableVehicleRow({
   const photo = vehiclePhoto(v);
 
   return (
-    <tr ref={setNodeRef} style={style} {...attributes} className="hover:bg-pink-50/40 transition-colors duration-150">
+    <tr ref={setNodeRef} style={style} {...attributes} className="hover:bg-brand-50/40 transition-colors duration-150">
       {/* Drag handle */}
       <td className="pl-3 pr-1 py-2 w-8">
         {dragEnabled ? (
@@ -164,7 +164,7 @@ function SortableVehicleRow({
         </div>
       </td>
       <td className="px-4 py-3">
-        <span className="font-mono text-pink-700 font-semibold text-xs tracking-wide">{v.license_plate}</span>
+        <span className="font-mono text-brand-600 font-semibold text-xs tracking-wide">{v.license_plate}</span>
       </td>
       <td className="px-4 py-3">
         <div className="font-medium text-gray-900">{v.brand}</div>
@@ -193,7 +193,7 @@ function SortableVehicleRow({
           {v.owner_contact && (
             <button
               onClick={() => onWhatsApp(v)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
+              className="p-2 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
               title="Consultar disponibilidad por WhatsApp"
             >
               <MessageCircle size={15} />
@@ -201,14 +201,14 @@ function SortableVehicleRow({
           )}
           <button
             onClick={() => navigate(`/vehiculos/${v.id}/estadisticas`)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors cursor-pointer"
             title="Estadísticas"
           >
             <BarChart2 size={15} />
           </button>
           <button
             onClick={() => navigate(`/vehiculos/editar/${v.id}`)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
             title="Editar"
           >
             <Edit size={15} />
@@ -216,7 +216,7 @@ function SortableVehicleRow({
           <button
             onClick={() => onDeactivate(v)}
             disabled={deactivating === v.id || v.status === "inactive"}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             title="Desactivar"
           >
             {deactivating === v.id ? <Loader2 size={15} className="animate-spin" /> : <PowerOff size={15} />}
@@ -359,7 +359,7 @@ export function VehicleList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">Vehículos</h1>
+          <h1 className="text-2xl font-bold text-brand-800">Vehículos</h1>
           <p className="text-sm text-gray-500 mt-1">Flota de Camino a mi Boda</p>
         </div>
         <div className="flex items-center gap-2">
@@ -367,7 +367,7 @@ export function VehicleList() {
             href="/catalogo"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-pink-600 border border-pink-200 rounded-xl hover:bg-pink-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-700 border border-brand-200 rounded-xl hover:bg-brand-50 transition-colors"
           >
             <ExternalLink size={15} />
             Catálogo público
@@ -388,7 +388,7 @@ export function VehicleList() {
             value={inputSearch}
             onChange={e => handleSearchChange(e.target.value)}
             placeholder="Buscar por placa, marca, color…"
-            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           {inputSearch && (
             <button onClick={() => handleSearchChange("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -414,7 +414,7 @@ export function VehicleList() {
       )}
 
       {loading && (
-        <div className="flex items-center justify-center py-20 text-pink-400">
+        <div className="flex items-center justify-center py-20 text-brand-400">
           <Loader2 className="animate-spin" size={32} />
         </div>
       )}
@@ -422,10 +422,10 @@ export function VehicleList() {
       {!loading && !error && vehicles.length === 0 && (
         <Card>
           <div className="text-center py-16 px-6">
-            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Car size={28} className="text-pink-500" />
+            <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Car size={28} className="text-brand-500" />
             </div>
-            <h3 className="text-lg font-semibold text-pink-900 mb-2">No hay vehículos registrados</h3>
+            <h3 className="text-lg font-semibold text-brand-800 mb-2">No hay vehículos registrados</h3>
             <Button onClick={() => navigate("/vehiculos/nuevo")}>
               <Plus size={16} />
               Agregar vehículo
@@ -457,12 +457,12 @@ export function VehicleList() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-pink-900">Fecha del evento</label>
+              <label className="text-sm font-medium text-brand-800">Fecha del evento</label>
               <input
                 type="date"
                 value={waDate}
                 onChange={(e) => setWaDate(e.target.value)}
-                className="w-full rounded-lg border border-pink-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 cursor-pointer"
+                className="w-full rounded-lg border border-brand-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
               />
               {waDate && (
                 <p className="text-xs text-gray-400 capitalize">{formatDateES(waDate)}</p>
@@ -513,15 +513,15 @@ export function VehicleList() {
               >
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-pink-100 bg-pink-50/60">
+                    <tr className="border-b border-brand-100 bg-brand-50/60">
                       {/* Drag handle column */}
                       <th
-                        className="pl-3 pr-1 py-3 w-8 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider select-none cursor-pointer hover:text-pink-900"
+                        className="pl-3 pr-1 py-3 w-8 text-left text-xs font-semibold text-brand-600 uppercase tracking-wider select-none cursor-pointer hover:text-brand-800"
                         onClick={() => { setSearchParams(prev => { const n = new URLSearchParams(prev); n.delete('sort'); n.delete('dir'); return n; }, { replace: true }); }}
                         title="Volver al orden predeterminado"
                       >
                         {sortKey === "display_order" && sortDir === "asc" ? (
-                          <GripVertical size={14} className="text-pink-400" />
+                          <GripVertical size={14} className="text-brand-400" />
                         ) : (
                           <GripVertical size={14} className="text-gray-300" />
                         )}
@@ -532,19 +532,19 @@ export function VehicleList() {
                         <th
                           key={label}
                           onClick={key ? () => toggleSort(key) : undefined}
-                          className={`text-left px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider select-none ${key ? "cursor-pointer hover:text-pink-900" : ""}`}
+                          className={`text-left px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider select-none ${key ? "cursor-pointer hover:text-brand-800" : ""}`}
                         >
                           <span className="inline-flex items-center gap-1">
                             {label}
                             {key && sortKey === key && (
                               sortDir === "asc"
-                                ? <ChevronUp size={12} className="text-pink-500" />
-                                : <ChevronDown size={12} className="text-pink-500" />
+                                ? <ChevronUp size={12} className="text-brand-500" />
+                                : <ChevronDown size={12} className="text-brand-500" />
                             )}
                           </span>
                         </th>
                       ))}
-                      <th className="pr-6 py-3 text-right text-xs font-semibold text-pink-700 uppercase tracking-wider" />
+                      <th className="pr-6 py-3 text-right text-xs font-semibold text-brand-600 uppercase tracking-wider" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pink-50">
@@ -571,7 +571,7 @@ export function VehicleList() {
             </DndContext>
           </div>
           {search && displayed.length > 0 && (
-            <p className="px-6 py-2 text-xs text-gray-400 border-t border-pink-50">
+            <p className="px-6 py-2 text-xs text-gray-400 border-t border-brand-50">
               {displayed.length} de {vehicles.length} vehículos
             </p>
           )}

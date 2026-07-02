@@ -61,7 +61,7 @@ export default function BlogAdminPage() {
     load();
   };
 
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300';
+  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
 
   return (
     <div className="flex flex-col gap-4">
@@ -70,7 +70,7 @@ export default function BlogAdminPage() {
           <h1 className="text-2xl font-bold text-gray-900">Blog</h1>
           <p className="text-sm text-gray-500 mt-0.5">Artículos y recomendaciones para clientes</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+        <button onClick={openNew} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
           <Plus size={16} /> Nuevo artículo
         </button>
       </div>
@@ -82,7 +82,7 @@ export default function BlogAdminPage() {
           <div className="p-12 text-center flex flex-col items-center gap-2 text-gray-400">
             <BookOpen size={32} className="text-gray-200" />
             <p className="text-sm">No hay artículos aún</p>
-            <button onClick={openNew} className="mt-2 text-sm text-pink-600 hover:underline cursor-pointer">Crear el primero</button>
+            <button onClick={openNew} className="mt-2 text-sm text-brand-700 hover:underline cursor-pointer">Crear el primero</button>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -167,14 +167,14 @@ export default function BlogAdminPage() {
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
-                  className="rounded border-gray-300 text-pink-600 focus:ring-pink-300" />
+                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
                 <span className="text-sm text-gray-700">Publicar inmediatamente</span>
               </label>
             </div>
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
               <button onClick={() => setModal({ open: false })} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
               <button onClick={handleSave} disabled={saving || !form.title.trim()}
-                className="px-4 py-2 text-sm bg-pink-600 hover:bg-pink-700 text-white rounded-lg cursor-pointer disabled:opacity-60">
+                className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer disabled:opacity-60">
                 {saving ? 'Guardando…' : 'Guardar'}
               </button>
             </div>

@@ -39,7 +39,7 @@ export function UserList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">Usuarios</h1>
+          <h1 className="text-2xl font-bold text-brand-800">Usuarios</h1>
           <p className="text-sm text-gray-500 mt-1">Gestiona el acceso al sistema</p>
         </div>
         <Button onClick={() => navigate("/admin/usuarios/nuevo")}>
@@ -49,7 +49,7 @@ export function UserList() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20 text-pink-400">
+        <div className="flex justify-center py-20 text-brand-400">
           <Loader2 className="animate-spin" size={28} />
         </div>
       ) : (
@@ -57,9 +57,9 @@ export function UserList() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-pink-100 bg-pink-50/60">
+                <tr className="border-b border-brand-100 bg-brand-50/60">
                   {["Nombre", "Correo", "Rol", "Estado", "Acciones"].map((h) => (
-                    <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                    <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                       {h}
                     </th>
                   ))}
@@ -67,7 +67,7 @@ export function UserList() {
               </thead>
               <tbody className="divide-y divide-pink-50">
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-pink-50/40 transition-colors duration-150">
+                  <tr key={u.id} className="hover:bg-brand-50/40 transition-colors duration-150">
                     <td className="px-6 py-4 font-medium text-gray-900">{u.full_name}</td>
                     <td className="px-6 py-4 text-gray-600">{u.email}</td>
                     <td className="px-6 py-4">
@@ -84,7 +84,7 @@ export function UserList() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => navigate(`/admin/usuarios/editar/${u.id}`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+                          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
                           title="Editar"
                         >
                           <Pencil size={15} />

@@ -13,9 +13,9 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
 
   if (photos.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-pink-50 to-yellow-50">
-        <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center">
-          <span className="text-2xl font-brand text-pink-400">{brandInitial}</span>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-brand-50 to-brand-100">
+        <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center">
+          <span className="text-2xl font-brand text-brand-400">{brandInitial}</span>
         </div>
         <span className="text-xs text-gray-400">{brandName}</span>
       </div>

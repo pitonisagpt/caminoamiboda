@@ -18,7 +18,7 @@ export function AvailabilityWidget() {
     : undefined;
 
   return (
-    <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl border border-pink-100 p-6 text-center space-y-4">
+    <div className="bg-gradient-to-br from-brand-50 to-brand-100 rounded-2xl border border-brand-100 p-6 text-center space-y-4">
       <div>
         <p className="text-lg font-semibold text-gray-900">¿Cuál es la fecha de tu evento?</p>
         <p className="text-sm text-gray-500 mt-1">Selecciona la fecha y te confirmamos disponibilidad al instante por WhatsApp.</p>
@@ -29,7 +29,7 @@ export function AvailabilityWidget() {
         value={date}
         min={today}
         onChange={e => setDate(e.target.value)}
-        className="w-full max-w-xs mx-auto block border border-pink-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white text-gray-800"
+        className="w-full max-w-xs mx-auto block border border-brand-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white text-gray-800"
       />
 
       <a

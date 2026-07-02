@@ -22,7 +22,7 @@ export const RESERVATION_STATUS_COLOR: Record<ReservationStatus, string> = {
   quoted: 'bg-blue-100 text-blue-700',
   deposit_received: 'bg-yellow-100 text-yellow-700',
   reserved: 'bg-purple-100 text-purple-700',
-  confirmed: 'bg-pink-100 text-pink-700',
+  confirmed: 'bg-brand-100 text-brand-700',
   completed: 'bg-green-100 text-green-700',
   cancelled: 'bg-red-100 text-red-700',
 };

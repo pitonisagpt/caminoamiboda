@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import logo from "../../assets/logo_camino_a_mi_boda.png";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -12,7 +13,6 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Already authenticated → go to app
   useEffect(() => {
     if (user) navigate("/", { replace: true });
   }, [user, navigate]);
@@ -36,19 +36,23 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-brand-500 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="font-brand text-5xl text-pink-600 mb-1">Camino a mi Boda</h1>
-          <p className="text-sm text-pink-400 uppercase tracking-widest">
+        {/* Brand logo */}
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <img
+            src={logo}
+            alt="Camino a mi Boda"
+            className="h-28 object-contain brightness-0 invert drop-shadow-sm"
+          />
+          <p className="text-sm text-white/80 uppercase tracking-widest font-display">
             Panel de operaciones
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-8">
-          <h2 className="text-lg font-semibold text-pink-900 mb-6">Iniciar sesión</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-base font-semibold text-gray-800 mb-5">Iniciar sesión</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -81,7 +85,7 @@ export function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-white/50 mt-6 font-display">
           Camino a mi Boda · Medellín, Colombia
         </p>
       </div>

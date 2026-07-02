@@ -114,7 +114,7 @@ export default function QuoteDetail() {
   };
 
   if (loading || !quote) {
-    return <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   const nextStatus = STATUS_NEXT[quote.status];
@@ -125,7 +125,7 @@ export default function QuoteDetail() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <button onClick={() => navigate('/cotizaciones')} className="text-gray-400 hover:text-gray-600 mt-1 cursor-pointer">
+          <button onClick={() => navigate('/cotizaciones')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -143,7 +143,7 @@ export default function QuoteDetail() {
             <button
               onClick={handleAdvance}
               disabled={advancing}
-              className="flex items-center gap-1.5 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
             >
               {advancing ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
               {QUOTE_STATUS_LABEL[nextStatus]}
@@ -172,7 +172,7 @@ export default function QuoteDetail() {
           <button
             onClick={handleDownloadExisting}
             disabled={pdfLoading}
-            className="flex items-center gap-2 bg-white border border-pink-200 text-pink-700 hover:bg-pink-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+            className="flex items-center gap-2 bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
           >
             {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Descargar PDF
@@ -181,7 +181,7 @@ export default function QuoteDetail() {
           <button
             onClick={handlePdf}
             disabled={pdfLoading}
-            className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
           >
             {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
             Generar PDF
@@ -211,14 +211,14 @@ export default function QuoteDetail() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Cliente</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Cliente</p>
             <p className="text-sm font-semibold text-gray-900">{quote.display_customer}</p>
             {quote.resolved_customer_phone && (
               <p className="text-sm text-gray-500 mt-0.5">{quote.resolved_customer_phone}</p>
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Evento</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Evento</p>
             <p className="text-sm font-semibold text-gray-900 capitalize">{formatDate(quote.event_date)}</p>
             <p className="text-sm text-gray-500 mt-0.5">
               {ZONE_LABEL[quote.location_zone]}
@@ -231,7 +231,7 @@ export default function QuoteDetail() {
           <>
             <hr className="border-gray-50" />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Vehículo</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Vehículo</p>
               <p className="text-sm font-semibold text-gray-900">{quote.display_vehicle}</p>
             </div>
           </>
@@ -241,11 +241,11 @@ export default function QuoteDetail() {
       {/* Route */}
       {(quote.pickup_location || quote.ceremony_location || quote.reception_location) && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Recorrido</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Recorrido</p>
           <div className="space-y-3">
             {[
               { label: 'Recogida', value: quote.pickup_location, color: 'bg-green-500' },
-              { label: 'Ceremonia', value: quote.ceremony_location, color: 'bg-pink-500' },
+              { label: 'Ceremonia', value: quote.ceremony_location, color: 'bg-brand-500' },
               { label: 'Recepción', value: quote.reception_location, color: 'bg-purple-500' },
             ].filter(s => s.value).map(stop => (
               <div key={stop.label} className="flex items-start gap-3">
@@ -262,18 +262,18 @@ export default function QuoteDetail() {
 
       {/* Pricing */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Precio</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Precio</p>
         <div className="flex gap-4">
           <div className="flex-1 bg-gray-50 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-xl font-bold text-gray-900">{formatCOP(quote.total_price)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">est. empresa {formatCOP((quote.total_price ?? 0) * 0.3)}</p>
+            <p className="text-xs text-brand-700 mt-0.5">est. empresa {formatCOP((quote.total_price ?? 0) * 0.3)}</p>
           </div>
           {quote.deposit_amount && (
             <div className="flex-1 bg-green-50 rounded-xl p-4">
               <p className="text-xs text-gray-400 mb-1">Anticipo</p>
               <p className="text-xl font-bold text-green-700">{formatCOP(quote.deposit_amount)}</p>
-              <p className="text-xs text-pink-500 mt-0.5">est. empresa {formatCOP(quote.deposit_amount * 0.3)}</p>
+              <p className="text-xs text-brand-700 mt-0.5">est. empresa {formatCOP(quote.deposit_amount * 0.3)}</p>
             </div>
           )}
         </div>
@@ -285,7 +285,7 @@ export default function QuoteDetail() {
       {/* Notes */}
       {quote.notes && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Notas internas</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Notas internas</p>
           <p className="text-sm text-gray-700 whitespace-pre-wrap">{quote.notes}</p>
         </div>
       )}

@@ -35,7 +35,7 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Evento</h2>
         <div className="flex items-start gap-2 text-sm">
-          <Calendar size={16} className="text-pink-400 mt-0.5 shrink-0" />
+          <Calendar size={16} className="text-brand-400 mt-0.5 shrink-0" />
           <div>
             <span className="text-gray-700 capitalize">{formatDate(reservation.event_date)}</span>
             {reservation.is_tentative && (
@@ -48,19 +48,19 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
         </div>
         {reservation.display_vehicle !== '—' && (
           <div className="flex items-center gap-2 text-sm">
-            <Car size={16} className="text-pink-400 shrink-0" />
+            <Car size={16} className="text-brand-400 shrink-0" />
             <span className="text-gray-700">{reservation.display_vehicle}</span>
           </div>
         )}
         {reservation.display_driver !== '—' && (
           <div className="flex items-center gap-2 text-sm">
-            <User size={16} className="text-pink-400 shrink-0" />
+            <User size={16} className="text-brand-400 shrink-0" />
             <span className="text-gray-700">{reservation.display_driver}</span>
           </div>
         )}
         {reservation.display_contact && (
           <div className="flex items-center gap-2 text-sm">
-            <Network size={16} className="text-pink-400 shrink-0" />
+            <Network size={16} className="text-brand-400 shrink-0" />
             <span className="text-gray-500">Ref: <span className="text-gray-700">{reservation.display_contact}</span></span>
           </div>
         )}

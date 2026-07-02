@@ -149,7 +149,7 @@ export default function QuoteForm() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex justify-center py-20 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   return (
@@ -205,10 +205,10 @@ export default function QuoteForm() {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Nombre / contacto <span className="text-pink-500">*</span></label>
+              <label className="block text-sm text-gray-600 mb-1">Nombre / contacto <span className="text-brand-700">*</span></label>
               <input {...register('customer_name', { required: !useExistingCustomer })}
                 placeholder="Ej: Vanessa Correa"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               {errors.customer_name && <p className="text-xs text-red-500 mt-1">Requerido</p>}
             </div>
@@ -216,7 +216,7 @@ export default function QuoteForm() {
               <label className="block text-sm text-gray-600 mb-1">Teléfono / WhatsApp</label>
               <input {...register('customer_phone')}
                 placeholder="+57 300 000 0000"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -228,9 +228,9 @@ export default function QuoteForm() {
         <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Evento</h2>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Fecha de boda <span className="text-pink-500">*</span></label>
+            <label className="block text-sm text-gray-600 mb-1">Fecha de boda <span className="text-brand-700">*</span></label>
             <input type="date" {...register('event_date', { required: true })}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             {errors.event_date && <p className="text-xs text-red-500 mt-1">Requerido</p>}
           </div>
@@ -238,13 +238,13 @@ export default function QuoteForm() {
             <label className="block text-sm text-gray-600 mb-1">Duración del servicio</label>
             <input {...register('service_duration')}
               placeholder="4 horas"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">Zona</label>
             <select {...register('location_zone')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               {ZONES.map(z => <option key={z} value={z}>{ZONE_LABEL[z]}</option>)}
             </select>
@@ -293,7 +293,7 @@ export default function QuoteForm() {
             <label className="block text-sm text-gray-600 mb-1">Descripción del vehículo</label>
             <input {...register('vehicle_description')}
               placeholder="Ej: VW Convertible Negro"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         )}
@@ -310,7 +310,7 @@ export default function QuoteForm() {
           <div key={field}>
             <label className="block text-sm text-gray-600 mb-1">{label}</label>
             <input {...register(field)} placeholder={placeholder}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         ))}
@@ -321,10 +321,10 @@ export default function QuoteForm() {
         <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Precio</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Valor total <span className="text-pink-500">*</span></label>
+            <label className="block text-sm text-gray-600 mb-1">Valor total <span className="text-brand-700">*</span></label>
             <input type="number" {...register('total_price', { required: true, min: 1 })}
               placeholder="1500000"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             {errors.total_price && <p className="text-xs text-red-500 mt-1">Requerido</p>}
           </div>
@@ -332,7 +332,7 @@ export default function QuoteForm() {
             <label className="block text-sm text-gray-600 mb-1">Anticipo para reservar</label>
             <input type="number" {...register('deposit_amount')}
               placeholder="750000"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -340,7 +340,7 @@ export default function QuoteForm() {
           <label className="block text-sm text-gray-600 mb-1">Instrucciones de pago</label>
           <textarea {...register('payment_instructions')} rows={2}
             placeholder="Bancolombia · Cuenta de Ahorros: 00484248273 · A nombre de: Camino a mi Boda"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
           />
         </div>
       </div>
@@ -357,7 +357,7 @@ export default function QuoteForm() {
                 <button
                   type="button"
                   onClick={() => setSelectedBouquetId(null)}
-                  className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedBouquetId === null ? 'border-pink-600 bg-pink-50 text-pink-700' : 'border-gray-200 text-gray-600 hover:border-pink-200'}`}
+                  className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedBouquetId === null ? 'border-brand-500 bg-brand-50 text-brand-600' : 'border-gray-200 text-gray-600 hover:border-brand-200'}`}
                 >
                   Sin ramo
                 </button>
@@ -366,7 +366,7 @@ export default function QuoteForm() {
                     key={pkg.id}
                     type="button"
                     onClick={() => setSelectedBouquetId(pkg.id === selectedBouquetId ? null : pkg.id)}
-                    className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${pkg.id === selectedBouquetId ? 'border-pink-600 bg-pink-50 text-pink-700' : 'border-gray-200 text-gray-600 hover:border-pink-200'}`}
+                    className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${pkg.id === selectedBouquetId ? 'border-brand-500 bg-brand-50 text-brand-600' : 'border-gray-200 text-gray-600 hover:border-brand-200'}`}
                     title={pkg.description ?? undefined}
                   >
                     {pkg.name} <span className="text-xs opacity-70">+{pkg.price.toLocaleString('es-CO')}</span>
@@ -393,7 +393,7 @@ export default function QuoteForm() {
           {addonsTotal > 0 && (
             <div className="flex justify-between items-center pt-2 border-t border-gray-100">
               <span className="text-sm text-gray-500">Total add-ons</span>
-              <span className="text-sm font-semibold text-pink-700">+ ${addonsTotal.toLocaleString('es-CO')}</span>
+              <span className="text-sm font-semibold text-brand-600">+ ${addonsTotal.toLocaleString('es-CO')}</span>
             </div>
           )}
         </div>
@@ -410,7 +410,7 @@ export default function QuoteForm() {
               setExistingStatus(newStatus);
               if (id) await quotesApi.update(Number(id), { status: newStatus });
             }}
-            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
             {STATUSES.map(s => <option key={s} value={s}>{QUOTE_STATUS_LABEL[s]}</option>)}
           </select>
@@ -422,7 +422,7 @@ export default function QuoteForm() {
         <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Notas internas</h2>
         <textarea {...register('notes')} rows={2}
           placeholder="Observaciones para el equipo..."
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
         />
       </div>
 
@@ -434,7 +434,7 @@ export default function QuoteForm() {
           Cancelar
         </button>
         <button type="submit" disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
         >
           {saving && <Loader2 size={15} className="animate-spin" />}
           {isEdit ? 'Guardar cambios' : 'Crear cotización'}

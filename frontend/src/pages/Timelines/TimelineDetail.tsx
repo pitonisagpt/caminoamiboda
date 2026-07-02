@@ -43,7 +43,7 @@ const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
 
 const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
   pickup: 'bg-blue-100 text-blue-700',
-  ceremony: 'bg-pink-100 text-pink-700',
+  ceremony: 'bg-brand-100 text-brand-600',
   reception: 'bg-purple-100 text-purple-700',
   photoshoot: 'bg-green-100 text-green-700',
   other: 'bg-gray-100 text-gray-700',
@@ -83,7 +83,7 @@ function SortableActivity({
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-mono font-semibold text-rose-600 shrink-0">{activity.time}</span>
+          <span className="text-sm font-mono font-semibold text-brand-700 shrink-0">{activity.time}</span>
           <span className="text-sm text-gray-900 truncate">{activity.description}</span>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
@@ -196,48 +196,48 @@ function LocationModal({
           )}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
-            <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Catedral de Laureles" />
+            <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Catedral de Laureles" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-              <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+              <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {Object.entries(LOCATION_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
-              <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Padre Martínez" />
+              <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Padre Martínez" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
-            <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Cra 80 # 33-02, Medellín" />
+            <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Cra 80 # 33-02, Medellín" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
-            <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="https://maps.google.com/..." />
+            <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
-              <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="+57 300 000 0000" />
+              <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+57 300 000 0000" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-              <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Entrar por la puerta sur" />
+              <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Entrar por la puerta sur" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Acceso vial</label>
-            <input value={form.road_access_notes} onChange={f('road_access_notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="¿Portería, carretera estrecha, cobro de ingreso, acceso restringido?" />
+            <input value={form.road_access_notes} onChange={f('road_access_notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="¿Portería, carretera estrecha, cobro de ingreso, acceso restringido?" />
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
           <button
             onClick={() => { if (form.location_name.trim()) onSave(form); }}
-            className="px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg cursor-pointer"
+            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer"
           >
             Guardar
           </button>
@@ -289,24 +289,24 @@ function ActivityModal({
                 type="time"
                 value={form.time}
                 onChange={f('time')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
-              <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="30 min" />
+              <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="30 min" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Descripción *</label>
-            <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Llegada del novio a la ceremonia" />
+            <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Llegada del novio a la ceremonia" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación relacionada</label>
             <select
               value={form.location_id ?? ''}
               onChange={f('location_id')}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Sin ubicación</option>
               {locations.map(l => <option key={l.id} value={l.id}>{l.location_name} ({LOCATION_TYPE_LABELS[l.location_type]})</option>)}
@@ -314,14 +314,14 @@ function ActivityModal({
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-            <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Instrucciones adicionales..." />
+            <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Instrucciones adicionales..." />
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
           <button
             onClick={() => { if (form.time && form.description.trim()) onSave(form); }}
-            className="px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg cursor-pointer"
+            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer"
           >
             Guardar
           </button>
@@ -587,7 +587,7 @@ export default function TimelineDetail() {
 
   if (loading || !timeline) return (
     <div className="flex items-center justify-center h-48">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600" />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
     </div>
   );
 
@@ -609,7 +609,7 @@ export default function TimelineDetail() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <button onClick={() => navigate('/eventos')} className="text-gray-400 hover:text-gray-600 mt-1 cursor-pointer">
+          <button onClick={() => navigate('/eventos')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -619,7 +619,7 @@ export default function TimelineDetail() {
               {timeline.reservation_id && (
                 <button
                   onClick={() => navigate(`/reservas/${timeline.reservation_id}`)}
-                  className="text-xs text-pink-600 hover:underline cursor-pointer"
+                  className="text-xs text-brand-700 hover:underline cursor-pointer"
                 >
                   · Ver reserva →
                 </button>
@@ -642,7 +642,7 @@ export default function TimelineDetail() {
           )}
           <button
             onClick={() => timelinesApi.downloadPdf(timelineId, timeline.event_name)}
-            className="flex items-center gap-1.5 text-sm border border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-sm border border-brand-200 text-brand-700 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Descargar PDF minuto a minuto"
           >
             <Download className="w-3.5 h-3.5" /> PDF
@@ -729,12 +729,12 @@ export default function TimelineDetail() {
               <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => copyLink(token, label)}
-                  className="text-gray-400 hover:text-rose-600 cursor-pointer"
+                  className="text-gray-400 hover:text-brand-500 cursor-pointer"
                   title="Copiar enlace"
                 >
                   {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 </button>
-                <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-rose-600" title="Abrir">
+                <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-brand-500" title="Abrir">
                   <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
@@ -751,7 +751,7 @@ export default function TimelineDetail() {
         </div>
         <div className="space-y-2">
           {/* Recordatorio al conductor */}
-          <div className="flex items-center justify-between gap-3 bg-rose-50 rounded-lg px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3 bg-brand-50 rounded-lg px-3 py-2.5">
             <div className="min-w-0">
               <span className="text-sm font-medium text-gray-700">Recordatorio al conductor</span>
               {timeline.assigned_driver && (
@@ -851,7 +851,7 @@ export default function TimelineDetail() {
           <div className="flex items-center gap-2">
             <button
               onClick={e => { e.stopPropagation(); setLocModal({ open: true, editing: null }); }}
-              className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 cursor-pointer"
+              className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" /> Agregar
             </button>
@@ -905,7 +905,7 @@ export default function TimelineDetail() {
           <h2 className="font-semibold text-gray-900">Timeline ({activities.length} actividades)</h2>
           <button
             onClick={() => setActModal({ open: true, editing: null })}
-            className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 cursor-pointer"
+            className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Agregar actividad
           </button>

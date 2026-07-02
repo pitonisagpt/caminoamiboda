@@ -22,7 +22,7 @@ function ScoreDot({ value, label }: { value: number | null; label: string }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? "bg-pink-400" : "bg-gray-200"}`}
+            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? "bg-brand-400" : "bg-gray-200"}`}
           />
         ))}
       </div>
@@ -56,7 +56,7 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      className="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -64,7 +64,7 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
       aria-label={`Ver detalle de ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
     >
       {/* Photo */}
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-pink-50 to-yellow-50 overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-50 to-brand-100 overflow-hidden">
         <PhotoSlider
           photos={visiblePhotos}
           brandInitial={vehicle.brand[0]}
@@ -105,11 +105,11 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Puntuación</span>
-              <span className="text-xs font-bold text-pink-600">{vehicle.score_total}/25</span>
+              <span className="text-xs font-bold text-brand-700">{vehicle.score_total}/25</span>
             </div>
             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-pink-400 to-yellow-400 rounded-full"
+                className="h-full bg-gradient-to-r from-brand-400 to-brand-500 rounded-full"
                 style={{ width: `${(vehicle.score_total / 25) * 100}%` }}
               />
             </div>

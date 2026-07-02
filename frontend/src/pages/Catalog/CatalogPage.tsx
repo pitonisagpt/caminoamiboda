@@ -101,7 +101,7 @@ function FilterSection({ title, active, children }: { title: string; active: boo
     <div className="py-4 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-1.5 mb-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</p>
-        {active && <span className="w-1.5 h-1.5 rounded-full bg-pink-500 inline-block" />}
+        {active && <span className="w-1.5 h-1.5 rounded-full bg-brand-500 inline-block" />}
       </div>
       {children}
     </div>
@@ -115,8 +115,8 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
         active
-          ? "bg-pink-600 text-white border-pink-600"
-          : "bg-white text-gray-600 border-gray-200 hover:border-pink-300 hover:text-pink-700"
+          ? "bg-brand-700 text-white border-brand-700"
+          : "bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:text-brand-600"
       }`}
     >
       {children}
@@ -173,7 +173,7 @@ function FilterPanel({
                 onClick={() => set({ colors: toggleItem(filters.colors, color) })}
                 title={color}
                 className={`relative w-7 h-7 rounded-full transition-all cursor-pointer ${
-                  selected ? "ring-2 ring-pink-500 ring-offset-2" : "ring-1 ring-gray-200 hover:ring-pink-300"
+                  selected ? "ring-2 ring-brand-400 ring-offset-2" : "ring-1 ring-gray-200 hover:ring-brand-300"
                 }`}
                 style={{ backgroundColor: hex }}
               >
@@ -244,7 +244,7 @@ function FilterPanel({
             placeholder="Desde"
             value={filters.priceMin}
             onChange={e => set({ priceMin: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <span className="text-gray-300 text-xs shrink-0">–</span>
           <input
@@ -252,7 +252,7 @@ function FilterPanel({
             placeholder="Hasta"
             value={filters.priceMax}
             onChange={e => set({ priceMax: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <p className="text-[11px] text-gray-400 mt-1.5">$690.000 – $1.570.000</p>
@@ -409,14 +409,14 @@ export function CatalogPage() {
       <div className="space-y-8">
         {/* Hero */}
         <div className="text-center py-8">
-          <h1 className="text-4xl sm:text-5xl font-brand text-pink-600 mb-3">Nuestra Flota</h1>
+          <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">Nuestra Flota</h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
             Vehículos clásicos y especiales para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño.
           </p>
         </div>
 
         {loading && (
-          <div className="flex items-center justify-center py-20 text-pink-400">
+          <div className="flex items-center justify-center py-20 text-brand-400">
             <Loader2 className="animate-spin" size={36} />
           </div>
         )}
@@ -437,7 +437,7 @@ export function CatalogPage() {
                   {activeFilterCount > 0 && (
                     <button
                       onClick={clearAll}
-                      className="text-xs text-pink-500 hover:text-pink-700 cursor-pointer"
+                      className="text-xs text-brand-700 hover:text-brand-800 cursor-pointer"
                     >
                       Limpiar
                     </button>
@@ -456,7 +456,7 @@ export function CatalogPage() {
                   {activeFilterCount > 0 && (
                     <button
                       onClick={clearAll}
-                      className="ml-2 text-pink-500 hover:text-pink-700 cursor-pointer underline text-xs hidden md:inline"
+                      className="ml-2 text-brand-700 hover:text-brand-800 cursor-pointer underline text-xs hidden md:inline"
                     >
                       Limpiar filtros
                     </button>
@@ -465,7 +465,7 @@ export function CatalogPage() {
                 <select
                   value={sort}
                   onChange={e => setSort(e.target.value as SortKey)}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-300 cursor-pointer"
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
                 >
                   <option value="default">Predeterminado</option>
                   <option value="year">Más antiguo primero</option>
@@ -478,7 +478,7 @@ export function CatalogPage() {
               {filtered.length === 0 && (
                 <div className="text-center py-16 text-gray-400 space-y-3">
                   <p className="text-lg">No se encontraron vehículos con esos filtros.</p>
-                  <button onClick={clearAll} className="text-pink-500 hover:text-pink-700 text-sm underline cursor-pointer">
+                  <button onClick={clearAll} className="text-brand-700 hover:text-brand-800 text-sm underline cursor-pointer">
                     Ver todos los vehículos
                   </button>
                 </div>
@@ -502,12 +502,12 @@ export function CatalogPage() {
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
           <button
             onClick={() => setMobileDrawerOpen(true)}
-            className="flex items-center gap-2 bg-pink-600 text-white text-sm font-semibold px-5 py-3 rounded-full shadow-lg hover:bg-pink-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-brand-500 text-white text-sm font-semibold px-5 py-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors cursor-pointer"
           >
             <SlidersHorizontal size={16} />
             Filtros
             {activeFilterCount > 0 && (
-              <span className="bg-white text-pink-600 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="bg-white text-brand-700 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -530,7 +530,7 @@ export function CatalogPage() {
               <p className="font-semibold text-gray-900">Filtros</p>
               <div className="flex items-center gap-3">
                 {activeFilterCount > 0 && (
-                  <button onClick={clearAll} className="text-sm text-pink-500 cursor-pointer">
+                  <button onClick={clearAll} className="text-sm text-brand-700 cursor-pointer">
                     Limpiar todo
                   </button>
                 )}
@@ -550,7 +550,7 @@ export function CatalogPage() {
             <div className="px-5 py-4 border-t border-gray-100">
               <button
                 onClick={() => setMobileDrawerOpen(false)}
-                className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer"
+                className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer"
               >
                 Ver {filtered.length} vehículo{filtered.length !== 1 ? "s" : ""}
               </button>
@@ -564,7 +564,7 @@ export function CatalogPage() {
       {/* Reviews section */}
       {reviews.length > 0 && (
         <div className="mt-16 space-y-6">
-          <h2 className="text-2xl font-brand text-pink-600 text-center">Lo que dicen nuestros clientes</h2>
+          <h2 className="text-2xl font-brand text-brand-500 text-center">Lo que dicen nuestros clientes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map(r => (
               <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">

@@ -19,14 +19,14 @@ export function InstagramGrid() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-brand text-pink-600">Síguenos en Instagram</h2>
+          <h2 className="text-2xl font-brand text-brand-500">Síguenos en Instagram</h2>
           <p className="text-sm text-gray-400 mt-0.5">@caminoamiboda</p>
         </div>
         <a
           href="https://www.instagram.com/caminoamiboda"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-sm text-pink-600 hover:text-pink-800 font-medium cursor-pointer"
+          className="flex items-center gap-1.5 text-sm text-brand-700 hover:text-brand-800 font-medium cursor-pointer"
         >
           <Instagram size={16} />
           Ver perfil

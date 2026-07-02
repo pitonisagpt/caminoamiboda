@@ -93,9 +93,9 @@ export function VehicleModal({ vehicle, onClose }: Props) {
             {/* Main image */}
             <div className="relative aspect-[4/3] sm:aspect-auto sm:flex-1 overflow-hidden group">
               {photos.length === 0 ? (
-                <div className="w-full h-full min-h-[240px] flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-yellow-50 gap-3">
-                  <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center">
-                    <span className="text-3xl font-brand text-pink-400">{vehicle.brand[0]}</span>
+                <div className="w-full h-full min-h-[240px] flex flex-col items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100 gap-3">
+                  <div className="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center">
+                    <span className="text-3xl font-brand text-brand-400">{vehicle.brand[0]}</span>
                   </div>
                   <span className="text-sm text-gray-400">{vehicle.brand}</span>
                 </div>
@@ -139,7 +139,7 @@ export function VehicleModal({ vehicle, onClose }: Props) {
                     key={p.id}
                     onClick={() => setCurrent(i)}
                     className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all cursor-pointer ${
-                      i === current ? "border-pink-400 opacity-100" : "border-transparent opacity-50 hover:opacity-80"
+                      i === current ? "border-brand-400 opacity-100" : "border-transparent opacity-50 hover:opacity-80"
                     }`}
                     aria-label={`Ver foto ${i + 1}`}
                   >
@@ -156,7 +156,7 @@ export function VehicleModal({ vehicle, onClose }: Props) {
             <div>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {vehicle.body_type && vehicle.body_type !== "NA" && (
-                  <span className="px-2 py-0.5 bg-pink-50 text-pink-700 rounded-full text-xs font-medium">
+                  <span className="px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
                     {vehicle.body_type}
                   </span>
                 )}
@@ -208,11 +208,11 @@ export function VehicleModal({ vehicle, onClose }: Props) {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Puntuación</span>
-                  <span className="text-sm font-bold text-pink-600">{vehicle.score_total}/25</span>
+                  <span className="text-sm font-bold text-brand-700">{vehicle.score_total}/25</span>
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
                   <div
-                    className="h-full bg-gradient-to-r from-pink-400 to-yellow-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-brand-400 to-brand-500 rounded-full"
                     style={{ width: `${(vehicle.score_total / 25) * 100}%` }}
                   />
                 </div>
@@ -224,7 +224,7 @@ export function VehicleModal({ vehicle, onClose }: Props) {
                         {[1,2,3,4,5].map((dot) => (
                           <div
                             key={dot}
-                            className={`w-full h-1 rounded-full ${dot <= (s ?? 0) ? "bg-pink-400" : "bg-gray-200"}`}
+                            className={`w-full h-1 rounded-full ${dot <= (s ?? 0) ? "bg-brand-400" : "bg-gray-200"}`}
                             style={{ width: "20px" }}
                           />
                         ))}

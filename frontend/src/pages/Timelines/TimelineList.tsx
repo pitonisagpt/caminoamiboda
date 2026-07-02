@@ -13,7 +13,7 @@ const EVENT_TYPE_LABELS: Record<EventType, string> = {
 };
 
 const EVENT_TYPE_COLORS: Record<EventType, string> = {
-  wedding: 'bg-pink-100 text-pink-700',
+  wedding: 'bg-brand-100 text-brand-600',
   brand_activation: 'bg-purple-100 text-purple-700',
   audiovisual_production: 'bg-blue-100 text-blue-700',
   quinceanera: 'bg-yellow-100 text-yellow-700',
@@ -56,7 +56,7 @@ export default function TimelineList() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-48">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600" />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
     </div>
   );
 
@@ -69,7 +69,7 @@ export default function TimelineList() {
         </div>
         <Link
           to="/eventos/nuevo"
-          className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Nuevo evento
@@ -83,7 +83,7 @@ export default function TimelineList() {
           placeholder="Buscar eventos..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
@@ -101,7 +101,7 @@ export default function TimelineList() {
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <Link
                       to={`/eventos/${t.id}`}
-                      className="text-base font-semibold text-gray-900 hover:text-rose-600 transition-colors"
+                      className="text-base font-semibold text-gray-900 hover:text-brand-500 transition-colors"
                     >
                       {t.event_name}
                     </Link>
@@ -134,7 +134,7 @@ export default function TimelineList() {
                   <button
                     onClick={() => copyDriverLink(t.share_token_driver, t.id)}
                     title="Copiar enlace para conductor"
-                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-rose-600 border border-gray-200 hover:border-rose-300 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-500 border border-gray-200 hover:border-brand-300 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                   >
                     {copied === t.id ? (
                       <><Check className="w-3.5 h-3.5 text-green-600" /> Copiado</>
@@ -144,7 +144,7 @@ export default function TimelineList() {
                   </button>
                   <Link
                     to={`/eventos/${t.id}`}
-                    className="text-xs text-rose-600 hover:text-rose-700 border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                    className="text-xs text-brand-700 hover:text-brand-800 border border-brand-200 hover:border-brand-400 px-3 py-1.5 rounded-lg transition-colors font-medium"
                   >
                     Ver timeline
                   </Link>

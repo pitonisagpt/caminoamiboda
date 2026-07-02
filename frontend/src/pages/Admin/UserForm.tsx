@@ -58,10 +58,10 @@ export function UserForm() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer">
+        <button onClick={() => navigate(-1)} className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold text-pink-900">
+        <h1 className="text-2xl font-bold text-brand-800">
           {isEditing ? "Editar usuario" : "Nuevo usuario"}
         </h1>
       </div>

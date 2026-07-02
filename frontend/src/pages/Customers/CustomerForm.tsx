@@ -80,7 +80,7 @@ export function CustomerForm() {
   };
 
   if (loadingDoc) {
-    return <div className="flex items-center justify-center py-20 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex items-center justify-center py-20 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   return (
@@ -89,18 +89,18 @@ export function CustomerForm() {
         <button
           type="button"
           onClick={() => navigate("/clientes")}
-          className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-pink-900">
+        <h1 className="text-xl font-bold text-brand-800">
           {isEditing ? "Editar cliente" : "Nuevo cliente"}
         </h1>
       </div>
 
       {/* Couple */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">La pareja</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">La pareja</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Nombre de la novia" {...register("bride_name")} placeholder="María" />
           <Input label="Nombre del novio" {...register("groom_name")} placeholder="Carlos" />
@@ -122,7 +122,7 @@ export function CustomerForm() {
 
       {/* Contact */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Datos de contacto</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Datos de contacto</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
@@ -133,14 +133,14 @@ export function CustomerForm() {
 
       {/* Event */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Evento</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Evento</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Fecha de boda" {...register("wedding_date")} type="date" />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">¿Cómo nos encontró?</label>
             <select
               {...register("referral_source")}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Seleccionar...</option>
               {REFERRAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -151,7 +151,7 @@ export function CustomerForm() {
 
       {/* Notes */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Notas</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Notas</h2></CardHeader>
         <CardBody>
           <TextArea label="Notas internas" {...register("notes")} rows={3} placeholder="Preferencias, detalles especiales..." />
         </CardBody>

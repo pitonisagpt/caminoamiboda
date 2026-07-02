@@ -38,7 +38,7 @@ const DEFAULT_VALUES: BillingDocumentFormData = {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider mb-4 pb-2 border-b border-pink-100">
+    <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider mb-4 pb-2 border-b border-brand-100">
       {children}
     </h2>
   );
@@ -192,7 +192,7 @@ export function BillingDocumentForm() {
 
   if (loadingDoc) {
     return (
-      <div className="flex items-center justify-center py-20 text-pink-400">
+      <div className="flex items-center justify-center py-20 text-brand-400">
         Cargando documento...
       </div>
     );
@@ -204,16 +204,16 @@ export function BillingDocumentForm() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">
+          <h1 className="text-2xl font-bold text-brand-800">
             {isEditing ? "Editar Cuenta de Cobro" : "Nueva Cuenta de Cobro"}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Todos los campos marcados con <span className="text-pink-600">*</span> son obligatorios
+            Todos los campos marcados con <span className="text-brand-700">*</span> son obligatorios
           </p>
         </div>
       </div>
@@ -230,8 +230,8 @@ export function BillingDocumentForm() {
                   key={type}
                   className={`flex items-start gap-3 flex-1 border rounded-xl p-4 cursor-pointer transition-colors duration-150
                     ${documentType === type
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-pink-200 bg-white hover:border-pink-300"
+                      ? "border-brand-500 bg-brand-50"
+                      : "border-brand-200 bg-white hover:border-brand-300"
                     }`}
                 >
                   <input
@@ -241,7 +241,7 @@ export function BillingDocumentForm() {
                     className="mt-0.5 accent-pink-600"
                   />
                   <div>
-                    <div className="font-semibold text-sm text-pink-900">
+                    <div className="font-semibold text-sm text-brand-800">
                       {type === "formal" ? "Cuenta de Cobro Formal" : "Carta de Servicio"}
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
@@ -272,13 +272,13 @@ export function BillingDocumentForm() {
                   onChange={e => handleCustomerSearch(e.target.value)}
                   onBlur={() => setTimeout(() => setShowCustomerDrop(false), 150)}
                   placeholder="Nombre de la novia, novio o contacto..."
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 {showCustomerDrop && customerResults.length > 0 && (
                   <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {customerResults.map((c: Customer) => (
                       <button key={c.id} type="button" onMouseDown={() => applyCustomer(c)}
-                        className="w-full text-left px-4 py-2.5 hover:bg-pink-50 text-sm cursor-pointer border-b border-gray-50 last:border-0">
+                        className="w-full text-left px-4 py-2.5 hover:bg-brand-50 text-sm cursor-pointer border-b border-gray-50 last:border-0">
                         <p className="font-medium text-gray-900">
                           {[c.bride_name, c.groom_name].filter(Boolean).join(' & ') || c.main_contact_name}
                         </p>
@@ -393,7 +393,7 @@ export function BillingDocumentForm() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+                  <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
                     Recorrido
                   </h2>
                   <Button type="button" variant="secondary" size="sm" onClick={addStop}>
@@ -405,7 +405,7 @@ export function BillingDocumentForm() {
               <CardBody className="space-y-3">
                 {routeStops.map((stop, index) => (
                   <div key={index} className="flex gap-2 items-start">
-                    <div className="flex items-center justify-center w-7 h-9 text-xs font-bold text-pink-400 flex-shrink-0">
+                    <div className="flex items-center justify-center w-7 h-9 text-xs font-bold text-brand-400 flex-shrink-0">
                       {index + 1}
                     </div>
                     <input
@@ -413,7 +413,7 @@ export function BillingDocumentForm() {
                       value={stop}
                       onChange={(e) => updateStop(index, e.target.value)}
                       placeholder={`Parada ${index + 1}: dirección o lugar`}
-                      className="flex-1 rounded-lg border border-pink-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent hover:border-pink-400 transition-colors duration-150"
+                      className="flex-1 rounded-lg border border-brand-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent hover:border-brand-400 transition-colors duration-150"
                     />
                     {routeStops.length > 1 && (
                       <button

@@ -18,7 +18,7 @@ const formatCOPShort = (v: number) =>
 function SummaryCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">{label}</p>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
@@ -69,7 +69,7 @@ export default function VehicleStatsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/vehiculos')}
-            className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
           >
             <ArrowLeft size={20} />
           </button>
@@ -81,7 +81,7 @@ export default function VehicleStatsPage() {
             </div>
           )}
           <div>
-            <h1 className="text-xl font-bold text-pink-900">{displayName}</h1>
+            <h1 className="text-xl font-bold text-brand-800">{displayName}</h1>
             {vehicle && (
               <p className="text-sm text-gray-400">{vehicle.license_plate} · {vehicle.year ?? '—'}</p>
             )}
@@ -91,7 +91,7 @@ export default function VehicleStatsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64 text-pink-400">
+        <div className="flex justify-center items-center h-64 text-brand-400">
           <Loader2 className="animate-spin" size={32} />
         </div>
       ) : !stats ? null : (
@@ -130,7 +130,7 @@ export default function VehicleStatsPage() {
                           <span className="text-sm font-semibold text-gray-700 ml-auto">{s.count}</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="h-1.5 rounded-full bg-pink-400" style={{ width: `${pct}%` }} />
+                          <div className="h-1.5 rounded-full bg-brand-400" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -158,10 +158,10 @@ export default function VehicleStatsPage() {
                     <div
                       key={e.id}
                       onClick={() => navigate(`/reservas/${e.id}`)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50/50 cursor-pointer transition-colors"
                     >
                       <div className="text-center shrink-0 w-10">
-                        <p className="text-[10px] text-gray-400 leading-tight uppercase">
+                        <p className="text-[10px] text-gray-500 leading-tight uppercase">
                           {new Date(e.date + 'T12:00:00').toLocaleDateString('es-CO', { month: 'short' })}
                         </p>
                         <p className="text-base font-bold text-gray-900 leading-tight">

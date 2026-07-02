@@ -80,7 +80,7 @@ export default function TimelineForm() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate(isEdit ? `/eventos/${id}` : '/eventos')}
-          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -101,7 +101,7 @@ export default function TimelineForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del evento *</label>
             <input
               {...register('event_name', { required: 'Requerido' })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Boda Juan & María"
             />
             {errors.event_name && <p className="text-xs text-red-500 mt-1">{errors.event_name.message}</p>}
@@ -112,7 +112,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de evento *</label>
               <select
                 {...register('event_type', { required: 'Requerido' })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {EVENT_TYPES.map(et => (
                   <option key={et.value} value={et.value}>{et.label}</option>
@@ -124,7 +124,7 @@ export default function TimelineForm() {
               <input
                 type="date"
                 {...register('event_date', { required: 'Requerido' })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               {errors.event_date && <p className="text-xs text-red-500 mt-1">{errors.event_date.message}</p>}
             </div>
@@ -139,7 +139,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
               <input
                 {...register('main_contact_name')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="María González"
               />
             </div>
@@ -147,7 +147,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
               <input
                 {...register('main_contact_phone')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="+57 300 000 0000"
               />
             </div>
@@ -162,7 +162,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Vehículo asignado</label>
               <input
                 {...register('assigned_vehicle')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="VW negro convertible"
               />
             </div>
@@ -170,7 +170,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Conductor asignado</label>
               <input
                 {...register('assigned_driver')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Juan Yepes"
               />
             </div>
@@ -181,7 +181,7 @@ export default function TimelineForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Tel. conductor</label>
               <input
                 {...register('assigned_driver_phone')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="+57 314 737 2030"
               />
             </div>
@@ -196,7 +196,7 @@ export default function TimelineForm() {
             <textarea
               {...register('special_instructions')}
               rows={3}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Instrucciones para el conductor o el equipo..."
             />
           </div>
@@ -205,7 +205,7 @@ export default function TimelineForm() {
             <textarea
               {...register('notes')}
               rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Notas del equipo de operaciones..."
             />
           </div>
@@ -222,7 +222,7 @@ export default function TimelineForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? 'Guardando...' : 'Guardar'}

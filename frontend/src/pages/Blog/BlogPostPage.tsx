@@ -25,7 +25,7 @@ export default function BlogPostPage() {
   if (notFound || !post) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 text-gray-400">
       <p className="text-2xl font-bold text-gray-900">Artículo no encontrado</p>
-      <button onClick={() => navigate('/blog')} className="text-sm text-pink-600 hover:underline cursor-pointer">← Volver al blog</button>
+      <button onClick={() => navigate('/blog')} className="text-sm text-brand-700 hover:underline cursor-pointer">← Volver al blog</button>
     </div>
   );
 
@@ -39,7 +39,7 @@ export default function BlogPostPage() {
       )}
 
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <button onClick={() => navigate('/blog')} className="text-sm text-pink-500 hover:text-pink-700 mb-8 flex items-center gap-1 cursor-pointer">
+        <button onClick={() => navigate('/blog')} className="text-sm text-brand-700 hover:text-brand-800 mb-8 flex items-center gap-1 cursor-pointer">
           ← Volver al blog
         </button>
 
@@ -60,7 +60,7 @@ export default function BlogPostPage() {
         )}
 
         {/* CTA */}
-        <div className="mt-12 bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-8 text-center">
+        <div className="mt-12 bg-gradient-to-br from-brand-50 to-brand-100 rounded-2xl p-8 text-center">
           <h3 className="text-xl font-bold text-gray-900 mb-2">¿Listo para reservar?</h3>
           <p className="text-gray-500 text-sm mb-4">Consulta disponibilidad y precios sin compromiso.</p>
           <a

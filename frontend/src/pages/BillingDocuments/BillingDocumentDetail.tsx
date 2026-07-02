@@ -43,7 +43,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
     <div>
-      <dt className="text-xs font-medium text-pink-600 uppercase tracking-wide mb-0.5">{label}</dt>
+      <dt className="text-xs font-medium text-brand-700 uppercase tracking-wide mb-0.5">{label}</dt>
       <dd className="text-sm text-gray-900">{value}</dd>
     </div>
   );
@@ -102,7 +102,7 @@ export function BillingDocumentDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-pink-400">
+      <div className="flex items-center justify-center py-20 text-brand-400">
         <Loader2 className="animate-spin" size={32} />
       </div>
     );
@@ -112,7 +112,7 @@ export function BillingDocumentDetail() {
     return (
       <div className="text-center py-20 text-gray-500">
         Documento no encontrado.{" "}
-        <button onClick={() => navigate("/documentos")} className="text-pink-600 underline cursor-pointer">
+        <button onClick={() => navigate("/documentos")} className="text-brand-500 underline cursor-pointer">
           Volver
         </button>
       </div>
@@ -130,13 +130,13 @@ export function BillingDocumentDetail() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-pink-900 font-mono">
+              <h1 className="text-xl font-bold text-brand-800 font-mono">
                 {doc.document_number}
               </h1>
               <Badge variant={STATUS_VARIANT[doc.status]}>
@@ -192,21 +192,21 @@ export function BillingDocumentDetail() {
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-150 cursor-pointer disabled:cursor-default
                   ${doc.status === s
                     ? s === "draft" ? "bg-gray-200 text-gray-700" : s === "sent" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
-                    : "bg-white border border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-700 disabled:opacity-40"
+                    : "bg-white border border-gray-200 text-gray-500 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40"
                   }`}
               >
                 {STATUS_LABEL[s]}
               </button>
             ))}
           </div>
-          {updatingStatus && <Loader2 size={14} className="animate-spin text-pink-500" />}
+          {updatingStatus && <Loader2 size={14} className="animate-spin text-brand-500" />}
         </CardBody>
       </Card>
 
       {/* Client */}
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
             Información del cliente
           </h2>
         </CardHeader>
@@ -227,7 +227,7 @@ export function BillingDocumentDetail() {
       {/* Service */}
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
             Servicio
           </h2>
         </CardHeader>
@@ -252,7 +252,7 @@ export function BillingDocumentDetail() {
       {routeStops.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
               Recorrido
             </h2>
           </CardHeader>
@@ -260,7 +260,7 @@ export function BillingDocumentDetail() {
             <ol className="space-y-2">
               {routeStops.map((stop, i) => (
                 <li key={i} className="flex gap-3 text-sm text-gray-800">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-pink-100 text-pink-700 font-bold text-xs flex items-center justify-center">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 font-bold text-xs flex items-center justify-center">
                     {i + 1}
                   </span>
                   <span>{stop}</span>
@@ -274,14 +274,14 @@ export function BillingDocumentDetail() {
       {/* Financial */}
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
             Valor y pago
           </h2>
         </CardHeader>
         <CardBody className="space-y-4">
-          <div className="bg-pink-50 border border-pink-200 rounded-xl px-5 py-4 flex items-center justify-between">
-            <span className="text-sm font-medium text-pink-800">Total a pagar</span>
-            <span className="text-2xl font-bold text-pink-700">
+          <div className="bg-brand-50 border border-brand-200 rounded-xl px-5 py-4 flex items-center justify-between">
+            <span className="text-sm font-medium text-brand-700">Total a pagar</span>
+            <span className="text-2xl font-bold text-brand-600">
               {formatCOP(doc.total_amount)}
             </span>
           </div>
@@ -294,12 +294,12 @@ export function BillingDocumentDetail() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
                 Documento PDF
               </h2>
               <button
                 onClick={() => billingDocumentsApi.downloadPdf(doc.id, `${doc.document_number}.pdf`)}
-                className="flex items-center gap-1.5 text-xs text-pink-600 hover:text-pink-800 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-xs text-brand-700 hover:text-brand-800 transition-colors cursor-pointer"
               >
                 <ExternalLink size={13} />
                 Descargar
@@ -320,7 +320,7 @@ export function BillingDocumentDetail() {
       {doc.notes && (
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">
               Notas internas
             </h2>
           </CardHeader>

@@ -19,7 +19,7 @@ const TYPE_LABELS: Record<LocationType, string> = {
 const TYPE_COLORS: Record<LocationType, string> = {
   pickup: 'bg-blue-100 text-blue-700',
   ceremony: 'bg-purple-100 text-purple-700',
-  reception: 'bg-pink-100 text-pink-700',
+  reception: 'bg-brand-100 text-brand-600',
   photoshoot: 'bg-green-100 text-green-700',
   other: 'bg-gray-100 text-gray-600',
 };
@@ -105,7 +105,7 @@ function LocationModal({
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm(prev => ({ ...prev, [k]: e.target.value }));
 
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300';
+  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999] p-4">
@@ -157,7 +157,7 @@ function LocationModal({
           <button
             onClick={async () => { if (!form.name.trim()) return; setSaving(true); try { await onSave(form); } finally { setSaving(false); } }}
             disabled={saving || !form.name.trim()}
-            className="px-4 py-2 text-sm bg-pink-600 hover:bg-pink-700 text-white rounded-lg cursor-pointer disabled:opacity-60"
+            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer disabled:opacity-60"
           >
             {saving ? 'Guardando…' : 'Guardar'}
           </button>
@@ -282,7 +282,7 @@ export default function LocationCatalogPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setModal({ open: true, editing: null })}
-            className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
           >
             <Plus size={16} />
             Nueva ubicación
@@ -299,7 +299,7 @@ export default function LocationCatalogPage() {
             value={inputSearch}
             onChange={e => handleSearchInput(e.target.value)}
             placeholder="Buscar por nombre o dirección..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -308,7 +308,7 @@ export default function LocationCatalogPage() {
               key={t}
               onClick={() => setTypeFilter(t)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                typeFilter === t ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                typeFilter === t ? 'bg-brand-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {t === '' ? 'Todos' : TYPE_LABELS[t]}
@@ -318,7 +318,7 @@ export default function LocationCatalogPage() {
         {selectedIds.size > 0 && (
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors cursor-pointer"
           >
             <X size={12} />
             Quitar selección ({selectedIds.size})
@@ -348,7 +348,7 @@ export default function LocationCatalogPage() {
               <MapPin size={32} className="text-gray-200" />
               <p className="text-sm">{search || typeFilter ? 'Sin resultados para este filtro' : 'No hay ubicaciones aún'}</p>
               {!search && !typeFilter && (
-                <button onClick={() => setModal({ open: true, editing: null })} className="mt-2 text-sm text-pink-600 hover:underline cursor-pointer">
+                <button onClick={() => setModal({ open: true, editing: null })} className="mt-2 text-sm text-brand-700 hover:underline cursor-pointer">
                   Crear la primera ubicación
                 </button>
               )}
@@ -383,7 +383,7 @@ export default function LocationCatalogPage() {
                       <tr
                         key={loc.id}
                         onClick={() => toggleSelect(loc.id)}
-                        className={`cursor-pointer transition-colors ${isSelected ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
+                        className={`cursor-pointer transition-colors ${isSelected ? 'bg-brand-50' : 'hover:bg-gray-50'}`}
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function LocationCatalogPage() {
                               ? <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: TYPE_HEX[loc.location_type] }} />
                               : <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-gray-200" title="Sin coordenadas — usa 'Resolver coordenadas'" />
                             }
-                            <span className={`font-medium ${isSelected ? 'text-pink-700' : 'text-gray-900'}`}>{loc.name}</span>
+                            <span className={`font-medium ${isSelected ? 'text-brand-600' : 'text-gray-900'}`}>{loc.name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -404,8 +404,8 @@ export default function LocationCatalogPage() {
                         </td>
                         <td className="px-4 py-3 text-right hidden sm:table-cell">
                           {loc.usage_count > 0
-                            ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-pink-50 text-pink-600">{loc.usage_count}</span>
-                            : <span className="text-xs text-gray-300">—</span>
+                            ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-brand-50 text-brand-700">{loc.usage_count}</span>
+                            : <span className="text-xs text-gray-400">—</span>
                           }
                         </td>
                         <td className="px-4 py-3">
@@ -429,7 +429,7 @@ export default function LocationCatalogPage() {
           )}
           <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between flex-wrap gap-2">
             <span>{locations.length} {locations.length === 1 ? 'ubicación' : 'ubicaciones'} · {coordsMap.size} en mapa
-              {selectedIds.size > 0 && <span className="text-pink-600 ml-2">· {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>}
+              {selectedIds.size > 0 && <span className="text-brand-500 ml-2">· {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>}
             </span>
             {totalPages > 1 && (
               <div className="flex items-center gap-1">

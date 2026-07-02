@@ -84,7 +84,7 @@ export default function ContactForm() {
   };
 
   if (loadingDoc) {
-    return <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   return (
@@ -94,7 +94,8 @@ export default function ContactForm() {
         <button
           type="button"
           onClick={() => navigate('/contactos')}
-          className="text-gray-400 hover:text-gray-600 cursor-pointer"
+          aria-label="Volver"
+          className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -114,7 +115,7 @@ export default function ContactForm() {
           <input
             {...register('full_name', { required: 'El nombre es obligatorio' })}
             placeholder="Nombre completo o empresa"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>}
         </div>
@@ -124,7 +125,7 @@ export default function ContactForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
             <select
               {...register('contact_type')}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               {TYPE_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -136,7 +137,7 @@ export default function ContactForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
             <select
               {...register('status')}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               {STATUS_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -150,7 +151,7 @@ export default function ContactForm() {
           <input
             {...register('location')}
             placeholder="Ej: Medellín, Llanogrande, Envigado"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       </div>
@@ -165,7 +166,7 @@ export default function ContactForm() {
             <input
               {...register('phone')}
               placeholder="+573001234567"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div>
@@ -174,7 +175,7 @@ export default function ContactForm() {
               {...register('email')}
               type="email"
               placeholder="contacto@ejemplo.com"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -184,7 +185,7 @@ export default function ContactForm() {
           <input
             {...register('instagram')}
             placeholder="@usuario"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       </div>
@@ -196,7 +197,7 @@ export default function ContactForm() {
           {...register('notes')}
           rows={4}
           placeholder="Información adicional, historial de comunicaciones, oportunidades..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
         />
       </div>
 
@@ -212,7 +213,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-pink-600 hover:bg-pink-700 text-white rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-colors cursor-pointer disabled:opacity-60"
         >
           {saving && <Loader2 size={14} className="animate-spin" />}
           {isEditing ? 'Guardar cambios' : 'Crear contacto'}

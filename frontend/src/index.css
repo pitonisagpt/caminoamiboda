@@ -4,7 +4,20 @@
 
 @layer base {
   body {
-    @apply bg-pink-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased;
     font-family: "Inter", system-ui, sans-serif;
+  }
+
+  /* Brand teal focus ring for all interactive elements */
+  :focus-visible {
+    outline: 2px solid #166f73;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Policies block: left-border teal accent (matches portfolio style) */
+  .policy-block {
+    @apply bg-gray-50 border-l-4 border-brand-500 rounded-r-lg px-5 py-4 text-sm leading-relaxed text-gray-700;
   }
 }

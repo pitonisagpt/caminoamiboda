@@ -109,7 +109,7 @@ export default function Combobox({
   const displayValue = open ? query : (query || selectedLabel);
 
   const inputCls = [
-    'w-full border rounded-xl px-3 py-2.5 text-sm pr-16 focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors',
+    'w-full border rounded-xl px-3 py-2.5 text-sm pr-16 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
     error ? 'border-red-300' : 'border-gray-200',
     disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900',
   ].join(' ');
@@ -177,7 +177,7 @@ export default function Combobox({
                       onMouseEnter={() => setActiveIndex(i)}
                       className={[
                         'px-3 py-2.5 text-sm cursor-pointer transition-colors',
-                        option.value === value ? 'bg-pink-50 text-pink-700 font-medium' : 'text-gray-800',
+                        option.value === value ? 'bg-brand-50 text-brand-600 font-medium' : 'text-gray-800',
                         i === activeIndex && option.value !== value ? 'bg-gray-50' : '',
                       ].join(' ')}
                     >

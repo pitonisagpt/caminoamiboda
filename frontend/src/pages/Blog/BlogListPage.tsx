@@ -14,9 +14,9 @@ export default function BlogListPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-br from-pink-50 to-rose-50 border-b border-pink-100">
+      <div className="bg-gradient-to-br from-brand-50 to-brand-100 border-b border-brand-100">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <p className="text-sm font-semibold text-pink-500 uppercase tracking-widest mb-3">Camino a mi Boda</p>
+          <p className="text-sm font-semibold text-brand-700 uppercase tracking-widest mb-3">Camino a mi Boda</p>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Guías & Inspiración</h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto">Todo lo que necesitas saber para elegir el vehículo perfecto para tu día especial.</p>
         </div>
@@ -50,13 +50,13 @@ export default function BlogListPage() {
                       {new Date(post.published_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   )}
-                  <h2 className="text-xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors leading-snug">
+                  <h2 className="text-xl font-bold text-gray-900 group-hover:text-brand-500 transition-colors leading-snug">
                     {post.title}
                   </h2>
                   {post.excerpt && (
                     <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">{post.excerpt}</p>
                   )}
-                  <p className="text-sm font-semibold text-pink-600 group-hover:underline">Leer artículo →</p>
+                  <p className="text-sm font-semibold text-brand-700 group-hover:underline">Leer artículo →</p>
                 </div>
               </article>
             ))}

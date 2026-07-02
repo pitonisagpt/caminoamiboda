@@ -68,7 +68,7 @@ export function OwnerForm() {
   };
 
   if (loadingDoc) {
-    return <div className="flex items-center justify-center py-20 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex items-center justify-center py-20 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   return (
@@ -77,18 +77,18 @@ export function OwnerForm() {
         <button
           type="button"
           onClick={() => navigate("/propietarios")}
-          className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-pink-900">
+        <h1 className="text-xl font-bold text-brand-800">
           {isEditing ? "Editar propietario" : "Nuevo propietario"}
         </h1>
       </div>
 
       {/* Personal */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Información personal</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Información personal</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Nombre completo *"
@@ -103,7 +103,7 @@ export function OwnerForm() {
 
       {/* Contact */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Contacto</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Contacto</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
@@ -113,14 +113,14 @@ export function OwnerForm() {
 
       {/* Banking */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Datos bancarios</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Datos bancarios</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Banco" {...register("bank_name")} placeholder="Bancolombia" />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Tipo de cuenta</label>
             <select
               {...register("account_type")}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Seleccionar...</option>
               {ACCOUNT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}

@@ -9,7 +9,7 @@ export const CONTACT_TYPE_LABEL: Record<ContactType, string> = {
 };
 
 export const CONTACT_TYPE_COLOR: Record<ContactType, string> = {
-  planner: 'bg-pink-100 text-pink-700',
+  planner: 'bg-brand-100 text-brand-600',
   venue: 'bg-purple-100 text-purple-700',
   agency: 'bg-blue-100 text-blue-700',
   other: 'bg-gray-100 text-gray-600',

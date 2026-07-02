@@ -69,7 +69,7 @@ export default function VehicleStatsSection({ range }: Props) {
             onClick={() => setSelectedIds(new Set())}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
               selectedIds.size === 0
-                ? 'bg-pink-600 text-white'
+                ? 'bg-brand-700 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -81,7 +81,7 @@ export default function VehicleStatsSection({ range }: Props) {
               onClick={() => toggleId(v.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 selectedIds.has(v.id)
-                  ? 'bg-pink-100 text-pink-700 ring-1 ring-pink-300'
+                  ? 'bg-brand-100 text-brand-600 ring-1 ring-brand-300'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -100,7 +100,7 @@ export default function VehicleStatsSection({ range }: Props) {
       )}
 
       {loading ? (
-        <div className="flex justify-center items-center h-48 text-pink-400">
+        <div className="flex justify-center items-center h-48 text-brand-400">
           <Loader2 className="animate-spin" size={28} />
         </div>
       ) : vehicles.length === 0 ? (

@@ -169,7 +169,7 @@ export function VehicleForm() {
 
   if (loadingDoc) {
     return (
-      <div className="flex items-center justify-center py-20 text-pink-400">
+      <div className="flex items-center justify-center py-20 text-brand-400">
         <Loader2 className="animate-spin" size={32} />
       </div>
     );
@@ -181,11 +181,11 @@ export function VehicleForm() {
         <button
           type="button"
           onClick={() => navigate("/vehiculos")}
-          className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-pink-900">
+        <h1 className="text-xl font-bold text-brand-800">
           {isEditing ? "Editar vehículo" : "Nuevo vehículo"}
         </h1>
         {picoYPlaca && (
@@ -207,7 +207,7 @@ export function VehicleForm() {
 
       {/* Basic info */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Información básica</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Información básica</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Placa *"
@@ -235,7 +235,7 @@ export function VehicleForm() {
 
       {/* Location & status */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Ubicación y estado</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Ubicación y estado</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Ubicación"
@@ -269,7 +269,7 @@ export function VehicleForm() {
                 <label key={zone.value} className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                    className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
                     checked={allowedLocations.includes(zone.value)}
                     onChange={e => {
                       setAllowedLocations(prev =>
@@ -289,7 +289,7 @@ export function VehicleForm() {
 
       {/* Prices */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Precios (COP)</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Precios (COP)</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Precio Medellín" {...register("price_medellin")} type="number" placeholder="1200000" />
           <Input label="Precio Rionegro / Llanogrande" {...register("price_rionegro")} type="number" placeholder="1400000" />
@@ -300,13 +300,13 @@ export function VehicleForm() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Propietario</h2>
+            <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Propietario</h2>
             {!isCompanyOwned && (
               <a
                 href="/propietarios/nuevo"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-pink-500 hover:text-pink-700 transition-colors"
+                className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 transition-colors"
               >
                 <ExternalLink size={12} />
                 Agregar nuevo propietario
@@ -323,7 +323,7 @@ export function VehicleForm() {
                 className="sr-only"
                 {...register("is_company_owned")}
               />
-              <div className={`w-10 h-6 rounded-full transition-colors ${isCompanyOwned ? 'bg-pink-600' : 'bg-gray-200'}`} />
+              <div className={`w-10 h-6 rounded-full transition-colors ${isCompanyOwned ? 'bg-brand-500' : 'bg-gray-200'}`} />
               <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isCompanyOwned ? 'translate-x-4' : ''}`} />
             </div>
             <span className="text-sm font-medium text-gray-700">Vehículo de Camino a mi Boda</span>
@@ -371,9 +371,9 @@ export function VehicleForm() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Puntuaciones (1–5)</h2>
+            <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Puntuaciones (1–5)</h2>
             {scoreTotal !== null && (
-              <span className="text-sm font-bold text-pink-600">{scoreTotal}/25</span>
+              <span className="text-sm font-bold text-brand-700">{scoreTotal}/25</span>
             )}
           </div>
         </CardHeader>
@@ -403,7 +403,7 @@ export function VehicleForm() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Pico y Placa — sobreescribir</h2>
+              <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Pico y Placa — sobreescribir</h2>
               <p className="text-xs text-gray-400 mt-0.5">El sistema calcula el día automáticamente por placa. Usa este campo solo si el decreto cambia o necesitas corregirlo manualmente.</p>
             </div>
           </CardHeader>
@@ -428,7 +428,7 @@ export function VehicleForm() {
 
       {/* Photos */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Fotos</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Fotos</h2></CardHeader>
         <CardBody>
           <PhotoManager vehicleId={isEditing && id ? Number(id) : undefined} isEditing={isEditing} />
         </CardBody>
@@ -436,7 +436,7 @@ export function VehicleForm() {
 
       {/* Notes */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Notas internas</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Notas internas</h2></CardHeader>
         <CardBody>
           <TextArea label="Descripción / notas" {...register("description")} rows={3} placeholder="Detalles adicionales del vehículo..." />
         </CardBody>

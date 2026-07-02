@@ -51,7 +51,7 @@ function TimelineRedirect() {
     }).catch(() => navigate('/reservas', { replace: true }));
   }, [id, navigate]);
   return (
-    <div className="flex justify-center items-center h-64 text-pink-400">
+    <div className="flex justify-center items-center h-64 text-brand-400">
       <Loader2 className="animate-spin" size={28} />
     </div>
   );

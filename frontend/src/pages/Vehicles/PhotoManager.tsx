@@ -76,7 +76,7 @@ function SortablePhoto({ photo, onToggleVisibility, onDelete, deleting }: Sortab
             title={photo.is_visible ? "Ocultar del catálogo" : "Mostrar en catálogo"}
           >
             {photo.is_visible ? (
-              <Eye size={13} className="text-pink-600" />
+              <Eye size={13} className="text-brand-500" />
             ) : (
               <EyeOff size={13} className="text-gray-400" />
             )}
@@ -213,17 +213,17 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
         className={`
           relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed
           px-6 py-8 cursor-pointer transition-colors duration-150
-          ${dragOver ? "border-pink-400 bg-pink-50" : "border-gray-200 hover:border-pink-300 hover:bg-pink-50/30"}
+          ${dragOver ? "border-brand-400 bg-brand-50" : "border-gray-200 hover:border-brand-300 hover:bg-brand-50/30"}
         `}
       >
         {uploading ? (
           <>
-            <Loader2 size={24} className="text-pink-400 animate-spin" />
-            <p className="text-sm text-pink-500">Subiendo fotos...</p>
+            <Loader2 size={24} className="text-brand-400 animate-spin" />
+            <p className="text-sm text-brand-700">Subiendo fotos...</p>
           </>
         ) : (
           <>
-            <Upload size={24} className={dragOver ? "text-pink-500" : "text-gray-400"} />
+            <Upload size={24} className={dragOver ? "text-brand-500" : "text-gray-400"} />
             <p className="text-sm font-medium text-gray-600">
               {dragOver ? "Suelta las fotos aquí" : "Arrastra fotos o haz clic para seleccionar"}
             </p>

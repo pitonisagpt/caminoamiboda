@@ -169,7 +169,7 @@ export default function CalendarPage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center h-64 text-pink-400">
+            <div className="flex justify-center items-center h-64 text-brand-400">
               <Loader2 className="animate-spin" size={28} />
             </div>
           ) : (
@@ -185,13 +185,13 @@ export default function CalendarPage() {
                     key={i}
                     onClick={() => ymd && setSelectedDay(isSelected ? null : ymd)}
                     className={`min-h-[80px] p-1.5 border-b border-r border-gray-50 transition-colors ${
-                      day ? 'cursor-pointer hover:bg-pink-50/50' : 'bg-gray-50/30'
-                    } ${isSelected ? 'bg-pink-50' : ''}`}
+                      day ? 'cursor-pointer hover:bg-brand-50/50' : 'bg-gray-50/30'
+                    } ${isSelected ? 'bg-brand-50' : ''}`}
                   >
                     {day && (
                       <>
                         <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium mb-1 ${
-                          isToday ? 'bg-pink-600 text-white' : 'text-gray-600'
+                          isToday ? 'bg-brand-700 text-white' : 'text-gray-600'
                         }`}>
                           {day}
                         </div>
@@ -212,7 +212,7 @@ export default function CalendarPage() {
                             </div>
                           ))}
                           {dayEvents.length > 3 && (
-                            <div className="text-[10px] text-gray-400 px-1">+{dayEvents.length - 3} más</div>
+                            <div className="text-[10px] text-gray-500 px-1">+{dayEvents.length - 3} más</div>
                           )}
                         </div>
                       </>
@@ -251,17 +251,17 @@ export default function CalendarPage() {
                         )}
                         <div className="flex items-center gap-2 mt-0.5">
                           {e.start_time && (
-                            <p className="text-[10px] text-pink-400 font-medium">
+                            <p className="text-[10px] text-brand-700 font-medium">
                               {e.start_time}{e.end_time ? ` – ${e.end_time}` : ''}
                             </p>
                           )}
-                          <p className="text-[10px] text-gray-300 uppercase tracking-wide">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wide">
                             {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
                           </p>
                           {e.has_timeline && e.timeline_id && (
                             <button
                               onClick={ev => handleTimelineClick(e, ev)}
-                              className="text-[10px] text-orange-400 hover:text-orange-600 uppercase tracking-wide cursor-pointer"
+                              className="text-[10px] text-orange-600 hover:text-orange-700 uppercase tracking-wide cursor-pointer"
                             >
                               · Ver evento →
                             </button>
@@ -297,7 +297,7 @@ export default function CalendarPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Confirmadas</span>
-                <span className="font-semibold text-pink-600">
+                <span className="font-semibold text-brand-700">
                   {events.filter(e => e.status === 'confirmed').length}
                 </span>
               </div>

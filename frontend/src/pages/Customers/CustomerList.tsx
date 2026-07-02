@@ -63,7 +63,7 @@ export function CustomerList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">Clientes</h1>
+          <h1 className="text-2xl font-bold text-brand-800">Clientes</h1>
           <p className="text-sm text-gray-500 mt-0.5">{customers.length} pareja{customers.length !== 1 ? "s" : ""} registrada{customers.length !== 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => navigate("/clientes/nuevo")} className="flex items-center gap-2 w-fit">
@@ -79,35 +79,35 @@ export function CustomerList() {
           value={inputSearch}
           onChange={(e) => setInputSearch(e.target.value)}
           placeholder="Buscar por nombre, teléfono o email..."
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={28} /></div>
+        <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
       ) : customers.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <Heart size={40} className="mx-auto mb-3 text-pink-200" />
+          <Heart size={40} className="mx-auto mb-3 text-brand-200" />
           <p>No hay clientes registrados.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-pink-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-pink-50 bg-pink-50/50">
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Contacto principal</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Novia / Novio</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Boda</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Teléfono</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Cómo nos encontró</th>
+                <tr className="border-b border-brand-50 bg-brand-50/50">
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Contacto principal</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Novia / Novio</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Boda</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Teléfono</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Cómo nos encontró</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {customers.map((c) => (
-                  <tr key={c.id} className="border-b border-gray-50 hover:bg-pink-50/30 transition-colors">
+                  <tr key={c.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900">{c.main_contact_name}</td>
                     <td className="px-4 py-3 text-gray-600">
                       {[c.bride_name, c.groom_name].filter(Boolean).join(" & ") || "—"}
@@ -122,7 +122,7 @@ export function CustomerList() {
                             href={toWhatsAppUrl(c.whatsapp ?? c.phone, c.main_contact_name)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                             title="WhatsApp"
                           >
                             <MessageCircle size={15} />
@@ -130,7 +130,7 @@ export function CustomerList() {
                         )}
                         <button
                           onClick={() => navigate(`/clientes/editar/${c.id}`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+                          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
                           title="Editar"
                         >
                           <Pencil size={15} />
@@ -138,7 +138,7 @@ export function CustomerList() {
                         <button
                           onClick={() => handleDelete(c)}
                           disabled={deletingId === c.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40"
+                          className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40"
                           title="Eliminar"
                         >
                           {deletingId === c.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}

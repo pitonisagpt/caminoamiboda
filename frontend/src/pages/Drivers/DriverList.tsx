@@ -67,7 +67,7 @@ export function DriverList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">Conductores</h1>
+          <h1 className="text-2xl font-bold text-brand-800">Conductores</h1>
           <p className="text-sm text-gray-500 mt-0.5">{drivers.length} conductor{drivers.length !== 1 ? "es" : ""}</p>
         </div>
         <Button onClick={() => navigate("/conductores/nuevo")} className="flex items-center gap-2 w-fit">
@@ -82,7 +82,7 @@ export function DriverList() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-              filter === f ? "bg-pink-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-pink-50"
+              filter === f ? "bg-brand-500 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-brand-50"
             }`}
           >
             {f === "active" ? "Activos" : f === "inactive" ? "Inactivos" : "Todos"}
@@ -91,24 +91,24 @@ export function DriverList() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={28} /></div>
+        <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
       ) : drivers.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <Truck size={40} className="mx-auto mb-3 text-pink-200" />
+          <Truck size={40} className="mx-auto mb-3 text-brand-200" />
           <p>No hay conductores.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-pink-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-pink-50 bg-pink-50/50">
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Nombre</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Identificación</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Teléfono</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Licencia</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Vence</th>
-                  <th className="text-left px-4 py-3 font-semibold text-pink-700">Estado</th>
+                <tr className="border-b border-brand-50 bg-brand-50/50">
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Nombre</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Identificación</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Teléfono</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Licencia</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Vence</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Estado</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -116,7 +116,7 @@ export function DriverList() {
                 {drivers.map((d) => {
                   const expiredSoon = licenseExpiredSoon(d.license_expiration_date);
                   return (
-                    <tr key={d.id} className="border-b border-gray-50 hover:bg-pink-50/30 transition-colors">
+                    <tr key={d.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-900">{d.full_name}</td>
                       <td className="px-4 py-3 text-gray-500">{d.identification_number ?? "—"}</td>
                       <td className="px-4 py-3 text-gray-600">{d.phone ?? "—"}</td>
@@ -138,7 +138,7 @@ export function DriverList() {
                               href={toWhatsAppUrl(d.whatsapp ?? d.phone, d.full_name)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
+                              className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                               title="WhatsApp"
                             >
                               <MessageCircle size={15} />
@@ -146,14 +146,14 @@ export function DriverList() {
                           )}
                           <button
                             onClick={() => navigate(`/conductores/editar/${d.id}`)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
                           >
                             <Pencil size={15} />
                           </button>
                           <button
                             onClick={() => handleDelete(d)}
                             disabled={deletingId === d.id}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40"
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40"
                           >
                             {deletingId === d.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
                           </button>

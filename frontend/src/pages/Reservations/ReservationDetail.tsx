@@ -65,7 +65,7 @@ export default function ReservationDetail() {
   const setTab = (tab: TabKey) => setSearchParams({ tab }, { replace: true });
 
   if (loading || !reservation) {
-    return <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   const nextStatus = STATUS_NEXT[reservation.status];
@@ -75,7 +75,7 @@ export default function ReservationDetail() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <button onClick={() => navigate('/reservas')} className="text-gray-400 hover:text-gray-600 mt-1 cursor-pointer">
+          <button onClick={() => navigate('/reservas')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -93,7 +93,7 @@ export default function ReservationDetail() {
             <button
               onClick={handleAdvanceStatus}
               disabled={advancing}
-              className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
             >
               {advancing ? <Loader2 size={14} className="animate-spin" /> : null}
               → {RESERVATION_STATUS_LABEL[nextStatus]}

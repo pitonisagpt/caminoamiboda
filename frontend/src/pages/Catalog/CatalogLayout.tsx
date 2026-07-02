@@ -4,12 +4,12 @@ const WHATSAPP_NUMBER = "573147372030";
 
 export function CatalogLayout() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-pink-100 shadow-sm">
+      <header className="bg-white border-b border-brand-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div>
-            <span className="font-brand text-3xl text-pink-600">Camino a mi Boda</span>
+            <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
             <p className="text-xs text-gray-400 mt-0.5">Vehículos clásicos y especiales para tu día</p>
           </div>
           <a
@@ -32,11 +32,11 @@ export function CatalogLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-pink-100 mt-auto">
+      <footer className="bg-white border-t border-brand-100 mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
-          <span className="font-brand text-lg text-pink-400">Camino a mi Boda</span>
+          <span className="font-brand text-lg text-brand-400">Camino a mi Boda</span>
           <div className="flex items-center gap-6">
-            <a href="tel:+573147372030" className="hover:text-pink-600 transition-colors">+(57) 314 737 2030</a>
+            <a href="tel:+573147372030" className="hover:text-brand-500 transition-colors">+(57) 314 737 2030</a>
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               target="_blank"

@@ -66,25 +66,25 @@ export default function AddonPackagesPage() {
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Add-ons y Paquetes</h1>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
+        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
           <Plus size={16} /> Nuevo add-on
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wide">{editingId ? 'Editar' : 'Nuevo'} add-on</h2>
+        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wide">{editingId ? 'Editar' : 'Nuevo'} add-on</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Nombre</label>
               <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Ramo Premium" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
               <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value as 'bouquet' | 'extra_hour' }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="bouquet">Ramo</option>
                 <option value="extra_hour">Hora extra</option>
               </select>
@@ -92,13 +92,13 @@ export default function AddonPackagesPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Precio (COP)</label>
               <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="250000" />
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Descripción (opcional)</label>
               <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Ramo mediano con flores de temporada" />
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function AddonPackagesPage() {
               <X size={14} /> Cancelar
             </button>
             <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.price}
-              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 cursor-pointer flex items-center gap-1">
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 cursor-pointer flex items-center gap-1">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Guardar
             </button>
@@ -117,7 +117,7 @@ export default function AddonPackagesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={28} /></div>
+        <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -138,7 +138,7 @@ export default function AddonPackagesPage() {
                     {p.description && <p className="text-xs text-gray-400">{p.description}</p>}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${p.type === 'bouquet' ? 'bg-pink-50 text-pink-700' : 'bg-amber-50 text-amber-700'}`}>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${p.type === 'bouquet' ? 'bg-brand-50 text-brand-600' : 'bg-amber-50 text-amber-700'}`}>
                       {TYPE_LABEL[p.type] ?? p.type}
                     </span>
                   </td>

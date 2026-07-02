@@ -32,7 +32,7 @@ const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   photoshoot: 'Sesión de fotos', other: 'Otro',
 };
 const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
-  pickup: 'bg-blue-100 text-blue-700', ceremony: 'bg-pink-100 text-pink-700',
+  pickup: 'bg-blue-100 text-blue-700', ceremony: 'bg-brand-100 text-brand-600',
   reception: 'bg-purple-100 text-purple-700', photoshoot: 'bg-green-100 text-green-700',
   other: 'bg-gray-100 text-gray-700',
 };
@@ -152,7 +152,7 @@ function SortableActivity({ activity, locations, onEdit, onDelete }: {
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-mono font-semibold text-rose-600 shrink-0">{activity.time}</span>
+          <span className="text-sm font-mono font-semibold text-brand-700 shrink-0">{activity.time}</span>
           <span className="text-sm text-gray-900 truncate">{activity.description}</span>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
@@ -235,42 +235,42 @@ function LocationModal({ initial, onSave, onClose }: {
           )}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
-            <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Catedral de Laureles" />
+            <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Catedral de Laureles" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-              <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+              <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 {Object.entries(LOCATION_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
-              <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Padre Martínez" />
+              <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Padre Martínez" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
-            <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Cra 80 # 33-02, Medellín" />
+            <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Cra 80 # 33-02, Medellín" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
-            <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="https://maps.google.com/..." />
+            <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
-              <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="+57 300 000 0000" />
+              <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+57 300 000 0000" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-              <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Entrar por la puerta sur" />
+              <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Entrar por la puerta sur" />
             </div>
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button onClick={() => { if (form.location_name.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg cursor-pointer">Guardar</button>
+          <button onClick={() => { if (form.location_name.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer">Guardar</button>
         </div>
       </div>
     </div>
@@ -306,32 +306,32 @@ function ActivityModal({ initial, locations, onSave, onClose }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Hora *</label>
-              <input type="time" value={form.time} onChange={f('time')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              <input type="time" value={form.time} onChange={f('time')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
-              <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="30 min" />
+              <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="30 min" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Descripción *</label>
-            <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Llegada del novio a la ceremonia" />
+            <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Llegada del novio a la ceremonia" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación relacionada</label>
-            <select value={form.location_id ?? ''} onChange={f('location_id')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+            <select value={form.location_id ?? ''} onChange={f('location_id')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="">Sin ubicación</option>
               {locations.map(l => <option key={l.id} value={l.id}>{l.location_name} ({LOCATION_TYPE_LABELS[l.location_type]})</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-            <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" placeholder="Instrucciones adicionales..." />
+            <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Instrucciones adicionales..." />
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button onClick={() => { if (form.time && form.description.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg cursor-pointer">Guardar</button>
+          <button onClick={() => { if (form.time && form.description.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer">Guardar</button>
         </div>
       </div>
     </div>
@@ -453,7 +453,7 @@ export default function EventoTab({
 
   if (loading) return (
     <div className="flex justify-center items-center h-48">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600" />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
     </div>
   );
 
@@ -467,7 +467,7 @@ export default function EventoTab({
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
         >
           {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
           Crear evento
@@ -497,7 +497,7 @@ export default function EventoTab({
             )}
             <button
               onClick={() => timelineId && timelinesApi.downloadPdf(timelineId, timeline.event_name)}
-              className="flex items-center gap-1.5 text-xs border border-rose-200 text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs border border-brand-200 text-brand-700 hover:bg-brand-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
               title="Descargar PDF minuto a minuto"
             >
               <FileText className="w-3.5 h-3.5" /> PDF
@@ -580,7 +580,7 @@ export default function EventoTab({
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-gray-600 font-medium">{label}</span>
                   {name && <span className="text-xs text-gray-400 ml-2">{name}</span>}
-                  <code className="block text-xs text-gray-300 truncate mt-0.5">/evento/{token}</code>
+                  <code className="block text-xs text-gray-500 truncate mt-0.5">/evento/{token}</code>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   {phone && (
@@ -593,10 +593,10 @@ export default function EventoTab({
                       <MessageCircle className="w-4 h-4" />
                     </a>
                   )}
-                  <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-rose-600 cursor-pointer" title="Copiar enlace">
+                  <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-brand-500 cursor-pointer" title="Copiar enlace">
                     {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                   </button>
-                  <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-rose-600" title="Abrir">
+                  <a href={`/evento/${token}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-brand-500" title="Abrir">
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -645,7 +645,7 @@ export default function EventoTab({
           <h3 className="font-semibold text-gray-900 text-sm">Ubicaciones ({timeline.locations.length})</h3>
           <div className="flex items-center gap-2">
             <button onClick={e => { e.stopPropagation(); setLocModal({ open: true, editing: null }); }}
-              className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 cursor-pointer">
+              className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 cursor-pointer">
               <Plus className="w-3.5 h-3.5" /> Agregar
             </button>
             {showLocations ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
@@ -693,7 +693,7 @@ export default function EventoTab({
         <div className="flex items-center justify-between px-5 py-4">
           <h3 className="font-semibold text-gray-900 text-sm">Timeline ({activities.length} actividades)</h3>
           <button onClick={() => setActModal({ open: true, editing: null })}
-            className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 cursor-pointer">
+            className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 cursor-pointer">
             <Plus className="w-3.5 h-3.5" /> Agregar actividad
           </button>
         </div>

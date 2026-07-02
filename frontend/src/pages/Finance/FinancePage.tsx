@@ -29,7 +29,7 @@ function KpiCard({
 }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">{label}</p>
       <div className="flex items-end gap-2">
         <p className="text-2xl font-bold text-gray-900">{value}</p>
         {badge && (
@@ -46,7 +46,7 @@ function KpiCard({
 
 function Spinner() {
   return (
-    <div className="flex justify-center items-center h-48 text-pink-400">
+    <div className="flex justify-center items-center h-48 text-brand-400">
       <Loader2 className="animate-spin" size={28} />
     </div>
   );
@@ -254,7 +254,7 @@ export default function FinancePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-400 font-medium uppercase tracking-wide border-b border-gray-100">
+                <tr className="text-left text-xs text-gray-500 font-medium uppercase tracking-wide border-b border-gray-100">
                   <th className="pb-2 pr-4">Vehículo</th>
                   <th className="pb-2 pr-4 text-right">Eventos</th>
                   <th className="pb-2 pr-4 text-right">Ingresos totales</th>
@@ -271,7 +271,7 @@ export default function FinancePage() {
                     'text-red-700 bg-red-50';
                   const idleLabel = v.idle_months === 0 ? 'Activo' : `${v.idle_months}`;
                   return (
-                    <tr key={v.vehicle_id} className="hover:bg-pink-50/30 transition-colors">
+                    <tr key={v.vehicle_id} className="hover:bg-brand-50/30 transition-colors">
                       <td className="py-2.5 pr-4">
                         <p className="font-medium text-gray-900">{v.name}</p>
                         <p className="text-xs text-gray-400">{v.owner}</p>
@@ -307,7 +307,7 @@ export default function FinancePage() {
               <p className="text-xs text-gray-400 mt-0.5">Reservas activas con saldo &gt; 0 · todo el tiempo</p>
             </div>
             {aging.length > 0 && (
-              <span className="text-xs font-semibold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full">
                 {aging.length} reservas
               </span>
             )}
@@ -335,14 +335,14 @@ export default function FinancePage() {
                   <div
                     key={item.id}
                     onClick={() => navigate(`/reservas/${item.id}`)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-pink-50/50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-brand-50/50 cursor-pointer transition-colors"
                   >
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${daysColor}`}>
                       {daysLabel}
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.display_customer}</p>
-                      <p className="text-[10px] text-gray-400">{item.reservation_number} · {new Date(item.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="text-[10px] text-gray-500">{item.reservation_number} · {new Date(item.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-gray-900">{formatCOPShort(item.remaining_balance)}</p>
@@ -356,7 +356,7 @@ export default function FinancePage() {
               {aging.length > 20 && (
                 <p className="text-xs text-center text-gray-400 pt-2">
                   Mostrando 20 de {aging.length} —{' '}
-                  <button onClick={() => navigate('/reservas')} className="text-pink-600 hover:underline cursor-pointer">
+                  <button onClick={() => navigate('/reservas')} className="text-brand-500 hover:underline cursor-pointer">
                     ver todas las reservas
                   </button>
                 </p>

@@ -14,7 +14,7 @@ const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
 
 const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
   pickup: 'border-blue-300 bg-blue-50',
-  ceremony: 'border-pink-300 bg-pink-50',
+  ceremony: 'border-brand-300 bg-brand-50',
   reception: 'border-purple-300 bg-purple-50',
   photoshoot: 'border-green-300 bg-green-50',
   other: 'border-gray-300 bg-gray-50',
@@ -22,7 +22,7 @@ const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
 
 const LOCATION_DOT_COLORS: Record<LocationType, string> = {
   pickup: 'bg-blue-500',
-  ceremony: 'bg-pink-500',
+  ceremony: 'bg-brand-500',
   reception: 'bg-purple-500',
   photoshoot: 'bg-green-500',
   other: 'bg-gray-400',
@@ -95,7 +95,7 @@ export default function EventoPage() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600 mx-auto mb-3" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500 mx-auto mb-3" />
         <p className="text-sm text-gray-500">Cargando evento...</p>
       </div>
     </div>
@@ -126,8 +126,8 @@ export default function EventoPage() {
       <div className="bg-white border-b border-gray-200 px-4 py-5 sticky top-0 z-10 shadow-sm">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-rose-600 text-lg">💍</span>
+            <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-brand-500 text-lg">💍</span>
             </div>
             <div>
               <h1 className="font-bold text-gray-900 text-lg leading-tight">{event.event_name}</h1>
@@ -218,13 +218,13 @@ export default function EventoPage() {
                     <div key={act.id} className="flex gap-4 relative">
                       <div className="flex flex-col items-center shrink-0 z-10">
                         <div className={`w-[11px] h-[11px] rounded-full border-2 border-white ring-2 mt-3 ${
-                          idx === 0 ? 'ring-rose-500 bg-rose-500' : 'ring-gray-300 bg-white'
+                          idx === 0 ? 'ring-brand-500 bg-brand-500' : 'ring-gray-300 bg-white'
                         }`} />
                       </div>
                       <div className="flex-1 bg-white border border-gray-200 rounded-xl p-3 mb-2">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="text-sm font-bold text-rose-600 font-mono">{act.time}</span>
+                            <span className="text-sm font-bold text-brand-700 font-mono">{act.time}</span>
                             <p className="text-sm text-gray-900 mt-0.5 leading-snug">{act.description}</p>
                           </div>
                           {act.estimated_duration && (

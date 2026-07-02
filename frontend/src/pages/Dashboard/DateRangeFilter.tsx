@@ -90,9 +90,9 @@ export default function DateRangeFilter({ value, onChange }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 hover:border-pink-300 hover:text-pink-700 transition-colors cursor-pointer"
+        className="flex items-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 hover:border-brand-300 hover:text-brand-600 transition-colors cursor-pointer"
       >
-        <CalendarDays size={14} className="text-pink-400" />
+        <CalendarDays size={14} className="text-brand-400" />
         {value.label}
         <ChevronDown size={13} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -105,7 +105,7 @@ export default function DateRangeFilter({ value, onChange }: Props) {
               onClick={() => select(p)}
               className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors cursor-pointer ${
                 value.preset === p.preset
-                  ? 'bg-pink-50 text-pink-700 font-semibold'
+                  ? 'bg-brand-50 text-brand-600 font-semibold'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -120,20 +120,20 @@ export default function DateRangeFilter({ value, onChange }: Props) {
               type="date"
               value={customFrom}
               onChange={e => setCustomFrom(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
               placeholder="Desde"
             />
             <input
               type="date"
               value={customTo}
               onChange={e => setCustomTo(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pink-300"
+              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
               placeholder="Hasta"
             />
             <button
               onClick={applyCustom}
               disabled={!customFrom && !customTo}
-              className="w-full bg-pink-600 hover:bg-pink-700 disabled:opacity-40 text-white text-xs font-semibold py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-40 text-white text-xs font-semibold py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               Aplicar
             </button>

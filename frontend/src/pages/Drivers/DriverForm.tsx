@@ -73,7 +73,7 @@ export function DriverForm() {
   };
 
   if (loadingDoc) {
-    return <div className="flex items-center justify-center py-20 text-pink-400"><Loader2 className="animate-spin" size={32} /></div>;
+    return <div className="flex items-center justify-center py-20 text-brand-400"><Loader2 className="animate-spin" size={32} /></div>;
   }
 
   return (
@@ -82,18 +82,18 @@ export function DriverForm() {
         <button
           type="button"
           onClick={() => navigate("/conductores")}
-          className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-pink-900">
+        <h1 className="text-xl font-bold text-brand-800">
           {isEditing ? "Editar conductor" : "Nuevo conductor"}
         </h1>
       </div>
 
       {/* Personal info */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Información personal</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Información personal</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Nombre completo *"
@@ -116,7 +116,7 @@ export function DriverForm() {
 
       {/* Contact */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Contacto</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Contacto</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
@@ -126,7 +126,7 @@ export function DriverForm() {
 
       {/* License */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Licencia de conducción</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Licencia de conducción</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Número de licencia" {...register("driver_license_number")} placeholder="12345678" />
           <Input label="Fecha de vencimiento" {...register("license_expiration_date")} type="date" />
@@ -142,7 +142,7 @@ export function DriverForm() {
 
       {/* Notes */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wider">Notas</h2></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Notas</h2></CardHeader>
         <CardBody>
           <TextArea label="Notas internas" {...register("notes")} rows={3} placeholder="Observaciones adicionales..." />
         </CardBody>

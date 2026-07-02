@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Heart, LayoutDashboard, LogOut, MapPin, Menu, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Badge } from "../components/ui/Badge";
 import type { LucideIcon } from "lucide-react";
+import logo from "../assets/logo_camino_a_mi_boda.png";
 
 interface NavItemProps {
   to: string;
@@ -20,11 +20,14 @@ function NavItem({ to, icon: Icon, label, end = false, onClick, collapsed }: Nav
       to={to}
       end={end}
       onClick={onClick}
-      title={collapsed ? label : undefined}
+      aria-label={collapsed ? label : undefined}
       className={({ isActive }) =>
         `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer
         ${collapsed ? 'justify-center px-2' : ''}
-        ${isActive ? "bg-pink-50 text-pink-700" : "text-gray-600 hover:text-pink-700 hover:bg-pink-50"}`
+        ${isActive
+          ? "bg-white/20 text-white font-semibold"
+          : "text-white/80 hover:text-white hover:bg-white/15"
+        }`
       }
     >
       <Icon size={17} className="shrink-0" />
@@ -34,9 +37,9 @@ function NavItem({ to, icon: Icon, label, end = false, onClick, collapsed }: Nav
 }
 
 function SidebarSection({ label, collapsed }: { label: string; collapsed?: boolean }) {
-  if (collapsed) return <div className="my-1 border-t border-pink-50" />;
+  if (collapsed) return <div className="my-1 border-t border-white/20" />;
   return (
-    <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+    <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-white/50 font-display">
       {label}
     </p>
   );
@@ -78,15 +81,15 @@ export function Layout() {
   const mainML = c ? 'lg:ml-[60px]' : 'lg:ml-60';
 
   return (
-    <div className="min-h-screen bg-pink-50">
+    <div className="min-h-screen bg-gray-50">
 
       {/* Mobile top bar */}
-      <header className="lg:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white border-b border-pink-100 shadow-sm flex items-center justify-between px-4">
-        <span className="font-brand text-xl text-pink-600">Camino a mi Boda</span>
+      <header className="lg:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white border-b border-gray-100 shadow-sm flex items-center justify-between px-4">
+        <img src={logo} alt="Camino a mi Boda" className="h-10 object-contain object-left" />
         <button
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir menú"
-          className="p-2 rounded-lg text-gray-500 hover:bg-pink-50 cursor-pointer transition-colors"
+          className="p-2 rounded-lg text-gray-500 hover:bg-brand-50 cursor-pointer transition-colors"
         >
           <Menu size={22} />
         </button>
@@ -102,16 +105,25 @@ export function Layout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-pink-100 shadow-sm
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#2bbec3] border-r border-white/20 shadow-lg
           transition-all duration-200 ease-in-out w-60 ${sidebarW}
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       >
-        {/* Brand */}
-        <div className={`h-14 flex items-center border-b border-pink-100 shrink-0 ${c ? 'justify-center px-2' : 'px-4'}`}>
-          {c
-            ? <span className="font-brand text-lg text-pink-600">C</span>
-            : <span className="font-brand text-xl text-pink-600">Camino a mi Boda</span>
-          }
+        {/* Brand / Logo */}
+        <div className={`flex items-center justify-center border-b border-white/20 shrink-0 ${c ? 'h-16 px-2' : 'h-24 px-4'}`}>
+          {c ? (
+            <img
+              src={logo}
+              alt="Camino a mi Boda"
+              className="h-10 w-10 object-contain brightness-0 invert"
+            />
+          ) : (
+            <img
+              src={logo}
+              alt="Camino a mi Boda"
+              className="h-20 w-full object-contain brightness-0 invert"
+            />
+          )}
         </div>
 
         {/* Nav */}
@@ -147,19 +159,19 @@ export function Layout() {
         </nav>
 
         {/* User footer + desktop toggle */}
-        <div className="shrink-0 border-t border-pink-100">
+        <div className="shrink-0 border-t border-white/20">
           {!c && (
             <div className="p-3 flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name}</p>
-                <Badge variant={user?.role === "admin" ? "pink" : "gray"} className="text-xs">
+                <p className="text-sm font-semibold text-white truncate">{user?.full_name}</p>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/20 text-white/90 mt-0.5">
                   {user?.role === "admin" ? "Admin" : "Operaciones"}
-                </Badge>
+                </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               >
                 <LogOut size={18} />
               </button>
@@ -169,8 +181,8 @@ export function Layout() {
             <div className="flex flex-col items-center gap-1 py-2">
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               >
                 <LogOut size={17} />
               </button>
@@ -180,8 +192,8 @@ export function Layout() {
           <div className="hidden lg:flex justify-center pb-2">
             <button
               onClick={toggleDesktop}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-              title={c ? 'Expandir menú' : 'Colapsar menú'}
+              aria-label={c ? 'Expandir menú' : 'Colapsar menú'}
+              className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
             >
               {c ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>

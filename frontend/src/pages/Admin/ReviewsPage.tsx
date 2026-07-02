@@ -69,25 +69,25 @@ export default function ReviewsPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Opiniones</h1>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
+        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
           <Plus size={16} /> Agregar opinión
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-pink-700 uppercase tracking-wide">{editingId ? 'Editar' : 'Nueva'} opinión</h2>
+        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wide">{editingId ? 'Editar' : 'Nueva'} opinión</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Nombre del cliente</label>
               <input value={form.author_name} onChange={e => setForm(f => ({ ...f, author_name: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="María García" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Fuente</label>
               <select value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value as 'google' | 'manual' }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="manual">Directa / WhatsApp</option>
                 <option value="google">Google Maps</option>
               </select>
@@ -99,18 +99,18 @@ export default function ReviewsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Fecha del evento (opcional)</label>
               <input type="date" value={form.event_date ?? ''} onChange={e => setForm(f => ({ ...f, event_date: e.target.value || null }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Testimonio</label>
               <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} rows={3}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                 placeholder="Excelente servicio, el carro llegó puntual y fue el complemento perfecto para nuestra boda..." />
             </div>
             <div className="col-span-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                 <input type="checkbox" checked={form.is_visible} onChange={e => setForm(f => ({ ...f, is_visible: e.target.checked }))}
-                  className="rounded border-gray-300 text-pink-600 focus:ring-pink-500" />
+                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
                 <span className="text-gray-700">Visible en el catálogo público</span>
               </label>
             </div>
@@ -121,7 +121,7 @@ export default function ReviewsPage() {
               <X size={14} /> Cancelar
             </button>
             <button type="button" onClick={handleSave} disabled={saving || !form.author_name || !form.body}
-              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 cursor-pointer flex items-center gap-1">
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 cursor-pointer flex items-center gap-1">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Guardar
             </button>
@@ -130,7 +130,7 @@ export default function ReviewsPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16 text-pink-400"><Loader2 className="animate-spin" size={28} /></div>
+        <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">

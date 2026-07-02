@@ -38,7 +38,7 @@ function Card({ title, subtitle, tooltip, children }: { title: string; subtitle?
 function Spinner() {
   return (
     <div className="flex justify-center items-center h-40">
-      <Loader2 className="animate-spin text-pink-400" size={28} />
+      <Loader2 className="animate-spin text-brand-400" size={28} />
     </div>
   );
 }

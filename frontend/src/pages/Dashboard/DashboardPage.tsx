@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-pink-400">
+      <div className="flex justify-center items-center h-64 text-brand-400">
         <Loader2 className="animate-spin" size={32} />
       </div>
     );
@@ -100,7 +100,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header — sticky so the date selection stays visible while scrolling */}
-      <div className="sticky top-14 lg:top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-pink-50 border-b border-pink-100 flex items-center justify-between gap-4">
+      <div className="sticky top-14 lg:top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-brand-50 border-b border-brand-100 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Panel de operaciones</h1>
         <DateRangeFilter value={range} onChange={setRange} />
       </div>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
       {/* Finance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-1">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             <TrendingUp size={14} />
             Facturado · {range.label}
             <Tooltip text="Suma de reservas completadas en el período. La ganancia empresa es el 100% para vehículos propios y el 30% para vehículos de socios." />
@@ -116,12 +116,12 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold text-gray-900">{formatCOP(data.finance.revenue_this_month)}</p>
           <div className="flex items-center gap-1.5 pt-1">
             <span className="text-xs text-gray-400">Ganancia empresa</span>
-            <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.company_revenue_this_month)}</span>
+            <span className="text-xs font-semibold text-brand-700">{formatCOP(data.finance.company_revenue_this_month)}</span>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-1">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             <AlertCircle size={14} />
             Saldo pendiente
             <Tooltip text="Lo que los clientes todavía deben pagar en reservas activas del período. La parte empresa se calcula según la propiedad del vehículo de cada reserva." />
@@ -134,7 +134,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-1">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             <CheckCircle2 size={14} />
             Liquidaciones pendientes
             <Tooltip text="Eventos completados sin liquidación pagada al propietario. Para vehículos de socios: 70% propietario / 30% empresa. Para vehículos propios: 100% empresa." />
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold text-purple-600">{formatCOP(data.finance.pending_owner_payments)}</p>
           <div className="flex items-center gap-1.5 pt-1">
             <span className="text-xs text-gray-400">Propietarios ·</span>
-            <span className="text-xs font-semibold text-pink-600">{formatCOP(data.finance.pending_company_revenue)} empresa</span>
+            <span className="text-xs font-semibold text-brand-700">{formatCOP(data.finance.pending_company_revenue)} empresa</span>
           </div>
         </div>
       </div>
@@ -151,12 +151,12 @@ export default function DashboardPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
             <div className="flex items-center gap-2 font-semibold text-gray-800">
-              <Calendar size={16} className="text-pink-500" />
+              <Calendar size={16} className="text-brand-500" />
               Próximos eventos (30 días)
             </div>
             <button
               onClick={() => navigate('/reservas')}
-              className="text-xs text-pink-600 hover:underline cursor-pointer"
+              className="text-xs text-brand-700 hover:underline cursor-pointer"
             >
               Ver todas
             </button>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 <div
                   key={r.id}
                   onClick={() => navigate(`/reservas/${r.id}`)}
-                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-pink-50/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-brand-50/50 transition-colors cursor-pointer"
                 >
                   <div className="text-center shrink-0 w-12">
                     <p className="text-xs text-gray-400 leading-tight">
@@ -181,9 +181,9 @@ export default function DashboardPage() {
                     </p>
                     {(() => {
                       const diff = Math.round((new Date(r.date + 'T12:00:00').getTime() - new Date().setHours(12,0,0,0)) / 86400000);
-                      if (diff === 0) return <p className="text-[10px] font-semibold text-pink-600 leading-tight mt-0.5">hoy</p>;
+                      if (diff === 0) return <p className="text-[10px] font-semibold text-brand-700 leading-tight mt-0.5">hoy</p>;
                       if (diff === 1) return <p className="text-[10px] font-semibold text-amber-500 leading-tight mt-0.5">mañana</p>;
-                      return <p className="text-[10px] text-gray-400 leading-tight mt-0.5">en {diff}d</p>;
+                      return <p className="text-[10px] text-gray-500 leading-tight mt-0.5">en {diff}d</p>;
                     })()}
                   </div>
                   <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                     {r.remaining_balance > 0 && (
                       <p className="text-xs text-red-500 font-medium">{formatCOP(r.remaining_balance)} pendiente</p>
                     )}
-                    <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </div>
                 </div>
               ))}
@@ -218,7 +218,7 @@ export default function DashboardPage() {
         {/* Reservations by status */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <ClipboardList size={16} className="text-pink-500" />
+            <ClipboardList size={16} className="text-brand-500" />
             Reservas
           </div>
           <div className="space-y-2">
@@ -244,7 +244,7 @@ export default function DashboardPage() {
         {/* Vehicles */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <Car size={16} className="text-pink-500" />
+            <Car size={16} className="text-brand-500" />
             Vehículos
           </div>
           <div className="space-y-2">
@@ -263,16 +263,16 @@ export default function DashboardPage() {
 
         {/* Quick links */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Acciones rápidas</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Acciones rápidas</p>
           <button
             onClick={() => navigate('/reservas/nueva')}
-            className="w-full text-left text-sm text-pink-700 font-medium hover:underline cursor-pointer py-0.5"
+            className="w-full text-left text-sm text-brand-600 font-medium hover:underline cursor-pointer py-0.5"
           >
             + Nueva reserva
           </button>
           <button
             onClick={() => navigate('/cotizaciones/nuevo')}
-            className="w-full text-left text-sm text-pink-700 font-medium hover:underline cursor-pointer py-0.5"
+            className="w-full text-left text-sm text-brand-600 font-medium hover:underline cursor-pointer py-0.5"
           >
             + Nueva cotización
           </button>
@@ -289,11 +289,11 @@ export default function DashboardPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
           <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <ClipboardList size={16} className="text-pink-500" />
+            <ClipboardList size={16} className="text-brand-500" />
             Eventos · {range.label}
             <span className="text-xs font-normal text-gray-400 ml-1">({data.period_events.length})</span>
           </div>
-          <button onClick={() => navigate('/reservas')} className="text-xs text-pink-600 hover:underline cursor-pointer">
+          <button onClick={() => navigate('/reservas')} className="text-xs text-brand-700 hover:underline cursor-pointer">
             Ver todas
           </button>
         </div>
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                       )}
                       <tr
                         onClick={() => navigate(`/reservas/${r.id}`)}
-                        className="hover:bg-pink-50/40 transition-colors cursor-pointer"
+                        className="hover:bg-brand-50/40 transition-colors cursor-pointer"
                       >
                         <td className="px-4 py-2">
                           <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                          <p className="text-xs text-pink-500">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                          <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                         </td>
                         <td className="px-5 py-3 text-right hidden sm:table-cell whitespace-nowrap">
                           {Number(r.remaining_balance) > 0

@@ -87,7 +87,7 @@ export function BillingDocumentList() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-pink-900">Cuentas de Cobro</h1>
+          <h1 className="text-2xl font-bold text-brand-800">Cuentas de Cobro</h1>
           <p className="text-sm text-gray-500 mt-1">
             Gestiona y genera documentos de cobro para tus clientes
           </p>
@@ -107,7 +107,7 @@ export function BillingDocumentList() {
 
       {/* Loading state */}
       {loading && (
-        <div className="flex items-center justify-center py-20 text-pink-400">
+        <div className="flex items-center justify-center py-20 text-brand-400">
           <Loader2 className="animate-spin" size={32} />
         </div>
       )}
@@ -116,10 +116,10 @@ export function BillingDocumentList() {
       {!loading && !error && docs.length === 0 && (
         <Card>
           <div className="text-center py-16 px-6">
-            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FilePlus size={28} className="text-pink-500" />
+            <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FilePlus size={28} className="text-brand-500" />
             </div>
-            <h3 className="text-lg font-semibold text-pink-900 mb-2">
+            <h3 className="text-lg font-semibold text-brand-800 mb-2">
               Aún no hay cuentas de cobro
             </h3>
             <p className="text-gray-500 text-sm mb-6">
@@ -139,26 +139,26 @@ export function BillingDocumentList() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-pink-100 bg-pink-50/60">
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                <tr className="border-b border-brand-100 bg-brand-50/60">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Número
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Valor
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-brand-600 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -167,10 +167,10 @@ export function BillingDocumentList() {
                 {docs.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="hover:bg-pink-50/40 transition-colors duration-150 group"
+                    className="hover:bg-brand-50/40 transition-colors duration-150 group"
                   >
                     <td className="px-6 py-4">
-                      <span className="font-mono text-pink-700 font-semibold text-xs tracking-wide">
+                      <span className="font-mono text-brand-600 font-semibold text-xs tracking-wide">
                         {doc.document_number}
                       </span>
                     </td>
@@ -195,7 +195,7 @@ export function BillingDocumentList() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => navigate(`/documentos/${doc.id}`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors duration-150 cursor-pointer"
+                          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors duration-150 cursor-pointer"
                           title="Ver documento"
                         >
                           <Eye size={16} />
@@ -203,7 +203,7 @@ export function BillingDocumentList() {
                         <button
                           onClick={() => handleGeneratePdf(doc)}
                           disabled={generatingPdf === doc.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-gold-600 hover:bg-yellow-50 transition-colors duration-150 cursor-pointer disabled:opacity-50"
+                          className="p-2 rounded-lg text-gray-400 hover:text-gold-600 hover:bg-yellow-50 transition-colors duration-150 cursor-pointer disabled:opacity-50"
                           title={doc.pdf_path ? "Descargar PDF" : "Generar PDF"}
                         >
                           {generatingPdf === doc.id ? (
@@ -215,7 +215,7 @@ export function BillingDocumentList() {
                         <button
                           onClick={() => handleDelete(doc)}
                           disabled={deleting === doc.id || doc.status !== "draft"}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                           title={doc.status !== "draft" ? "Solo se pueden eliminar borradores" : "Eliminar"}
                         >
                           {deleting === doc.id ? (

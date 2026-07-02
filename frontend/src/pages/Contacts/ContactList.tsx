@@ -108,7 +108,7 @@ export default function ContactList() {
         </div>
         <button
           onClick={() => navigate('/contactos/nuevo')}
-          className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
         >
           <Plus size={16} /> Nuevo contacto
         </button>
@@ -122,7 +122,7 @@ export default function ContactList() {
             value={inputSearch}
             onChange={e => handleSearchChange(e.target.value)}
             placeholder="Buscar por nombre, ciudad, email..."
-            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -132,8 +132,8 @@ export default function ContactList() {
               onClick={() => setFilter('type', f.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 typeFilter === f.value
-                  ? 'bg-pink-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-pink-300 hover:text-pink-700'
+                  ? 'bg-brand-700 text-white'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600'
               }`}
             >
               {f.label}
@@ -157,7 +157,7 @@ export default function ContactList() {
       </div>
 
       {loading && (
-        <div className="flex justify-center py-16 text-pink-400">
+        <div className="flex justify-center py-16 text-brand-400">
           <Loader2 className="animate-spin" size={32} />
         </div>
       )}
@@ -187,7 +187,7 @@ export default function ContactList() {
               {contacts.map(c => (
                 <tr
                   key={c.id}
-                  className="hover:bg-pink-50/40 transition-colors cursor-pointer"
+                  className="hover:bg-brand-50/40 transition-colors cursor-pointer"
                   onClick={() => navigate(`/contactos/editar/${c.id}`)}
                 >
                   <td className="px-4 py-3">
@@ -206,7 +206,7 @@ export default function ContactList() {
                         href={`https://www.instagram.com/${c.instagram.replace(/^@/, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-pink-600 hover:underline text-xs flex items-center gap-1"
+                        className="text-brand-700 hover:underline text-xs flex items-center gap-1"
                       >
                         {c.instagram} <ExternalLink size={10} />
                       </a>
@@ -227,7 +227,7 @@ export default function ContactList() {
                           onClick={() => handleWhatsApp(c)}
                           disabled={waLoadingId === c.id}
                           title="Abrir WhatsApp"
-                          className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors cursor-pointer disabled:opacity-50"
+                          className="p-2 rounded-lg text-green-600 hover:bg-green-50 transition-colors cursor-pointer disabled:opacity-50"
                         >
                           {waLoadingId === c.id
                             ? <Loader2 size={15} className="animate-spin" />
@@ -237,7 +237,7 @@ export default function ContactList() {
                       <button
                         onClick={() => navigate(`/contactos/editar/${c.id}`)}
                         title="Editar"
-                        className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
                       >
                         <Pencil size={15} />
                       </button>
@@ -245,7 +245,7 @@ export default function ContactList() {
                         onClick={() => handleDelete(c)}
                         disabled={deletingId === c.id}
                         title="Eliminar"
-                        className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                        className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         {deletingId === c.id
                           ? <Loader2 size={15} className="animate-spin" />

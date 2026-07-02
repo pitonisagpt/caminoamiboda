@@ -238,19 +238,19 @@ export default function FinanceTab({
           <div className="bg-gray-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-lg font-bold text-gray-900">{formatCOP(reservation.total_amount)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>
+            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Depósitos</p>
             <p className="text-lg font-bold text-green-700">{formatCOP(totalDeposit)}</p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>
+            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>
           </div>
           <div className={`rounded-xl p-4 text-center ${remaining > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
             <p className={`text-lg font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-700'}`}>
               {formatCOP(remaining)}
             </p>
-            <p className="text-xs text-pink-500 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>
+            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export default function FinanceTab({
             )}
             <div className="flex justify-between text-sm">
               <div className="flex items-center gap-2">
-                <DollarSign size={14} className="text-pink-400" />
+                <DollarSign size={14} className="text-brand-400" />
                 <span className="text-gray-600">Empresa ({Math.round(companyPct * 100)}%)</span>
               </div>
               <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * companyPct)}</span>
@@ -301,7 +301,7 @@ export default function FinanceTab({
           {!addingPayment && (
             <button
               onClick={() => setAddingPayment(true)}
-              className="flex items-center gap-1 text-xs font-semibold text-pink-600 hover:text-pink-700 cursor-pointer"
+              className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 cursor-pointer"
             >
               <Plus size={13} /> Agregar pago
             </button>
@@ -336,7 +336,7 @@ export default function FinanceTab({
 
         {/* Add payment form */}
         {addingPayment && (
-          <div className="border border-pink-100 rounded-xl p-4 space-y-3 bg-pink-50/30">
+          <div className="border border-brand-100 rounded-xl p-4 space-y-3 bg-brand-50/30">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Monto (COP) *</label>
@@ -347,7 +347,7 @@ export default function FinanceTab({
                   value={newAmount}
                   onChange={e => setNewAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   autoFocus
                 />
               </div>
@@ -357,7 +357,7 @@ export default function FinanceTab({
                   type="date"
                   value={newDate}
                   onChange={e => setNewDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function FinanceTab({
                 value={newNotes}
                 onChange={e => setNewNotes(e.target.value)}
                 placeholder="Ej: transferencia, efectivo, cuota…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div className="flex gap-2 justify-end">
@@ -383,7 +383,7 @@ export default function FinanceTab({
                 type="button"
                 onClick={handleAddPayment}
                 disabled={saving || !newAmount}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                 Guardar
@@ -482,9 +482,9 @@ export default function FinanceTab({
                     <p className="text-xs text-gray-400 mb-0.5">Propietario ({settlement.owner_percentage}%)</p>
                     <p className="text-base font-bold text-purple-700">{formatCOP(settlement.owner_amount)}</p>
                   </div>
-                  <div className="bg-pink-50 rounded-xl p-3 text-center">
+                  <div className="bg-brand-50 rounded-xl p-3 text-center">
                     <p className="text-xs text-gray-400 mb-0.5">Empresa ({100 - settlement.owner_percentage}%)</p>
-                    <p className="text-base font-bold text-pink-700">{formatCOP(settlement.company_amount)}</p>
+                    <p className="text-base font-bold text-brand-600">{formatCOP(settlement.company_amount)}</p>
                   </div>
                 </div>
 
