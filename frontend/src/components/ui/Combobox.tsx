@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 
 export interface ComboboxOption {
   value: string;
@@ -15,6 +15,8 @@ interface ComboboxProps {
   label?: string;
   error?: string;
   disabled?: boolean;
+  onCreateNew?: (query: string) => void;
+  createLabel?: string;
 }
 
 export default function Combobox({
@@ -25,6 +27,8 @@ export default function Combobox({
   label,
   error,
   disabled = false,
+  onCreateNew,
+  createLabel = 'Crear',
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -157,8 +161,18 @@ export default function Combobox({
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
           <div ref={listRef}>
+            {onCreateNew && query && (
+              <div
+                onMouseDown={() => { onCreateNew(query); setOpen(false); setQuery(''); setActiveIndex(-1); }}
+                className="px-3 py-2.5 text-sm cursor-pointer text-brand-600 font-medium border-b border-gray-100 flex items-center gap-1.5"
+              >
+                <Plus size={14} /> {createLabel} &ldquo;{query}&rdquo;
+              </div>
+            )}
             {filtered.length === 0 ? (
-              <div className="px-3 py-2.5 text-sm text-gray-400">Sin resultados</div>
+              (!onCreateNew || !query) && (
+                <div className="px-3 py-2.5 text-sm text-gray-400">Sin resultados</div>
+              )
             ) : (
               filtered.map((option, i) => {
                 const prevGroup = i > 0 ? filtered[i - 1].group : undefined;

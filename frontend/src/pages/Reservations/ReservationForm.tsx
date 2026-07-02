@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useWatch, Controller } from 'react-hook-form';
-import { AlertTriangle, ArrowLeft, Save } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Save, X } from 'lucide-react';
 import Combobox from '../../components/ui/Combobox';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
@@ -14,20 +14,27 @@ import { calendarApi } from '../../api/calendar';
 import type { ConflictItem } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
+import type { Customer } from '../../types/customer';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ReservationForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const { isAdmin } = useAuth();
 
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [owners, setOwners] = useState<VehicleOwnerBasic[]>([]);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
+  const [customerQuickCreate, setCustomerQuickCreate] = useState<{ open: boolean; name: string }>({ open: false, name: '' });
+  const [vehicleQuickCreate, setVehicleQuickCreate] = useState<{ open: boolean; name: string }>({ open: false, name: '' });
+  const [driverQuickCreate, setDriverQuickCreate] = useState<{ open: boolean; name: string }>({ open: false, name: '' });
+  const [contactQuickCreate, setContactQuickCreate] = useState<{ open: boolean; name: string }>({ open: false, name: '' });
 
-  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } =
     useForm<ReservationFormData>({
       defaultValues: {
         status: 'lead',
@@ -192,6 +199,8 @@ export default function ReservationForm() {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar cliente..."
+                  onCreateNew={(name) => setCustomerQuickCreate({ open: true, name })}
+                  createLabel="Crear cliente"
                 />
               )}
             />
@@ -205,6 +214,8 @@ export default function ReservationForm() {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar contacto..."
+                  onCreateNew={(name) => setContactQuickCreate({ open: true, name })}
+                  createLabel="Crear contacto"
                 />
               )}
             />
@@ -287,6 +298,8 @@ export default function ReservationForm() {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar vehículo..."
+                  onCreateNew={isAdmin ? (name) => setVehicleQuickCreate({ open: true, name }) : undefined}
+                  createLabel="Crear vehículo"
                 />
               )}
             />
@@ -311,6 +324,8 @@ export default function ReservationForm() {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Buscar conductor..."
+                  onCreateNew={(name) => setDriverQuickCreate({ open: true, name })}
+                  createLabel="Crear conductor"
                 />
               )}
             />
@@ -411,6 +426,490 @@ export default function ReservationForm() {
           </button>
         </div>
       </form>
+
+      {customerQuickCreate.open && (
+        <CustomerQuickCreateModal
+          initialName={customerQuickCreate.name}
+          onSave={async (form) => {
+            const res = await customersApi.create({
+              main_contact_name: form.main_contact_name,
+              bride_name: form.bride_name || null,
+              groom_name: form.groom_name || null,
+              phone: form.phone || null,
+            });
+            setCustomers(prev => [...prev, res.data]);
+            setValue('customer_id', String(res.data.id));
+            setCustomerQuickCreate({ open: false, name: '' });
+          }}
+          onClose={() => setCustomerQuickCreate({ open: false, name: '' })}
+        />
+      )}
+
+      {vehicleQuickCreate.open && (
+        <VehicleQuickCreateModal
+          initialName={vehicleQuickCreate.name}
+          onSave={async (form) => {
+            const res = await vehiclesApi.create({
+              brand: form.brand,
+              license_plate: form.license_plate.toUpperCase(),
+              model_line: form.model_line || null,
+              color: form.color || null,
+            });
+            setVehicles(prev => [...prev, res.data]);
+            setValue('vehicle_id', String(res.data.id));
+            setVehicleQuickCreate({ open: false, name: '' });
+          }}
+          onClose={() => setVehicleQuickCreate({ open: false, name: '' })}
+        />
+      )}
+
+      {driverQuickCreate.open && (
+        <DriverQuickCreateModal
+          initialName={driverQuickCreate.name}
+          onSave={async (form) => {
+            const res = await driversApi.create({
+              full_name: form.full_name,
+              phone: form.phone || null,
+              whatsapp: form.whatsapp || null,
+            });
+            setDrivers(prev => [...prev, res.data]);
+            setValue('driver_combined', `driver:${res.data.id}`);
+            setDriverQuickCreate({ open: false, name: '' });
+          }}
+          onClose={() => setDriverQuickCreate({ open: false, name: '' })}
+        />
+      )}
+
+      {contactQuickCreate.open && (
+        <ContactQuickCreateModal
+          initialName={contactQuickCreate.name}
+          onSave={async (form) => {
+            const res = await contactsApi.create({
+              full_name: form.full_name,
+              contact_type: form.contact_type,
+              phone: form.phone || null,
+            });
+            setContacts(prev => [...prev, res.data]);
+            setValue('contact_id', String(res.data.id));
+            setContactQuickCreate({ open: false, name: '' });
+          }}
+          onClose={() => setContactQuickCreate({ open: false, name: '' })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Customer Quick Create Modal ─────────────────────────────────────────────
+interface CustomerQuickCreateForm {
+  bride_name: string;
+  groom_name: string;
+  main_contact_name: string;
+  phone: string;
+}
+
+function CustomerQuickCreateModal({
+  initialName,
+  onSave,
+  onClose,
+}: {
+  initialName: string;
+  onSave: (data: CustomerQuickCreateForm) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<CustomerQuickCreateForm>({
+    bride_name: '',
+    groom_name: '',
+    main_contact_name: initialName,
+    phone: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const f = (k: keyof CustomerQuickCreateForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!form.main_contact_name.trim()) {
+      setError('El contacto principal es obligatorio');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(form);
+    } catch {
+      setError('No se pudo crear el cliente. Revisa los datos (ej. formato del teléfono).');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
+  const labelCls = 'block text-sm text-gray-600 mb-1';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900">Nuevo cliente</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Novia</label>
+              <input value={form.bride_name} onChange={f('bride_name')} className={inputCls} placeholder="María" />
+            </div>
+            <div>
+              <label className={labelCls}>Novio</label>
+              <input value={form.groom_name} onChange={f('groom_name')} className={inputCls} placeholder="Carlos" />
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Contacto principal *</label>
+            <input value={form.main_contact_name} onChange={f('main_contact_name')} className={inputCls} placeholder="María García" />
+          </div>
+          <div>
+            <label className={labelCls}>Teléfono / WhatsApp</label>
+            <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <p className="text-xs text-gray-400">Podrás completar cédula, email y más datos luego desde Clientes.</p>
+        </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {saving ? 'Creando…' : 'Crear y usar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Vehicle Quick Create Modal ──────────────────────────────────────────────
+interface VehicleQuickCreateForm {
+  brand: string;
+  license_plate: string;
+  model_line: string;
+  color: string;
+}
+
+function VehicleQuickCreateModal({
+  initialName,
+  onSave,
+  onClose,
+}: {
+  initialName: string;
+  onSave: (data: VehicleQuickCreateForm) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<VehicleQuickCreateForm>({
+    brand: initialName,
+    license_plate: '',
+    model_line: '',
+    color: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const f = (k: keyof VehicleQuickCreateForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!form.brand.trim() || !form.license_plate.trim()) {
+      setError('Marca y placa son obligatorias');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(form);
+    } catch {
+      setError('No se pudo crear el vehículo. Revisa que la placa no esté repetida.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
+  const labelCls = 'block text-sm text-gray-600 mb-1';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900">Nuevo vehículo</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Marca *</label>
+              <input value={form.brand} onChange={f('brand')} className={inputCls} placeholder="Mercedes Benz" />
+            </div>
+            <div>
+              <label className={labelCls}>Placa *</label>
+              <input value={form.license_plate} onChange={f('license_plate')} className={inputCls} placeholder="ABC123" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Línea / Modelo</label>
+              <input value={form.model_line} onChange={f('model_line')} className={inputCls} placeholder="Clase S" />
+            </div>
+            <div>
+              <label className={labelCls}>Color</label>
+              <input value={form.color} onChange={f('color')} className={inputCls} placeholder="Blanco" />
+            </div>
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <p className="text-xs text-gray-400">Podrás completar zonas, precios y fotos luego desde Vehículos.</p>
+        </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {saving ? 'Creando…' : 'Crear y usar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Driver Quick Create Modal ───────────────────────────────────────────────
+interface DriverQuickCreateForm {
+  full_name: string;
+  phone: string;
+  whatsapp: string;
+}
+
+function DriverQuickCreateModal({
+  initialName,
+  onSave,
+  onClose,
+}: {
+  initialName: string;
+  onSave: (data: DriverQuickCreateForm) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<DriverQuickCreateForm>({
+    full_name: initialName,
+    phone: '',
+    whatsapp: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const f = (k: keyof DriverQuickCreateForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!form.full_name.trim()) {
+      setError('El nombre completo es obligatorio');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(form);
+    } catch {
+      setError('No se pudo crear el conductor. Revisa los datos (ej. formato del teléfono).');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
+  const labelCls = 'block text-sm text-gray-600 mb-1';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900">Nuevo conductor</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div>
+            <label className={labelCls}>Nombre completo *</label>
+            <input value={form.full_name} onChange={f('full_name')} className={inputCls} placeholder="Carlos Ramírez" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Teléfono</label>
+              <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
+            </div>
+            <div>
+              <label className={labelCls}>WhatsApp</label>
+              <input value={form.whatsapp} onChange={f('whatsapp')} className={inputCls} placeholder="312 345 6789" />
+            </div>
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <p className="text-xs text-gray-400">Podrás completar licencia y más datos luego desde Conductores.</p>
+        </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {saving ? 'Creando…' : 'Crear y usar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Contact Quick Create Modal ──────────────────────────────────────────────
+const CONTACT_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'planner', label: 'Organizador / Wedding Planner' },
+  { value: 'venue', label: 'Venue / Salón de eventos' },
+  { value: 'agency', label: 'Agencia de eventos' },
+  { value: 'other', label: 'Otro' },
+];
+
+interface ContactQuickCreateForm {
+  full_name: string;
+  contact_type: string;
+  phone: string;
+}
+
+function ContactQuickCreateModal({
+  initialName,
+  onSave,
+  onClose,
+}: {
+  initialName: string;
+  onSave: (data: ContactQuickCreateForm) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<ContactQuickCreateForm>({
+    full_name: initialName,
+    contact_type: 'planner',
+    phone: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    if (!form.full_name.trim()) {
+      setError('El nombre es obligatorio');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(form);
+    } catch {
+      setError('No se pudo crear el contacto. Revisa los datos.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
+  const labelCls = 'block text-sm text-gray-600 mb-1';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900">Nuevo contacto</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div>
+            <label className={labelCls}>Nombre *</label>
+            <input
+              value={form.full_name}
+              onChange={(e) => setForm(prev => ({ ...prev, full_name: e.target.value }))}
+              className={inputCls}
+              placeholder="Andrea Vélez"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Tipo</label>
+              <select
+                value={form.contact_type}
+                onChange={(e) => setForm(prev => ({ ...prev, contact_type: e.target.value }))}
+                className={inputCls}
+              >
+                {CONTACT_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Teléfono</label>
+              <input
+                value={form.phone}
+                onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
+                className={inputCls}
+                placeholder="312 345 6789"
+              />
+            </div>
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <p className="text-xs text-gray-400">Podrás completar email, Instagram y más datos luego desde Contactos.</p>
+        </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {saving ? 'Creando…' : 'Crear y usar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
