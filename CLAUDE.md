@@ -113,6 +113,7 @@ Fields:
 - bride_name
 - groom_name
 - main_contact_name
+- identification_number (cédula, optional — auto-fills billing documents)
 - phone
 - whatsapp
 - email
@@ -172,6 +173,8 @@ Attachments:
 - reference photos
 - special instructions
 
+Inline quick-create: the reservation form's Cliente, Vehículo, Conductor, and Planificadora/Referida por pickers support creating the related record on the spot (small modal, minimal fields) instead of leaving the form. Vehículo quick-create is admin-only, matching the `POST /vehicles` permission; Cliente/Conductor/Contacto are open to any authenticated user.
+
 ### 6) Event Timeline (Minute by Minute)
 Core operational module.
 Every reservation has a detailed timeline and operational plan.
@@ -194,6 +197,7 @@ Each location includes:
 - contact_person
 - contact_phone
 - notes
+- road_access_notes (portería, carretera estrecha, cobro de ingreso, acceso restringido)
 
 #### Timeline Activities (one-to-many)
 Each activity includes:
