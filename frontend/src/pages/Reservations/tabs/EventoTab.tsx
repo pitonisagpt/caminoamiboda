@@ -52,7 +52,7 @@ function buildWaUrl(phone: string | null | undefined, message: string): string {
 
 function formatEventDate(d: string): string {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-    day: '2-digit', month: 'long', year: 'numeric',
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
   });
 }
 
