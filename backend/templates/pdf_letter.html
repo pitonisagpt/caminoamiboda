@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    {% include '_brand.html' %}
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -27,21 +27,17 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      border-bottom: 3px solid #DB2777;
+      border-bottom: 3px solid #21b2b8;
       padding-bottom: 18px;
       margin-bottom: 32px;
     }
 
-    .brand-name {
-      font-size: 22pt;
-      font-weight: 700;
-      color: #DB2777;
-    }
-
     .brand-tagline {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-weight: 600;
       font-size: 9pt;
-      color: #831843;
-      margin-top: 3px;
+      color: #166f73;
+      margin-top: 8px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -56,7 +52,7 @@
     .header-meta .doc-number {
       font-size: 11pt;
       font-weight: 700;
-      color: #831843;
+      color: #0f4245;
     }
 
     /* ── Letter body ── */
@@ -89,7 +85,7 @@
 
     .subject-label {
       font-weight: 700;
-      color: #831843;
+      color: #0f4245;
     }
 
     .body-text {
@@ -99,13 +95,13 @@
 
     /* ── Amount highlight ── */
     .amount-highlight {
-      background: #fdf2f8;
-      border-left: 4px solid #DB2777;
+      background: #f0fbfb;
+      border-left: 4px solid #21b2b8;
       padding: 12px 18px;
       margin: 18px 0;
       font-size: 12pt;
       font-weight: 600;
-      color: #831843;
+      color: #0f4245;
       border-radius: 0 4px 4px 0;
     }
 
@@ -116,7 +112,7 @@
 
     .route-label {
       font-weight: 700;
-      color: #831843;
+      color: #0f4245;
       font-size: 10.5pt;
       margin-bottom: 8px;
     }
@@ -130,7 +126,7 @@
       padding: 6px 0 6px 20px;
       position: relative;
       font-size: 10.5pt;
-      border-bottom: 1px solid #f5e0ec;
+      border-bottom: 1px solid #d0f4f5;
       color: #333;
     }
 
@@ -138,7 +134,7 @@
       content: "→";
       position: absolute;
       left: 0;
-      color: #DB2777;
+      color: #21b2b8;
       font-weight: 700;
     }
 
@@ -174,9 +170,10 @@
     }
 
     .policy-title {
+      font-family: 'Montserrat', Arial, sans-serif;
       font-size: 10pt;
       font-weight: 700;
-      color: #831843;
+      color: #0f4245;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
@@ -220,7 +217,7 @@
       margin-top: 24px;
       font-size: 8.5pt;
       color: #aaa;
-      border-top: 1px solid #f3c0d9;
+      border-top: 1px solid #d0f4f5;
       padding-top: 10px;
       text-align: center;
     }
@@ -232,7 +229,7 @@
     <!-- Header -->
     <div class="header">
       <div>
-        <div class="brand-name">{{ company_name }}</div>
+        {% include '_logo_badge.html' %}
         <div class="brand-tagline">Transporte de bodas y eventos especiales · Medellín</div>
       </div>
       <div class="header-meta">
@@ -304,7 +301,7 @@
     {% endif %}
 
     <!-- Payment conditions -->
-    <p style="font-weight:600; color:#831843; margin:16px 0 6px; font-size:10.5pt;">Condiciones de Pago:</p>
+    <p style="font-weight:600; color:#0f4245; margin:16px 0 6px; font-size:10.5pt;">Condiciones de Pago:</p>
     <div class="payment-box">{{ doc.payment_instructions }}</div>
 
     <!-- Cancellation Policy -->

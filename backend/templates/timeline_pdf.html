@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    {% include '_brand.html' %}
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; }
+    body { font-family: 'Inter', Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; }
 
     .page { padding: 32px 40px; }
 
@@ -13,38 +14,39 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      border-bottom: 3px solid #DB2777;
+      border-bottom: 3px solid #21b2b8;
       padding-bottom: 14px;
       margin-bottom: 20px;
     }
-    .brand-name { font-size: 20pt; font-weight: 700; color: #DB2777; }
-    .brand-tagline { font-size: 8pt; color: #831843; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .brand-tagline { font-family: 'Montserrat', Arial, sans-serif; font-weight: 600; font-size: 8pt; color: #166f73; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
     .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
-    .header-meta .event-title { font-size: 13pt; font-weight: 700; color: #831843; }
+    .header-meta .event-title { font-size: 13pt; font-weight: 700; color: #0f4245; }
 
     /* ── Document title ── */
     .doc-title {
+      font-family: 'Montserrat', Arial, sans-serif;
       text-align: center;
       font-size: 13pt;
       font-weight: 700;
-      color: #831843;
+      color: #0f4245;
       letter-spacing: 3px;
       text-transform: uppercase;
       padding: 8px 0;
-      border-top: 1px solid #f3c0d9;
-      border-bottom: 1px solid #f3c0d9;
+      border-top: 1px solid #d0f4f5;
+      border-bottom: 1px solid #d0f4f5;
       margin-bottom: 20px;
     }
 
     /* ── Sections ── */
     .section { margin-bottom: 18px; }
     .section-title {
+      font-family: 'Montserrat', Arial, sans-serif;
       font-size: 9pt;
       font-weight: 700;
-      color: #DB2777;
+      color: #166f73;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      border-bottom: 1px solid #fce7f3;
+      border-bottom: 1px solid #f0fbfb;
       padding-bottom: 4px;
       margin-bottom: 10px;
     }
@@ -63,8 +65,8 @@
       border-radius: 20px;
       font-size: 8.5pt;
       font-weight: 700;
-      background: #fce7f3;
-      color: #831843;
+      background: #f0fbfb;
+      color: #0f4245;
     }
 
     /* ── Contacts box ── */
@@ -79,12 +81,13 @@
     .contact-item:last-child { border-right: none; }
     .contact-role { font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
     .contact-name { font-size: 10pt; font-weight: 700; color: #1a1a1a; }
-    .contact-phone { font-size: 9pt; color: #DB2777; margin-top: 1px; }
+    .contact-phone { font-size: 9pt; color: #166f73; margin-top: 1px; }
 
     /* ── Locations table ── */
     .loc-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
     .loc-table th {
-      background: #831843;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #0f4245;
       color: #fff;
       font-size: 8.5pt;
       text-transform: uppercase;
@@ -103,7 +106,7 @@
       white-space: nowrap;
     }
     .loc-pickup    { background: #dbeafe; color: #1d4ed8; }
-    .loc-ceremony  { background: #fce7f3; color: #831843; }
+    .loc-ceremony  { background: #f3e8ff; color: #7e22ce; }
     .loc-reception { background: #dcfce7; color: #15803d; }
     .loc-photoshoot{ background: #ffedd5; color: #c2410c; }
     .loc-other     { background: #f1f5f9; color: #475569; }
@@ -112,7 +115,8 @@
     /* ── Activities table (itinerary) ── */
     .act-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
     .act-table th {
-      background: #DB2777;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #0f4245;
       color: #fff;
       font-size: 8.5pt;
       text-transform: uppercase;
@@ -120,10 +124,10 @@
       padding: 7px 10px;
       text-align: left;
     }
-    .act-table td { padding: 8px 10px; border-bottom: 1px solid #fce7f3; vertical-align: top; }
-    .act-table tr:nth-child(even) td { background: #fff5f9; }
+    .act-table td { padding: 8px 10px; border-bottom: 1px solid #f0fbfb; vertical-align: top; }
+    .act-table tr:nth-child(even) td { background: #f0fbfb; }
     .act-table tr:last-child td { border-bottom: none; }
-    .act-time { font-weight: 700; color: #DB2777; white-space: nowrap; width: 70px; }
+    .act-time { font-weight: 700; color: #166f73; white-space: nowrap; width: 70px; }
     .act-duration { color: #64748b; white-space: nowrap; font-size: 9pt; }
     .act-notes { color: #64748b; font-size: 9pt; font-style: italic; }
 
@@ -140,7 +144,7 @@
     /* ── Footer ── */
     .footer {
       margin-top: 28px;
-      border-top: 1px solid #f3c0d9;
+      border-top: 1px solid #d0f4f5;
       padding-top: 10px;
       display: flex;
       justify-content: space-between;
@@ -148,7 +152,7 @@
       font-size: 8pt;
       color: #888;
     }
-    .footer .brand { font-weight: 700; color: #DB2777; }
+    .footer .brand { font-weight: 700; color: #166f73; }
 
     .no-data { font-size: 9.5pt; color: #94a3b8; font-style: italic; padding: 8px 0; }
   </style>
@@ -159,7 +163,7 @@
   <!-- Header -->
   <div class="header">
     <div>
-      <div class="brand-name">{{ company_name }}</div>
+      {% include '_logo_badge.html' %}
       <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
     </div>
     <div class="header-meta">
@@ -300,7 +304,7 @@
           {% if has_contact %}
           <td>
             {% if loc.contact_person %}<div>{{ loc.contact_person }}</div>{% endif %}
-            {% if loc.contact_phone %}<div style="color:#DB2777; font-size:9pt;">{{ loc.contact_phone }}</div>{% endif %}
+            {% if loc.contact_phone %}<div style="color:#166f73; font-size:9pt;">{{ loc.contact_phone }}</div>{% endif %}
             {% if not loc.contact_person and not loc.contact_phone %}—{% endif %}
           </td>
           {% endif %}

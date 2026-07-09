@@ -1,0 +1,23 @@
+{# Shared PDF brand chrome — included at the top of each template's <style> block. #}
+{# Palette reference (do not hardcode these hex codes elsewhere — reuse this file): #}
+{#   brand-500 #21b2b8  primary teal — decorative borders, dots, bullets #}
+{#   brand-700 #166f73  text-on-white — labels, links, small headings (WCAG AA) #}
+{#   brand-900 #0f4245  dark headings, solid fills, price/payment boxes #}
+{#   brand-50  #f0fbfb  light tinted backgrounds #}
+{#   brand-100 #d0f4f5  light borders/dividers #}
+{#   gold family unchanged — money/payment callouts #}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap');
+
+.logo-badge {
+  display: inline-block;
+  background: #0f4245;
+  border-radius: 8px;
+  padding: 8px 16px;
+  line-height: 0;
+}
+.logo-badge img {
+  height: 42px;
+  width: auto;
+  display: block;
+}
