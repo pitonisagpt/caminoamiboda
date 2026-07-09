@@ -170,7 +170,8 @@ def create_location(timeline_id: int, body: LocationCreate, db: Session = Depend
     db.refresh(loc)
     _gcal_sync(tl, db, "on location create")
     try:
-        sync_to_catalog(db, loc)
+        catalog_loc = sync_to_catalog(db, loc)
+        loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
         db.commit()
     except Exception:
         pass
@@ -187,7 +188,8 @@ def update_location(timeline_id: int, location_id: int, body: LocationUpdate, db
     db.refresh(loc)
     _gcal_sync(tl, db, "on location update")
     try:
-        sync_to_catalog(db, loc)
+        catalog_loc = sync_to_catalog(db, loc)
+        loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
         db.commit()
     except Exception:
         pass

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Clock, Phone, Car, User, Navigation, Calendar } from 'lucide-react';
+import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route } from 'lucide-react';
+import EventRouteMap from '../../components/EventRouteMap';
 import { timelinesApi } from '../../api/timelines';
 import type { TimelinePublic, EventLocation, LocationType } from '../../types/timeline';
 
@@ -199,6 +200,16 @@ export default function EventoPage() {
             <div className="space-y-3">
               {event.locations.map(loc => <LocationCard key={loc.id} loc={loc} />)}
             </div>
+          </div>
+        )}
+
+        {/* Route map */}
+        {event.locations.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <Route className="w-4 h-4" /> Ruta del evento
+            </h2>
+            <EventRouteMap locations={event.locations} activities={event.activities} />
           </div>
         )}
 

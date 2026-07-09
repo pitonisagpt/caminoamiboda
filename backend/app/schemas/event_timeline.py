@@ -41,6 +41,8 @@ class LocationRead(LocationBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     timeline_id: int
+    lat: Optional[float] = None
+    lng: Optional[float] = None
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────

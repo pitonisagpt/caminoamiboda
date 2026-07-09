@@ -24,6 +24,8 @@ export interface EventLocation {
   notes: string | null;
   road_access_notes: string | null;
   display_order: number;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface TimelineActivity {

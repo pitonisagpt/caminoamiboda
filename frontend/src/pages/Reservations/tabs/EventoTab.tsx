@@ -11,8 +11,9 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
   Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText,
-  User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2,
+  User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
 } from 'lucide-react';
+import EventRouteMap from '../../../components/EventRouteMap';
 import { timelinesApi } from '../../../api/timelines';
 import { catalogLocationsApi } from '../../../api/catalogLocations';
 import { Toast } from '../../../components/ui/Toast';
@@ -686,6 +687,18 @@ export default function EventoTab({
             )}
           </div>
         )}
+      </div>
+
+      {/* Route map */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="px-5 py-4">
+          <h3 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+            <Route className="w-4 h-4" /> Ruta del evento
+          </h3>
+        </div>
+        <div className="px-5 pb-5">
+          <EventRouteMap locations={timeline.locations} activities={activities} />
+        </div>
       </div>
 
       {/* Activities */}

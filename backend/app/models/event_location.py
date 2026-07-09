@@ -1,7 +1,7 @@
 import enum
 from typing import Optional
 
-from sqlalchemy import Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Double, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -29,3 +29,5 @@ class EventLocation(Base):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     road_access_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     display_order: Mapped[int] = mapped_column(Integer, default=0)
+    lat: Mapped[Optional[float]] = mapped_column(Double, nullable=True)
+    lng: Mapped[Optional[float]] = mapped_column(Double, nullable=True)

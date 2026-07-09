@@ -172,7 +172,7 @@ def import_from_events(db: Session = Depends(get_db)):
     return {"imported": imported}
 
 
-def sync_to_catalog(db: Session, event_location: "EventLocation") -> None:
+def sync_to_catalog(db: Session, event_location: "EventLocation") -> CatalogLocation:
     """Upsert an event location into the catalog by name, then geocode if missing coords."""
     key = event_location.location_name.strip().lower()
     existing = db.query(CatalogLocation).filter(
@@ -195,6 +195,7 @@ def sync_to_catalog(db: Session, event_location: "EventLocation") -> None:
         coords = _geocode(existing)
         if coords:
             existing.lat, existing.lng = coords
+    return existing
 
 
 @router.post("/resolve-coords", response_model=dict)
