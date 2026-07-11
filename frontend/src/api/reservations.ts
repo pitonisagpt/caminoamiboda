@@ -36,6 +36,9 @@ export const reservationsApi = {
   update: (id: number, data: Record<string, unknown>) =>
     api.put<Reservation>(`${base}/${id}`, data),
 
+  updateStatus: (id: number, status: ReservationStatus) =>
+    api.put<Reservation>(`${base}/${id}`, { status }),
+
   delete: (id: number) => api.delete(`${base}/${id}`),
 
   createFromQuote: (quoteId: number) =>

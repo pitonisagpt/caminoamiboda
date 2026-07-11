@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 
 export interface ComboboxOption {
   value: string;
@@ -17,6 +17,7 @@ interface ComboboxProps {
   disabled?: boolean;
   onCreateNew?: (query: string) => void;
   createLabel?: string;
+  onEdit?: () => void;
 }
 
 export default function Combobox({
@@ -29,6 +30,7 @@ export default function Combobox({
   disabled = false,
   onCreateNew,
   createLabel = 'Crear',
+  onEdit,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -113,7 +115,8 @@ export default function Combobox({
   const displayValue = open ? query : (query || selectedLabel);
 
   const inputCls = [
-    'w-full border rounded-xl px-3 py-2.5 text-sm pr-16 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
+    'w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
+    value && onEdit && !disabled ? 'pr-24' : 'pr-16',
     error ? 'border-red-300' : 'border-gray-200',
     disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900',
   ].join(' ');
@@ -137,6 +140,17 @@ export default function Combobox({
           autoComplete="off"
         />
         <div className="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-2">
+          {value && onEdit && !disabled && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="p-1 text-gray-300 hover:text-brand-600 transition-colors cursor-pointer"
+              tabIndex={-1}
+              title="Editar"
+            >
+              <Pencil size={13} />
+            </button>
+          )}
           {value && !disabled && (
             <button
               type="button"

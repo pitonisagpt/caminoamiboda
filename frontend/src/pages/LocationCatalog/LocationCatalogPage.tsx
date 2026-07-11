@@ -543,7 +543,15 @@ export default function LocationCatalogPage() {
                 <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
                 <ul className="space-y-0.5">
                   {unlocated.map(l => (
-                    <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.name}>• {l.name}</li>
+                    <li key={l.id}>
+                      <button
+                        onClick={() => setModal({ open: true, editing: l })}
+                        className="w-full text-left text-[11px] text-gray-600 truncate hover:text-brand-700 hover:underline cursor-pointer"
+                        title={`Editar ${l.name}`}
+                      >
+                        • {l.name}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </div>

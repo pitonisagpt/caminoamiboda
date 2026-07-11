@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, outerjoin, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
+from app.models.contact import Contact
 from app.models.customer import Customer
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_payment import ReservationPayment
@@ -71,6 +72,7 @@ def list_reservations(
 ):
     q = (db.query(Reservation)
          .outerjoin(Customer, Reservation.customer_id == Customer.id)
+         .outerjoin(Contact, Reservation.contact_id == Contact.id)
          .options(selectinload(Reservation.timelines)))
 
     if status:
@@ -92,6 +94,8 @@ def list_reservations(
             Customer.bride_name.ilike(pat),
             Customer.groom_name.ilike(pat),
             Customer.phone.ilike(pat),
+            Contact.full_name.ilike(pat),
+            Contact.phone.ilike(pat),
         ))
 
     col = _SORT_COLS.get(sort_by, Reservation.event_date)
@@ -247,15 +251,19 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     quote = db.query(Quote).filter(Quote.id == quote_id).first()
     if not quote:
         raise HTTPException(404, "Cotización no encontrada")
+    addons_total = quote.addons_total or Decimal("0")
     r = Reservation(
         reservation_number=_next_number(db),
         customer_id=quote.customer_id,
         quote_id=quote.id,
         vehicle_id=quote.vehicle_id,
         event_date=quote.event_date,
-        total_amount=quote.total_price,
+        total_amount=quote.total_price + addons_total,
         deposit_paid=quote.deposit_amount or 0,
         status=ReservationStatus.quoted,
+        extra_hours=quote.extra_hours or 0,
+        addon_package_ids=quote.addon_package_ids,
+        addons_total=addons_total,
     )
     db.add(r)
     quote.status = "accepted"

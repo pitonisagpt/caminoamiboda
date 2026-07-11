@@ -207,6 +207,17 @@ def delete_location(timeline_id: int, location_id: int, db: Session = Depends(ge
 
 # ── Activities ─────────────────────────────────────────────────────────────────
 
+def _parse_time_minutes(t: str | None) -> int:
+    """Parse a 'HH:MM' string into minutes since midnight. Missing/unparseable times sort last."""
+    if not t:
+        return 24 * 60 * 1000
+    try:
+        h_str, m_str = t.split(":")[:2]
+        return int(h_str) * 60 + int(m_str)
+    except (ValueError, IndexError):
+        return 24 * 60 * 1000
+
+
 @router.get("/api/timelines/{timeline_id}/activities", response_model=List[ActivityRead], dependencies=[Depends(get_current_user)])
 def list_activities(timeline_id: int, db: Session = Depends(get_db)):
     _get_timeline(timeline_id, db)
@@ -216,9 +227,21 @@ def list_activities(timeline_id: int, db: Session = Depends(get_db)):
 @router.post("/api/timelines/{timeline_id}/activities", response_model=ActivityRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_activity(timeline_id: int, body: ActivityCreate, db: Session = Depends(get_db)):
     _get_timeline(timeline_id, db)
-    max_order = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == timeline_id).count()
+    existing = db.query(TimelineActivity).filter(
+        TimelineActivity.timeline_id == timeline_id
+    ).order_by(TimelineActivity.display_order).all()
+
     data = body.model_dump()
-    data.setdefault("display_order", max_order)
+    new_minutes = _parse_time_minutes(data.get("time"))
+    insert_index = next(
+        (i for i, a in enumerate(existing) if _parse_time_minutes(a.time) > new_minutes),
+        len(existing),
+    )
+
+    for a in existing[insert_index:]:
+        a.display_order += 1
+    data["display_order"] = insert_index
+
     act = TimelineActivity(**data, timeline_id=timeline_id)
     db.add(act)
     db.commit()
@@ -240,8 +263,26 @@ def reorder_activities(timeline_id: int, body: List[ActivityReorderItem], db: Se
 @router.put("/api/timelines/{timeline_id}/activities/{activity_id}", response_model=ActivityRead, dependencies=[Depends(get_current_user)])
 def update_activity(timeline_id: int, activity_id: int, body: ActivityUpdate, db: Session = Depends(get_db)):
     act = _get_activity(timeline_id, activity_id, db)
-    for field, value in body.model_dump(exclude_unset=True).items():
+    update_data = body.model_dump(exclude_unset=True)
+    old_time = act.time
+
+    for field, value in update_data.items():
         setattr(act, field, value)
+
+    if "time" in update_data and act.time != old_time:
+        others = db.query(TimelineActivity).filter(
+            TimelineActivity.timeline_id == timeline_id,
+            TimelineActivity.id != activity_id,
+        ).order_by(TimelineActivity.display_order).all()
+        new_minutes = _parse_time_minutes(act.time)
+        insert_index = next(
+            (i for i, a in enumerate(others) if _parse_time_minutes(a.time) > new_minutes),
+            len(others),
+        )
+        for a in others[insert_index:]:
+            a.display_order += 1
+        act.display_order = insert_index
+
     db.commit()
     db.refresh(act)
     return act

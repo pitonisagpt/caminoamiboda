@@ -130,8 +130,32 @@ def create_catalog_location(data: CatalogLocationCreate, db: Session = Depends(g
 @router.put("/{loc_id}", response_model=CatalogLocationRead)
 def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Session = Depends(get_db)):
     loc = _get_or_404(loc_id, db)
-    for k, v in data.model_dump(exclude_unset=True).items():
+    old_name = loc.name
+    update_fields = data.model_dump(exclude_unset=True)
+
+    for k, v in update_fields.items():
         setattr(loc, k, v)
+
+    # Propagate corrections to already-created EventLocation rows matched by the OLD name
+    # (case-insensitive, so a rename is still found) — same name-matching convention sync_to_catalog uses.
+    propagate_keys = {"name", "address", "google_maps_link", "lat", "lng"}
+    if propagate_keys & update_fields.keys():
+        event_updates: dict = {}
+        if "name" in update_fields:
+            event_updates["location_name"] = loc.name
+        if "address" in update_fields:
+            event_updates["address"] = loc.address
+        if "google_maps_link" in update_fields:
+            event_updates["google_maps_link"] = loc.google_maps_link
+        if "lat" in update_fields:
+            event_updates["lat"] = loc.lat
+        if "lng" in update_fields:
+            event_updates["lng"] = loc.lng
+
+        db.query(EventLocation).filter(
+            func.lower(EventLocation.location_name) == old_name.strip().lower()
+        ).update(event_updates, synchronize_session=False)
+
     db.commit()
     db.refresh(loc)
     return loc
@@ -142,34 +166,6 @@ def delete_catalog_location(loc_id: int, db: Session = Depends(get_db)):
     loc = _get_or_404(loc_id, db)
     db.delete(loc)
     db.commit()
-
-
-@router.post("/import-from-events", response_model=dict)
-def import_from_events(db: Session = Depends(get_db)):
-    """Import unique locations from all event timelines into the catalog (skip duplicates by name)."""
-    existing_names = {r[0].lower() for r in db.query(CatalogLocation.name).all()}
-    event_locs = db.query(EventLocation).order_by(EventLocation.location_name).all()
-
-    seen: set[str] = set()
-    imported = 0
-    for el in event_locs:
-        key = el.location_name.strip().lower()
-        if key in existing_names or key in seen:
-            continue
-        seen.add(key)
-        db.add(CatalogLocation(
-            name=el.location_name.strip(),
-            location_type=el.location_type,
-            address=el.address,
-            google_maps_link=el.google_maps_link,
-            contact_person=el.contact_person,
-            contact_phone=el.contact_phone,
-            notes=el.notes,
-        ))
-        imported += 1
-
-    db.commit()
-    return {"imported": imported}
 
 
 def sync_to_catalog(db: Session, event_location: "EventLocation") -> CatalogLocation:

@@ -11,6 +11,36 @@ DIGIT_TO_DAY = {
 
 PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM"
 
+WEEKDAY_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+# Colombian public holidays (festivos), Ley Emiliani-adjusted where the law moves them
+# to the following Monday. Source: official government calendar, cross-checked against
+# Ley 2578 de 2026 (new Virgen de Chiquinquirá holiday, first observed July 13, 2026).
+# Maintenance: update this set once a year with the following year's confirmed dates.
+FESTIVOS_COLOMBIA: set[date] = {
+    # 2026
+    date(2026, 1, 1), date(2026, 1, 12), date(2026, 3, 23),
+    date(2026, 4, 2), date(2026, 4, 3), date(2026, 5, 1),
+    date(2026, 5, 18), date(2026, 6, 8), date(2026, 6, 15),
+    date(2026, 6, 29), date(2026, 7, 13), date(2026, 7, 20),
+    date(2026, 8, 7), date(2026, 8, 17), date(2026, 10, 12),
+    date(2026, 11, 2), date(2026, 11, 16), date(2026, 12, 8),
+    date(2026, 12, 25),
+    # 2027
+    date(2027, 1, 1), date(2027, 1, 11), date(2027, 3, 22),
+    date(2027, 3, 25), date(2027, 3, 26), date(2027, 5, 1),
+    date(2027, 5, 10), date(2027, 5, 31), date(2027, 6, 7),
+    date(2027, 7, 5), date(2027, 7, 12), date(2027, 7, 20),
+    date(2027, 8, 7), date(2027, 8, 16), date(2027, 10, 18),
+    date(2027, 11, 1), date(2027, 11, 15), date(2027, 12, 8),
+    date(2027, 12, 25),
+}
+
+
+def is_festivo(d: date) -> bool:
+    """Return True if the given date is a Colombian public holiday."""
+    return d in FESTIVOS_COLOMBIA
+
 
 def compute_pico_y_placa(
     license_plate: str,

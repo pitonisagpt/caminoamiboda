@@ -55,6 +55,19 @@ export default function ReservationDetail() {
     }
   };
 
+  const handleStatusChange = async (status: ReservationStatus) => {
+    if (!reservation) return;
+    setAdvancing(true);
+    try {
+      const res = await reservationsApi.updateStatus(reservation.id, status);
+      setReservation(res.data);
+    } catch (err: any) {
+      alert(err?.response?.data?.detail ?? 'No se pudo cambiar el estado de la reserva.');
+    } finally {
+      setAdvancing(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!reservation) return;
     if (!confirm(`¿Eliminar reserva ${reservation.reservation_number}?`)) return;
@@ -134,7 +147,7 @@ export default function ReservationDetail() {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'info' && <InfoTab reservation={reservation} />}
+      {activeTab === 'info' && <InfoTab reservation={reservation} onStatusChange={handleStatusChange} />}
       {activeTab === 'evento' && (
         <EventoTab
           reservation={reservation}

@@ -244,6 +244,9 @@ export default function CalendarPage() {
                       className="flex items-start gap-2.5 p-2.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ background: e.color }} />
+                      {e.vehicle_photo_url && (
+                        <img src={e.vehicle_photo_url} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-gray-200" />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{e.title}</p>
                         {e.subtitle && (

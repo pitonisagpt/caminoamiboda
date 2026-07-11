@@ -111,6 +111,8 @@ export default function QuoteForm() {
       setValue('deposit_amount', q.deposit_amount ? String(q.deposit_amount) : '');
       setValue('payment_instructions', q.payment_instructions ?? '');
       setValue('notes', q.notes ?? '');
+      setExtraHours(q.extra_hours ?? 0);
+      setSelectedBouquetId(q.addon_package_ids?.[0] ?? null);
     }).finally(() => setLoading(false));
   }, [id, isEdit]);
 

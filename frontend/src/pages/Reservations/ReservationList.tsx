@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
-  ChevronLeft, ChevronRight, CalendarClock,
+  ChevronLeft, ChevronRight, CalendarClock, LayoutGrid, TableProperties,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
@@ -12,6 +12,7 @@ import { vehiclesApi } from '../../api/vehicles';
 import type { VehicleListItem } from '../../types/vehicle';
 import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
+import ReservationKanban from './ReservationKanban';
 
 const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
   { value: 'all',              label: 'Todas' },
@@ -66,6 +67,14 @@ export default function ReservationList() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [vehicleOptions, setVehicleOptions] = useState<ComboboxOption[]>([]);
   const [pageSize, setPageSize] = useState(50);
+  const [view, setView] = useState<'table' | 'kanban'>(
+    () => (localStorage.getItem('reservations-view') === 'kanban' ? 'kanban' : 'table')
+  );
+
+  const setViewMode = (v: 'table' | 'kanban') => {
+    setView(v);
+    localStorage.setItem('reservations-view', v);
+  };
 
   // All filter/sort/page state from URL
   const statusFilter = (searchParams.get('status') ?? 'all') as ReservationStatus | 'all';
@@ -169,6 +178,20 @@ export default function ReservationList() {
     }
   };
 
+  const handleStatusChange = async (id: number, status: ReservationStatus) => {
+    const prevData = data;
+    setData(prev => prev ? {
+      ...prev,
+      items: prev.items.map(r => r.id === id ? { ...r, status } : r),
+    } : prev);
+    try {
+      await reservationsApi.updateStatus(id, status);
+    } catch (err: any) {
+      setData(prevData);
+      alert(err?.response?.data?.detail ?? 'No se pudo cambiar el estado de la reserva.');
+    }
+  };
+
   const reservations = data?.items ?? [];
   const total = data?.total ?? 0;
   const pages = data?.pages ?? 1;
@@ -186,12 +209,36 @@ export default function ReservationList() {
             {loading ? '…' : `${total.toLocaleString('es-CO')} reserva${total !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <button
-          onClick={() => navigate('/reservas/nueva')}
-          className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
-        >
-          <Plus size={16} /> Nueva reserva
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-gray-100 rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('table')}
+              aria-label="Vista de tabla"
+              title="Vista de tabla"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                view === 'table' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <TableProperties size={16} />
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              aria-label="Vista de kanban"
+              title="Vista de kanban"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                view === 'kanban' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <LayoutGrid size={16} />
+            </button>
+          </div>
+          <button
+            onClick={() => navigate('/reservas/nueva')}
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+          >
+            <Plus size={16} /> Nueva reserva
+          </button>
+        </div>
       </div>
 
       {/* Search + date range + vehicle filter */}
@@ -276,8 +323,13 @@ export default function ReservationList() {
         </div>
       )}
 
+      {/* Kanban */}
+      {!loading && reservations.length > 0 && view === 'kanban' && (
+        <ReservationKanban reservations={reservations} onStatusChange={handleStatusChange} />
+      )}
+
       {/* Table */}
-      {!loading && reservations.length > 0 && (
+      {!loading && reservations.length > 0 && view === 'table' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-gray-100">

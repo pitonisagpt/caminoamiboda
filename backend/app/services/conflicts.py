@@ -6,6 +6,8 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.reservation import Reservation
+from app.models.vehicle import Vehicle
+from app.services.pico_y_placa import PICO_HOURS, WEEKDAY_ES, get_effective_pyp, is_festivo
 
 BLOCKING_STATUSES = {"deposit_received", "reserved", "confirmed"}
 
@@ -87,5 +89,21 @@ def find_conflicts(
                 "reservation_number": clash.reservation_number,
                 "message": msg,
             })
+
+    if vehicle_id:
+        vehicle = db.get(Vehicle, vehicle_id)
+        if vehicle:
+            pyp_day = get_effective_pyp(vehicle, event_date)
+            if pyp_day and WEEKDAY_ES[event_date.weekday()] == pyp_day:
+                if is_festivo(event_date):
+                    msg = "Festivo — sin restricción de pico y placa ese día"
+                else:
+                    msg = f"El vehículo tiene pico y placa el {pyp_day} ({PICO_HOURS})"
+                conflicts.append({
+                    "type": "pico_y_placa",
+                    "severity": "warning",
+                    "reservation_number": "",
+                    "message": msg,
+                })
 
     return conflicts

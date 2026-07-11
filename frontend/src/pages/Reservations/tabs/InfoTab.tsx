@@ -8,7 +8,21 @@ function formatDate(d: string) {
   });
 }
 
-export default function InfoTab({ reservation }: { reservation: Reservation }) {
+export default function InfoTab({
+  reservation,
+  onStatusChange,
+}: {
+  reservation: Reservation;
+  onStatusChange?: (s: ReservationStatus) => void;
+}) {
+  const handleStageClick = (s: ReservationStatus) => {
+    if (!onStatusChange || s === reservation.status) return;
+    if (STATUS_FLOW.indexOf(s) < STATUS_FLOW.indexOf(reservation.status)) {
+      if (!confirm(`¿Devolver la reserva al estado "${RESERVATION_STATUS_LABEL[s]}"?`)) return;
+    }
+    onStatusChange(s);
+  };
+
   return (
     <div className="space-y-4">
       {/* Status pipeline */}
@@ -16,7 +30,9 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
           {STATUS_FLOW.filter(s => s !== 'cancelled').map((s, i, arr) => (
             <div key={s} className="flex items-center gap-1 shrink-0">
-              <div className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              <button
+                onClick={() => handleStageClick(s)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer hover:opacity-80 ${
                 s === reservation.status
                   ? RESERVATION_STATUS_COLOR[s]
                   : STATUS_FLOW.indexOf(s) < STATUS_FLOW.indexOf(reservation.status)
@@ -24,7 +40,7 @@ export default function InfoTab({ reservation }: { reservation: Reservation }) {
                     : 'bg-gray-100 text-gray-400'
               }`}>
                 {RESERVATION_STATUS_LABEL[s as ReservationStatus]}
-              </div>
+              </button>
               {i < arr.length - 1 && <span className="text-gray-300 text-xs">›</span>}
             </div>
           ))}

@@ -19,7 +19,7 @@ export interface CalendarEvent {
 }
 
 export interface ConflictItem {
-  type: 'vehicle' | 'driver';
+  type: 'vehicle' | 'driver' | 'pico_y_placa';
   severity: 'blocking' | 'warning';
   reservation_number: string;
   message: string;

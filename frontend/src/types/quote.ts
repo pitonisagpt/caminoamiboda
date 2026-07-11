@@ -51,6 +51,9 @@ export interface Quote extends QuoteListItem {
   payment_instructions: string | null;
   notes: string | null;
   share_token: string;
+  extra_hours: number;
+  addon_package_ids: number[] | null;
+  addons_total: number;
   updated_at: string;
 }
 

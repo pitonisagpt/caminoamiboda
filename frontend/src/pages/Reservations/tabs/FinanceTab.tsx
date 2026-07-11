@@ -22,7 +22,7 @@ function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[])
   const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
 
   const lines: string[] = [
-    `Hola ${firstName}, aquí está el resumen de pagos de tu reserva con Camino a mi Boda${reservation.display_vehicle ? ` — ${reservation.display_vehicle}` : ''}:`,
+    `Hola ${firstName}, aquí está el resumen de pagos de tu reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
     '',
     `*Valor total:* ${formatCOP(reservation.total_amount)}`,
     '',

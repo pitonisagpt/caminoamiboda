@@ -122,7 +122,9 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
         )}
 
         {/* Price */}
-        {(vehicle.price_medellin != null || vehicle.price_rionegro != null) && (
+        {vehicle.price_medellin == null && vehicle.price_rionegro == null ? (
+          <p className="text-sm text-gray-400">Precio a consultar</p>
+        ) : (
           <div className="space-y-0.5">
             {vehicle.price_medellin != null && (
               <p className="text-sm text-gray-700">

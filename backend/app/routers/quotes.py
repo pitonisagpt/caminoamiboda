@@ -243,16 +243,21 @@ def convert_to_reservation(quote_id: int, db: Session = Depends(get_db)):
     deposit = quote.deposit_amount or Decimal("0")
     status = ReservationStatus.deposit_received if deposit > 0 else ReservationStatus.reserved
 
+    addons_total = quote.addons_total or Decimal("0")
+
     reservation = Reservation(
         reservation_number=_next_reservation_number(db),
         customer_id=quote.customer_id,
         quote_id=quote.id,
         vehicle_id=quote.vehicle_id,
         event_date=quote.event_date,
-        total_amount=quote.total_price,
+        total_amount=quote.total_price + addons_total,
         deposit_paid=deposit,
         status=status,
         notes=quote.notes,
+        extra_hours=quote.extra_hours or 0,
+        addon_package_ids=quote.addon_package_ids,
+        addons_total=addons_total,
     )
     db.add(reservation)
     quote.status = QuoteStatus.accepted

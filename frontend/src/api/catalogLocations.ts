@@ -19,9 +19,6 @@ export const catalogLocationsApi = {
   delete: (id: number) =>
     api.delete(`/catalog-locations/${id}`),
 
-  importFromEvents: () =>
-    api.post<{ imported: number }>('/catalog-locations/import-from-events'),
-
   resolveCoords: () =>
     api.post<{ resolved: number; total: number }>('/catalog-locations/resolve-coords', null, { timeout: 120_000 }),
 };
