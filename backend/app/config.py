@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     google_calendar_publicidad: str = ""
 
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
+    frontend_url: str = "http://localhost:5173"
     initial_admin_password: str = ""
 
     secret_key: str = "change-me-in-production-use-a-random-32-byte-hex"

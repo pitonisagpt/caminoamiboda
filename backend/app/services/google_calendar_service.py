@@ -8,8 +8,9 @@ Records with gcal_imported=True are never synced back to Google Calendar.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
@@ -96,6 +97,11 @@ def _format_date_es(d: date) -> str:
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
     ]
     return f"{d.day} de {months[d.month]} de {d.year}"
+
+
+def _updated_at_str() -> str:
+    now = datetime.now(timezone.utc).astimezone(ZoneInfo("America/Bogota"))
+    return f"{_format_date_es(now.date())} · {_fmt_time(now.strftime('%H:%M'))}"
 
 
 def _fmt_time(t: str) -> str:
@@ -195,6 +201,11 @@ def _build_description(
             for p in sorted(settlement.payments, key=lambda x: x.paid_at):
                 note = f" ({p.notes})" if p.notes else ""
                 lines.append(f"  · {p.paid_at.strftime('%d/%m/%Y')} – {_fmt_cop(p.amount)}{note}")
+
+    lines.append("")
+    if reservation:
+        lines.append(f"Ver reserva: {settings.frontend_url.rstrip('/')}/reservas/{reservation.id}")
+    lines.append(f"Última actualización: {_updated_at_str()}")
 
     return "\n".join(lines)
 

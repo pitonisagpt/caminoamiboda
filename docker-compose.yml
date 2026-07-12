@@ -41,6 +41,7 @@ services:
       GOOGLE_CALENDAR_PUBLICIDAD: "${GOOGLE_CALENDAR_PUBLICIDAD:-}"
       SECRET_KEY: "${SECRET_KEY}"
       INITIAL_ADMIN_PASSWORD: "${INITIAL_ADMIN_PASSWORD}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:5173}"
     volumes:
       - ./backend:/app
       - pdf_storage:/app/generated_pdfs
