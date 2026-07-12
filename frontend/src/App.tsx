@@ -29,6 +29,7 @@ import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
 import ContactList from "./pages/Contacts/ContactList";
 import ContactForm from "./pages/Contacts/ContactForm";
+import ContactStatsPage from "./pages/Contacts/ContactStatsPage";
 import ReservationList from "./pages/Reservations/ReservationList";
 import ReservationForm from "./pages/Reservations/ReservationForm";
 import ReservationDetail from "./pages/Reservations/ReservationDetail";
@@ -122,6 +123,7 @@ export default function App() {
             <Route path="contactos" element={<ContactList />} />
             <Route path="contactos/nuevo" element={<ContactForm />} />
             <Route path="contactos/editar/:id" element={<ContactForm />} />
+            <Route path="contactos/:id/estadisticas" element={<ContactStatsPage />} />
 
             {/* Customers */}
             <Route path="clientes" element={<CustomerList />} />

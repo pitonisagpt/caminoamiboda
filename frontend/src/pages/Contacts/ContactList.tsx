@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { BookUser, ExternalLink, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { BarChart2, BookUser, ExternalLink, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { contactsApi } from '../../api/contacts';
 import type { Contact, ContactStatus, ContactType } from '../../types/contact';
 import {
@@ -234,6 +234,13 @@ export default function ContactList() {
                             : <MessageCircle size={15} />}
                         </button>
                       )}
+                      <button
+                        onClick={() => navigate(`/contactos/${c.id}/estadisticas`)}
+                        title="Estadísticas"
+                        className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors cursor-pointer"
+                      >
+                        <BarChart2 size={15} />
+                      </button>
                       <button
                         onClick={() => navigate(`/contactos/editar/${c.id}`)}
                         title="Editar"

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { calendarApi, type CalendarEvent } from '../../api/calendar';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MONTHS = [
@@ -205,7 +206,16 @@ export default function CalendarPage() {
                               title={e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ${e.title}` : e.title}
                             >
                               {e.vehicle_photo_url && (
-                                <img src={e.vehicle_photo_url} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-white/40" />
+                                <VehiclePhotoTooltip
+                                  photoUrl={e.vehicle_photo_url}
+                                  className="w-5 h-5 rounded-full object-cover shrink-0 border border-white/40"
+                                  vehicleName={e.vehicle ?? ''}
+                                  licensePlate={e.vehicle_license_plate}
+                                  driverName={e.subtitle}
+                                  driverPhone={e.driver_phone}
+                                  ownerName={e.owner_name}
+                                  ownerPhone={e.owner_whatsapp}
+                                />
                               )}
                               {e.start_time && <span className="opacity-80 mr-0.5">{e.start_time}</span>}
                               {e.title}
@@ -245,7 +255,16 @@ export default function CalendarPage() {
                     >
                       <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ background: e.color }} />
                       {e.vehicle_photo_url && (
-                        <img src={e.vehicle_photo_url} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-gray-200" />
+                        <VehiclePhotoTooltip
+                          photoUrl={e.vehicle_photo_url}
+                          className="w-5 h-5 rounded-full object-cover shrink-0 border border-gray-200"
+                          vehicleName={e.vehicle ?? ''}
+                          licensePlate={e.vehicle_license_plate}
+                          driverName={e.subtitle}
+                          driverPhone={e.driver_phone}
+                          ownerName={e.owner_name}
+                          ownerPhone={e.owner_whatsapp}
+                        />
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{e.title}</p>

@@ -37,6 +37,10 @@ export interface ReservationListItem {
   display_customer: string;
   display_vehicle: string;
   display_driver: string;
+  display_driver_phone: string | null;
+  vehicle_license_plate: string | null;
+  owner_name: string | null;
+  owner_whatsapp: string | null;
   event_date: string;
   total_amount: number;
   deposit_paid: number;

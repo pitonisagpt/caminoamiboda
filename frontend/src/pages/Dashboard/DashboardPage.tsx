@@ -7,6 +7,7 @@ import type { ReservationStatus } from '../../types/reservation';
 import AnalyticsSection from './AnalyticsSection';
 import VehicleStatsSection from './VehicleStatsSection';
 import DateRangeFilter, { DEFAULT_RANGE, buildPresets, type DateRange } from './DateRangeFilter';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -188,7 +189,18 @@ export default function DashboardPage() {
                   </div>
                   <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
                     {r.vehicle_photo_url
-                      ? <img src={r.vehicle_photo_url} alt={r.vehicle} className="w-full h-full object-cover" />
+                      ? (
+                        <VehiclePhotoTooltip
+                          photoUrl={r.vehicle_photo_url}
+                          className="w-full h-full object-cover"
+                          vehicleName={r.vehicle}
+                          licensePlate={r.vehicle_license_plate}
+                          driverName={r.driver !== '—' ? r.driver : null}
+                          driverPhone={r.driver_phone}
+                          ownerName={r.owner_name}
+                          ownerPhone={r.owner_whatsapp}
+                        />
+                      )
                       : <Car size={20} className="text-gray-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -335,7 +347,18 @@ export default function DashboardPage() {
                         <td className="px-4 py-2">
                           <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                             {r.vehicle_photo_url
-                              ? <img src={r.vehicle_photo_url} alt={r.vehicle} className="w-full h-full object-cover" />
+                              ? (
+                                <VehiclePhotoTooltip
+                                  photoUrl={r.vehicle_photo_url}
+                                  className="w-full h-full object-cover"
+                                  vehicleName={r.vehicle}
+                                  licensePlate={r.vehicle_license_plate}
+                                  driverName={r.driver !== '—' ? r.driver : null}
+                                  driverPhone={r.driver_phone}
+                                  ownerName={r.owner_name}
+                                  ownerPhone={r.owner_whatsapp}
+                                />
+                              )
                               : <Car size={16} className="text-gray-300" />}
                           </div>
                         </td>

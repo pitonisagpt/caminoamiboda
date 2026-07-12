@@ -8,6 +8,7 @@ import type { RevenueTrendPoint } from '../../api/dashboard';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
 import DateRangeFilter, { DEFAULT_RANGE, type DateRange } from '../Dashboard/DateRangeFilter';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 import RevenueTrendChart from '../Dashboard/charts/RevenueTrendChart';
 import SeasonalityChart from '../Dashboard/charts/SeasonalityChart';
 
@@ -74,7 +75,14 @@ export default function VehicleStatsPage() {
             <ArrowLeft size={20} />
           </button>
           {photoUrl ? (
-            <img src={photoUrl} alt={displayName} className="w-12 h-12 rounded-xl object-cover" />
+            <VehiclePhotoTooltip
+              photoUrl={photoUrl}
+              className="w-12 h-12 rounded-xl object-cover"
+              vehicleName={displayName}
+              licensePlate={vehicle?.license_plate}
+              ownerName={vehicle?.owner_name}
+              ownerPhone={vehicle?.owner_contact}
+            />
           ) : (
             <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
               <Car size={22} className="text-gray-300" />

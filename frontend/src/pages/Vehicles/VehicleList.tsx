@@ -35,6 +35,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import type { VehicleListItem, VehicleStatus } from "../../types/vehicle";
+import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
 
 const STATUS_LABEL: Record<VehicleStatus, string> = {
   active: "Activo",
@@ -158,7 +159,16 @@ function SortableVehicleRow({
       <td className="pl-1 pr-2 py-2">
         <div className="w-20 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
           {photo
-            ? <img src={photo} alt={v.brand} className="w-full h-full object-cover" loading="lazy" />
+            ? (
+              <VehiclePhotoTooltip
+                photoUrl={photo}
+                className="w-full h-full object-cover"
+                vehicleName={[v.brand, v.model_line, v.color].filter(Boolean).join(' ')}
+                licensePlate={v.license_plate}
+                ownerName={v.owner_name}
+                ownerPhone={v.owner_contact}
+              />
+            )
             : <Car size={22} className="text-gray-300" />
           }
         </div>

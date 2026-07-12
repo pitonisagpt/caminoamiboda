@@ -68,6 +68,7 @@ def calendar_events(
             "source_id": r.id,
             "title": " · ".join(title_parts),
             "subtitle": driver if driver != "—" else None,
+            "vehicle": vehicle if vehicle != "—" else None,
             "date": str(r.event_date),
             "status": r.status,
             "color": _STATUS_COLOR.get(r.status, "#9CA3AF"),
@@ -78,6 +79,10 @@ def calendar_events(
             "start_time": r.start_time.strftime("%H:%M") if r.start_time else None,
             "end_time": r.end_time.strftime("%H:%M") if r.end_time else None,
             "vehicle_photo_url": photo_map.get(r.vehicle_id) if r.vehicle_id else None,
+            "vehicle_license_plate": r.vehicle.license_plate if r.vehicle else None,
+            "owner_name": r.vehicle.owner_name if r.vehicle else None,
+            "owner_whatsapp": r.vehicle.owner_contact if r.vehicle else None,
+            "driver_phone": r.display_driver_phone,
         })
 
     # Timelines — only standalone ones (linked timelines are already shown via their reservation)

@@ -35,13 +35,13 @@ export interface VehicleListItem {
   score_romance: number | null;
   score_total: number | null;
   pico_y_placa_day: string | null;
+  owner_name: string | null;
   owner_contact: string | null;
   allowed_locations: string[] | null;
   photos: VehiclePhoto[];
 }
 
 export interface Vehicle extends VehicleListItem {
-  owner_name: string | null;
   is_company_owned: boolean;
   pico_y_placa_hours: string | null;
   pyp_day_override: string | null;

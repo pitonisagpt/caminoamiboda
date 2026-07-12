@@ -12,6 +12,10 @@ export interface UpcomingReservation {
   remaining_balance: number;
   vehicle_photo_url: string | null;
   vehicle_is_company_owned: boolean;
+  vehicle_license_plate: string | null;
+  owner_name: string | null;
+  owner_whatsapp: string | null;
+  driver_phone: string | null;
 }
 
 export interface DashboardSummary {
@@ -83,6 +87,8 @@ export interface VehicleUsageStat {
   display_name: string;
   license_plate: string;
   photo_url: string | null;
+  owner_name: string | null;
+  owner_whatsapp: string | null;
   event_count: number;
   completed_count: number;
   total_revenue: number;

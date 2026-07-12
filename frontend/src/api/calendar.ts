@@ -6,6 +6,7 @@ export interface CalendarEvent {
   source_id: number;
   title: string;
   subtitle: string | null;
+  vehicle?: string | null;
   date: string;
   status: string;
   color: string;
@@ -16,6 +17,10 @@ export interface CalendarEvent {
   start_time?: string | null;
   end_time?: string | null;
   vehicle_photo_url?: string | null;
+  vehicle_license_plate?: string | null;
+  owner_name?: string | null;
+  owner_whatsapp?: string | null;
+  driver_phone?: string | null;
 }
 
 export interface ConflictItem {

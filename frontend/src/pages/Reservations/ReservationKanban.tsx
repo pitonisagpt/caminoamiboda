@@ -6,6 +6,7 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import { useNavigate } from 'react-router-dom';
 import type { ReservationListItem, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -40,10 +41,15 @@ function KanbanCard({ r, onNavigate }: { r: ReservationListItem; onNavigate: () 
     >
       <div className="flex items-center gap-2 min-w-0">
         {r.vehicle_photo_url ? (
-          <img
-            src={r.vehicle_photo_url}
-            alt={r.display_vehicle}
+          <VehiclePhotoTooltip
+            photoUrl={r.vehicle_photo_url}
             className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+            vehicleName={r.display_vehicle}
+            licensePlate={r.vehicle_license_plate}
+            driverName={r.display_driver !== '—' ? r.display_driver : null}
+            driverPhone={r.display_driver_phone}
+            ownerName={r.owner_name}
+            ownerPhone={r.owner_whatsapp}
           />
         ) : (
           <div className="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0" />

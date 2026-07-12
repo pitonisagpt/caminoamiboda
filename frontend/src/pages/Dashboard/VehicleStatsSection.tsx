@@ -5,6 +5,7 @@ import type { VehicleUsageStat } from '../../api/dashboard';
 import type { DateRange } from './DateRangeFilter';
 import VehicleUsageChart from './charts/VehicleUsageChart';
 import VehicleRevenueChart from './charts/VehicleRevenueChart';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 
 function formatCOP(v: number) {
   return v >= 1_000_000
@@ -86,7 +87,14 @@ export default function VehicleStatsSection({ range }: Props) {
               }`}
             >
               {v.photo_url ? (
-                <img src={v.photo_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                <VehiclePhotoTooltip
+                  photoUrl={v.photo_url}
+                  className="w-4 h-4 rounded-full object-cover"
+                  vehicleName={v.display_name}
+                  licensePlate={v.license_plate}
+                  ownerName={v.owner_name}
+                  ownerPhone={v.owner_whatsapp}
+                />
               ) : (
                 <Car size={12} className="text-gray-400" />
               )}

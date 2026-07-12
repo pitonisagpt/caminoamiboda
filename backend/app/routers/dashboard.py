@@ -74,6 +74,10 @@ def get_summary(
             "remaining_balance": float(r.remaining_balance),
             "vehicle_photo_url": _vehicle_photo_url(r),
             "vehicle_is_company_owned": r.vehicle.is_company_owned if r.vehicle else False,
+            "vehicle_license_plate": r.vehicle.license_plate if r.vehicle else None,
+            "owner_name": r.vehicle.owner_name if r.vehicle else None,
+            "owner_whatsapp": r.vehicle.owner_contact if r.vehicle else None,
+            "driver_phone": r.display_driver_phone,
         })
 
     # --- Reservations by status (always all-time snapshot) ---
@@ -144,10 +148,15 @@ def get_summary(
             "date": r.event_date.isoformat(),
             "status": r.status,
             "vehicle": r.display_vehicle,
+            "driver": r.display_driver,
             "total_amount": float(r.total_amount),
             "remaining_balance": float(r.remaining_balance),
             "vehicle_photo_url": _vehicle_photo_url(r),
             "vehicle_is_company_owned": r.vehicle.is_company_owned if r.vehicle else False,
+            "vehicle_license_plate": r.vehicle.license_plate if r.vehicle else None,
+            "owner_name": r.vehicle.owner_name if r.vehicle else None,
+            "owner_whatsapp": r.vehicle.owner_contact if r.vehicle else None,
+            "driver_phone": r.display_driver_phone,
         }
         for r in period_events
     ]
@@ -489,6 +498,8 @@ def vehicle_usage(
             "display_name": display_name,
             "license_plate": v.license_plate,
             "photo_url": _photo_url(v),
+            "owner_name": v.owner_name,
+            "owner_whatsapp": v.owner_contact,
             "event_count": row.event_count,
             "completed_count": completed,
             "total_revenue": rev,

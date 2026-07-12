@@ -4,15 +4,18 @@ import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
   ChevronLeft, ChevronRight, CalendarClock, LayoutGrid, TableProperties,
+  BookUser, X,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { vehiclesApi } from '../../api/vehicles';
 import type { VehicleListItem } from '../../types/vehicle';
+import { contactsApi } from '../../api/contacts';
 import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
 import ReservationKanban from './ReservationKanban';
+import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 
 const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
   { value: 'all',              label: 'Todas' },
@@ -66,6 +69,7 @@ export default function ReservationList() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [vehicleOptions, setVehicleOptions] = useState<ComboboxOption[]>([]);
+  const [contactName, setContactName] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(50);
   const [view, setView] = useState<'table' | 'kanban'>(
     () => (localStorage.getItem('reservations-view') === 'kanban' ? 'kanban' : 'table')
@@ -80,6 +84,7 @@ export default function ReservationList() {
   const statusFilter = (searchParams.get('status') ?? 'all') as ReservationStatus | 'all';
   const categoryFilter = searchParams.get('category') ?? 'all';
   const vehicleFilter = searchParams.get('vehicle') ?? '';
+  const contactFilter = searchParams.get('contact') ?? '';
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
   const page = Number(searchParams.get('page') ?? '1');
@@ -133,6 +138,14 @@ export default function ReservationList() {
     });
   }, []);
 
+  // Resolve the planner's name when arriving with a ?contact= filter (e.g. from ContactStatsPage)
+  useEffect(() => {
+    if (!contactFilter) { setContactName(null); return; }
+    contactsApi.get(Number(contactFilter))
+      .then(r => setContactName(r.data.full_name))
+      .catch(() => setContactName(null));
+  }, [contactFilter]);
+
   // Fetch
   useEffect(() => {
     setLoading(true);
@@ -140,6 +153,7 @@ export default function ReservationList() {
       status: statusFilter === 'all' ? undefined : statusFilter,
       event_category: categoryFilter === 'all' ? undefined : categoryFilter,
       vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
+      contact_id: contactFilter ? Number(contactFilter) : undefined,
       search: q || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -150,7 +164,7 @@ export default function ReservationList() {
     })
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
-  }, [statusFilter, categoryFilter, vehicleFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilter, categoryFilter, vehicleFilter, contactFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
@@ -240,6 +254,21 @@ export default function ReservationList() {
           </button>
         </div>
       </div>
+
+      {/* Active planner filter */}
+      {contactFilter && (
+        <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
+          <BookUser size={15} />
+          Filtrado por planificadora: <strong>{contactName ?? '…'}</strong>
+          <button
+            onClick={() => setFilter('contact', '')}
+            className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
+            title="Quitar filtro"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Search + date range + vehicle filter */}
       <div className="flex flex-wrap gap-2">
@@ -366,10 +395,15 @@ export default function ReservationList() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 min-w-0">
                       {r.vehicle_photo_url ? (
-                        <img
-                          src={r.vehicle_photo_url}
-                          alt={r.display_vehicle}
+                        <VehiclePhotoTooltip
+                          photoUrl={r.vehicle_photo_url}
                           className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                          vehicleName={r.display_vehicle}
+                          licensePlate={r.vehicle_license_plate}
+                          driverName={r.display_driver !== '—' ? r.display_driver : null}
+                          driverPhone={r.display_driver_phone}
+                          ownerName={r.owner_name}
+                          ownerPhone={r.owner_whatsapp}
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />

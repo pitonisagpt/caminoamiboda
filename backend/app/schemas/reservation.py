@@ -29,6 +29,8 @@ def _build(r) -> dict:
     d["customer_phone"]    = r.customer.phone    if r.customer else None
     d["customer_whatsapp"] = r.customer.whatsapp if r.customer else None
     d["display_driver"] = r.display_driver
+    d["display_driver_phone"] = r.display_driver_phone
+    d["vehicle_license_plate"] = r.vehicle.license_plate if r.vehicle else None
     d["owner_driver_name"] = r.owner_driver.full_name if r.owner_driver else None
     d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
@@ -123,9 +125,11 @@ class ReservationRead(BaseModel):
     contact_phone: Optional[str] = None
     contact_type: Optional[str] = None
     display_vehicle: str
+    vehicle_license_plate: Optional[str] = None
     customer_phone: Optional[str] = None
     customer_whatsapp: Optional[str] = None
     display_driver: str
+    display_driver_phone: Optional[str] = None
     owner_driver_name: Optional[str] = None
     owner_driver_phone: Optional[str] = None
     owner_name: Optional[str] = None
@@ -151,6 +155,10 @@ class ReservationList(BaseModel):
     display_customer: str
     display_vehicle: str
     display_driver: str
+    display_driver_phone: Optional[str] = None
+    vehicle_license_plate: Optional[str] = None
+    owner_name: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
     event_date: date
     total_amount: Decimal
     deposit_paid: Decimal

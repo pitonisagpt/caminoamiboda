@@ -100,3 +100,11 @@ class Reservation(Base):
         if self.driver:
             return self.driver.full_name
         return "—"
+
+    @property
+    def display_driver_phone(self) -> Optional[str]:
+        if self.owner_driver_id and self.owner_driver:
+            return self.owner_driver.phone or getattr(self.owner_driver, "whatsapp", None)
+        if self.driver:
+            return self.driver.phone or getattr(self.driver, "whatsapp", None)
+        return None
