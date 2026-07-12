@@ -4,13 +4,16 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import asc, desc, or_
+from sqlalchemy import asc, desc, func, or_
 from sqlalchemy.orm import Session, outerjoin, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
+from app.models.catalog_location import CatalogLocation
 from app.models.contact import Contact
 from app.models.customer import Customer
+from app.models.event_location import EventLocation
+from app.models.event_timeline import EventTimeline
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_payment import ReservationPayment
 from app.models.quote import Quote
@@ -62,6 +65,7 @@ def list_reservations(
     event_category: Optional[str] = Query(None),
     vehicle_id: Optional[int] = Query(None),
     contact_id: Optional[int] = Query(None),
+    location_id: Optional[int] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("event_date"),
     sort_dir: str = Query("desc"),
@@ -84,6 +88,15 @@ def list_reservations(
         q = q.filter(Reservation.vehicle_id == vehicle_id)
     if contact_id:
         q = q.filter(Reservation.contact_id == contact_id)
+    if location_id:
+        loc = db.get(CatalogLocation, location_id)
+        if loc:
+            q = (q.join(EventTimeline, EventTimeline.reservation_id == Reservation.id)
+                  .join(EventLocation, EventLocation.timeline_id == EventTimeline.id)
+                  .filter(func.lower(EventLocation.location_name) == loc.name.strip().lower())
+                  .distinct())
+        else:
+            q = q.filter(Reservation.id.is_(None))  # no such location → empty result
     if date_from:
         q = q.filter(Reservation.event_date >= date_from)
     if date_to:

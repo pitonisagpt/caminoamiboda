@@ -60,6 +60,22 @@ function makeIcon(type: LocationType, selected: boolean): L.DivIcon {
   });
 }
 
+// ─── Map resize observer ────────────────────────────────────────────────────────
+// Leaflet caches its render size at init and doesn't notice the container growing
+// (e.g. as async data/geocoding finishes and the grid row gets taller), leaving the
+// tile layer cut off with a blank gap below it. Re-measure whenever the container resizes.
+
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [map]);
+  return null;
+}
+
 // ─── Map fit-bounds controller ──────────────────────────────────────────────────
 
 function MapFitter({ points }: { points: [number, number][] }) {
@@ -307,10 +323,16 @@ export default function LocationCatalogPage() {
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                 typeFilter === t ? 'bg-brand-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
+              {t !== '' && (
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${typeFilter === t ? 'ring-1 ring-white/70' : ''}`}
+                  style={{ background: TYPE_HEX[t] }}
+                />
+              )}
               {t === '' ? 'Todos' : TYPE_LABELS[t]}
             </button>
           ))}
@@ -324,16 +346,6 @@ export default function LocationCatalogPage() {
             Quitar selección ({selectedIds.size})
           </button>
         )}
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3">
-        {(Object.entries(TYPE_LABELS) as [LocationType, string][]).map(([t, label]) => (
-          <div key={t} className="flex items-center gap-1.5 text-xs text-gray-500">
-            <span className="w-3 h-3 rounded-full inline-block shrink-0" style={{ background: TYPE_HEX[t] }} />
-            {label}
-          </div>
-        ))}
       </div>
 
       {/* Split view */}
@@ -404,7 +416,18 @@ export default function LocationCatalogPage() {
                         </td>
                         <td className="px-4 py-3 text-right hidden sm:table-cell">
                           {loc.usage_count > 0
-                            ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-brand-50 text-brand-700">{loc.usage_count}</span>
+                            ? (
+                              <a
+                                href={`/reservas?location=${loc.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                title="Ver reservas que usan esta ubicación"
+                                className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 hover:ring-2 hover:ring-brand-200 transition-colors cursor-pointer"
+                              >
+                                {loc.usage_count}
+                              </a>
+                            )
                             : <span className="text-xs text-gray-400">—</span>
                           }
                         </td>
@@ -497,6 +520,7 @@ export default function LocationCatalogPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
             <MapFitter points={visiblePoints} />
+            <MapResizer />
             {locations.map(loc => {
               const c = coordsMap.get(loc.id);
               if (!c) return null;

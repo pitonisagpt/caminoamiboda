@@ -17,6 +17,7 @@ export interface ReservationListParams {
   event_category?: string;
   vehicle_id?: number;
   contact_id?: number;
+  location_id?: number;
   search?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';

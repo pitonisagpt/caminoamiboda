@@ -13,6 +13,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.catalog_location import CatalogLocation
 from app.models.event_location import EventLocation, LocationType
+from app.models.event_timeline import EventTimeline
 from app.schemas.catalog_location import CatalogLocationCreate, CatalogLocationRead, CatalogLocationUpdate
 
 _UA = "CaminoAMiBoda/1.0 (reservations system; contact@caminoamiboda.com)"
@@ -93,8 +94,13 @@ def list_catalog_locations(
     type: Optional[LocationType] = Query(None),
     db: Session = Depends(get_db),
 ):
+    # Count distinct reservations, not raw EventLocation rows — a single wedding can
+    # reuse the same location twice (e.g. pickup and reception both at "Club el Prado"),
+    # which should still count as one use, matching /reservations?location_id filtering.
     usage_sq = (
-        sa_select(func.count())
+        sa_select(func.count(func.distinct(EventTimeline.reservation_id)))
+        .select_from(EventLocation)
+        .join(EventTimeline, EventTimeline.id == EventLocation.timeline_id)
         .where(func.lower(EventLocation.location_name) == func.lower(CatalogLocation.name))
         .correlate(CatalogLocation)
         .scalar_subquery()
@@ -127,6 +133,11 @@ def create_catalog_location(data: CatalogLocationCreate, db: Session = Depends(g
     return loc
 
 
+@router.get("/{loc_id}", response_model=CatalogLocationRead)
+def get_catalog_location(loc_id: int, db: Session = Depends(get_db)):
+    return _get_or_404(loc_id, db)
+
+
 @router.put("/{loc_id}", response_model=CatalogLocationRead)
 def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Session = Depends(get_db)):
     loc = _get_or_404(loc_id, db)
@@ -135,6 +146,15 @@ def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Sessio
 
     for k, v in update_fields.items():
         setattr(loc, k, v)
+
+    # Re-geocode when the address/name/link changed but coordinates weren't explicitly
+    # supplied — otherwise editing an address silently leaves the map pin in the old spot.
+    geocode_triggers = {"address", "google_maps_link", "name"}
+    if geocode_triggers & update_fields.keys() and not ({"lat", "lng"} & update_fields.keys()):
+        coords = _geocode(loc)
+        if coords:
+            loc.lat, loc.lng = coords
+            update_fields["lat"], update_fields["lng"] = coords
 
     # Propagate corrections to already-created EventLocation rows matched by the OLD name
     # (case-insensitive, so a rename is still found) — same name-matching convention sync_to_catalog uses.

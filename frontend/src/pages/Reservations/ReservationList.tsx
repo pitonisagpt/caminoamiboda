@@ -4,7 +4,7 @@ import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
   ChevronLeft, ChevronRight, CalendarClock, LayoutGrid, TableProperties,
-  BookUser, X,
+  BookUser, MapPin, X,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
@@ -12,6 +12,7 @@ import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/
 import { vehiclesApi } from '../../api/vehicles';
 import type { VehicleListItem } from '../../types/vehicle';
 import { contactsApi } from '../../api/contacts';
+import { catalogLocationsApi } from '../../api/catalogLocations';
 import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
 import ReservationKanban from './ReservationKanban';
@@ -70,6 +71,7 @@ export default function ReservationList() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [vehicleOptions, setVehicleOptions] = useState<ComboboxOption[]>([]);
   const [contactName, setContactName] = useState<string | null>(null);
+  const [locationName, setLocationName] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(50);
   const [view, setView] = useState<'table' | 'kanban'>(
     () => (localStorage.getItem('reservations-view') === 'kanban' ? 'kanban' : 'table')
@@ -85,6 +87,7 @@ export default function ReservationList() {
   const categoryFilter = searchParams.get('category') ?? 'all';
   const vehicleFilter = searchParams.get('vehicle') ?? '';
   const contactFilter = searchParams.get('contact') ?? '';
+  const locationFilter = searchParams.get('location') ?? '';
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
   const page = Number(searchParams.get('page') ?? '1');
@@ -146,6 +149,14 @@ export default function ReservationList() {
       .catch(() => setContactName(null));
   }, [contactFilter]);
 
+  // Resolve the location's name when arriving with a ?location= filter (e.g. from Ubicaciones)
+  useEffect(() => {
+    if (!locationFilter) { setLocationName(null); return; }
+    catalogLocationsApi.get(Number(locationFilter))
+      .then(r => setLocationName(r.data.name))
+      .catch(() => setLocationName(null));
+  }, [locationFilter]);
+
   // Fetch
   useEffect(() => {
     setLoading(true);
@@ -154,6 +165,7 @@ export default function ReservationList() {
       event_category: categoryFilter === 'all' ? undefined : categoryFilter,
       vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
       contact_id: contactFilter ? Number(contactFilter) : undefined,
+      location_id: locationFilter ? Number(locationFilter) : undefined,
       search: q || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -164,7 +176,7 @@ export default function ReservationList() {
     })
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
-  }, [statusFilter, categoryFilter, vehicleFilter, contactFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilter, categoryFilter, vehicleFilter, contactFilter, locationFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
@@ -255,13 +267,26 @@ export default function ReservationList() {
         </div>
       </div>
 
-      {/* Active planner filter */}
+      {/* Active planner / location filters */}
       {contactFilter && (
         <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
           <BookUser size={15} />
           Filtrado por planificadora: <strong>{contactName ?? '…'}</strong>
           <button
             onClick={() => setFilter('contact', '')}
+            className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
+            title="Quitar filtro"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {locationFilter && (
+        <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
+          <MapPin size={15} />
+          Filtrado por ubicación: <strong>{locationName ?? '…'}</strong>
+          <button
+            onClick={() => setFilter('location', '')}
             className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
             title="Quitar filtro"
           >

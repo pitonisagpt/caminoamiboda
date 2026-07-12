@@ -10,6 +10,9 @@ export const catalogLocationsApi = {
   list: (params: ListParams = {}) =>
     api.get<CatalogLocation[]>('/catalog-locations', { params }),
 
+  get: (id: number) =>
+    api.get<CatalogLocation>(`/catalog-locations/${id}`),
+
   create: (data: CatalogLocationFormData) =>
     api.post<CatalogLocation>('/catalog-locations', data),
 
