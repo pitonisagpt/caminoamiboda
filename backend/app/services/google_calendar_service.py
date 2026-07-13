@@ -229,6 +229,19 @@ _CATEGORY_LABEL = {
     "publicidad": "Publicidad",
 }
 
+# Google Calendar's event colorId palette (1-11) is smaller and separate from the
+# calendar-level color palette (1-24) — these were chosen to match each category's
+# calendar color as closely as possible: Peacock/cyan, Tomato/red, Banana/yellow,
+# Basil/green, Grape/purple, Blueberry/blue.
+_CATEGORY_EVENT_COLOR = {
+    "prospectos": "7",   # Peacock (cyan)
+    "pendiente":  "11",  # Tomato (red)
+    "abono":      "5",   # Banana (yellow)
+    "ok":         "10",  # Basil (green)
+    "obsequio":   "3",   # Grape (purple)
+    "publicidad": "9",   # Blueberry (blue)
+}
+
 _EVENT_TYPE_LABEL = {
     "wedding":               "Boda",
     "quinceanera":           "Quinceañera",
@@ -271,7 +284,7 @@ def _build_gcal_event(timeline, locations: list, activities: list | None = None,
         "description": _build_description(timeline, locations, activities, reservation, client_payments, settlement),
         "start": {"date": str(event_date)},
         "end": {"date": str(event_date + timedelta(days=1))},
-        "colorId": "4",  # Flamingo
+        "colorId": _CATEGORY_EVENT_COLOR.get(timeline.calendar_category or "", "8"),
     }
 
 
