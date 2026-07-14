@@ -53,11 +53,13 @@ const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
 function SortableActivity({
   activity,
   locations,
+  dayLabel,
   onEdit,
   onDelete,
 }: {
   activity: TimelineActivity;
   locations: EventLocation[];
+  dayLabel: string | null;
   onEdit: (a: TimelineActivity) => void;
   onDelete: (id: number) => void;
 }) {
@@ -83,6 +85,11 @@ function SortableActivity({
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
+          {dayLabel && (
+            <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-1.5 py-0.5 shrink-0">
+              {dayLabel}
+            </span>
+          )}
           <span className="text-sm font-mono font-semibold text-brand-700 shrink-0">{activity.time}</span>
           <span className="text-sm text-gray-900 truncate">{activity.description}</span>
         </div>
@@ -251,27 +258,32 @@ function LocationModal({
 function ActivityModal({
   initial,
   locations,
+  eventDate,
   onSave,
   onClose,
 }: {
   initial?: TimelineActivity | null;
   locations: EventLocation[];
+  eventDate: string;
   onSave: (data: ActivityFormData) => void;
   onClose: () => void;
 }) {
   const [form, setForm] = useState<ActivityFormData>({
     time: initial?.time || '',
+    day_number: initial?.day_number ?? 1,
     description: initial?.description || '',
     location_id: initial?.location_id ?? null,
     estimated_duration: initial?.estimated_duration || '',
     notes: initial?.notes || '',
   });
+  const activityDate = addDays(eventDate, form.day_number - 1);
 
   const f = (k: keyof ActivityFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const val = k === 'location_id'
-      ? (e.target.value ? Number(e.target.value) : null)
-      : e.target.value;
+    const val = k === 'location_id' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
     setForm(prev => ({ ...prev, [k]: val }));
+  };
+  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, day_number: daysBetween(eventDate, e.target.value) + 1 }));
   };
 
   return (
@@ -282,7 +294,7 @@ function ActivityModal({
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
         </div>
         <div className="px-6 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Hora *</label>
               <input
@@ -291,6 +303,10 @@ function ActivityModal({
                 onChange={f('time')}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
+              <input type="date" value={activityDate} onChange={onDateChange} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
@@ -354,6 +370,22 @@ function formatEventDate(d: string): string {
   });
 }
 
+function formatShortDate(d: string): string {
+  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+}
+
+function addDays(d: string, n: number): string {
+  const date = new Date(d + 'T00:00:00');
+  date.setDate(date.getDate() + n);
+  return date.toISOString().slice(0, 10);
+}
+
+function daysBetween(from: string, to: string): number {
+  const a = new Date(from + 'T00:00:00');
+  const b = new Date(to + 'T00:00:00');
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
 function formatTime12h(time: string): string {
   const [h, m] = time.split(':').map(Number);
   const period = h >= 12 ? 'p.m.' : 'a.m.';
@@ -361,12 +393,15 @@ function formatTime12h(time: string): string {
   return `${String(hour12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
 }
 
+function totalMinutes(a: TimelineActivity): number {
+  const [h, m] = a.time.split(':').map(Number);
+  return (a.day_number - 1) * 1440 + h * 60 + m;
+}
+
 function computeDuration(activities: TimelineActivity[]): string {
   if (activities.length < 2) return '';
   const sorted = [...activities].sort((a, b) => a.display_order - b.display_order);
-  const [fh, fm] = sorted[0].time.split(':').map(Number);
-  const [lh, lm] = sorted[sorted.length - 1].time.split(':').map(Number);
-  const totalMins = (lh * 60 + lm) - (fh * 60 + fm);
+  const totalMins = totalMinutes(sorted[sorted.length - 1]) - totalMinutes(sorted[0]);
   if (totalMins <= 0) return '';
   const hours = Math.floor(totalMins / 60);
   const mins = totalMins % 60;
@@ -416,9 +451,15 @@ function buildFullMsg(t: EventTimeline): string {
   if (t.activities.length > 0) {
     const sortedActs = [...t.activities].sort((a, b) => a.display_order - b.display_order);
     const duration = computeDuration(sortedActs);
+    const multiDay = new Set(sortedActs.map(a => a.day_number)).size > 1;
     lines.push('');
     lines.push(`*Itinerario${duration ? ` (${duration})` : ''}*`);
+    let lastDay: number | null = null;
     sortedActs.forEach(act => {
+      if (multiDay && act.day_number !== lastDay) {
+        lines.push(`*Día ${act.day_number} — ${formatEventDate(addDays(t.event_date, act.day_number - 1))}*`);
+        lastDay = act.day_number;
+      }
       lines.push(`${formatTime12h(act.time)} – ${act.description}`);
     });
   }
@@ -916,15 +957,22 @@ export default function TimelineDetail() {
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={activities.map(a => a.id)} strategy={verticalListSortingStrategy}>
-                {activities.map(act => (
-                  <SortableActivity
-                    key={act.id}
-                    activity={act}
-                    locations={timeline.locations}
-                    onEdit={a => setActModal({ open: true, editing: a })}
-                    onDelete={deleteActivity}
-                  />
-                ))}
+                {activities.map(act => {
+                  const isMultiDay = new Set(activities.map(a => a.day_number)).size > 1;
+                  const dayLabel = isMultiDay
+                    ? `${formatShortDate(addDays(timeline.event_date, act.day_number - 1))} · Día ${act.day_number}`
+                    : null;
+                  return (
+                    <SortableActivity
+                      key={act.id}
+                      activity={act}
+                      locations={timeline.locations}
+                      dayLabel={dayLabel}
+                      onEdit={a => setActModal({ open: true, editing: a })}
+                      onDelete={deleteActivity}
+                    />
+                  );
+                })}
               </SortableContext>
             </DndContext>
           )}
@@ -943,6 +991,7 @@ export default function TimelineDetail() {
         <ActivityModal
           initial={actModal.editing}
           locations={timeline.locations}
+          eventDate={timeline.event_date}
           onSave={saveActivity}
           onClose={() => setActModal({ open: false, editing: null })}
         />

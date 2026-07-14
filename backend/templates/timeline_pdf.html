@@ -323,6 +323,8 @@
     {% if activities %}
     {% set has_duration = activities | selectattr('estimated_duration') | list | length > 0 %}
     {% set has_notes = activities | selectattr('notes') | list | length > 0 %}
+    {% set total_cols = 2 + (1 if has_duration else 0) + (1 if has_notes else 0) %}
+    {% set total_days = activities | map(attribute='day_number') | unique | list | length %}
     <table class="act-table">
       <thead>
         <tr>
@@ -333,7 +335,16 @@
         </tr>
       </thead>
       <tbody>
+        {% set ns = namespace(last_day=none) %}
         {% for act in activities %}
+        {% if total_days > 1 and act.day_number != ns.last_day %}
+        <tr>
+          <td colspan="{{ total_cols }}" style="background:#f3f4f6; font-weight:700; padding:8px 10px;">
+            {{ day_labels.get(act.day_number, 'Día ' ~ act.day_number) }}
+          </td>
+        </tr>
+        {% set ns.last_day = act.day_number %}
+        {% endif %}
         <tr>
           <td class="act-time">{{ act.time }}</td>
           <td style="font-weight:500;">{{ act.description }}</td>

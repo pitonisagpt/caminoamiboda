@@ -278,12 +278,15 @@ def _build_gcal_event(timeline, locations: list, activities: list | None = None,
     vehicle_str = f" ({timeline.assigned_vehicle})" if timeline.assigned_vehicle else ""
     prefix = f"{category_label}: " if category_label else ""
     summary = f"{prefix}{event_type_label} {short} {date_str}{vehicle_str}"
+    # Multi-day events (rare — mostly ad/production shoots) have activities with
+    # day_number > 1; the all-day event must span all of them, not just day 1.
+    max_day = max((getattr(a, "day_number", 1) or 1 for a in (activities or [])), default=1)
     return {
         "summary": summary,
         "location": _primary_location_address(locations),
         "description": _build_description(timeline, locations, activities, reservation, client_payments, settlement),
         "start": {"date": str(event_date)},
-        "end": {"date": str(event_date + timedelta(days=1))},
+        "end": {"date": str(event_date + timedelta(days=max_day))},
         "colorId": _CATEGORY_EVENT_COLOR.get(timeline.calendar_category or "", "8"),
     }
 

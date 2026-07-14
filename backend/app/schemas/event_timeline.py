@@ -49,6 +49,7 @@ class LocationRead(LocationBase):
 
 class ActivityBase(BaseModel):
     time: str
+    day_number: int = 1
     description: str
     location_id: Optional[int] = None
     estimated_duration: Optional[str] = None
@@ -62,6 +63,7 @@ class ActivityCreate(ActivityBase):
 
 class ActivityUpdate(BaseModel):
     time: Optional[str] = None
+    day_number: Optional[int] = None
     description: Optional[str] = None
     location_id: Optional[int] = None
     estimated_duration: Optional[str] = None

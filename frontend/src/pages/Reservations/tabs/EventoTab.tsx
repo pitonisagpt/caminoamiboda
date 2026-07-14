@@ -21,7 +21,7 @@ import { Toast } from '../../../components/ui/Toast';
 import Combobox from '../../../components/ui/Combobox';
 import type { ComboboxOption } from '../../../components/ui/Combobox';
 import type {
-  EventTimeline, EventLocation, TimelineActivity,
+  EventTimeline, EventLocation, TimelineActivity, EventType,
   LocationType, LocationFormData, ActivityFormData,
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
@@ -43,6 +43,16 @@ const LOCATION_TYPE_WA_LABELS: Record<LocationType, string> = {
   pickup: 'Recogida', ceremony: 'Ceremonia', reception: 'Recepción',
   photoshoot: 'Sesión de fotos', other: 'Ubicación',
 };
+const EVENT_TYPE_OPTIONS: { value: EventType; label: string }[] = [
+  { value: 'wedding', label: 'Boda' },
+  { value: 'brand_activation', label: 'Activación de marca' },
+  { value: 'audiovisual_production', label: 'Producción audiovisual' },
+  { value: 'quinceanera', label: 'Quinceañera' },
+  { value: 'other', label: 'Otro' },
+];
+const EVENT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  EVENT_TYPE_OPTIONS.map(o => [o.value, o.label])
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -58,6 +68,22 @@ function formatEventDate(d: string): string {
   });
 }
 
+function addDays(d: string, n: number): string {
+  const date = new Date(d + 'T00:00:00');
+  date.setDate(date.getDate() + n);
+  return date.toISOString().slice(0, 10);
+}
+
+function formatShortDate(d: string): string {
+  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+}
+
+function daysBetween(from: string, to: string): number {
+  const a = new Date(from + 'T00:00:00');
+  const b = new Date(to + 'T00:00:00');
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
 function formatTime12h(time: string): string {
   const [h, m] = time.split(':').map(Number);
   const period = h >= 12 ? 'p.m.' : 'a.m.';
@@ -65,12 +91,15 @@ function formatTime12h(time: string): string {
   return `${String(hour12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
 }
 
+function totalMinutes(a: TimelineActivity): number {
+  const [h, m] = a.time.split(':').map(Number);
+  return (a.day_number - 1) * 1440 + h * 60 + m;
+}
+
 function computeDuration(activities: TimelineActivity[]): string {
   if (activities.length < 2) return '';
   const sorted = [...activities].sort((a, b) => a.display_order - b.display_order);
-  const [fh, fm] = sorted[0].time.split(':').map(Number);
-  const [lh, lm] = sorted[sorted.length - 1].time.split(':').map(Number);
-  const totalMins = (lh * 60 + lm) - (fh * 60 + fm);
+  const totalMins = totalMinutes(sorted[sorted.length - 1]) - totalMinutes(sorted[0]);
   if (totalMins <= 0) return '';
   const hours = Math.floor(totalMins / 60);
   const mins = totalMins % 60;
@@ -82,10 +111,6 @@ function buildFullMsg(t: EventTimeline): string {
   const vehicle = t.assigned_vehicle || '';
   const lines: string[] = [];
 
-  const EVENT_TYPE_LABELS: Record<string, string> = {
-    wedding: 'Boda', brand_activation: 'Activación de marca',
-    audiovisual_production: 'Producción audiovisual', quinceanera: 'Quinceañera', other: 'Evento',
-  };
   const eventTypeLabel = EVENT_TYPE_LABELS[t.event_type] ?? 'Evento';
   lines.push(`*Minuto a Minuto – ${eventTypeLabel} · ${t.event_name}*`);
   lines.push(`*Fecha:* ${date}`);
@@ -120,9 +145,15 @@ function buildFullMsg(t: EventTimeline): string {
   if (t.activities.length > 0) {
     const sortedActs = [...t.activities].sort((a, b) => a.display_order - b.display_order);
     const duration = computeDuration(sortedActs);
+    const multiDay = new Set(sortedActs.map(a => a.day_number)).size > 1;
     lines.push('');
     lines.push(`*Itinerario${duration ? ` (${duration})` : ''}*`);
+    let lastDay: number | null = null;
     sortedActs.forEach(act => {
+      if (multiDay && act.day_number !== lastDay) {
+        lines.push(`*Día ${act.day_number} — ${formatEventDate(addDays(t.event_date, act.day_number - 1))}*`);
+        lastDay = act.day_number;
+      }
       lines.push(`${formatTime12h(act.time)} – ${act.description}`);
     });
   }
@@ -136,9 +167,10 @@ function buildFullMsg(t: EventTimeline): string {
 
 // ─── Sortable Activity ─────────────────────────────────────────────────────────
 
-function SortableActivity({ activity, locations, onEdit, onDelete }: {
+function SortableActivity({ activity, locations, dayLabel, onEdit, onDelete }: {
   activity: TimelineActivity;
   locations: EventLocation[];
+  dayLabel: string | null;
   onEdit: (a: TimelineActivity) => void;
   onDelete: (id: number) => void;
 }) {
@@ -154,6 +186,11 @@ function SortableActivity({ activity, locations, onEdit, onDelete }: {
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
+          {dayLabel && (
+            <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-1.5 py-0.5 shrink-0">
+              {dayLabel}
+            </span>
+          )}
           <span className="text-sm font-mono font-semibold text-brand-700 shrink-0">{activity.time}</span>
           <span className="text-sm text-gray-900 truncate">{activity.description}</span>
         </div>
@@ -281,20 +318,25 @@ function LocationModal({ initial, onSave, onClose }: {
 
 // ─── Activity Modal ────────────────────────────────────────────────────────────
 
-function ActivityModal({ initial, locations, onSave, onClose }: {
+function ActivityModal({ initial, locations, eventDate, onSave, onClose }: {
   initial?: TimelineActivity | null;
   locations: EventLocation[];
+  eventDate: string;
   onSave: (data: ActivityFormData) => void;
   onClose: () => void;
 }) {
   const [form, setForm] = useState<ActivityFormData>({
-    time: initial?.time || '', description: initial?.description || '',
+    time: initial?.time || '', day_number: initial?.day_number ?? 1, description: initial?.description || '',
     location_id: initial?.location_id ?? null,
     estimated_duration: initial?.estimated_duration || '', notes: initial?.notes || '',
   });
+  const activityDate = addDays(eventDate, form.day_number - 1);
   const f = (k: keyof ActivityFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const val = k === 'location_id' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
     setForm(prev => ({ ...prev, [k]: val }));
+  };
+  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, day_number: daysBetween(eventDate, e.target.value) + 1 }));
   };
 
   return (
@@ -305,10 +347,14 @@ function ActivityModal({ initial, locations, onSave, onClose }: {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
         </div>
         <div className="px-6 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Hora *</label>
               <input type="time" value={form.time} onChange={f('time')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
+              <input type="date" value={activityDate} onChange={onDateChange} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
@@ -384,16 +430,24 @@ export default function EventoTab({
   const handleCreate = async () => {
     setCreating(true);
     try {
+      const defaultEventType: EventType =
+        reservation.event_category === 'publicidad' ? 'brand_activation' : 'wedding';
       await timelinesApi.create({
         event_name: reservation.display_customer,
         event_date: reservation.event_date,
-        event_type: 'wedding',
+        event_type: defaultEventType,
         reservation_id: reservation.id,
       } as any);
       onReservationChange();
     } finally {
       setCreating(false);
     }
+  };
+
+  const changeEventType = async (eventType: string) => {
+    if (!timelineId) return;
+    await timelinesApi.update(timelineId, { event_type: eventType });
+    await load();
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -488,7 +542,19 @@ export default function EventoTab({
       {/* Event info strip */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900 text-sm">Detalles del evento</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 text-sm">Detalles del evento</h3>
+            <select
+              value={timeline.event_type}
+              onChange={(e) => changeEventType(e.target.value)}
+              title="Tipo de evento"
+              className="text-xs border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 bg-gray-50 hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-400"
+            >
+              {EVENT_TYPE_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex gap-2">
             {gcalLink && (
               <a href={gcalLink} target="_blank" rel="noreferrer"
@@ -730,12 +796,19 @@ export default function EventoTab({
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={activities.map(a => a.id)} strategy={verticalListSortingStrategy}>
-                {activities.map(act => (
-                  <SortableActivity key={act.id} activity={act} locations={timeline.locations}
-                    onEdit={a => setActModal({ open: true, editing: a })}
-                    onDelete={deleteActivity}
-                  />
-                ))}
+                {activities.map(act => {
+                  const isMultiDay = new Set(activities.map(a => a.day_number)).size > 1;
+                  const dayLabel = isMultiDay
+                    ? `${formatShortDate(addDays(timeline.event_date, act.day_number - 1))} · Día ${act.day_number}`
+                    : null;
+                  return (
+                    <SortableActivity key={act.id} activity={act} locations={timeline.locations}
+                      dayLabel={dayLabel}
+                      onEdit={a => setActModal({ open: true, editing: a })}
+                      onDelete={deleteActivity}
+                    />
+                  );
+                })}
               </SortableContext>
             </DndContext>
           )}
@@ -744,7 +817,7 @@ export default function EventoTab({
 
       {/* Modals */}
       {locModal.open && <LocationModal initial={locModal.editing} onSave={saveLocation} onClose={() => setLocModal({ open: false, editing: null })} />}
-      {actModal.open && <ActivityModal initial={actModal.editing} locations={timeline.locations} onSave={saveActivity} onClose={() => setActModal({ open: false, editing: null })} />}
+      {actModal.open && <ActivityModal initial={actModal.editing} locations={timeline.locations} eventDate={timeline.event_date} onSave={saveActivity} onClose={() => setActModal({ open: false, editing: null })} />}
     </div>
   );
 }

@@ -119,7 +119,17 @@ export default function EventoPage() {
       weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
     });
 
+  const formatShortDate = (d: string) =>
+    new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+
+  const addDays = (d: string, n: number) => {
+    const date = new Date(d + 'T00:00:00');
+    date.setDate(date.getDate() + n);
+    return date.toISOString().slice(0, 10);
+  };
+
   const sortedActivities = [...event.activities].sort((a, b) => a.display_order - b.display_order);
+  const multiDayEvent = new Set(sortedActivities.map(a => a.day_number)).size > 1;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -235,6 +245,11 @@ export default function EventoPage() {
                       <div className="flex-1 bg-white border border-gray-200 rounded-xl p-3 mb-2">
                         <div className="flex items-start justify-between gap-2">
                           <div>
+                            {multiDayEvent && (
+                              <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-1.5 py-0.5 mr-1.5 align-middle">
+                                {formatShortDate(addDays(event.event_date, act.day_number - 1))} · Día {act.day_number}
+                              </span>
+                            )}
                             <span className="text-sm font-bold text-brand-700 font-mono">{act.time}</span>
                             <p className="text-sm text-gray-900 mt-0.5 leading-snug">{act.description}</p>
                           </div>

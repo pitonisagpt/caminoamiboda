@@ -1,6 +1,6 @@
 import io
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List
 
@@ -218,6 +218,12 @@ def _parse_time_minutes(t: str | None) -> int:
         return 24 * 60 * 1000
 
 
+def _activity_sort_key(day_number: int | None, time: str | None) -> tuple[int, int]:
+    """Chronological sort key: day takes priority over time-of-day, so a
+    Día 2 08:00 activity always sorts after every Día 1 activity."""
+    return (day_number or 1, _parse_time_minutes(time))
+
+
 @router.get("/api/timelines/{timeline_id}/activities", response_model=List[ActivityRead], dependencies=[Depends(get_current_user)])
 def list_activities(timeline_id: int, db: Session = Depends(get_db)):
     _get_timeline(timeline_id, db)
@@ -232,9 +238,9 @@ def create_activity(timeline_id: int, body: ActivityCreate, db: Session = Depend
     ).order_by(TimelineActivity.display_order).all()
 
     data = body.model_dump()
-    new_minutes = _parse_time_minutes(data.get("time"))
+    new_key = _activity_sort_key(data.get("day_number"), data.get("time"))
     insert_index = next(
-        (i for i, a in enumerate(existing) if _parse_time_minutes(a.time) > new_minutes),
+        (i for i, a in enumerate(existing) if _activity_sort_key(a.day_number, a.time) > new_key),
         len(existing),
     )
 
@@ -264,19 +270,19 @@ def reorder_activities(timeline_id: int, body: List[ActivityReorderItem], db: Se
 def update_activity(timeline_id: int, activity_id: int, body: ActivityUpdate, db: Session = Depends(get_db)):
     act = _get_activity(timeline_id, activity_id, db)
     update_data = body.model_dump(exclude_unset=True)
-    old_time = act.time
+    old_key = (act.day_number, act.time)
 
     for field, value in update_data.items():
         setattr(act, field, value)
 
-    if "time" in update_data and act.time != old_time:
+    if ("time" in update_data or "day_number" in update_data) and (act.day_number, act.time) != old_key:
         others = db.query(TimelineActivity).filter(
             TimelineActivity.timeline_id == timeline_id,
             TimelineActivity.id != activity_id,
         ).order_by(TimelineActivity.display_order).all()
-        new_minutes = _parse_time_minutes(act.time)
+        new_key = _activity_sort_key(act.day_number, act.time)
         insert_index = next(
-            (i for i, a in enumerate(others) if _parse_time_minutes(a.time) > new_minutes),
+            (i for i, a in enumerate(others) if _activity_sort_key(a.day_number, a.time) > new_key),
             len(others),
         )
         for a in others[insert_index:]:
@@ -307,6 +313,11 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
     driver = reservation.driver if reservation else None
     planner = reservation.contact if reservation else None
 
+    day_labels = {
+        n: f"Día {n} — {_fmt_date_es(timeline.event_date + timedelta(days=n - 1))}"
+        for n in sorted({a.day_number for a in acts})
+    }
+
     env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("timeline_pdf.html")
     html = template.render(
@@ -319,6 +330,7 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
         planner=planner,
         formatted_date=_fmt_date_es(datetime.now().date()),
         formatted_event_date=_fmt_date_es(timeline.event_date),
+        day_labels=day_labels,
         company_name=settings.company_name,
         company_phone=settings.company_phone,
         city=settings.city,

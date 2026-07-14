@@ -33,6 +33,7 @@ export interface TimelineActivity {
   timeline_id: number;
   location_id: number | null;
   time: string;
+  day_number: number;
   description: string;
   estimated_duration: string | null;
   notes: string | null;
@@ -121,6 +122,7 @@ export interface LocationFormData {
 
 export interface ActivityFormData {
   time: string;
+  day_number: number;
   description: string;
   location_id: number | null;
   estimated_duration: string;
