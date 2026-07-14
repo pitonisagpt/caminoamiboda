@@ -1,4 +1,4 @@
-import { Heart, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Heart, Loader2, MessageCircle, Pencil, Plus, Search, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
@@ -19,12 +19,24 @@ function toWhatsAppUrl(phone: string | null, name: string): string {
   return `https://wa.me/${num}?text=${msg}`;
 }
 
+function buildWaUrl(phone: string | null, message: string): string {
+  const encoded = encodeURIComponent(message);
+  const num = phone ? phone.replace(/\D/g, "") : "";
+  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+}
+
+const TEMPERATURE_BADGE: Record<string, { label: string; className: string }> = {
+  frio: { label: "Frío", className: "bg-blue-50 text-blue-600" },
+  caliente: { label: "Caliente", className: "bg-red-50 text-red-600" },
+};
+
 export function CustomerList() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [sendingId, setSendingId] = useState<number | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const q = searchParams.get("q") ?? "";
@@ -56,6 +68,17 @@ export function CustomerList() {
       setCustomers((prev) => prev.filter((x) => x.id !== c.id));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleSendFollowUp = async (c: Customer) => {
+    setSendingId(c.id);
+    try {
+      const res = await customersApi.whatsappText(c.id);
+      const phone = c.whatsapp ?? c.phone;
+      window.open(buildWaUrl(phone, res.data.text), "_blank");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -114,9 +137,28 @@ export function CustomerList() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(c.wedding_date)}</td>
                     <td className="px-4 py-3 text-gray-600">{c.phone ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{c.referral_source ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">
+                      <div className="flex flex-col gap-1">
+                        <span>{c.referral_source ?? "—"}</span>
+                        {c.lead_temperature && TEMPERATURE_BADGE[c.lead_temperature] && (
+                          <span className={`w-fit px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${TEMPERATURE_BADGE[c.lead_temperature].className}`}>
+                            {TEMPERATURE_BADGE[c.lead_temperature].label}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
+                        {c.lead_temperature && (c.whatsapp || c.phone) && (
+                          <button
+                            onClick={() => handleSendFollowUp(c)}
+                            disabled={sendingId === c.id}
+                            className="p-2 rounded-lg text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer disabled:opacity-40"
+                            title="Enviar seguimiento de feria por WhatsApp"
+                          >
+                            {sendingId === c.id ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                          </button>
+                        )}
                         {(c.whatsapp || c.phone) && (
                           <a
                             href={toWhatsAppUrl(c.whatsapp ?? c.phone, c.main_contact_name)}

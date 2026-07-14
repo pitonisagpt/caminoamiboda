@@ -11,7 +11,7 @@ import type { CustomerFormData } from "../../types/customer";
 
 const REFERRAL_OPTIONS = [
   "Instagram", "Recomendación de amigo/familiar", "Google",
-  "Facebook", "TikTok", "Feria de bodas", "Otro",
+  "Facebook", "TikTok", "Feria de bodas", "Feria Vizcaya Mayo", "Otro",
 ];
 
 export function CustomerForm() {

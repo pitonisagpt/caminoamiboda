@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.customer import Customer
-from app.schemas.customer import CustomerCreate, CustomerRead, CustomerUpdate
+from app.schemas.customer import CustomerCreate, CustomerRead, CustomerUpdate, WhatsappTextResponse
+from app.services.lead_messaging import build_lead_whatsapp_message
 
 router = APIRouter(prefix="/api/customers", tags=["customers"], redirect_slashes=False, dependencies=[Depends(get_current_user)])
 
@@ -41,6 +42,14 @@ def get_customer(customer_id: int, db: Session = Depends(get_db)):
     if not customer:
         raise HTTPException(404, "Cliente no encontrado")
     return customer
+
+
+@router.get("/{customer_id}/whatsapp-text", response_model=WhatsappTextResponse)
+def get_customer_whatsapp_text(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
+    if not customer:
+        raise HTTPException(404, "Cliente no encontrado")
+    return WhatsappTextResponse(text=build_lead_whatsapp_message(customer))
 
 
 @router.put("/{customer_id}", response_model=CustomerRead)

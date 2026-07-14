@@ -8,4 +8,5 @@ export const customersApi = {
   create: (data: Record<string, unknown>) => api.post<Customer>("/customers", data),
   update: (id: number, data: Record<string, unknown>) => api.put<Customer>(`/customers/${id}`, data),
   delete: (id: number) => api.delete(`/customers/${id}`),
+  whatsappText: (id: number) => api.get<{ text: string }>(`/customers/${id}/whatsapp-text`),
 };

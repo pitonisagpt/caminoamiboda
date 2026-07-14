@@ -40,6 +40,9 @@ class CustomerBase(BaseModel):
     instagram: Optional[str] = None
     referral_source: Optional[str] = None
     notes: Optional[str] = None
+    lead_status: str = 'activo'
+    lead_temperature: Optional[str] = None
+    aplica_hora_regalo: bool = False
 
 
 class CustomerCreate(CustomerBase):
@@ -58,6 +61,9 @@ class CustomerUpdate(BaseModel):
     instagram: Optional[str] = None
     referral_source: Optional[str] = None
     notes: Optional[str] = None
+    lead_status: Optional[str] = None
+    lead_temperature: Optional[str] = None
+    aplica_hora_regalo: Optional[bool] = None
 
 
 class CustomerRead(CustomerBase):
@@ -66,3 +72,7 @@ class CustomerRead(CustomerBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+
+class WhatsappTextResponse(BaseModel):
+    text: str

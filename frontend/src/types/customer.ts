@@ -11,6 +11,9 @@ export interface Customer {
   instagram: string | null;
   referral_source: string | null;
   notes: string | null;
+  lead_status: string | null;
+  lead_temperature: string | null;
+  aplica_hora_regalo: boolean | null;
   created_at: string;
   updated_at: string;
 }
