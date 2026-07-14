@@ -31,6 +31,20 @@ export const STATUS_FLOW: ReservationStatus[] = [
   'lead', 'quoted', 'deposit_received', 'reserved', 'confirmed', 'completed', 'cancelled',
 ];
 
+export type EventCategory = 'standard' | 'obsequio' | 'publicidad';
+
+export const EVENT_CATEGORY_LABEL: Record<EventCategory, string> = {
+  standard: 'Estándar',
+  obsequio: 'Obsequio',
+  publicidad: 'Publicidad',
+};
+
+export const EVENT_CATEGORY_COLOR: Record<EventCategory, string> = {
+  standard: '',
+  obsequio: 'bg-purple-100 text-purple-700',
+  publicidad: 'bg-purple-100 text-purple-700',
+};
+
 export interface ReservationListItem {
   id: number;
   reservation_number: string;
@@ -46,6 +60,7 @@ export interface ReservationListItem {
   deposit_paid: number;
   remaining_balance: number;
   status: ReservationStatus;
+  event_category: EventCategory;
   is_tentative: boolean;
   event_date_notes: string | null;
   vehicle_is_company_owned: boolean;
@@ -99,6 +114,7 @@ export interface ReservationFormData {
   total_amount: string;
   deposit_paid: string;
   status: ReservationStatus;
+  event_category: EventCategory;
   is_tentative: boolean;
   event_date_notes: string;
   event_location: string;

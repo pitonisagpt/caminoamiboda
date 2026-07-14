@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
-import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
+import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { vehiclesApi } from '../../api/vehicles';
 import type { VehicleListItem } from '../../types/vehicle';
 import { contactsApi } from '../../api/contacts';
@@ -451,9 +451,16 @@ export default function ReservationList() {
                     <p className="text-xs text-brand-700">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
-                      {RESERVATION_STATUS_LABEL[r.status]}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
+                        {RESERVATION_STATUS_LABEL[r.status]}
+                      </span>
+                      {r.event_category !== 'standard' && (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${EVENT_CATEGORY_COLOR[r.event_category]}`}>
+                          {EVENT_CATEGORY_LABEL[r.event_category]}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-0.5" onClick={e => e.stopPropagation()}>

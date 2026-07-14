@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { Reservation, ReservationStatus } from '../../types/reservation';
-import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
+import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import InfoTab from './tabs/InfoTab';
 import FinanceTab from './tabs/FinanceTab';
 import EventoTab from './tabs/EventoTab';
@@ -97,6 +97,11 @@ export default function ReservationDetail() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[reservation.status]}`}>
                 {RESERVATION_STATUS_LABEL[reservation.status]}
               </span>
+              {reservation.event_category !== 'standard' && (
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${EVENT_CATEGORY_COLOR[reservation.event_category]}`}>
+                  {EVENT_CATEGORY_LABEL[reservation.event_category]}
+                </span>
+              )}
             </div>
             <p className="text-sm text-gray-400 font-mono mt-0.5">{reservation.reservation_number}</p>
           </div>

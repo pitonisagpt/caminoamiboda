@@ -13,7 +13,7 @@ import type { VehicleOwnerBasic } from '../../api/vehicleOwners';
 import { calendarApi } from '../../api/calendar';
 import type { ConflictItem } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
-import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
+import { EVENT_CATEGORY_LABEL, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
 import type { Customer } from '../../types/customer';
 import type { Driver } from '../../types/driver';
 import type { Contact } from '../../types/contact';
@@ -41,6 +41,7 @@ export default function ReservationForm() {
     useForm<ReservationFormData>({
       defaultValues: {
         status: 'lead',
+        event_category: 'standard',
         total_amount: '0',
         deposit_paid: '0',
         driver_combined: '',
@@ -79,6 +80,7 @@ export default function ReservationForm() {
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
+          event_category: v.event_category ?? 'standard',
           event_location: v.event_location ?? '',
           is_tentative: v.is_tentative ?? false,
           event_date_notes: v.event_date_notes ?? '',
@@ -150,6 +152,7 @@ export default function ReservationForm() {
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
       status: data.status,
+      event_category: data.event_category,
       event_location: data.event_location || null,
       is_tentative: data.is_tentative,
       event_date_notes: data.event_date_notes || null,
@@ -375,6 +378,15 @@ export default function ReservationForm() {
             <select {...register('status')} className={inputCls}>
               {STATUS_FLOW.map(s => (
                 <option key={s} value={s}>{RESERVATION_STATUS_LABEL[s as ReservationStatus]}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className={labelCls}>Tipo de evento</label>
+            <select {...register('event_category')} className={inputCls}>
+              {(Object.entries(EVENT_CATEGORY_LABEL) as [keyof typeof EVENT_CATEGORY_LABEL, string][]).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
               ))}
             </select>
           </div>

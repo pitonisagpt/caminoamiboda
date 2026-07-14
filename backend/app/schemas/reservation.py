@@ -165,6 +165,7 @@ class ReservationList(BaseModel):
     deposit_paid: Decimal
     remaining_balance: Decimal
     status: ReservationStatus
+    event_category: str = "standard"
     is_tentative: bool = False
     event_date_notes: Optional[str] = None
     vehicle_is_company_owned: bool = False
