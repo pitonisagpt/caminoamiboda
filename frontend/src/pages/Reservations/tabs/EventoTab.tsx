@@ -589,7 +589,7 @@ export default function EventoTab({
               {reservation.vehicle_photo_url ? (
                 <VehiclePhotoTooltip
                   photoUrl={reservation.vehicle_photo_url}
-                  className="w-6 h-6 rounded-md object-cover flex-shrink-0 border border-gray-100"
+                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
                   vehicleName={timeline.assigned_vehicle}
                   licensePlate={reservation.vehicle_license_plate}
                   driverName={timeline.assigned_driver}
