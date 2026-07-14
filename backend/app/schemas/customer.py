@@ -1,18 +1,26 @@
 import re
+import unicodedata
 from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-_PHONE_RE = re.compile(r"^\+?[\d\s\-().]{7,20}$")
-
 
 def _validate_phone(v: Optional[str]) -> Optional[str]:
-    if v is None or v.strip() == "":
+    if v is None:
         return v
-    if not _PHONE_RE.match(v.strip()):
+    # Strip invisible Unicode format marks (e.g. the LRM/RLM direction marks
+    # iOS/WhatsApp wrap around a phone number when you copy it as a detected
+    # link) and fold odd whitespace variants (NBSP, etc.) into regular spaces,
+    # so a pasted number isn't rejected just because of formatting noise.
+    stripped = "".join(ch for ch in v if unicodedata.category(ch) != "Cf")
+    normalized = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", stripped)).strip()
+    if normalized == "":
+        return normalized
+    digit_count = len(re.sub(r"\D", "", normalized))
+    if digit_count < 7 or digit_count > 15:
         raise ValueError("Número de teléfono inválido")
-    return v.strip()
+    return normalized
 
 
 class CustomerBase(BaseModel):
