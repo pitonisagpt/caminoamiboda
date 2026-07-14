@@ -62,26 +62,34 @@ interface Stop {
   time: string | null;
 }
 
-/** Every geocoded location in chronological (activity time) order — one entry
- * per location, duplicates included, so a venue used twice (e.g. pickup AND
- * reception at the same place) produces the real "there and back" path. */
+/** Every geocoded location in timeline order — one entry per location,
+ * duplicates included, so a venue used twice (e.g. pickup AND reception at
+ * the same place) produces the real "there and back" path.
+ *
+ * Order comes from each location's first-referencing activity's display_order
+ * (the timeline's own, user-reorderable order) rather than comparing the
+ * `time` field as text — `time` is stored in 12h format without AM/PM
+ * ("01:30" for 1:30 p.m.), so a plain string compare sorts it before "12:15"
+ * p.m. and inverts the route whenever the event crosses noon. */
 function buildOrderedWaypoints(locations: EventLocation[], activities: TimelineActivity[]): { loc: EventLocation; time: string | null }[] {
   const withCoords = locations.filter((l): l is EventLocation & { lat: number; lng: number } => l.lat != null && l.lng != null);
 
+  const sortedActivities = [...activities].sort((a, b) => a.display_order - b.display_order);
+  const orderByLocation = new Map<number, number>();
   const timeByLocation = new Map<number, string>();
-  activities.forEach(a => {
-    if (a.location_id == null) return;
-    const existing = timeByLocation.get(a.location_id);
-    if (!existing || a.time < existing) timeByLocation.set(a.location_id, a.time);
+  sortedActivities.forEach(a => {
+    if (a.location_id == null || orderByLocation.has(a.location_id)) return;
+    orderByLocation.set(a.location_id, orderByLocation.size);
+    timeByLocation.set(a.location_id, a.time);
   });
 
   return [...withCoords]
     .sort((a, b) => {
-      const ta = timeByLocation.get(a.id);
-      const tb = timeByLocation.get(b.id);
-      if (ta != null && tb != null) return ta.localeCompare(tb);
-      if (ta != null) return -1;
-      if (tb != null) return 1;
+      const oa = orderByLocation.get(a.id);
+      const ob = orderByLocation.get(b.id);
+      if (oa != null && ob != null) return oa - ob;
+      if (oa != null) return -1;
+      if (ob != null) return 1;
       return a.display_order - b.display_order;
     })
     .map(loc => ({ loc, time: timeByLocation.get(loc.id) ?? null }));
