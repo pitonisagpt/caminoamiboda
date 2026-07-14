@@ -1,4 +1,4 @@
-import { Heart, Loader2, MessageCircle, Pencil, Plus, Search, Send, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Heart, Loader2, MessageCircle, Pencil, Plus, Search, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
@@ -30,6 +30,25 @@ const TEMPERATURE_BADGE: Record<string, { label: string; className: string }> = 
   caliente: { label: "Caliente", className: "bg-red-50 text-red-600" },
 };
 
+type SortCol = "main_contact_name" | "couple" | "wedding_date" | "phone" | "referral_source";
+
+const SORT_COLUMNS: [SortCol, string][] = [
+  ["main_contact_name", "Contacto principal"],
+  ["couple", "Novia / Novio"],
+  ["wedding_date", "Boda"],
+  ["phone", "Teléfono"],
+  ["referral_source", "Cómo nos encontró"],
+];
+
+function sortValue(c: Customer, col: SortCol): string {
+  switch (col) {
+    case "couple": return [c.bride_name, c.groom_name].filter(Boolean).join(" & ");
+    case "phone": return c.phone ?? "";
+    case "referral_source": return c.referral_source ?? "";
+    default: return c[col] ?? "";
+  }
+}
+
 export function CustomerList() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +56,8 @@ export function CustomerList() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [sendingId, setSendingId] = useState<number | null>(null);
+  const [sortCol, setSortCol] = useState<SortCol>("main_contact_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const q = searchParams.get("q") ?? "";
@@ -97,11 +118,22 @@ export function CustomerList() {
     new Set(customers.map(c => c.referral_source).filter((v): v is string => Boolean(v)))
   ).sort();
 
-  const filteredCustomers = customers.filter(c =>
-    (!originFilter || c.referral_source === originFilter) &&
-    (!statusFilter || c.lead_status === statusFilter) &&
-    (!temperatureFilter || c.lead_temperature === temperatureFilter)
-  );
+  const handleSort = (col: SortCol) => {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("asc"); }
+  };
+
+  const filteredCustomers = customers
+    .filter(c =>
+      (!originFilter || c.referral_source === originFilter) &&
+      (!statusFilter || c.lead_status === statusFilter) &&
+      (!temperatureFilter || c.lead_temperature === temperatureFilter)
+    )
+    .sort((a, b) => {
+      const av = sortValue(a, sortCol).toLowerCase();
+      const bv = sortValue(b, sortCol).toLowerCase();
+      return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
 
   return (
     <div className="space-y-6">
@@ -182,11 +214,20 @@ export function CustomerList() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-50 bg-brand-50/50">
-                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Contacto principal</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Novia / Novio</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Boda</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Teléfono</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Cómo nos encontró</th>
+                  {SORT_COLUMNS.map(([col, label]) => (
+                    <th
+                      key={col}
+                      onClick={() => handleSort(col)}
+                      className="text-left px-4 py-3 font-semibold text-brand-600 cursor-pointer hover:text-brand-800 select-none"
+                    >
+                      <span className="flex items-center gap-1">
+                        {label}
+                        {sortCol === col
+                          ? sortDir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                          : <ChevronUp size={12} className="opacity-20" />}
+                      </span>
+                    </th>
+                  ))}
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
