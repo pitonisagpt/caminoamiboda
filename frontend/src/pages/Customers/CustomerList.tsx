@@ -41,6 +41,16 @@ export function CustomerList() {
 
   const q = searchParams.get("q") ?? "";
   const [inputSearch, setInputSearch] = useState(q);
+  const originFilter = searchParams.get("origen") ?? "";
+  const statusFilter = searchParams.get("estado") ?? "";
+
+  const setFilter = (key: string, value: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set(key, value); else next.delete(key);
+      return next;
+    }, { replace: true });
+  };
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -82,12 +92,24 @@ export function CustomerList() {
     }
   };
 
+  const originOptions = Array.from(
+    new Set(customers.map(c => c.referral_source).filter((v): v is string => Boolean(v)))
+  ).sort();
+
+  const filteredCustomers = customers.filter(c =>
+    (!originFilter || c.referral_source === originFilter) &&
+    (!statusFilter || c.lead_status === statusFilter)
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-brand-800">Clientes</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{customers.length} pareja{customers.length !== 1 ? "s" : ""} registrada{customers.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {filteredCustomers.length} de {customers.length} pareja{customers.length !== 1 ? "s" : ""}
+            {(originFilter || statusFilter) ? " (filtrado)" : ""}
+          </p>
         </div>
         <Button onClick={() => navigate("/clientes/nuevo")} className="flex items-center gap-2 w-fit">
           <Plus size={16} /> Nuevo cliente
@@ -106,13 +128,38 @@ export function CustomerList() {
         />
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <select
+          value={originFilter}
+          onChange={(e) => setFilter("origen", e.target.value)}
+          className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        >
+          <option value="">Todos los orígenes</option>
+          {originOptions.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <div className="flex gap-2">
+          {(["", "activo", "archivado"] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setFilter("estado", s)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                statusFilter === s ? "bg-brand-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {s === "" ? "Todos" : s === "activo" ? "Activo" : "Archivado"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Table */}
       {loading ? (
         <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
-      ) : customers.length === 0 ? (
+      ) : filteredCustomers.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <Heart size={40} className="mx-auto mb-3 text-brand-200" />
-          <p>No hay clientes registrados.</p>
+          <p>{customers.length === 0 ? "No hay clientes registrados." : "Sin resultados para este filtro."}</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
@@ -129,7 +176,7 @@ export function CustomerList() {
                 </tr>
               </thead>
               <tbody>
-                {customers.map((c) => (
+                {filteredCustomers.map((c) => (
                   <tr key={c.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900">{c.main_contact_name}</td>
                     <td className="px-4 py-3 text-gray-600">
