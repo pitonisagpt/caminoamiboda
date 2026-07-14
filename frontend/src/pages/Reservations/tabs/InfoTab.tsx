@@ -1,11 +1,24 @@
-import { Calendar, Car, Network, User } from 'lucide-react';
+import { Calendar, Car, MessageCircle, Network, Star, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
+
+const GOOGLE_REVIEW_LINK = 'https://g.page/r/CZk-2HPmACi3EBM/review';
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
+}
+
+function buildWaUrl(phone: string | null | undefined, message: string): string {
+  const encoded = encodeURIComponent(message);
+  const num = phone ? phone.replace(/\D/g, '') : '';
+  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+}
+
+function buildReviewMsg(name?: string | null): string {
+  const greeting = name ? `Hola ${name.split(' ')[0]}` : 'Hola';
+  return `${greeting}, ¿cómo estás?\n\nFue un gusto trabajar contigo en este evento. Si tienes un minuto, ¿nos ayudarías dejando una reseña de 5 estrellas en Google sobre nuestro servicio? Nos ayuda muchísimo a seguir creciendo.\n\nAquí el enlace: ${GOOGLE_REVIEW_LINK}\n\n¡Mil gracias por el apoyo!`;
 }
 
 export default function InfoTab({
@@ -81,6 +94,44 @@ export default function InfoTab({
           </div>
         )}
       </div>
+
+      {/* Review request */}
+      {reservation.status === 'completed' && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-yellow-500" />
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Pedir reseña en Google</h2>
+          </div>
+          <div className="space-y-2">
+            {[
+              { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone },
+              ...(reservation.display_contact
+                ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone }]
+                : []),
+            ].map(({ label, name, phone }) => (
+              <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                <div className="min-w-0">
+                  <span className="text-sm font-medium text-gray-700">{label}</span>
+                  <span className="text-sm text-gray-500 ml-2">{name}</span>
+                  {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
+                </div>
+                {phone ? (
+                  <a
+                    href={buildWaUrl(phone, buildReviewMsg(name))}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" /> Enviar
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Notes */}
       {(reservation.special_instructions || reservation.notes) && (
