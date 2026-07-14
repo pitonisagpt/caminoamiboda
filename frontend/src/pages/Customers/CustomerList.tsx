@@ -43,6 +43,7 @@ export function CustomerList() {
   const [inputSearch, setInputSearch] = useState(q);
   const originFilter = searchParams.get("origen") ?? "";
   const statusFilter = searchParams.get("estado") ?? "";
+  const temperatureFilter = searchParams.get("temperatura") ?? "";
 
   const setFilter = (key: string, value: string) => {
     setSearchParams(prev => {
@@ -98,7 +99,8 @@ export function CustomerList() {
 
   const filteredCustomers = customers.filter(c =>
     (!originFilter || c.referral_source === originFilter) &&
-    (!statusFilter || c.lead_status === statusFilter)
+    (!statusFilter || c.lead_status === statusFilter) &&
+    (!temperatureFilter || c.lead_temperature === temperatureFilter)
   );
 
   return (
@@ -108,7 +110,7 @@ export function CustomerList() {
           <h1 className="text-2xl font-bold text-brand-800">Clientes</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {filteredCustomers.length} de {customers.length} pareja{customers.length !== 1 ? "s" : ""}
-            {(originFilter || statusFilter) ? " (filtrado)" : ""}
+            {(originFilter || statusFilter || temperatureFilter) ? " (filtrado)" : ""}
           </p>
         </div>
         <Button onClick={() => navigate("/clientes/nuevo")} className="flex items-center gap-2 w-fit">
@@ -148,6 +150,19 @@ export function CustomerList() {
               }`}
             >
               {s === "" ? "Todos" : s === "activo" ? "Activo" : "Archivado"}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          {(["", "frio", "caliente"] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setFilter("temperatura", t)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                temperatureFilter === t ? "bg-brand-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {t === "" ? "Cualquier temperatura" : t === "frio" ? "Frío" : "Caliente"}
             </button>
           ))}
         </div>
