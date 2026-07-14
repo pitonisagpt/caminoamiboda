@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -68,7 +68,7 @@ class Vehicle(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    photos: Mapped[list] = relationship(
+    photos: Mapped[List["VehiclePhoto"]] = relationship(
         "VehiclePhoto",
         cascade="all, delete-orphan",
         order_by="VehiclePhoto.display_order.asc()",

@@ -135,6 +135,7 @@ class ReservationRead(BaseModel):
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     vehicle_is_company_owned: bool = False
+    vehicle_photo_url: Optional[str] = None
     timeline_id: Optional[int] = None
     timeline_event_name: Optional[str] = None
     extra_hours: int = 0

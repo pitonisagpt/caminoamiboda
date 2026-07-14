@@ -14,6 +14,7 @@ import {
   User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
+import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
 import { timelinesApi } from '../../../api/timelines';
 import { catalogLocationsApi } from '../../../api/catalogLocations';
 import { Toast } from '../../../components/ui/Toast';
@@ -519,7 +520,20 @@ export default function EventoTab({
           )}
           {timeline.assigned_vehicle && (
             <div className="flex items-center gap-2 text-gray-700">
-              <Car className="w-4 h-4 text-gray-400 shrink-0" />
+              {reservation.vehicle_photo_url ? (
+                <VehiclePhotoTooltip
+                  photoUrl={reservation.vehicle_photo_url}
+                  className="w-6 h-6 rounded-md object-cover flex-shrink-0 border border-gray-100"
+                  vehicleName={timeline.assigned_vehicle}
+                  licensePlate={reservation.vehicle_license_plate}
+                  driverName={timeline.assigned_driver}
+                  driverPhone={timeline.assigned_driver_phone}
+                  ownerName={reservation.owner_name}
+                  ownerPhone={reservation.owner_whatsapp}
+                />
+              ) : (
+                <Car className="w-4 h-4 text-gray-400 shrink-0" />
+              )}
               <span>{timeline.assigned_vehicle}</span>
             </div>
           )}
