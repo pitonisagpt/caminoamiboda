@@ -175,7 +175,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
   const defaultCenter: [number, number] = points[0] ?? [6.2442, -75.5812];
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm overflow-hidden relative" style={{ minHeight: '340px' }}>
+    <div className="rounded-xl border border-gray-100 shadow-sm overflow-hidden relative z-0" style={{ minHeight: '340px' }}>
       <style>{`
         .leaflet-popup-content-wrapper {
           border-radius: 14px !important;

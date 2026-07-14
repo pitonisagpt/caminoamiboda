@@ -467,7 +467,7 @@ export default function LocationCatalogPage() {
         </div>
 
         {/* Leaflet Map */}
-        <div className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden relative" style={{ minHeight: '480px' }}>
+        <div className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden relative z-0" style={{ minHeight: '480px' }}>
           <style>{`
             .leaflet-popup-content-wrapper {
               border-radius: 14px !important;
