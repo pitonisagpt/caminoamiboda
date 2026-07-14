@@ -1,8 +1,25 @@
-import { Calendar, Car, MessageCircle, Network, Star, User } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Calendar, Car, Download, FileText, Image as ImageIcon, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, Upload, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
+import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
+import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
+import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 
 const GOOGLE_REVIEW_LINK = 'https://g.page/r/CZk-2HPmACi3EBM/review';
+
+const CATEGORY_LABEL: Record<AttachmentCategory, string> = {
+  contract: 'Contrato',
+  receipt: 'Comprobante de pago',
+  photo: 'Foto de referencia',
+  other: 'Otro',
+};
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -34,6 +51,46 @@ export default function InfoTab({
       if (!confirm(`¿Devolver la reserva al estado "${RESERVATION_STATUS_LABEL[s]}"?`)) return;
     }
     onStatusChange(s);
+  };
+
+  const [attachments, setAttachments] = useState<ReservationAttachment[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(true);
+  const [uploadCategory, setUploadCategory] = useState<AttachmentCategory>('contract');
+  const [uploading, setUploading] = useState(false);
+  const [deletingAttId, setDeletingAttId] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAttachmentsLoading(true);
+    reservationAttachmentsApi.list(reservation.id)
+      .then(r => setAttachments(r.data))
+      .finally(() => setAttachmentsLoading(false));
+  }, [reservation.id]);
+
+  const handleUpload = async (files: FileList) => {
+    setUploading(true);
+    setUploadError('');
+    try {
+      const res = await reservationAttachmentsApi.upload(reservation.id, Array.from(files), uploadCategory);
+      setAttachments(prev => [...res.data, ...prev]);
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.detail ?? 'No se pudo subir el archivo.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (a: ReservationAttachment) => {
+    if (!confirm(`¿Eliminar "${a.original_name}"?`)) return;
+    setDeletingAttId(a.id);
+    try {
+      await reservationAttachmentsApi.delete(reservation.id, a.id);
+      setAttachments(prev => prev.filter(x => x.id !== a.id));
+    } finally {
+      setDeletingAttId(null);
+    }
   };
 
   return (
@@ -77,7 +134,20 @@ export default function InfoTab({
         </div>
         {reservation.display_vehicle !== '—' && (
           <div className="flex items-center gap-2 text-sm">
-            <Car size={16} className="text-brand-400 shrink-0" />
+            {reservation.vehicle_photo_url ? (
+              <VehiclePhotoTooltip
+                photoUrl={reservation.vehicle_photo_url}
+                className="w-6 h-6 rounded-md object-cover flex-shrink-0 border border-gray-100"
+                vehicleName={reservation.display_vehicle}
+                licensePlate={reservation.vehicle_license_plate}
+                driverName={reservation.display_driver !== '—' ? reservation.display_driver : null}
+                driverPhone={reservation.display_driver_phone}
+                ownerName={reservation.owner_name}
+                ownerPhone={reservation.owner_whatsapp}
+              />
+            ) : (
+              <Car size={16} className="text-brand-400 shrink-0" />
+            )}
             <span className="text-gray-700">{reservation.display_vehicle}</span>
           </div>
         )}
@@ -132,6 +202,86 @@ export default function InfoTab({
           </div>
         </div>
       )}
+
+      {/* Attachments */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <Paperclip className="w-4 h-4 text-brand-500" />
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Adjuntos</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={uploadCategory}
+              onChange={e => setUploadCategory(e.target.value as AttachmentCategory)}
+              className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              {(Object.entries(CATEGORY_LABEL) as [AttachmentCategory, string][]).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+            >
+              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              Subir
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              className="hidden"
+              onChange={e => e.target.files && e.target.files.length > 0 && handleUpload(e.target.files)}
+            />
+          </div>
+        </div>
+        {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+        {attachmentsLoading ? (
+          <div className="flex justify-center py-4 text-brand-400"><Loader2 className="animate-spin" size={18} /></div>
+        ) : attachments.length === 0 ? (
+          <p className="text-sm text-gray-400">Sin adjuntos todavía — contratos, comprobantes o fotos de referencia (PDF, JPG, PNG, WEBP).</p>
+        ) : (
+          <div className="space-y-2">
+            {attachments.map(a => (
+              <div key={a.id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {a.content_type === 'application/pdf'
+                    ? <FileText size={16} className="text-red-400 shrink-0" />
+                    : <ImageIcon size={16} className="text-blue-400 shrink-0" />}
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-700 truncate">{a.original_name}</p>
+                    <p className="text-xs text-gray-400">
+                      {CATEGORY_LABEL[a.category]} · {formatSize(a.size_bytes)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <a
+                    href={a.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 text-gray-400 hover:text-brand-500 cursor-pointer"
+                    title="Descargar/ver"
+                  >
+                    <Download size={15} />
+                  </a>
+                  <button
+                    onClick={() => handleDeleteAttachment(a)}
+                    disabled={deletingAttId === a.id}
+                    className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer disabled:opacity-40"
+                    title="Eliminar"
+                  >
+                    {deletingAttId === a.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Notes */}
       {(reservation.special_instructions || reservation.notes) && (
