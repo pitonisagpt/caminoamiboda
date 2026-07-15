@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Plus, Edit, Trash2, Eye, EyeOff, X, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, X, BookOpen, ExternalLink } from 'lucide-react';
 import { blogApi, type BlogPost, type BlogPostForm } from '../../api/blog';
 
 const EMPTY_FORM: BlogPostForm = {
@@ -70,9 +70,15 @@ export default function BlogAdminPage() {
           <h1 className="text-2xl font-bold text-gray-900">Blog</h1>
           <p className="text-sm text-gray-500 mt-0.5">Artículos y recomendaciones para clientes</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-          <Plus size={16} /> Nuevo artículo
-        </button>
+        <div className="flex items-center gap-2">
+          <a href="/blog" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+            <ExternalLink size={16} /> Ver blog público
+          </a>
+          <button onClick={openNew} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+            <Plus size={16} /> Nuevo artículo
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
