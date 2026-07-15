@@ -193,7 +193,7 @@ export default function LocationCatalogPage() {
   const [typeFilter, setTypeFilter] = useState<LocationType | ''>('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [modal, setModal] = useState<{ open: boolean; editing?: CatalogLocation | null }>({ open: false });
-  const [sortCol, setSortCol] = useState<'name' | 'location_type' | 'address'>('name');
+  const [sortCol, setSortCol] = useState<'name' | 'location_type' | 'address' | 'usage_count'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
@@ -252,7 +252,7 @@ export default function LocationCatalogPage() {
     load();
   };
 
-  const handleSort = (col: 'name' | 'location_type' | 'address') => {
+  const handleSort = (col: 'name' | 'location_type' | 'address' | 'usage_count') => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortCol(col); setSortDir('asc'); }
     setPage(1);
@@ -267,6 +267,9 @@ export default function LocationCatalogPage() {
   }
 
   const sortedLocations = [...locations].sort((a, b) => {
+    if (sortCol === 'usage_count') {
+      return sortDir === 'asc' ? a.usage_count - b.usage_count : b.usage_count - a.usage_count;
+    }
     const av = (a[sortCol] ?? '').toString().toLowerCase();
     const bv = (b[sortCol] ?? '').toString().toLowerCase();
     return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
@@ -383,7 +386,17 @@ export default function LocationCatalogPage() {
                         </span>
                       </th>
                     ))}
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Usos</th>
+                    <th
+                      onClick={() => handleSort('usage_count')}
+                      className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-700 select-none hidden sm:table-cell"
+                    >
+                      <span className="flex items-center justify-end gap-1">
+                        Usos
+                        {sortCol === 'usage_count'
+                          ? sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                          : <ChevronUp size={12} className="opacity-20" />}
+                      </span>
+                    </th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
