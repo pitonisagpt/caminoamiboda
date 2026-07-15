@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, Car, Download, FileText, Image as ImageIcon, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, Upload, User } from 'lucide-react';
+import { Calendar, Car, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, Upload, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 
@@ -59,6 +60,7 @@ export default function InfoTab({
   const [uploading, setUploading] = useState(false);
   const [deletingAttId, setDeletingAttId] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState('');
+  const [previewAttachment, setPreviewAttachment] = useState<ReservationAttachment | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -247,10 +249,13 @@ export default function InfoTab({
           <div className="space-y-2">
             {attachments.map(a => (
               <div key={a.id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {a.content_type === 'application/pdf'
-                    ? <FileText size={16} className="text-red-400 shrink-0" />
-                    : <ImageIcon size={16} className="text-blue-400 shrink-0" />}
+                <div
+                  className="flex items-center gap-2.5 min-w-0 cursor-pointer"
+                  onClick={() => setPreviewAttachment(a)}
+                >
+                  {a.content_type.startsWith('image/')
+                    ? <img src={a.url} alt={a.original_name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
+                    : <FileText size={16} className="text-red-400 shrink-0" />}
                   <div className="min-w-0">
                     <p className="text-sm text-gray-700 truncate">{a.original_name}</p>
                     <p className="text-xs text-gray-400">
@@ -258,13 +263,13 @@ export default function InfoTab({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                   <a
                     href={a.url}
                     target="_blank"
                     rel="noreferrer"
                     className="p-1.5 text-gray-400 hover:text-brand-500 cursor-pointer"
-                    title="Descargar/ver"
+                    title="Descargar"
                   >
                     <Download size={15} />
                   </a>
@@ -299,6 +304,15 @@ export default function InfoTab({
             </div>
           )}
         </div>
+      )}
+
+      {previewAttachment && (
+        <FilePreviewModal
+          src={previewAttachment.url}
+          contentType={previewAttachment.content_type}
+          fileName={previewAttachment.original_name}
+          onClose={() => setPreviewAttachment(null)}
+        />
       )}
     </div>
   );

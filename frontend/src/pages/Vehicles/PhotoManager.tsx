@@ -16,16 +16,18 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, EyeOff, GripVertical, Loader2, Trash2, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { vehiclesApi } from "../../api/vehicles";
+import { FilePreviewModal } from "../../components/FilePreviewModal";
 import type { VehiclePhoto } from "../../types/vehicle";
 
 interface SortablePhotoProps {
   photo: VehiclePhoto;
   onToggleVisibility: (photo: VehiclePhoto) => void;
   onDelete: (photo: VehiclePhoto) => void;
+  onPreview: (photo: VehiclePhoto) => void;
   deleting: boolean;
 }
 
-function SortablePhoto({ photo, onToggleVisibility, onDelete, deleting }: SortablePhotoProps) {
+function SortablePhoto({ photo, onToggleVisibility, onDelete, onPreview, deleting }: SortablePhotoProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: photo.id,
   });
@@ -46,7 +48,8 @@ function SortablePhoto({ photo, onToggleVisibility, onDelete, deleting }: Sortab
       <img
         src={photo.url}
         alt={photo.original_name}
-        className={`w-full h-full object-cover transition-opacity ${photo.is_visible ? "" : "opacity-40 grayscale"}`}
+        onClick={() => onPreview(photo)}
+        className={`w-full h-full object-cover transition-opacity cursor-pointer ${photo.is_visible ? "" : "opacity-40 grayscale"}`}
       />
 
       {/* Hidden badge */}
@@ -115,6 +118,7 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<VehiclePhoto | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -255,6 +259,7 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
                     photo={photo}
                     onToggleVisibility={handleToggleVisibility}
                     onDelete={handleDelete}
+                    onPreview={setPreviewPhoto}
                     deleting={deletingId === photo.id}
                   />
                 ))}
@@ -262,6 +267,15 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
             </SortableContext>
           </DndContext>
         </div>
+      )}
+
+      {previewPhoto && (
+        <FilePreviewModal
+          src={previewPhoto.url}
+          contentType="image/*"
+          fileName={previewPhoto.original_name}
+          onClose={() => setPreviewPhoto(null)}
+        />
       )}
     </div>
   );

@@ -36,9 +36,13 @@ export const timelinesApi = {
     api.put(`/timelines/${timelineId}/activities/reorder`, items),
 
   // PDF
-  downloadPdf: async (id: number, eventName: string) => {
+  fetchPdfBlob: async (id: number): Promise<string> => {
     const response = await api.get(`/timelines/${id}/pdf`, { responseType: 'blob' });
-    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+    return URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+  },
+
+  downloadPdf: async (id: number, eventName: string) => {
+    const url = await timelinesApi.fetchPdfBlob(id);
     const a = document.createElement('a');
     a.href = url;
     a.download = `Minuto-a-Minuto-${eventName}.pdf`;

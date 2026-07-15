@@ -10,11 +10,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
-  Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText,
+  Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText, Eye,
   User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { timelinesApi } from '../../../api/timelines';
 import { catalogLocationsApi } from '../../../api/catalogLocations';
 import { Toast } from '../../../components/ui/Toast';
@@ -406,6 +407,8 @@ export default function EventoTab({
   const [locModal, setLocModal] = useState<{ open: boolean; editing: EventLocation | null }>({ open: false, editing: null });
   const [actModal, setActModal] = useState<{ open: boolean; editing: TimelineActivity | null }>({ open: false, editing: null });
   const [gcalToast, setGcalToast] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
 
   const showGcalToast = () => {
     setGcalToast(true);
@@ -507,6 +510,16 @@ export default function EventoTab({
     load();
   };
 
+  const handlePreviewPdf = async () => {
+    if (!timelineId) return;
+    setPdfPreviewLoading(true);
+    try {
+      setPdfPreviewUrl(await timelinesApi.fetchPdfBlob(timelineId));
+    } finally {
+      setPdfPreviewLoading(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex justify-center items-center h-48">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
@@ -539,6 +552,15 @@ export default function EventoTab({
   return (
     <div className="space-y-4">
       {gcalToast && <Toast message="Sincronizado con Google Calendar" onDismiss={() => setGcalToast(false)} />}
+      {pdfPreviewUrl && (
+        <FilePreviewModal
+          src={pdfPreviewUrl}
+          contentType="application/pdf"
+          fileName={`Minuto-a-Minuto-${timeline.event_name}.pdf`}
+          onClose={() => setPdfPreviewUrl(null)}
+          onDownload={() => timelineId && timelinesApi.downloadPdf(timelineId, timeline.event_name)}
+        />
+      )}
       {/* Event info strip */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
@@ -563,6 +585,14 @@ export default function EventoTab({
                 <CalendarDays className="w-3.5 h-3.5" /> GCal
               </a>
             )}
+            <button
+              onClick={handlePreviewPdf}
+              disabled={pdfPreviewLoading}
+              className="flex items-center gap-1.5 text-xs border border-brand-200 text-brand-700 hover:bg-brand-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+              title="Ver PDF minuto a minuto"
+            >
+              {pdfPreviewLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />} Ver
+            </button>
             <button
               onClick={() => timelineId && timelinesApi.downloadPdf(timelineId, timeline.event_name)}
               className="flex items-center gap-1.5 text-xs border border-brand-200 text-brand-700 hover:bg-brand-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"

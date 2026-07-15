@@ -16,9 +16,13 @@ export const quotesApi = {
 
   generatePdf: (id: number) => api.post<Quote>(`/quotes/${id}/generate-pdf`),
 
-  downloadPdf: async (id: number, quoteNumber: string) => {
+  fetchPdfBlob: async (id: number): Promise<string> => {
     const res = await api.get(`/quotes/${id}/pdf`, { responseType: 'blob' });
-    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    return URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+  },
+
+  downloadPdf: async (id: number, quoteNumber: string) => {
+    const url = await quotesApi.fetchPdfBlob(id);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${quoteNumber}.pdf`;

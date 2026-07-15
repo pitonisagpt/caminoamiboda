@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, Download, FileText, Loader2, MessageCircle, Pencil,
+  ArrowLeft, Download, Eye, FileText, Loader2, MessageCircle, Pencil,
   Trash2, ArrowRight, CheckCircle2,
 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
+import { FilePreviewModal } from '../../components/FilePreviewModal';
 import type { Quote, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL, ZONE_LABEL } from '../../types/quote';
 
@@ -35,6 +36,8 @@ export default function QuoteDetail() {
   const [waLoading, setWaLoading] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -77,6 +80,16 @@ export default function QuoteDetail() {
       await quotesApi.downloadPdf(quote.id, quote.quote_number);
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  const handlePreviewPdf = async () => {
+    if (!quote) return;
+    setPreviewLoading(true);
+    try {
+      setPreviewUrl(await quotesApi.fetchPdfBlob(quote.id));
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -169,14 +182,24 @@ export default function QuoteDetail() {
       {/* Actions row */}
       <div className="flex flex-wrap gap-2">
         {quote.pdf_path ? (
-          <button
-            onClick={handleDownloadExisting}
-            disabled={pdfLoading}
-            className="flex items-center gap-2 bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
-            {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            Descargar PDF
-          </button>
+          <>
+            <button
+              onClick={handlePreviewPdf}
+              disabled={previewLoading}
+              className="flex items-center gap-2 bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+            >
+              {previewLoading ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+              Ver PDF
+            </button>
+            <button
+              onClick={handleDownloadExisting}
+              disabled={pdfLoading}
+              className="flex items-center gap-2 bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+            >
+              {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              Descargar PDF
+            </button>
+          </>
         ) : (
           <button
             onClick={handlePdf}
@@ -288,6 +311,16 @@ export default function QuoteDetail() {
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Notas internas</p>
           <p className="text-sm text-gray-700 whitespace-pre-wrap">{quote.notes}</p>
         </div>
+      )}
+
+      {previewUrl && quote && (
+        <FilePreviewModal
+          src={previewUrl}
+          contentType="application/pdf"
+          fileName={`${quote.quote_number}.pdf`}
+          onClose={() => setPreviewUrl(null)}
+          onDownload={() => quotesApi.downloadPdf(quote.id, quote.quote_number)}
+        />
       )}
     </div>
   );
