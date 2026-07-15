@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle } from "lucide-react";
 import { publicLeadsApi } from "../../api/publicLeads";
@@ -90,16 +91,14 @@ export default function ContactoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
-      <header className="bg-white border-b border-brand-100 shadow-sm sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
-          <p className="text-xs text-gray-400 mt-0.5">Vehículos clásicos y especiales para tu día</p>
-        </div>
-      </header>
-
-      <div className="max-w-lg mx-auto px-4 py-6">
-        {submitted ? (
+    <div className="max-w-lg mx-auto">
+      <Helmet>
+        <title>Contáctanos | Camino a mi Boda</title>
+        <meta name="description" content="Cuéntanos de tu boda o evento y te contactamos con disponibilidad y precios de nuestros vehículos clásicos y modernos en Medellín." />
+        <meta property="og:title" content="Contáctanos | Camino a mi Boda" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      {submitted ? (
           <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 text-center space-y-4">
             <Heart className="w-10 h-10 text-brand-400 mx-auto" />
             <div>
@@ -235,9 +234,6 @@ export default function ContactoPage() {
             </form>
           </>
         )}
-
-        <p className="text-center text-xs text-gray-400 mt-6">Camino a mi Boda · Medellín, Colombia</p>
-      </div>
     </div>
   );
 }

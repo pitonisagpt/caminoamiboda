@@ -1,5 +1,6 @@
 import { Loader2, SlidersHorizontal, Star, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
@@ -406,6 +407,14 @@ export function CatalogPage() {
 
   return (
     <>
+      <Helmet>
+        <title>Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda</title>
+        <meta name="description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
+        <meta property="og:title" content="Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda" />
+        <meta property="og:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/favicon.png" />
+      </Helmet>
       <div className="space-y-8">
         {/* Hero */}
         <div className="text-center py-8">

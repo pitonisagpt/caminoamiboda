@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 import { blogApi, type BlogPost } from '../../api/blog';
@@ -31,6 +32,14 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>{post.title} | Camino a mi Boda</title>
+        {post.excerpt && <meta name="description" content={post.excerpt} />}
+        <meta property="og:title" content={post.title} />
+        {post.excerpt && <meta property="og:description" content={post.excerpt} />}
+        <meta property="og:type" content="article" />
+        {post.cover_image_url && <meta property="og:image" content={post.cover_image_url} />}
+      </Helmet>
       {/* Hero */}
       {post.cover_image_url && (
         <div className="w-full aspect-[3/1] max-h-80 overflow-hidden bg-gray-100">

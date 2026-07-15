@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { blogApi, type BlogPost } from '../../api/blog';
 
@@ -13,6 +14,13 @@ export default function BlogListPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Blog: Guías para tu Boda en Medellín | Camino a mi Boda</title>
+        <meta name="description" content="Guías e inspiración para elegir el vehículo perfecto para tu boda en Medellín y el Oriente Antioqueño." />
+        <meta property="og:title" content="Blog: Guías para tu Boda en Medellín | Camino a mi Boda" />
+        <meta property="og:description" content="Guías e inspiración para elegir el vehículo perfecto para tu boda." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Header */}
       <div className="bg-gradient-to-br from-brand-50 to-brand-100 border-b border-brand-100">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">

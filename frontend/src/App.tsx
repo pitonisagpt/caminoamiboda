@@ -21,7 +21,7 @@ import { DriverList } from "./pages/Drivers/DriverList";
 import { DriverForm } from "./pages/Drivers/DriverForm";
 import { OwnerList } from "./pages/Owners/OwnerList";
 import { OwnerForm } from "./pages/Owners/OwnerForm";
-import { CatalogLayout } from "./pages/Catalog/CatalogLayout";
+import { PublicLayout } from "./pages/Public/PublicLayout";
 import { CatalogPage } from "./pages/Catalog/CatalogPage";
 import EventoPage from "./pages/Public/EventoPage";
 import ContactoPage from "./pages/Public/ContactoPage";
@@ -65,21 +65,17 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public catalog — no auth */}
-          <Route element={<CatalogLayout />}>
+          {/* Public site — no auth, shared header/footer */}
+          <Route element={<PublicLayout />}>
             <Route path="catalogo" element={<CatalogPage />} />
+            <Route path="blog" element={<BlogListPage />} />
+            <Route path="blog/:slug" element={<BlogPostPage />} />
+            <Route path="contacto" element={<ContactoPage />} />
+            <Route path="politica-de-datos" element={<PoliticaDatosPage />} />
           </Route>
 
-          {/* Public blog — no auth */}
-          <Route path="/blog" element={<BlogListPage />} />
-          <Route path="/blog/:slug" element={<BlogPostPage />} />
-
-          {/* Public event view — no auth */}
+          {/* Public event view — no auth, no site chrome (private per-event tool) */}
           <Route path="/evento/:token" element={<EventoPage />} />
-
-          {/* Public lead-capture form — no auth */}
-          <Route path="/contacto" element={<ContactoPage />} />
-          <Route path="/politica-de-datos" element={<PoliticaDatosPage />} />
 
           <Route path="/login" element={<LoginPage />} />
 

@@ -1,16 +1,15 @@
+import { Helmet } from "react-helmet-async";
+
 const POLICY_VERSION = "14 de julio de 2026";
 
 export default function PoliticaDatosPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
-      <header className="bg-white border-b border-brand-100 shadow-sm sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
-        </div>
-      </header>
-
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 sm:p-8 space-y-5 text-sm text-gray-700 leading-relaxed">
+    <div className="max-w-2xl mx-auto">
+      <Helmet>
+        <title>Política de Tratamiento de Datos | Camino a mi Boda</title>
+        <meta name="description" content="Política de tratamiento de información y protección de datos personales de Camino a mi Boda, conforme a la Ley 1581 de 2012 de Colombia." />
+      </Helmet>
+      <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 sm:p-8 space-y-5 text-sm text-gray-700 leading-relaxed">
           <div>
             <h1 className="text-xl font-bold text-gray-900">
               Política de Tratamiento de Información y Protección de Datos Personales
@@ -156,9 +155,6 @@ export default function PoliticaDatosPage() {
               supresión (siempre que no exista un deber legal o contractual de retener la información).
             </p>
           </section>
-        </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">Camino a mi Boda · Medellín, Colombia</p>
       </div>
     </div>
   );
