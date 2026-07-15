@@ -17,7 +17,10 @@ const DEFAULT_PAYMENT = `Transferencia bancaria a la cuenta de ahorros Bancolomb
 const DEFAULT_VALUES: BillingDocumentFormData = {
   document_type: "formal",
   service_date: "",
+  service_date_end: "",
+  client_type: "individual",
   client_name: "",
+  client_legal_rep_name: "",
   client_id_type: "CC",
   client_id_number: "",
   client_address: "",
@@ -92,6 +95,9 @@ export function BillingDocumentForm() {
 
   const documentType = watch("document_type");
   const isLetter = documentType === "letter";
+  const clientType = watch("client_type");
+  const isCompany = clientType === "company";
+  const serviceDate = watch("service_date");
 
   useEffect(() => {
     if (!isEditing || !id) return;
@@ -100,7 +106,10 @@ export function BillingDocumentForm() {
       reset({
         document_type: doc.document_type,
         service_date: doc.service_date,
+        service_date_end: doc.service_date_end ?? "",
+        client_type: doc.client_type,
         client_name: doc.client_name,
+        client_legal_rep_name: doc.client_legal_rep_name ?? "",
         client_id_type: doc.client_id_type,
         client_id_number: doc.client_id_number,
         client_address: doc.client_address ?? "",
@@ -152,6 +161,7 @@ export function BillingDocumentForm() {
     try {
       const createPayload: BillingDocumentFormData = {
         ...data,
+        client_legal_rep_name: isCompany ? data.client_legal_rep_name || "" : "",
         client_address: data.client_address || "",
         client_email: data.client_email || "",
         client_phone: data.client_phone || "",
@@ -260,6 +270,37 @@ export function BillingDocumentForm() {
         <Card>
           <CardBody>
             <SectionTitle>Información del cliente</SectionTitle>
+            <div className="flex gap-4 mb-4">
+              {(["individual", "company"] as const).map((type) => (
+                <label
+                  key={type}
+                  className={`flex items-start gap-3 flex-1 border rounded-xl p-4 cursor-pointer transition-colors duration-150
+                    ${clientType === type
+                      ? "border-brand-500 bg-brand-50"
+                      : "border-brand-200 bg-white hover:border-brand-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    value={type}
+                    {...register("client_type", {
+                      onChange: (e) => setValue("client_id_type", e.target.value === "company" ? "NIT" : "CC"),
+                    })}
+                    className="mt-0.5 accent-pink-600"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm text-brand-800">
+                      {type === "individual" ? "Persona Natural" : "Empresa"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {type === "individual"
+                        ? "Cédula de ciudadanía"
+                        : "NIT y representante legal"}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Customer quick-search */}
               <div className="sm:col-span-2 relative">
@@ -290,13 +331,23 @@ export function BillingDocumentForm() {
               </div>
               <div className="sm:col-span-2">
                 <Input
-                  label="Nombre del cliente o empresa"
-                  placeholder="Ej: Beatriz Elena Velásquez Hernández"
+                  label={isCompany ? "Razón Social" : "Nombre del cliente"}
+                  placeholder={isCompany ? "Ej: Oxxo Colombia S.A.S." : "Ej: Beatriz Elena Velásquez Hernández"}
                   required
                   {...register("client_name", { required: "El nombre es obligatorio" })}
                   error={errors.client_name?.message}
                 />
               </div>
+              {isCompany && (
+                <div className="sm:col-span-2">
+                  <Input
+                    label="Representante legal"
+                    placeholder="Ej: Estefanía Ramírez"
+                    {...register("client_legal_rep_name")}
+                    error={errors.client_legal_rep_name?.message}
+                  />
+                </div>
+              )}
               <Select
                 label="Tipo de identificación"
                 required
@@ -308,7 +359,7 @@ export function BillingDocumentForm() {
               />
               <Input
                 label="Número de identificación"
-                placeholder="Ej: 43.272.473"
+                placeholder={isCompany ? "Ej: 900123456-7" : "Ej: 43.272.473"}
                 required
                 {...register("client_id_number", { required: "El número de identificación es obligatorio" })}
                 error={errors.client_id_number?.message}
@@ -341,13 +392,23 @@ export function BillingDocumentForm() {
           <CardBody>
             <SectionTitle>Servicio</SectionTitle>
             <div className="space-y-4">
-              <Input
-                label="Fecha del servicio"
-                type="date"
-                required
-                {...register("service_date", { required: "La fecha del servicio es obligatoria" })}
-                error={errors.service_date?.message}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Fecha del servicio"
+                  type="date"
+                  required
+                  {...register("service_date", { required: "La fecha del servicio es obligatoria" })}
+                  error={errors.service_date?.message}
+                />
+                <Input
+                  label="Fecha fin (opcional, si dura varios días)"
+                  type="date"
+                  {...register("service_date_end", {
+                    validate: (v) => !v || !serviceDate || v >= serviceDate || "La fecha fin no puede ser antes de la fecha de inicio",
+                  })}
+                  error={errors.service_date_end?.message}
+                />
+              </div>
               <TextArea
                 label="Concepto / Descripción del servicio"
                 placeholder="Ej: Alquiler de vehículo clásico Karmann Ghia Blanco para producción audiovisual"

@@ -35,6 +35,14 @@ function formatDateES(dateStr: string) {
   return `${day} de ${MONTHS_ES[month - 1]} de ${year}`;
 }
 
+function formatServiceDateRange(start: string, end: string | null) {
+  if (!end || end === start) return formatDateES(start);
+  const [sy, sm, sd] = start.split("-").map(Number);
+  const [ey, em, ed] = end.split("-").map(Number);
+  if (sy === ey && sm === em) return `${sd} al ${ed} de ${MONTHS_ES[sm - 1]} de ${sy}`;
+  return `${formatDateES(start)} al ${formatDateES(end)}`;
+}
+
 function formatCOP(amount: string) {
   return `COP $${parseInt(amount).toLocaleString("es-CO")}`;
 }
@@ -212,7 +220,8 @@ export function BillingDocumentDetail() {
         </CardHeader>
         <CardBody>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Nombre" value={doc.client_name} />
+            <Field label={doc.client_type === "company" ? "Razón Social" : "Nombre"} value={doc.client_name} />
+            <Field label="Representante legal" value={doc.client_legal_rep_name} />
             <Field
               label="Identificación"
               value={`${doc.client_id_type} ${doc.client_id_number}`}
@@ -233,7 +242,10 @@ export function BillingDocumentDetail() {
         </CardHeader>
         <CardBody>
           <dl className="space-y-4">
-            <Field label="Fecha del servicio" value={formatDateES(doc.service_date)} />
+            <Field
+              label={doc.service_date_end && doc.service_date_end !== doc.service_date ? "Fechas del servicio" : "Fecha del servicio"}
+              value={formatServiceDateRange(doc.service_date, doc.service_date_end)}
+            />
             <Field label="Concepto" value={doc.concept} />
             {doc.vehicle_description && (
               <Field label="Vehículo" value={doc.vehicle_description} />

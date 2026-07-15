@@ -1,6 +1,7 @@
 export type DocumentType = "formal" | "letter";
 export type DocumentStatus = "draft" | "sent" | "paid";
 export type IdType = "CC" | "NIT";
+export type ClientType = "individual" | "company";
 
 export interface BillingDocument {
   id: number;
@@ -10,7 +11,10 @@ export interface BillingDocument {
   created_at: string;
   updated_at: string;
   service_date: string;
+  service_date_end: string | null;
+  client_type: ClientType;
   client_name: string;
+  client_legal_rep_name: string | null;
   client_id_type: IdType;
   client_id_number: string;
   client_address: string | null;
@@ -45,7 +49,10 @@ export interface BillingDocumentListItem {
 export interface BillingDocumentFormData {
   document_type: DocumentType;
   service_date: string;
+  service_date_end: string;
+  client_type: ClientType;
   client_name: string;
+  client_legal_rep_name: string;
   client_id_type: IdType;
   client_id_number: string;
   client_address: string;

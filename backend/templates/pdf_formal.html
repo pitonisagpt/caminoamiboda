@@ -16,9 +16,6 @@
 
     .page {
       padding: 40px 48px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     /* ── Header ── */
@@ -27,8 +24,8 @@
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 3px solid #21b2b8;
-      padding-bottom: 20px;
-      margin-bottom: 28px;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .brand-tagline {
@@ -63,15 +60,15 @@
       color: #0f4245;
       letter-spacing: 3px;
       text-transform: uppercase;
-      margin-bottom: 28px;
-      padding: 10px 0;
+      margin-bottom: 20px;
+      padding: 8px 0;
       border-top: 1px solid #d0f4f5;
       border-bottom: 1px solid #d0f4f5;
     }
 
     /* ── Date ── */
     .date-line {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       font-size: 10.5pt;
       color: #333;
     }
@@ -90,8 +87,8 @@
     .client-block {
       background: #f0fbfb;
       border-left: 4px solid #21b2b8;
-      padding: 14px 18px;
-      margin-bottom: 24px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
       border-radius: 0 4px 4px 0;
     }
 
@@ -112,7 +109,7 @@
     .concept-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .concept-table th {
@@ -128,7 +125,7 @@
     }
 
     .concept-table td {
-      padding: 12px 14px;
+      padding: 9px 14px;
       border-bottom: 1px solid #d0f4f5;
       font-size: 10.5pt;
       vertical-align: top;
@@ -153,9 +150,9 @@
     .total-box {
       background: #0f4245;
       color: #fff;
-      padding: 16px 20px;
+      padding: 13px 20px;
       border-radius: 6px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -175,14 +172,14 @@
 
     /* ── Payment ── */
     .payment-block {
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     .payment-box {
       background: #fff8e1;
       border: 1px solid #CA8A04;
       border-radius: 4px;
-      padding: 14px 18px;
+      padding: 12px 18px;
       font-size: 10.5pt;
       color: #3d2a00;
       line-height: 1.7;
@@ -190,12 +187,14 @@
 
     /* ── Footer / Signature ── */
     .footer {
-      margin-top: auto;
-      padding-top: 36px;
+      margin-top: 24px;
+      padding-top: 20px;
       border-top: 1px solid #d0f4f5;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .signature-block {
@@ -254,8 +253,11 @@
     <div class="section-label">Cobrar a</div>
     <div class="client-block">
       <div class="client-name">{{ doc.client_name }}</div>
+      {% if doc.client_type.value == 'company' and doc.client_legal_rep_name %}
+      <div class="client-detail">Representante legal: {{ doc.client_legal_rep_name }}</div>
+      {% endif %}
       <div class="client-detail">
-        {{ doc.client_id_type }}: {{ doc.client_id_number }}
+        {{ doc.client_id_type.value }}: {{ doc.client_id_number }}
         {% if doc.client_address %}<br>Dirección: {{ doc.client_address }}{% endif %}
         {% if doc.client_email %}<br>Correo: {{ doc.client_email }}{% endif %}
         {% if doc.client_phone %}<br>Teléfono: {{ doc.client_phone }}{% endif %}
@@ -277,7 +279,7 @@
           <td class="value-col">{{ doc.concept }}</td>
         </tr>
         <tr>
-          <td class="label-col">Fecha del servicio</td>
+          <td class="label-col">{% if doc.service_date_end and doc.service_date_end != doc.service_date %}Fechas del servicio{% else %}Fecha del servicio{% endif %}</td>
           <td class="value-col">{{ formatted_service_date }}</td>
         </tr>
         {% if doc.vehicle_description %}

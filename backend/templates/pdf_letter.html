@@ -17,9 +17,6 @@
 
     .page {
       padding: 40px 52px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     /* ── Header ── */
@@ -193,8 +190,10 @@
 
     /* ── Signature ── */
     .signature-block {
-      margin-top: auto;
+      margin-top: 48px;
       padding-top: 40px;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .signature-line {
@@ -244,8 +243,11 @@
     <!-- Salutation / Client -->
     <div class="salutation">
       <div class="greeting">Estimado/a {{ doc.client_name }}</div>
+      {% if doc.client_type.value == 'company' and doc.client_legal_rep_name %}
+      <div class="client-info">Representante legal: {{ doc.client_legal_rep_name }}</div>
+      {% endif %}
       <div class="client-info">
-        {{ doc.client_id_type }} {{ doc.client_id_number }}
+        {{ doc.client_id_type.value }} {{ doc.client_id_number }}
         {% if doc.client_address %} · {{ doc.client_address }}{% endif %}
         {% if doc.client_phone %} · {{ doc.client_phone }}{% endif %}
       </div>
@@ -264,7 +266,8 @@
       {% if doc.vehicle_description %}
       reservamos <strong>{{ doc.vehicle_description }}</strong>
       {% endif %}
-      para el <strong>{{ formatted_service_date }}</strong>
+      {% if doc.service_date_end and doc.service_date_end != doc.service_date %}para el periodo del{% else %}para el{% endif %}
+      <strong>{{ formatted_service_date }}</strong>
       {% if doc.time_start and doc.time_end %}
       por un valor de <strong>{{ formatted_amount }}</strong>
       ({{ amount_in_words }}).

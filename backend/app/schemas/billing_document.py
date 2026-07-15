@@ -4,13 +4,20 @@ from typing import Optional
 
 from pydantic import BaseModel, field_validator
 
-from app.models.billing_document import DocumentStatus, DocumentType, IdType
+from app.models.billing_document import ClientType, DocumentStatus, DocumentType, IdType
+
+
+def _empty_str_to_none(v):
+    return v or None
 
 
 class BillingDocumentBase(BaseModel):
     document_type: DocumentType = DocumentType.formal
     service_date: date
+    service_date_end: Optional[date] = None
+    client_type: ClientType = ClientType.individual
     client_name: str
+    client_legal_rep_name: Optional[str] = None
     client_id_type: IdType = IdType.CC
     client_id_number: str
     client_address: Optional[str] = None
@@ -35,6 +42,11 @@ class BillingDocumentBase(BaseModel):
             raise ValueError("total_amount must be positive")
         return v
 
+    @field_validator("service_date_end", mode="before")
+    @classmethod
+    def blank_service_date_end(cls, v):
+        return _empty_str_to_none(v)
+
 
 class BillingDocumentCreate(BillingDocumentBase):
     pass
@@ -44,7 +56,15 @@ class BillingDocumentUpdate(BaseModel):
     document_type: Optional[DocumentType] = None
     status: Optional[DocumentStatus] = None
     service_date: Optional[date] = None
+    service_date_end: Optional[date] = None
+
+    @field_validator("service_date_end", mode="before")
+    @classmethod
+    def blank_service_date_end(cls, v):
+        return _empty_str_to_none(v)
+    client_type: Optional[ClientType] = None
     client_name: Optional[str] = None
+    client_legal_rep_name: Optional[str] = None
     client_id_type: Optional[IdType] = None
     client_id_number: Optional[str] = None
     client_address: Optional[str] = None

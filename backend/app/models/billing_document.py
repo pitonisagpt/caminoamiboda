@@ -24,6 +24,11 @@ class IdType(str, enum.Enum):
     NIT = "NIT"
 
 
+class ClientType(str, enum.Enum):
+    individual = "individual"
+    company = "company"
+
+
 class BillingDocument(Base):
     __tablename__ = "billing_documents"
 
@@ -35,7 +40,9 @@ class BillingDocument(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Client
+    client_type: Mapped[ClientType] = mapped_column(Enum(ClientType), default=ClientType.individual)
     client_name: Mapped[str] = mapped_column(String(255))
+    client_legal_rep_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     client_id_type: Mapped[IdType] = mapped_column(Enum(IdType), default=IdType.CC)
     client_id_number: Mapped[str] = mapped_column(String(50))
     client_address: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
@@ -44,6 +51,7 @@ class BillingDocument(Base):
 
     # Service
     service_date: Mapped[date] = mapped_column(Date)
+    service_date_end: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     concept: Mapped[str] = mapped_column(Text)
 
     # Letter-style extras

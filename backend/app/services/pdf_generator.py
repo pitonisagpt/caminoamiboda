@@ -25,6 +25,14 @@ def _format_date_es(d: date) -> str:
     return f"{d.day} de {MONTHS_ES[d.month]} de {d.year}"
 
 
+def _format_date_range_es(start: date, end: date) -> str:
+    if start == end:
+        return _format_date_es(start)
+    if start.year == end.year and start.month == end.month:
+        return f"{start.day} al {end.day} de {MONTHS_ES[start.month]} de {start.year}"
+    return f"{_format_date_es(start)} al {_format_date_es(end)}"
+
+
 def _format_cop(amount) -> str:
     return f"COP ${int(amount):,}".replace(",", ".")
 
@@ -55,7 +63,7 @@ def generate_pdf(doc: BillingDocument, settings) -> str:
         "document_number": doc.document_number,
         "formatted_date": _format_date_es(datetime.now().date()),
         "formatted_today": _format_date_es(datetime.now().date()),
-        "formatted_service_date": _format_date_es(doc.service_date),
+        "formatted_service_date": _format_date_range_es(doc.service_date, doc.service_date_end or doc.service_date),
         "formatted_amount": _format_cop(doc.total_amount),
         "amount_in_words": _amount_in_words(float(doc.total_amount)),
         "route_stops": route_stops,
