@@ -24,6 +24,8 @@ import { OwnerForm } from "./pages/Owners/OwnerForm";
 import { CatalogLayout } from "./pages/Catalog/CatalogLayout";
 import { CatalogPage } from "./pages/Catalog/CatalogPage";
 import EventoPage from "./pages/Public/EventoPage";
+import ContactoPage from "./pages/Public/ContactoPage";
+import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
@@ -74,6 +76,10 @@ export default function App() {
 
           {/* Public event view — no auth */}
           <Route path="/evento/:token" element={<EventoPage />} />
+
+          {/* Public lead-capture form — no auth */}
+          <Route path="/contacto" element={<ContactoPage />} />
+          <Route path="/politica-de-datos" element={<PoliticaDatosPage />} />
 
           <Route path="/login" element={<LoginPage />} />
 

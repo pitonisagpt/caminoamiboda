@@ -25,5 +25,8 @@ class Customer(Base):
     lead_status: Mapped[str] = mapped_column(String(20), nullable=False, server_default='activo')
     lead_temperature: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     aplica_hora_regalo: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
+    consent_accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    consent_ip: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    consent_policy_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

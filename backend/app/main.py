@@ -16,7 +16,7 @@ from app.database import SessionLocal
 from app.models.user import User, UserRole
 from app.models.reservation_payment import ReservationPayment  # noqa: F401 — register with SQLAlchemy
 from app.models.owner_settlement_payment import OwnerSettlementPayment  # noqa: F401 — register with SQLAlchemy
-from app.routers import addon_packages, auth, billing_documents, blog, calendar, catalog_locations, contacts, customers, dashboard, drivers, finance, instagram, owner_settlements, quotes, reservation_attachments, reservations, reviews, timelines, users, vehicle_owners, vehicle_photos, vehicles
+from app.routers import addon_packages, auth, billing_documents, blog, calendar, catalog_locations, contacts, customers, dashboard, drivers, finance, instagram, owner_settlements, public_leads, quotes, reservation_attachments, reservations, reviews, timelines, users, vehicle_owners, vehicle_photos, vehicles
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
@@ -93,6 +93,7 @@ app.include_router(billing_documents.router)
 app.include_router(vehicles.router)
 app.include_router(vehicle_photos.router)
 app.include_router(customers.router)
+app.include_router(public_leads.router)
 app.include_router(contacts.router)
 app.include_router(drivers.router)
 app.include_router(vehicle_owners.router)
