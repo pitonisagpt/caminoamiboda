@@ -2,14 +2,12 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
-from app.models.user import User
 from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehiclePublic, VehicleRead, VehicleUpdate
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"], redirect_slashes=False)

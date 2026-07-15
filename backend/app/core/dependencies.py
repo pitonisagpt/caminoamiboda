@@ -17,7 +17,7 @@ def get_current_user(
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido o expirado")
 
-    user = db.query(User).filter(User.email == payload["sub"], User.is_active == True).first()
+    user = db.query(User).filter(User.email == payload["sub"], User.is_active).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no encontrado")
     return user

@@ -2,10 +2,11 @@ import enum
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.models.vehicle_photo import VehiclePhoto
 
 
 class VehicleType(str, enum.Enum):

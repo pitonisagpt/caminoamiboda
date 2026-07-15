@@ -1,6 +1,6 @@
 import io
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 from typing import Optional
 

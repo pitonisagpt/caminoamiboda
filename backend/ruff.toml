@@ -1,0 +1,5 @@
+# alembic/ (generated migration boilerplate, intentional import-order
+# pattern in env.py) and scripts/ (one-off manual data/import/backfill
+# scripts, not part of the running app) are excluded — linting them
+# isn't worth the noise for code that isn't part of the live app.
+exclude = ["alembic", "scripts"]

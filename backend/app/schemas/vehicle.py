@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.models.vehicle import VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
-from app.services.pico_y_placa import PICO_HOURS, compute_pico_y_placa, get_effective_pyp
+from app.services.pico_y_placa import PICO_HOURS, get_effective_pyp
 
 
 class VehicleBase(BaseModel):

@@ -9,11 +9,10 @@ from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.core.dependencies import get_current_user, require_admin
+from app.core.dependencies import require_admin
 from app.core.files import safe_pdf_path
 from app.database import get_db
 from app.models.billing_document import BillingDocument, DocumentStatus, DocumentType
-from app.models.user import User
 from app.schemas.billing_document import (
     BillingDocumentCreate,
     BillingDocumentList,

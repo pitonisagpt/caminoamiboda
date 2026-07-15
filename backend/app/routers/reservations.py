@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import asc, desc, func, or_
-from sqlalchemy.orm import Session, outerjoin, selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
@@ -153,7 +153,6 @@ def _auto_create_timeline(r: Reservation, db: Session) -> None:
 
     customer = r.customer
     driver = r.driver
-    vehicle = r.vehicle
 
     event_name = (
         f"{customer.bride_name} & {customer.groom_name}"

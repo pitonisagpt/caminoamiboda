@@ -1,5 +1,5 @@
 from datetime import date, time
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, selectinload

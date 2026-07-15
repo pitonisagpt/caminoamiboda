@@ -38,10 +38,6 @@ function formatCOP(amount: number) {
 export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; onClick?: () => void }) {
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
-  const minPrice = [vehicle.price_medellin, vehicle.price_rionegro]
-    .filter((p): p is number => p !== null)
-    .sort((a, b) => a - b)[0] ?? null;
-
   const whatsappMsg = encodeURIComponent(
     `Hola, estoy interesado en el ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""} (${vehicle.license_plate}). ¿Está disponible?`
   );

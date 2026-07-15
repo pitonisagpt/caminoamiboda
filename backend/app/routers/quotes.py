@@ -15,10 +15,8 @@ from app.config import settings
 from app.core.dependencies import get_current_user
 from app.core.files import safe_pdf_path
 from app.database import get_db
-from app.models.customer import Customer
 from app.models.quote import LocationZone, Quote, QuoteStatus
 from app.models.reservation import Reservation, ReservationStatus
-from app.models.vehicle import Vehicle
 from app.schemas.quote import (
     QuoteCreate, QuoteList, QuoteRead, QuoteUpdate, WhatsappTextResponse,
 )
@@ -162,7 +160,7 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         from app.models.vehicle_photo import VehiclePhoto
         photo = db.query(VehiclePhoto).filter(
             VehiclePhoto.vehicle_id == quote.vehicle_id,
-            VehiclePhoto.is_visible == True,
+            VehiclePhoto.is_visible,
         ).order_by(VehiclePhoto.display_order).first()
         if photo:
             vehicle_photo_url = photo.url

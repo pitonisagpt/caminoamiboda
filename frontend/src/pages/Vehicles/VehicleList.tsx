@@ -295,8 +295,8 @@ export function VehicleList() {
       : vehicles;
 
     return [...filtered].sort((a, b) => {
-      let av: string | number | null = null;
-      let bv: string | number | null = null;
+      let av: string | number | null;
+      let bv: string | number | null;
       if (sortKey === "score_total")    { av = a.score_total;    bv = b.score_total; }
       else if (sortKey === "year")      { av = a.year;           bv = b.year; }
       else if (sortKey === "display_order") { av = a.display_order; bv = b.display_order; }

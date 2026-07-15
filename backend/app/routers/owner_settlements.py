@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.core.dependencies import get_current_user, require_admin
+from app.core.dependencies import require_admin
 from app.core.files import safe_pdf_path
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
