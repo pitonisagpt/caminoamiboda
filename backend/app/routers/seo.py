@@ -37,4 +37,4 @@ def sitemap(db: Session = Depends(get_db)):
         + "\n".join(entries)
         + "\n</urlset>\n"
     )
-    return Response(content=xml, media_type="application/xml")
+    return Response(content=xml, media_type="application/xml; charset=utf-8")
