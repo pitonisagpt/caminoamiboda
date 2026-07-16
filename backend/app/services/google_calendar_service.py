@@ -75,14 +75,16 @@ def calendar_category_for(reservation) -> str:
 
     if status in ("lead", "quoted", "cancelled"):
         return "prospectos"
-    if status == "reserved":
-        return "pendiente"
 
-    # deposit_received, confirmed, completed → depends on how much was paid
+    # reserved, deposit_received, confirmed, completed → depends on how much was paid
     total = float(reservation.total_amount or 0)
     paid = float(reservation.deposit_paid or 0)
     fully_paid = total > 0 and paid >= total
 
+    if status == "reserved":
+        if paid <= 0:
+            return "pendiente"
+        return "ok" if fully_paid else "abono"
     if status == "deposit_received":
         return "abono"
     if status in ("confirmed", "completed"):
