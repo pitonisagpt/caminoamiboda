@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /login
+Disallow: /evento/
+Disallow: /reservas
+Disallow: /vehiculos
+Disallow: /clientes
+Disallow: /conductores
+Disallow: /propietarios
+Disallow: /cotizaciones
+Disallow: /documentos
+Disallow: /finanzas
+Disallow: /blog-admin
+Disallow: /admin/
+Disallow: /calendario
+Disallow: /ubicaciones
+Disallow: /contactos
+Disallow: /eventos/
+Disallow: /api/
+
+Sitemap: https://caminoamiboda.com/sitemap.xml

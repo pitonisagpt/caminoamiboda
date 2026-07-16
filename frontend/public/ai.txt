@@ -1,0 +1,33 @@
+# ai.txt — no es un estándar oficial todavía (a diferencia de robots.txt),
+# pero varios crawlers de IA lo revisan como señal explícita de permiso.
+# Ver también /llms.txt y /llms-full.txt para contexto estructurado del sitio.
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: PerplexityBot
+Disallow: /login
+Disallow: /evento/
+Disallow: /reservas
+Disallow: /vehiculos
+Disallow: /clientes
+Disallow: /conductores
+Disallow: /propietarios
+Disallow: /cotizaciones
+Disallow: /documentos
+Disallow: /finanzas
+Disallow: /blog-admin
+Disallow: /admin/
+Disallow: /calendario
+Disallow: /ubicaciones
+Disallow: /contactos
+Disallow: /eventos/
+Disallow: /api/
+Allow: /catalogo
+Allow: /blog
+Allow: /contacto
+Allow: /politica-de-datos
+
+Sitemap: https://caminoamiboda.com/sitemap.xml
