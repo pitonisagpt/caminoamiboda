@@ -68,7 +68,7 @@ def calendar_category_for(reservation) -> str:
     """Derive the calendar category from a reservation's status and payment state."""
     if reservation.event_category == "obsequio":
         return "obsequio"
-    if reservation.event_category == "publicidad":
+    if reservation.event_category == "publicidad" and not reservation.total_amount:
         return "publicidad"
 
     status = reservation.status
