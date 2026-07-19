@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import type { Reservation, ReservationStatus } from '../../types/reservation';
@@ -7,6 +7,8 @@ import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, R
 import InfoTab from './tabs/InfoTab';
 import FinanceTab from './tabs/FinanceTab';
 import EventoTab from './tabs/EventoTab';
+import { Toast } from '../../components/ui/Toast';
+import { useGcalSyncToast } from '../../hooks/useGcalSyncToast';
 
 const STATUS_NEXT: Partial<Record<ReservationStatus, ReservationStatus>> = {
   lead: 'quoted',
@@ -26,12 +28,14 @@ type TabKey = typeof TABS[number]['key'];
 export default function ReservationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'info') as TabKey;
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [advancing, setAdvancing] = useState(false);
+  const { toast: gcalToast, checkAndNotify: checkGcalSync, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const load = () => {
     setLoading(true);
@@ -42,6 +46,15 @@ export default function ReservationDetail() {
 
   useEffect(() => { load(); }, [id]);
 
+  useEffect(() => {
+    const state = location.state as { gcalConnected?: boolean } | null;
+    if (state && typeof state.gcalConnected === 'boolean') {
+      notifyGcalSync(state.gcalConnected);
+      navigate(location.pathname + location.search, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleAdvanceStatus = async () => {
     if (!reservation) return;
     const next = STATUS_NEXT[reservation.status];
@@ -50,6 +63,7 @@ export default function ReservationDetail() {
     try {
       const res = await reservationsApi.update(reservation.id, { status: next } as any);
       setReservation(res.data);
+      await checkGcalSync();
     } finally {
       setAdvancing(false);
     }
@@ -61,6 +75,7 @@ export default function ReservationDetail() {
     try {
       const res = await reservationsApi.updateStatus(reservation.id, status);
       setReservation(res.data);
+      await checkGcalSync();
     } catch (err: any) {
       alert(err?.response?.data?.detail ?? 'No se pudo cambiar el estado de la reserva.');
     } finally {
@@ -85,6 +100,7 @@ export default function ReservationDetail() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
+      {gcalToast && <Toast message={gcalToast.message} variant={gcalToast.variant} onDismiss={dismissGcalToast} />}
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">

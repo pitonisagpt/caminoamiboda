@@ -19,6 +19,7 @@ import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { timelinesApi } from '../../../api/timelines';
 import { catalogLocationsApi } from '../../../api/catalogLocations';
 import { Toast } from '../../../components/ui/Toast';
+import { useGcalSyncToast } from '../../../hooks/useGcalSyncToast';
 import Combobox from '../../../components/ui/Combobox';
 import type { ComboboxOption } from '../../../components/ui/Combobox';
 import type {
@@ -406,14 +407,9 @@ export default function EventoTab({
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [locModal, setLocModal] = useState<{ open: boolean; editing: EventLocation | null }>({ open: false, editing: null });
   const [actModal, setActModal] = useState<{ open: boolean; editing: TimelineActivity | null }>({ open: false, editing: null });
-  const [gcalToast, setGcalToast] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
-
-  const showGcalToast = () => {
-    setGcalToast(true);
-    setTimeout(() => setGcalToast(false), 4000);
-  };
+  const { toast: gcalToast, checkAndNotify: showGcalToast, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -471,14 +467,14 @@ export default function EventoTab({
     else await timelinesApi.createLocation(timelineId, payload);
     setLocModal({ open: false, editing: null });
     await load();
-    showGcalToast();
+    await showGcalToast();
   };
 
   const deleteLocation = async (locId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta ubicación?')) return;
     await timelinesApi.deleteLocation(timelineId, locId);
     await load();
-    showGcalToast();
+    await showGcalToast();
   };
 
   const saveActivity = async (data: ActivityFormData) => {
@@ -488,14 +484,14 @@ export default function EventoTab({
     else await timelinesApi.createActivity(timelineId, payload);
     setActModal({ open: false, editing: null });
     await load();
-    showGcalToast();
+    await showGcalToast();
   };
 
   const deleteActivity = async (actId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta actividad?')) return;
     await timelinesApi.deleteActivity(timelineId, actId);
     await load();
-    showGcalToast();
+    await showGcalToast();
   };
 
   const copyLink = async (token: string, label: string) => {
@@ -551,7 +547,7 @@ export default function EventoTab({
 
   return (
     <div className="space-y-4">
-      {gcalToast && <Toast message="Sincronizado con Google Calendar" onDismiss={() => setGcalToast(false)} />}
+      {gcalToast && <Toast message={gcalToast.message} variant={gcalToast.variant} onDismiss={dismissGcalToast} />}
       {pdfPreviewUrl && (
         <FilePreviewModal
           src={pdfPreviewUrl}

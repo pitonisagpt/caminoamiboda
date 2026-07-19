@@ -4,6 +4,8 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LucideIcon } from "lucide-react";
 import logo from "../assets/logo_camino_a_mi_boda.png";
+import { integrationsApi } from "../api/integrations";
+import { GcalStatusBanner } from "../components/ui/GcalStatusBanner";
 
 interface NavItemProps {
   to: string;
@@ -52,6 +54,13 @@ export function Layout() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(
     () => localStorage.getItem('sidebar-collapsed') === 'true'
   );
+  const [gcalDown, setGcalDown] = useState(false);
+
+  useEffect(() => {
+    integrationsApi.googleCalendarStatus()
+      .then(res => setGcalDown(!res.data.connected))
+      .catch(() => {});
+  }, []);
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -204,6 +213,7 @@ export function Layout() {
       {/* Main content */}
       <main className={`${mainML} pt-14 lg:pt-0 transition-all duration-200`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {gcalDown && <GcalStatusBanner onDismiss={() => setGcalDown(false)} />}
           <Outlet />
         </div>
       </main>
