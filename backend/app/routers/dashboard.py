@@ -511,3 +511,28 @@ def vehicle_usage(
 
     result.sort(key=lambda x: x["completed_count"], reverse=True)
     return {"vehicles": result}
+
+
+@router.get("/api/dashboard/charts/weddings-by-year")
+def weddings_by_year(
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
+    """
+    Full history, independent of any date-range filter — the point is to
+    compare year over year, so it always shows every year on record.
+    """
+    rows = (
+        db.query(
+            extract("year", Reservation.event_date).label("year"),
+            func.count(Reservation.id).label("count"),
+        )
+        .filter(
+            Reservation.event_category == "standard",
+            Reservation.status != ReservationStatus.cancelled,
+        )
+        .group_by("year")
+        .order_by("year")
+        .all()
+    )
+    return {"data": [{"year": int(r.year), "count": r.count} for r in rows]}

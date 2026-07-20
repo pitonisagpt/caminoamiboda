@@ -102,6 +102,11 @@ export interface VehicleUsageResponse {
   vehicles: VehicleUsageStat[];
 }
 
+export interface WeddingsByYearPoint {
+  year: number;
+  count: number;
+}
+
 export const dashboardApi = {
   summary: (params?: DateRangeParams) =>
     api.get<DashboardSummary>('/dashboard/summary', { params: params ?? {} }),
@@ -115,4 +120,6 @@ export const dashboardApi = {
       params: { ...rest, ...(vehicle_ids?.length ? { vehicle_ids: vehicle_ids.join(',') } : {}) },
     });
   },
+  weddingsByYear: () =>
+    api.get<{ data: WeddingsByYearPoint[] }>('/dashboard/charts/weddings-by-year'),
 };

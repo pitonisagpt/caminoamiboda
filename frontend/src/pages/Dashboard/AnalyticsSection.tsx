@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import { dashboardApi } from '../../api/dashboard';
-import type { AnalyticsResponse, RevenueTrendPoint } from '../../api/dashboard';
+import type { AnalyticsResponse, RevenueTrendPoint, WeddingsByYearPoint } from '../../api/dashboard';
 import type { DateRange } from './DateRangeFilter';
 import RevenueTrendChart from './charts/RevenueTrendChart';
 import ConversionFunnelChart from './charts/ConversionFunnelChart';
 import MonthlyBookingsChart from './charts/MonthlyBookingsChart';
 import CategoryBreakdownChart from './charts/CategoryBreakdownChart';
 import SeasonalityChart from './charts/SeasonalityChart';
+import WeddingsByYearChart from './charts/WeddingsByYearChart';
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -51,6 +52,8 @@ export default function AnalyticsSection({ range }: Props) {
   const [trend, setTrend] = useState<RevenueTrendPoint[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [weddingsByYear, setWeddingsByYear] = useState<WeddingsByYearPoint[]>([]);
+  const [weddingsByYearLoading, setWeddingsByYearLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -63,6 +66,14 @@ export default function AnalyticsSection({ range }: Props) {
       setAnalytics(aRes.data);
     }).finally(() => setLoading(false));
   }, [range.from, range.to]);
+
+  // Independent of the page's date-range filter — the point is to compare
+  // year over year, so it always shows the full history.
+  useEffect(() => {
+    dashboardApi.weddingsByYear()
+      .then(res => setWeddingsByYear(res.data.data))
+      .finally(() => setWeddingsByYearLoading(false));
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -95,6 +106,17 @@ export default function AnalyticsSection({ range }: Props) {
         </Card>
         <Card title="Estacionalidad" subtitle={`Eventos completados · ${range.label}`} tooltip="Concentración de eventos por mes, acumulado histórico. Muestra los meses de mayor demanda para planear disponibilidad y precios.">
           {loading ? <Spinner /> : <SeasonalityChart data={analytics?.seasonality ?? []} />}
+        </Card>
+      </div>
+
+      {/* Row 3: Weddings by year */}
+      <div className="grid grid-cols-1 gap-4">
+        <Card
+          title="Bodas por año"
+          subtitle={`Historial completo · categoría estándar${weddingsByYear.length ? ` · ${weddingsByYear.reduce((s, d) => s + d.count, 0)} bodas en total` : ''}`}
+          tooltip="Reservas por año calendario (sin canceladas), sin importar el rango de fechas elegido arriba — para comparar un año contra otro. El primer y último año pueden estar incompletos."
+        >
+          {weddingsByYearLoading ? <Spinner /> : <WeddingsByYearChart data={weddingsByYear} />}
         </Card>
       </div>
     </div>
