@@ -13,10 +13,11 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, EyeOff, GripVertical, Loader2, Trash2, Upload } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, GripVertical, Loader2, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { vehiclesApi } from "../../api/vehicles";
 import { FilePreviewModal } from "../../components/FilePreviewModal";
+import { Dropzone } from "../../components/ui/Dropzone";
 import type { VehiclePhoto } from "../../types/vehicle";
 
 interface SortablePhotoProps {
@@ -117,9 +118,7 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [dragOver, setDragOver] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<VehiclePhoto | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -144,12 +143,6 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
       setUploading(false);
     }
   }, [vehicleId]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    handleFiles(e.dataTransfer.files);
-  }, [handleFiles]);
 
   const handleToggleVisibility = async (photo: VehiclePhoto) => {
     if (!vehicleId) return;
@@ -209,40 +202,15 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
   return (
     <div className="space-y-4">
       {/* Upload zone */}
-      <div
-        onClick={() => fileInputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        className={`
-          relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed
-          px-6 py-8 cursor-pointer transition-colors duration-150
-          ${dragOver ? "border-brand-400 bg-brand-50" : "border-gray-200 hover:border-brand-300 hover:bg-brand-50/30"}
-        `}
-      >
-        {uploading ? (
-          <>
-            <Loader2 size={24} className="text-brand-400 animate-spin" />
-            <p className="text-sm text-brand-700">Subiendo fotos...</p>
-          </>
-        ) : (
-          <>
-            <Upload size={24} className={dragOver ? "text-brand-500" : "text-gray-400"} />
-            <p className="text-sm font-medium text-gray-600">
-              {dragOver ? "Suelta las fotos aquí" : "Arrastra fotos o haz clic para seleccionar"}
-            </p>
-            <p className="text-xs text-gray-400">JPG, PNG, WebP — múltiples archivos permitidos</p>
-          </>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={(e) => e.target.files && handleFiles(e.target.files)}
-        />
-      </div>
+      <Dropzone
+        onFiles={handleFiles}
+        accept="image/*"
+        uploading={uploading}
+        label="Arrastra fotos o haz clic para seleccionar"
+        dragLabel="Suelta las fotos aquí"
+        helpText="JPG, PNG, WebP — múltiples archivos permitidos"
+        uploadingText="Subiendo fotos..."
+      />
 
       {/* Photo grid */}
       {photos.length > 0 && (

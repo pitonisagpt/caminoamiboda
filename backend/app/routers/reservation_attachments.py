@@ -10,7 +10,7 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.reservation_attachment import ReservationAttachment
-from app.schemas.reservation_attachment import ReservationAttachmentRead
+from app.schemas.reservation_attachment import ReservationAttachmentRead, ReservationAttachmentUpdate
 
 UPLOAD_DIR = Path("/app/uploads/reservations")
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
@@ -92,6 +92,23 @@ async def upload_attachments(
     for a in created:
         db.refresh(a)
     return [ReservationAttachmentRead.model_validate(a) for a in created]
+
+
+@router.patch("/{reservation_id}/attachments/{attachment_id}", response_model=ReservationAttachmentRead)
+def update_attachment(reservation_id: int, attachment_id: int, body: ReservationAttachmentUpdate, db: Session = Depends(get_db)):
+    if body.category not in ALLOWED_CATEGORIES:
+        raise HTTPException(status_code=422, detail=f"Categoría inválida: {body.category}")
+    attachment = (
+        db.query(ReservationAttachment)
+        .filter(ReservationAttachment.id == attachment_id, ReservationAttachment.reservation_id == reservation_id)
+        .first()
+    )
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Adjunto no encontrado")
+    attachment.category = body.category
+    db.commit()
+    db.refresh(attachment)
+    return ReservationAttachmentRead.model_validate(attachment)
 
 
 @router.delete("/{reservation_id}/attachments/{attachment_id}", status_code=204)

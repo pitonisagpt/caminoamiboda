@@ -16,4 +16,7 @@ export const reservationAttachmentsApi = {
 
   delete: (reservationId: number, attachmentId: number) =>
     api.delete(`/reservations/${reservationId}/attachments/${attachmentId}`),
+
+  updateCategory: (reservationId: number, attachmentId: number, category: AttachmentCategory) =>
+    api.patch<ReservationAttachment>(`/reservations/${reservationId}/attachments/${attachmentId}`, { category }),
 };

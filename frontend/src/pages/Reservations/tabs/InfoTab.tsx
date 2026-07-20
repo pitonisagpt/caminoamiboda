@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { Calendar, Car, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, Upload, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Calendar, Car, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { Dropzone } from '../../../components/ui/Dropzone';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 
@@ -56,12 +57,10 @@ export default function InfoTab({
 
   const [attachments, setAttachments] = useState<ReservationAttachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(true);
-  const [uploadCategory, setUploadCategory] = useState<AttachmentCategory>('contract');
   const [uploading, setUploading] = useState(false);
   const [deletingAttId, setDeletingAttId] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [previewAttachment, setPreviewAttachment] = useState<ReservationAttachment | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setAttachmentsLoading(true);
@@ -70,17 +69,28 @@ export default function InfoTab({
       .finally(() => setAttachmentsLoading(false));
   }, [reservation.id]);
 
-  const handleUpload = async (files: FileList) => {
+  const handleUpload = async (files: FileList | File[]) => {
+    const fileArr = Array.from(files);
+    const defaultCategory: AttachmentCategory = fileArr.every(f => f.type.startsWith('image/')) ? 'photo' : 'other';
     setUploading(true);
     setUploadError('');
     try {
-      const res = await reservationAttachmentsApi.upload(reservation.id, Array.from(files), uploadCategory);
+      const res = await reservationAttachmentsApi.upload(reservation.id, fileArr, defaultCategory);
       setAttachments(prev => [...res.data, ...prev]);
     } catch (err: any) {
       setUploadError(err?.response?.data?.detail ?? 'No se pudo subir el archivo.');
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCategoryChange = async (attachmentId: number, category: AttachmentCategory) => {
+    const prev = attachments;
+    setAttachments(cur => cur.map(a => a.id === attachmentId ? { ...a, category } : a));
+    try {
+      await reservationAttachmentsApi.updateCategory(reservation.id, attachmentId, category);
+    } catch {
+      setAttachments(prev);
     }
   };
 
@@ -207,39 +217,19 @@ export default function InfoTab({
 
       {/* Attachments */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Paperclip className="w-4 h-4 text-brand-500" />
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Adjuntos</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={uploadCategory}
-              onChange={e => setUploadCategory(e.target.value as AttachmentCategory)}
-              className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              {(Object.entries(CATEGORY_LABEL) as [AttachmentCategory, string][]).map(([v, l]) => (
-                <option key={v} value={v}>{l}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="flex items-center gap-1.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
-            >
-              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-              Subir
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
-              className="hidden"
-              onChange={e => e.target.files && e.target.files.length > 0 && handleUpload(e.target.files)}
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <Paperclip className="w-4 h-4 text-brand-500" />
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Adjuntos</h2>
         </div>
+        <Dropzone
+          onFiles={handleUpload}
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
+          uploading={uploading}
+          label="Arrastra archivos o haz clic para seleccionar"
+          dragLabel="Suelta los archivos aquí"
+          helpText="PDF, JPG, PNG, WEBP — hasta 15 MB cada uno"
+          uploadingText="Subiendo archivos..."
+        />
         {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
         {attachmentsLoading ? (
           <div className="flex justify-center py-4 text-brand-400"><Loader2 className="animate-spin" size={18} /></div>
@@ -258,9 +248,18 @@ export default function InfoTab({
                     : <FileText size={16} className="text-red-400 shrink-0" />}
                   <div className="min-w-0">
                     <p className="text-sm text-gray-700 truncate">{a.original_name}</p>
-                    <p className="text-xs text-gray-400">
-                      {CATEGORY_LABEL[a.category]} · {formatSize(a.size_bytes)}
-                    </p>
+                    <div className="flex items-center gap-1 text-xs text-gray-400" onClick={e => e.stopPropagation()}>
+                      <select
+                        value={a.category}
+                        onChange={e => handleCategoryChange(a.id, e.target.value as AttachmentCategory)}
+                        className="bg-transparent border-none p-0 -ml-0.5 text-xs text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-400 rounded cursor-pointer"
+                      >
+                        {(Object.entries(CATEGORY_LABEL) as [AttachmentCategory, string][]).map(([v, l]) => (
+                          <option key={v} value={v}>{l}</option>
+                        ))}
+                      </select>
+                      <span>· {formatSize(a.size_bytes)}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>

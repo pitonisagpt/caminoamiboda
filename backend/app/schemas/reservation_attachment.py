@@ -3,6 +3,10 @@ from datetime import datetime
 from pydantic import BaseModel, model_validator
 
 
+class ReservationAttachmentUpdate(BaseModel):
+    category: str
+
+
 class ReservationAttachmentRead(BaseModel):
     id: int
     reservation_id: int
