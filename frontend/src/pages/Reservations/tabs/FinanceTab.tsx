@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
-import { DollarSign, Download, FileText, Loader2, MessageCircle, Plus, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { DollarSign, Download, FileText, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
+import type { BillingDocumentListItem, DocumentStatus } from '../../../types';
 import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
+import { billingDocumentsApi } from '../../../api/billingDocuments';
 import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment } from '../../../api/ownerSettlements';
 import { useAuth } from '../../../context/AuthContext';
+
+const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
+  draft: 'Borrador',
+  sent: 'Enviado',
+  paid: 'Pagado',
+};
+const DOC_STATUS_STYLE: Record<DocumentStatus, string> = {
+  draft: 'bg-gray-100 text-gray-600',
+  sent: 'bg-blue-100 text-blue-700',
+  paid: 'bg-green-100 text-green-700',
+};
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
@@ -70,6 +84,10 @@ export default function FinanceTab({
   onReservationChange?: () => void;
 }) {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const [billingDocs, setBillingDocs] = useState<BillingDocumentListItem[]>([]);
+  const [billingDocsLoading, setBillingDocsLoading] = useState(true);
 
   const [payments, setPayments] = useState<ReservationPayment[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
@@ -103,6 +121,14 @@ export default function FinanceTab({
       .then(r => setPayments(r.data))
       .finally(() => setPaymentsLoading(false));
   }, [reservation.id]);
+
+  useEffect(() => {
+    if (!isAdmin) { setBillingDocsLoading(false); return; }
+    billingDocumentsApi.list({ reservation_id: reservation.id })
+      .then(r => setBillingDocs(r.data))
+      .catch(() => setBillingDocs([]))
+      .finally(() => setBillingDocsLoading(false));
+  }, [reservation.id, isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) { setSettlement(null); return; }
@@ -425,6 +451,53 @@ export default function FinanceTab({
           )}
         </div>
       </div>
+
+      {/* Billing documents (cuentas de cobro) — admin only */}
+      {isAdmin && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-brand-500" />
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Cuentas de cobro</h2>
+            </div>
+            <button
+              onClick={() => navigate(`/documentos/nuevo?reservation_id=${reservation.id}`)}
+              className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 cursor-pointer"
+            >
+              <Plus size={13} /> Generar cuenta de cobro
+            </button>
+          </div>
+
+          {billingDocsLoading ? (
+            <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
+              <Loader2 size={14} className="animate-spin" /> Cargando…
+            </div>
+          ) : billingDocs.length === 0 ? (
+            <p className="text-sm text-gray-400">Sin cuentas de cobro generadas para esta reserva.</p>
+          ) : (
+            <div className="space-y-2">
+              {billingDocs.map(d => (
+                <button
+                  key={d.id}
+                  onClick={() => navigate(`/documentos/${d.id}`)}
+                  className="w-full flex items-center justify-between gap-3 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 text-left transition-colors cursor-pointer"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-mono font-semibold text-gray-900">{d.document_number}</p>
+                    <p className="text-xs text-gray-400">{formatDate(d.service_date)}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-semibold text-gray-700">{formatCOP(Number(d.total_amount))}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DOC_STATUS_STYLE[d.status]}`}>
+                      {DOC_STATUS_LABEL[d.status]}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Owner Settlement — admin only */}
       {isAdmin && (

@@ -4,10 +4,11 @@ import {
   Edit,
   ExternalLink,
   FileText,
+  Link2,
   Loader2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { billingDocumentsApi } from "../../api/billingDocuments";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -157,6 +158,14 @@ export function BillingDocumentDetail() {
             <p className="text-sm text-gray-500 mt-0.5">
               Creado el {formatDateES(doc.created_at.slice(0, 10))}
             </p>
+            {doc.reservation_id && (
+              <Link
+                to={`/reservas/${doc.reservation_id}`}
+                className="text-sm text-brand-600 hover:text-brand-700 mt-1 inline-flex items-center gap-1.5"
+              >
+                <Link2 size={14} /> Ver reserva vinculada →
+              </Link>
+            )}
           </div>
         </div>
 

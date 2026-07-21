@@ -44,6 +44,7 @@ def _next_document_number(db: Session) -> str:
 def list_billing_documents(
     status: Optional[DocumentStatus] = Query(None),
     document_type: Optional[DocumentType] = Query(None),
+    reservation_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(BillingDocument).order_by(BillingDocument.created_at.desc())
@@ -51,6 +52,8 @@ def list_billing_documents(
         query = query.filter(BillingDocument.status == status)
     if document_type:
         query = query.filter(BillingDocument.document_type == document_type)
+    if reservation_id:
+        query = query.filter(BillingDocument.reservation_id == reservation_id)
     return query.all()
 
 

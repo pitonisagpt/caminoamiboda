@@ -1,9 +1,10 @@
-import { ArrowLeft, Plus, Trash2, UserSearch } from "lucide-react";
+import { ArrowLeft, Link2, Plus, Trash2, UserSearch } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { billingDocumentsApi } from "../../api/billingDocuments";
 import { customersApi } from "../../api/customers";
+import { reservationsApi } from "../../api/reservations";
 import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
@@ -50,10 +51,13 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export function BillingDocumentForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const reservationId = searchParams.get("reservation_id") ? Number(searchParams.get("reservation_id")) : null;
   const isEditing = Boolean(id);
 
   const [loading, setLoading] = useState(false);
   const [loadingDoc, setLoadingDoc] = useState(isEditing);
+  const [linkedReservationNumber, setLinkedReservationNumber] = useState<string | null>(null);
   const [routeStops, setRouteStops] = useState<string[]>([""]);
   const [customerQuery, setCustomerQuery] = useState("");
   const [customerResults, setCustomerResults] = useState<Customer[]>([]);
@@ -135,6 +139,31 @@ export function BillingDocumentForm() {
     });
   }, [id, isEditing, reset]);
 
+  useEffect(() => {
+    if (isEditing || !reservationId) return;
+    reservationsApi.get(reservationId).then(async (res) => {
+      const r = res.data;
+      setLinkedReservationNumber(r.reservation_number);
+      setValue("service_date", r.event_date);
+      setValue("total_amount", String(r.total_amount));
+      setValue("concept", `Servicio de transporte — ${r.reservation_number}`);
+      if (r.customer_id) {
+        try {
+          const c = await customersApi.get(r.customer_id);
+          applyCustomer(c.data);
+        } catch {
+          // customer lookup failed — leave client fields blank for manual entry
+        }
+      } else if (r.display_contact) {
+        setValue("client_name", r.display_contact);
+        if (r.contact_phone) setValue("client_phone", r.contact_phone);
+      }
+    }).catch(() => {
+      // reservation lookup failed — proceed as a normal blank form
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reservationId, isEditing]);
+
   const syncRoute = (stops: string[]) => {
     setValue("route", stops.filter(Boolean).join("\n"));
   };
@@ -180,7 +209,7 @@ export function BillingDocumentForm() {
         const res = await billingDocumentsApi.update(Number(id), createPayload);
         docId = res.data.id;
       } else {
-        const res = await billingDocumentsApi.create(createPayload);
+        const res = await billingDocumentsApi.create({ ...createPayload, reservation_id: reservationId });
         docId = res.data.id;
       }
 
@@ -225,6 +254,11 @@ export function BillingDocumentForm() {
           <p className="text-sm text-gray-500 mt-0.5">
             Todos los campos marcados con <span className="text-brand-700">*</span> son obligatorios
           </p>
+          {linkedReservationNumber && (
+            <p className="text-sm text-brand-600 mt-1 flex items-center gap-1.5">
+              <Link2 size={14} /> Vinculado a la reserva {linkedReservationNumber} — los datos se precargaron, puedes editarlos
+            </p>
+          )}
         </div>
       </div>
 

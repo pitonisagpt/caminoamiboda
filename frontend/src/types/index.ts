@@ -8,6 +8,7 @@ export interface BillingDocument {
   document_number: string;
   document_type: DocumentType;
   status: DocumentStatus;
+  reservation_id: number | null;
   created_at: string;
   updated_at: string;
   service_date: string;
@@ -39,6 +40,7 @@ export interface BillingDocumentListItem {
   document_number: string;
   document_type: DocumentType;
   status: DocumentStatus;
+  reservation_id: number | null;
   client_name: string;
   service_date: string;
   total_amount: string;

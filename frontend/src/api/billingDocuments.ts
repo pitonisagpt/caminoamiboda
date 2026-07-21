@@ -8,7 +8,7 @@ import type {
 import { api } from "./index";
 
 export const billingDocumentsApi = {
-  list(params?: { status?: DocumentStatus; document_type?: DocumentType }) {
+  list(params?: { status?: DocumentStatus; document_type?: DocumentType; reservation_id?: number }) {
     return api.get<BillingDocumentListItem[]>("/billing-documents", { params });
   },
 
@@ -16,7 +16,7 @@ export const billingDocumentsApi = {
     return api.get<BillingDocument>(`/billing-documents/${id}`);
   },
 
-  create(data: BillingDocumentFormData) {
+  create(data: BillingDocumentFormData & { reservation_id?: number | null }) {
     return api.post<BillingDocument>("/billing-documents", data);
   },
 

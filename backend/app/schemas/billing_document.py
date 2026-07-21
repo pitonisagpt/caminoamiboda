@@ -13,6 +13,7 @@ def _empty_str_to_none(v):
 
 class BillingDocumentBase(BaseModel):
     document_type: DocumentType = DocumentType.formal
+    reservation_id: Optional[int] = None
     service_date: date
     service_date_end: Optional[date] = None
     client_type: ClientType = ClientType.individual
@@ -99,6 +100,7 @@ class BillingDocumentList(BaseModel):
     document_number: str
     document_type: DocumentType
     status: DocumentStatus
+    reservation_id: Optional[int] = None
     client_name: str
     service_date: date
     total_amount: Decimal
