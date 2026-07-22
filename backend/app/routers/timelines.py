@@ -16,9 +16,11 @@ from app.models.event_timeline import EventTimeline
 from app.models.event_location import EventLocation
 from app.routers.catalog_locations import sync_to_catalog
 from app.models.timeline_activity import TimelineActivity
+from app.models.timeline_contact import TimelineContact
 from app.schemas.event_timeline import (
     ActivityCreate, ActivityRead, ActivityReorderItem, ActivityUpdate,
     LocationCreate, LocationRead, LocationUpdate,
+    TimelineContactCreate, TimelineContactRead, TimelineContactUpdate,
     TimelineCreate, TimelineList, TimelinePublic, TimelineRead, TimelineUpdate,
 )
 
@@ -59,7 +61,17 @@ def _get_location(timeline_id: int, location_id: int, db: Session) -> EventLocat
 def _load_locs_acts(timeline_id: int, db: Session):
     locations = db.query(EventLocation).filter(EventLocation.timeline_id == timeline_id).order_by(EventLocation.display_order).all()
     activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == timeline_id).order_by(TimelineActivity.display_order).all()
-    return locations, activities
+    contacts = db.query(TimelineContact).filter(TimelineContact.timeline_id == timeline_id).order_by(TimelineContact.display_order).all()
+    return locations, activities, contacts
+
+
+def _get_contact(timeline_id: int, contact_id: int, db: Session) -> TimelineContact:
+    contact = db.query(TimelineContact).filter(
+        TimelineContact.id == contact_id, TimelineContact.timeline_id == timeline_id
+    ).first()
+    if not contact:
+        raise HTTPException(404, "Contacto no encontrado")
+    return contact
 
 
 def _get_activity(timeline_id: int, activity_id: int, db: Session) -> TimelineActivity:
@@ -91,15 +103,15 @@ def create_timeline(body: TimelineCreate, db: Session = Depends(get_db)):
     tl = _get_timeline(timeline.id, db)
     _gcal_sync(tl, db, "on create")
     db.refresh(tl)
-    locs, acts = _load_locs_acts(tl.id, db)
-    return TimelineRead.build(tl, locs, acts)
+    locs, acts, contacts = _load_locs_acts(tl.id, db)
+    return TimelineRead.build(tl, locs, acts, contacts)
 
 
 @router.get("/api/timelines/{timeline_id}", response_model=TimelineRead, dependencies=[Depends(get_current_user)])
 def get_timeline(timeline_id: int, db: Session = Depends(get_db)):
     tl = _get_timeline(timeline_id, db)
-    locs, acts = _load_locs_acts(timeline_id, db)
-    return TimelineRead.build(tl, locs, acts)
+    locs, acts, contacts = _load_locs_acts(timeline_id, db)
+    return TimelineRead.build(tl, locs, acts, contacts)
 
 
 @router.put("/api/timelines/{timeline_id}", response_model=TimelineRead, dependencies=[Depends(get_current_user)])
@@ -110,8 +122,8 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
     db.commit()
     _gcal_sync(timeline, db, "on update")
     db.refresh(timeline)
-    locs, acts = _load_locs_acts(timeline_id, db)
-    return TimelineRead.build(timeline, locs, acts)
+    locs, acts, contacts = _load_locs_acts(timeline_id, db)
+    return TimelineRead.build(timeline, locs, acts, contacts)
 
 
 @router.delete("/api/timelines/{timeline_id}", status_code=204, dependencies=[Depends(get_current_user)])
@@ -138,8 +150,8 @@ def regenerate_tokens(timeline_id: int, db: Session = Depends(get_db)):
     timeline.share_token_customer = uuid.uuid4().hex
     timeline.share_token_ops = uuid.uuid4().hex
     db.commit()
-    locs, acts = _load_locs_acts(timeline_id, db)
-    return TimelineRead.build(_get_timeline(timeline_id, db), locs, acts)
+    locs, acts, contacts = _load_locs_acts(timeline_id, db)
+    return TimelineRead.build(_get_timeline(timeline_id, db), locs, acts, contacts)
 
 
 def _gcal_sync(timeline, db: Session, label: str = ""):
@@ -203,6 +215,49 @@ def delete_location(timeline_id: int, location_id: int, db: Session = Depends(ge
     db.delete(loc)
     db.commit()
     _gcal_sync(tl, db, "on location delete")
+
+
+# ── Contacts ───────────────────────────────────────────────────────────────────
+
+@router.get("/api/timelines/{timeline_id}/contacts", response_model=List[TimelineContactRead], dependencies=[Depends(get_current_user)])
+def list_contacts(timeline_id: int, db: Session = Depends(get_db)):
+    _get_timeline(timeline_id, db)
+    return db.query(TimelineContact).filter(TimelineContact.timeline_id == timeline_id).order_by(TimelineContact.display_order).all()
+
+
+@router.post("/api/timelines/{timeline_id}/contacts", response_model=TimelineContactRead, status_code=201, dependencies=[Depends(get_current_user)])
+def create_contact(timeline_id: int, body: TimelineContactCreate, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
+    max_order = db.query(TimelineContact).filter(TimelineContact.timeline_id == timeline_id).count()
+    data = body.model_dump()
+    data.setdefault("display_order", max_order)
+    contact = TimelineContact(**data, timeline_id=timeline_id)
+    db.add(contact)
+    db.commit()
+    db.refresh(contact)
+    _gcal_sync(tl, db, "on contact create")
+    return contact
+
+
+@router.put("/api/timelines/{timeline_id}/contacts/{contact_id}", response_model=TimelineContactRead, dependencies=[Depends(get_current_user)])
+def update_contact(timeline_id: int, contact_id: int, body: TimelineContactUpdate, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
+    contact = _get_contact(timeline_id, contact_id, db)
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(contact, field, value)
+    db.commit()
+    db.refresh(contact)
+    _gcal_sync(tl, db, "on contact update")
+    return contact
+
+
+@router.delete("/api/timelines/{timeline_id}/contacts/{contact_id}", status_code=204, dependencies=[Depends(get_current_user)])
+def delete_contact(timeline_id: int, contact_id: int, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
+    contact = _get_contact(timeline_id, contact_id, db)
+    db.delete(contact)
+    db.commit()
+    _gcal_sync(tl, db, "on contact delete")
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
@@ -306,7 +361,7 @@ def delete_activity(timeline_id: int, activity_id: int, db: Session = Depends(ge
 @router.get("/api/timelines/{timeline_id}/pdf", dependencies=[Depends(get_current_user)])
 def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
     timeline = _get_timeline(timeline_id, db)
-    locs, acts = _load_locs_acts(timeline_id, db)
+    locs, acts, contacts = _load_locs_acts(timeline_id, db)
 
     reservation = timeline.reservation
     customer = reservation.customer if reservation else None
@@ -324,6 +379,7 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
         timeline=timeline,
         locations=locs,
         activities=acts,
+        contacts=contacts,
         reservation=reservation,
         customer=customer,
         driver=driver,
@@ -366,5 +422,5 @@ def get_public_event(token: str, db: Session = Depends(get_db)):
     ).first()
     if not timeline:
         raise HTTPException(404, "Evento no encontrado o enlace inválido")
-    locs, acts = _load_locs_acts(timeline.id, db)
-    return TimelinePublic.build(timeline, locs, acts)
+    locs, acts, contacts = _load_locs_acts(timeline.id, db)
+    return TimelinePublic.build(timeline, locs, acts, contacts)

@@ -191,6 +191,40 @@ export default function EventoPage() {
               )}
             </div>
           )}
+          {event.planner_name && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-700">
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-sm">{event.planner_name} · Planeador</span>
+              </div>
+              {event.planner_phone && (
+                <a
+                  href={`https://wa.me/${event.planner_phone.replace(/\D/g, '')}`}
+                  className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
+                >
+                  <Phone className="w-4 h-4" />
+                  {event.planner_phone}
+                </a>
+              )}
+            </div>
+          )}
+          {event.contacts.map(c => (
+            <div key={c.id} className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-700">
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-sm">{c.name}{c.role ? ` · ${c.role}` : ''}</span>
+              </div>
+              {c.phone && (
+                <a
+                  href={`https://wa.me/${c.phone.replace(/\D/g, '')}`}
+                  className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
+                >
+                  <Phone className="w-4 h-4" />
+                  {c.phone}
+                </a>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Special instructions */}

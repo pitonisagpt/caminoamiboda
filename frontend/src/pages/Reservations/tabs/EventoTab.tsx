@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
   Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText, Eye,
-  User, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
+  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
@@ -25,6 +25,7 @@ import type { ComboboxOption } from '../../../components/ui/Combobox';
 import type {
   EventTimeline, EventLocation, TimelineActivity, EventType,
   LocationType, LocationFormData, ActivityFormData,
+  TimelineContact, TimelineContactFormData,
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
@@ -125,6 +126,9 @@ function buildFullMsg(t: EventTimeline): string {
   if (t.planner_name) {
     lines.push(`*Planeador:* ${t.planner_name}${t.planner_phone ? ' – ' + t.planner_phone : ''}`);
   }
+  [...t.contacts].sort((a, b) => a.display_order - b.display_order).forEach(c => {
+    lines.push(`*${c.role || 'Contacto'}:* ${c.name}${c.phone ? ' – ' + c.phone : ''}`);
+  });
   lines.push(t.assigned_driver
     ? `*Conductor:* ${t.assigned_driver}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`
     : `*Conductor:* Pendiente de asignar`);
@@ -388,6 +392,49 @@ function ActivityModal({ initial, locations, eventDate, onSave, onClose }: {
   );
 }
 
+// ─── Contact Modal ─────────────────────────────────────────────────────────────
+
+function ContactModal({ initial, onSave, onClose }: {
+  initial?: TimelineContact | null;
+  onSave: (data: TimelineContactFormData) => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<TimelineContactFormData>({
+    name: initial?.name || '', phone: initial?.phone || '', role: initial?.role || '',
+  });
+  const f = (k: keyof TimelineContactFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900">{initial ? 'Editar contacto' : 'Nuevo contacto'}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Rol</label>
+            <input value={form.role} onChange={f('role')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Novio, Decorador, Wedding planner..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
+            <input value={form.name} onChange={f('name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Daniel Gómez" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
+            <input value={form.phone} onChange={f('phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+57 300 000 0000" />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
+          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
+          <button onClick={() => { if (form.name.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer">Guardar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main EventoTab ────────────────────────────────────────────────────────────
 
 export default function EventoTab({
@@ -407,6 +454,7 @@ export default function EventoTab({
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [locModal, setLocModal] = useState<{ open: boolean; editing: EventLocation | null }>({ open: false, editing: null });
   const [actModal, setActModal] = useState<{ open: boolean; editing: TimelineActivity | null }>({ open: false, editing: null });
+  const [contactModal, setContactModal] = useState<{ open: boolean; editing: TimelineContact | null }>({ open: false, editing: null });
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
   const { toast: gcalToast, checkAndNotify: showGcalToast, dismiss: dismissGcalToast } = useGcalSyncToast();
@@ -490,6 +538,23 @@ export default function EventoTab({
   const deleteActivity = async (actId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta actividad?')) return;
     await timelinesApi.deleteActivity(timelineId, actId);
+    await load();
+    await showGcalToast();
+  };
+
+  const saveContact = async (data: TimelineContactFormData) => {
+    if (!timelineId) return;
+    const payload = { ...data, phone: data.phone || null, role: data.role || null };
+    if (contactModal.editing) await timelinesApi.updateContact(timelineId, contactModal.editing.id, payload);
+    else await timelinesApi.createContact(timelineId, payload);
+    setContactModal({ open: false, editing: null });
+    await load();
+    await showGcalToast();
+  };
+
+  const deleteContact = async (contactId: number) => {
+    if (!timelineId || !confirm('¿Eliminar este contacto?')) return;
+    await timelinesApi.deleteContact(timelineId, contactId);
     await load();
     await showGcalToast();
   };
@@ -795,6 +860,44 @@ export default function EventoTab({
         )}
       </div>
 
+      {/* Additional contacts */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4">
+          <h3 className="font-semibold text-gray-900 text-sm">Contactos adicionales ({timeline.contacts.length})</h3>
+          <button onClick={() => setContactModal({ open: true, editing: null })}
+            className="flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 cursor-pointer">
+            <Plus className="w-3.5 h-3.5" /> Agregar
+          </button>
+        </div>
+        <div className="px-5 pb-5 space-y-2">
+          {timeline.contacts.length === 0 ? (
+            <p className="text-sm text-gray-400 py-2">Sin contactos adicionales — ej. el otro novio, decorador, wedding planner.</p>
+          ) : (
+            [...timeline.contacts].sort((a, b) => a.display_order - b.display_order).map(c => (
+              <div key={c.id} className="flex items-center gap-3 border border-gray-100 rounded-lg p-3 group">
+                <UserPlus className="w-4 h-4 text-gray-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900">{c.name}</span>
+                    {c.role && <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{c.role}</span>}
+                  </div>
+                  {c.phone && <p className="text-xs text-gray-500 mt-0.5">{c.phone}</p>}
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  {c.phone && (
+                    <a href={`https://wa.me/${c.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="p-1 text-gray-400 hover:text-green-600">
+                      <Phone className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  <button onClick={() => setContactModal({ open: true, editing: c })} className="p-1 text-gray-400 hover:text-blue-600 cursor-pointer"><Edit className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => deleteContact(c.id)} className="p-1 text-gray-400 hover:text-red-600 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* Route map */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4">
@@ -844,6 +947,7 @@ export default function EventoTab({
       {/* Modals */}
       {locModal.open && <LocationModal initial={locModal.editing} onSave={saveLocation} onClose={() => setLocModal({ open: false, editing: null })} />}
       {actModal.open && <ActivityModal initial={actModal.editing} locations={timeline.locations} eventDate={timeline.event_date} onSave={saveActivity} onClose={() => setActModal({ open: false, editing: null })} />}
+      {contactModal.open && <ContactModal initial={contactModal.editing} onSave={saveContact} onClose={() => setContactModal({ open: false, editing: null })} />}
     </div>
   );
 }

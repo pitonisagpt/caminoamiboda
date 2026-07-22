@@ -5,6 +5,7 @@ import type {
   TimelinePublic,
   EventLocation,
   TimelineActivity,
+  TimelineContact,
 } from '../types/timeline';
 
 export const timelinesApi = {
@@ -34,6 +35,15 @@ export const timelinesApi = {
     api.delete(`/timelines/${timelineId}/activities/${activityId}`),
   reorderActivities: (timelineId: number, items: { id: number; display_order: number }[]) =>
     api.put(`/timelines/${timelineId}/activities/reorder`, items),
+
+  // Contacts
+  listContacts: (timelineId: number) => api.get<TimelineContact[]>(`/timelines/${timelineId}/contacts`),
+  createContact: (timelineId: number, data: Record<string, unknown>) =>
+    api.post<TimelineContact>(`/timelines/${timelineId}/contacts`, data),
+  updateContact: (timelineId: number, contactId: number, data: Record<string, unknown>) =>
+    api.put<TimelineContact>(`/timelines/${timelineId}/contacts/${contactId}`, data),
+  deleteContact: (timelineId: number, contactId: number) =>
+    api.delete(`/timelines/${timelineId}/contacts/${contactId}`),
 
   // PDF
   fetchPdfBlob: async (id: number): Promise<string> => {

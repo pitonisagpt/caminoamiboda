@@ -40,6 +40,15 @@ export interface TimelineActivity {
   display_order: number;
 }
 
+export interface TimelineContact {
+  id: number;
+  timeline_id: number;
+  name: string;
+  phone: string | null;
+  role: string | null;
+  display_order: number;
+}
+
 export interface EventTimeline {
   id: number;
   event_name: string;
@@ -63,6 +72,7 @@ export interface EventTimeline {
   planner_phone: string | null;
   locations: EventLocation[];
   activities: TimelineActivity[];
+  contacts: TimelineContact[];
   created_at: string;
   updated_at: string;
 }
@@ -92,8 +102,11 @@ export interface TimelinePublic {
   assigned_driver_phone: string | null;
   special_instructions: string | null;
   notes: string | null;
+  planner_name: string | null;
+  planner_phone: string | null;
   locations: EventLocation[];
   activities: TimelineActivity[];
+  contacts: TimelineContact[];
 }
 
 export interface TimelineFormData {
@@ -127,4 +140,10 @@ export interface ActivityFormData {
   location_id: number | null;
   estimated_duration: string;
   notes: string;
+}
+
+export interface TimelineContactFormData {
+  name: string;
+  phone: string;
+  role: string;
 }

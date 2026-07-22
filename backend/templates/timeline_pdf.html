@@ -268,7 +268,14 @@
           {% if planner.phone %}<div class="contact-phone">{{ planner.phone }}</div>{% endif %}
         </div>
         {% endif %}
-        {% if not timeline.main_contact_name and not timeline.assigned_driver and not planner %}
+        {% for c in contacts %}
+        <div class="contact-item">
+          <div class="contact-role">{{ c.role or "Contacto" }}</div>
+          <div class="contact-name">{{ c.name }}</div>
+          {% if c.phone %}<div class="contact-phone">{{ c.phone }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        {% if not timeline.main_contact_name and not timeline.assigned_driver and not planner and not contacts %}
         <div class="contact-item"><span class="no-data">Sin contactos registrados</span></div>
         {% endif %}
       </div>

@@ -82,6 +82,32 @@ class ActivityRead(ActivityBase):
     timeline_id: int
 
 
+# ── Contacts ───────────────────────────────────────────────────────────────────
+
+class TimelineContactBase(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    display_order: int = 0
+
+
+class TimelineContactCreate(TimelineContactBase):
+    pass
+
+
+class TimelineContactUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    display_order: Optional[int] = None
+
+
+class TimelineContactRead(TimelineContactBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    timeline_id: int
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 _TIMELINE_SCALARS = [
@@ -93,10 +119,11 @@ _TIMELINE_SCALARS = [
 ]
 
 
-def _build_timeline_dict(timeline, locations, activities, extra_fields: list = None) -> dict:
+def _build_timeline_dict(timeline, locations, activities, contacts, extra_fields: list = None) -> dict:
     d = {f: getattr(timeline, f) for f in _TIMELINE_SCALARS + (extra_fields or [])}
     d["locations"] = [LocationRead.model_validate(loc, from_attributes=True) for loc in locations]
     d["activities"] = [ActivityRead.model_validate(act, from_attributes=True) for act in activities]
+    d["contacts"] = [TimelineContactRead.model_validate(c, from_attributes=True) for c in contacts]
     contact = getattr(getattr(timeline, "reservation", None), "contact", None)
     d["planner_name"] = contact.full_name if contact else None
     d["planner_phone"] = contact.phone if contact else None
@@ -151,12 +178,13 @@ class TimelineRead(TimelineBase):
     planner_phone: Optional[str] = None
     locations: List[LocationRead] = []
     activities: List[ActivityRead] = []
+    contacts: List[TimelineContactRead] = []
     created_at: datetime
     updated_at: datetime
 
     @classmethod
-    def build(cls, timeline, locations: list, activities: list) -> "TimelineRead":
-        d = _build_timeline_dict(timeline, locations, activities, extra_fields=[
+    def build(cls, timeline, locations: list, activities: list, contacts: list) -> "TimelineRead":
+        d = _build_timeline_dict(timeline, locations, activities, contacts, extra_fields=[
             "gcal_event_id", "gcal_calendar_id", "gcal_imported",
             "calendar_category", "reservation_id",
             "share_token_driver", "share_token_customer", "share_token_ops",
@@ -184,10 +212,13 @@ class TimelineList(BaseModel):
 class TimelinePublic(TimelineBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    planner_name: Optional[str] = None
+    planner_phone: Optional[str] = None
     locations: List[LocationRead] = []
     activities: List[ActivityRead] = []
+    contacts: List[TimelineContactRead] = []
 
     @classmethod
-    def build(cls, timeline, locations: list, activities: list) -> "TimelinePublic":
-        d = _build_timeline_dict(timeline, locations, activities)
+    def build(cls, timeline, locations: list, activities: list, contacts: list) -> "TimelinePublic":
+        d = _build_timeline_dict(timeline, locations, activities, contacts)
         return cls.model_validate(d)
