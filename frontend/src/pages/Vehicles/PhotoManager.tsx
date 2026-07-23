@@ -13,7 +13,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, EyeOff, GripVertical, Loader2, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, GripVertical, Loader2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { vehiclesApi } from "../../api/vehicles";
 import { FilePreviewModal } from "../../components/FilePreviewModal";
@@ -119,6 +119,7 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<VehiclePhoto | null>(null);
+  const [downloadingZip, setDownloadingZip] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -173,6 +174,18 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
     }
   };
 
+  const handleDownloadZip = async () => {
+    if (!vehicleId) return;
+    setDownloadingZip(true);
+    try {
+      await vehiclesApi.downloadPhotosZip(vehicleId);
+    } catch {
+      alert("Error al descargar las fotos.");
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     if (!vehicleId) return;
     const { active, over } = event;
@@ -215,9 +228,20 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
       {/* Photo grid */}
       {photos.length > 0 && (
         <div>
-          <p className="text-xs text-gray-400 mb-2">
-            {photos.filter((p) => p.is_visible).length} de {photos.length} visibles en el catálogo · Arrastra para reordenar
-          </p>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <p className="text-xs text-gray-400">
+              {photos.filter((p) => p.is_visible).length} de {photos.length} visibles en el catálogo · Arrastra para reordenar
+            </p>
+            <button
+              type="button"
+              onClick={handleDownloadZip}
+              disabled={downloadingZip}
+              className="flex items-center gap-1.5 text-xs font-medium text-brand-700 hover:text-brand-800 cursor-pointer disabled:opacity-60 shrink-0"
+            >
+              {downloadingZip ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+              Descargar visibles (ZIP)
+            </button>
+          </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={photos.map((p) => p.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">

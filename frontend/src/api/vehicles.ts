@@ -78,6 +78,21 @@ export const vehiclesApi = {
     return api.delete(`/vehicles/${vehicleId}/photos/${photoId}`);
   },
 
+  async downloadPhotosZip(vehicleId: number): Promise<void> {
+    // Bulk zip generation for vehicles with many full-size photos can take
+    // longer than the default request timeout — give this one more room.
+    const res = await api.get(`/vehicles/${vehicleId}/photos/zip`, { responseType: "blob", timeout: 120000 });
+    const disposition = res.headers["content-disposition"] as string | undefined;
+    const match = disposition?.match(/filename="?([^"]+)"?/);
+    const filename = match?.[1] ?? `vehiculo-${vehicleId}.zip`;
+    const url = URL.createObjectURL(new Blob([res.data], { type: "application/zip" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
   stats(id: number, params?: { date_from?: string | null; date_to?: string | null }) {
     return api.get<VehicleStatsResponse>(`/vehicles/${id}/stats`, { params: params ?? {} });
   },

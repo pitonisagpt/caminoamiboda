@@ -1,9 +1,14 @@
+import io
+import re
+import unicodedata
 import uuid
+import zipfile
 from pathlib import Path
 from typing import List
 
 import filetype
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -28,6 +33,17 @@ router = APIRouter(
 
 def _ensure_upload_dir():
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _slug(value: str) -> str:
+    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-zA-Z0-9]+", "-", value).strip("-").lower()
+
+
+def _build_zip_filename(vehicle: Vehicle) -> str:
+    parts = [str(vehicle.year) if vehicle.year else None, vehicle.brand, vehicle.color, vehicle.body_type]
+    slug = "-".join(_slug(p) for p in parts if p)
+    return f"{slug or 'vehiculo'}.zip"
 
 
 @router.post("/{vehicle_id}/photos", response_model=List[VehiclePhotoRead])
@@ -123,3 +139,37 @@ def delete_photo(
         pass
     db.delete(photo)
     db.commit()
+
+
+@router.get("/{vehicle_id}/photos/zip")
+def download_photos_zip(vehicle_id: int, db: Session = Depends(get_db)):
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+
+    photos = (
+        db.query(VehiclePhoto)
+        .filter(VehiclePhoto.vehicle_id == vehicle_id, VehiclePhoto.is_visible == True)  # noqa: E712
+        .order_by(VehiclePhoto.display_order)
+        .all()
+    )
+    if not photos:
+        raise HTTPException(status_code=404, detail="Este vehículo no tiene fotos")
+
+    buf = io.BytesIO()
+    # Photos are already compressed (JPEG/PNG/WebP) — ZIP_STORED skips the
+    # wasted deflate pass, which matters once a vehicle has 50+ photos.
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+        for i, photo in enumerate(photos, start=1):
+            path = UPLOAD_DIR / photo.file_name
+            if not path.exists():
+                continue
+            zf.write(path, arcname=f"foto-{i}{Path(photo.file_name).suffix}")
+    buf.seek(0)
+
+    filename = _build_zip_filename(vehicle)
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
