@@ -82,6 +82,10 @@ def list_reservations(
 
     if status:
         q = q.filter(Reservation.status == status)
+    else:
+        # Cancelled reservations are hidden from the default/unfiltered view —
+        # still reachable via the explicit "Canceladas" status filter.
+        q = q.filter(Reservation.status != ReservationStatus.cancelled)
     if event_category:
         q = q.filter(Reservation.event_category == event_category)
     if vehicle_id:
