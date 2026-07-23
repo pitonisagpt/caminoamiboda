@@ -495,7 +495,7 @@ export function CatalogPage() {
 
               {/* Grid */}
               {filtered.length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                   {filtered.map(v => (
                     <VehicleCard key={v.id} vehicle={v} onClick={() => setSelected(v)} />
                   ))}
