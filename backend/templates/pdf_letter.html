@@ -281,7 +281,7 @@
 
     <!-- Amount highlight -->
     <div class="amount-highlight">
-      Total a pagar: {{ formatted_amount }} COP
+      Total a pagar: {{ formatted_amount }}
     </div>
 
     <!-- Route -->
@@ -327,6 +327,13 @@
     </div>
     {% endif %}
 
+    <!-- Tax declaration -->
+    <div class="policy-section">
+      <div class="policy-text" style="font-style:italic; color:#555;">
+        Manifiesto bajo la gravedad del juramento que no soy responsable del Impuesto sobre las Ventas (IVA), de acuerdo con lo dispuesto en el Parágrafo 3 del Artículo 437 del Estatuto Tributario.
+      </div>
+    </div>
+
     <!-- Closing -->
     <div class="closing">
       Espero que nuestros servicios sean de total agrado. Siempre dispuestos a servirles,
@@ -337,7 +344,7 @@
       <div class="signature-line"></div>
       <div class="signature-name">{{ company_owner }}</div>
       <div class="signature-phone">{{ company_phone }}</div>
-      <div style="font-size:9.5pt; color:#666;">C.C. {{ company_cc }}</div>
+      <div style="font-size:9.5pt; color:#666;">{% if company_cc %}C.C. {{ company_cc }}{% if company_cc_city %} expedida en {{ company_cc_city }}{% endif %}{% endif %}</div>
     </div>
 
     <div class="footer-ref">

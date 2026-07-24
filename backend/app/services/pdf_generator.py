@@ -38,12 +38,12 @@ def _format_cop(amount) -> str:
 
 
 def _amount_in_words(amount: float) -> str:
-    """Very basic number-to-words for COP amounts (whole thousands only)."""
+    """Number-to-words for COP amounts, Colombian 'moneda corriente' convention (drops cents)."""
     try:
         from num2words import num2words
-        return num2words(int(amount), lang="es") + " pesos"
+        return f"{num2words(int(amount), lang='es')} pesos m/cte"
     except ImportError:
-        return f"{int(amount):,} pesos".replace(",", ".")
+        return f"{int(amount):,} pesos m/cte".replace(",", ".")
 
 
 def generate_pdf(doc: BillingDocument, settings) -> str:
@@ -71,6 +71,9 @@ def generate_pdf(doc: BillingDocument, settings) -> str:
         "company_owner": settings.company_owner,
         "company_phone": settings.company_phone,
         "company_cc": settings.company_cc,
+        "company_cc_city": settings.company_cc_city,
+        "company_address": settings.company_address,
+        "company_email": settings.company_email,
         "bank_name": settings.bank_name,
         "bank_account": settings.bank_account,
         "city": settings.city,
