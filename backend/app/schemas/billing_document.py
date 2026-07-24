@@ -56,6 +56,7 @@ class BillingDocumentCreate(BillingDocumentBase):
 class BillingDocumentUpdate(BaseModel):
     document_type: Optional[DocumentType] = None
     status: Optional[DocumentStatus] = None
+    reservation_id: Optional[int] = None
     service_date: Optional[date] = None
     service_date_end: Optional[date] = None
 

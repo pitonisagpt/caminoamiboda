@@ -7,13 +7,15 @@ import {
   Link2,
   Loader2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { billingDocumentsApi } from "../../api/billingDocuments";
+import { reservationsApi } from "../../api/reservations";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 import type { BillingDocument, DocumentStatus } from "../../types";
+import type { ReservationListItem } from "../../types/reservation";
 
 const STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: "Borrador",
@@ -66,6 +68,12 @@ export function BillingDocumentDetail() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [showLinkSearch, setShowLinkSearch] = useState(false);
+  const [linkQuery, setLinkQuery] = useState("");
+  const [linkResults, setLinkResults] = useState<ReservationListItem[]>([]);
+  const [linkingId, setLinkingId] = useState<number | null>(null);
+  const [unlinking, setUnlinking] = useState(false);
+  const linkSearchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -106,6 +114,47 @@ export function BillingDocumentDetail() {
       alert("Error al actualizar el estado.");
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleLinkSearch = (q: string) => {
+    setLinkQuery(q);
+    if (linkSearchRef.current) clearTimeout(linkSearchRef.current);
+    if (!q.trim()) { setLinkResults([]); return; }
+    linkSearchRef.current = setTimeout(async () => {
+      try {
+        const res = await reservationsApi.list({ search: q, page_size: 8 });
+        setLinkResults(res.data.items);
+      } catch { setLinkResults([]); }
+    }, 300);
+  };
+
+  const handleLinkReservation = async (r: ReservationListItem) => {
+    if (!doc) return;
+    setLinkingId(r.id);
+    try {
+      const res = await billingDocumentsApi.update(doc.id, { reservation_id: r.id });
+      setDoc(res.data);
+      setShowLinkSearch(false);
+      setLinkQuery("");
+      setLinkResults([]);
+    } catch {
+      alert("Error al vincular la reserva.");
+    } finally {
+      setLinkingId(null);
+    }
+  };
+
+  const handleUnlink = async () => {
+    if (!doc) return;
+    setUnlinking(true);
+    try {
+      const res = await billingDocumentsApi.update(doc.id, { reservation_id: null });
+      setDoc(res.data);
+    } catch {
+      alert("Error al quitar el vínculo.");
+    } finally {
+      setUnlinking(false);
     }
   };
 
@@ -158,13 +207,66 @@ export function BillingDocumentDetail() {
             <p className="text-sm text-gray-500 mt-0.5">
               Creado el {formatDateES(doc.created_at.slice(0, 10))}
             </p>
-            {doc.reservation_id && (
-              <Link
-                to={`/reservas/${doc.reservation_id}`}
-                className="text-sm text-brand-600 hover:text-brand-700 mt-1 inline-flex items-center gap-1.5"
-              >
-                <Link2 size={14} /> Ver reserva vinculada →
-              </Link>
+            {doc.reservation_id ? (
+              <div className="flex items-center gap-3 mt-1">
+                <Link
+                  to={`/reservas/${doc.reservation_id}`}
+                  className="text-sm text-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5"
+                >
+                  <Link2 size={14} /> Ver reserva vinculada →
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleUnlink}
+                  disabled={unlinking}
+                  className="text-xs text-gray-400 hover:text-red-500 cursor-pointer disabled:opacity-50"
+                >
+                  {unlinking ? "Quitando..." : "Quitar vínculo"}
+                </button>
+              </div>
+            ) : (
+              <div className="relative mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowLinkSearch((v) => !v)}
+                  className="text-sm text-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Link2 size={14} /> Vincular a una reserva
+                </button>
+                {showLinkSearch && (
+                  <div className="absolute z-20 top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-xl shadow-lg p-2">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={linkQuery}
+                      onChange={(e) => handleLinkSearch(e.target.value)}
+                      onBlur={() => setTimeout(() => setShowLinkSearch(false), 150)}
+                      placeholder="Número de reserva, novia, novio..."
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    />
+                    {linkResults.length > 0 && (
+                      <div className="mt-1 max-h-56 overflow-y-auto">
+                        {linkResults.map((r) => (
+                          <button
+                            key={r.id}
+                            type="button"
+                            disabled={linkingId !== null}
+                            onMouseDown={() => handleLinkReservation(r)}
+                            className="w-full text-left px-3 py-2 hover:bg-brand-50 text-sm rounded-lg cursor-pointer disabled:opacity-50"
+                          >
+                            <p className="font-medium text-gray-900">
+                              {r.reservation_number} — {r.display_customer}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {formatDateES(r.event_date)} · {r.display_vehicle}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

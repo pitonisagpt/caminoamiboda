@@ -8,7 +8,13 @@ import type {
 import { api } from "./index";
 
 export const billingDocumentsApi = {
-  list(params?: { status?: DocumentStatus; document_type?: DocumentType; reservation_id?: number }) {
+  list(params?: {
+    status?: DocumentStatus;
+    document_type?: DocumentType;
+    reservation_id?: number;
+    unlinked?: boolean;
+    search?: string;
+  }) {
     return api.get<BillingDocumentListItem[]>("/billing-documents", { params });
   },
 
@@ -20,7 +26,7 @@ export const billingDocumentsApi = {
     return api.post<BillingDocument>("/billing-documents", data);
   },
 
-  update(id: number, data: Partial<BillingDocumentFormData> & { status?: DocumentStatus }) {
+  update(id: number, data: Partial<BillingDocumentFormData> & { status?: DocumentStatus; reservation_id?: number | null }) {
     return api.put<BillingDocument>(`/billing-documents/${id}`, data);
   },
 
