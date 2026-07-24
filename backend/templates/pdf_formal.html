@@ -15,7 +15,7 @@
     }
 
     .page {
-      padding: 28px 48px;
+      padding: 22px 42px;
     }
 
     /* ── Header ── */
@@ -24,8 +24,8 @@
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 3px solid #21b2b8;
-      padding-bottom: 12px;
-      margin-bottom: 14px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .brand-tagline {
@@ -52,28 +52,30 @@
     }
 
     /* ── Title ── */
+    .doc-title-block {
+      text-align: center;
+      padding: 5px 0 7px;
+      margin-bottom: 10px;
+      border-top: 1px solid #d0f4f5;
+      border-bottom: 1px solid #d0f4f5;
+    }
+
     .doc-title {
       font-family: 'Montserrat', Arial, sans-serif;
-      text-align: center;
-      font-size: 16pt;
+      font-size: 15pt;
       font-weight: 700;
       color: #0f4245;
       letter-spacing: 3px;
       text-transform: uppercase;
-      padding: 8px 0 2px;
-      border-top: 1px solid #d0f4f5;
     }
 
     .doc-number-sub {
-      text-align: center;
       font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 10pt;
+      font-size: 9.5pt;
       font-weight: 600;
       letter-spacing: 1px;
       color: #166f73;
-      padding-bottom: 8px;
-      margin-bottom: 14px;
-      border-bottom: 1px solid #d0f4f5;
+      margin-top: 2px;
     }
 
     /* ── Client block ── */
@@ -90,48 +92,48 @@
     /* ── "Debe a" divider ── */
     .debe-a-divider {
       text-align: center;
-      margin: 2px 0 10px;
+      margin: 0 0 8px;
     }
 
     .debe-a-divider span {
       display: inline-block;
       font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 12pt;
+      font-size: 11pt;
       font-weight: 800;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #fff;
       background: #21b2b8;
-      padding: 5px 22px;
+      padding: 4px 22px;
       border-radius: 20px;
     }
 
     .client-block {
       background: #f0fbfb;
       border-left: 4px solid #21b2b8;
-      padding: 10px 18px;
-      margin-bottom: 14px;
+      padding: 8px 18px;
+      margin-bottom: 10px;
       border-radius: 0 4px 4px 0;
     }
 
     .client-name {
-      font-size: 13pt;
+      font-size: 12.5pt;
       font-weight: 700;
       color: #1a1a1a;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .client-detail {
       font-size: 10pt;
       color: #444;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     /* ── Concept table ── */
     .concept-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .concept-table th {
@@ -142,14 +144,15 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      padding: 7px 14px;
+      padding: 6px 14px;
       text-align: left;
     }
 
     .concept-table td {
-      padding: 7px 14px;
+      padding: 6px 14px;
       border-bottom: 1px solid #d0f4f5;
-      font-size: 10.5pt;
+      font-size: 10pt;
+      line-height: 1.4;
       vertical-align: top;
     }
 
@@ -158,7 +161,7 @@
     }
 
     .concept-table .label-col {
-      width: 30%;
+      width: 24%;
       color: #0f4245;
       font-weight: 600;
       font-size: 10pt;
@@ -172,9 +175,9 @@
     .total-box {
       background: #0f4245;
       color: #fff;
-      padding: 13px 20px;
+      padding: 10px 20px;
       border-radius: 6px;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .total-row {
@@ -204,17 +207,17 @@
 
     /* ── Payment ── */
     .payment-block {
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .payment-box {
       background: #fff8e1;
       border: 1px solid #CA8A04;
       border-radius: 4px;
-      padding: 10px 18px;
-      font-size: 10.5pt;
+      padding: 8px 18px;
+      font-size: 10pt;
       color: #3d2a00;
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
     /* ── Tax declaration ── */
@@ -222,14 +225,14 @@
       font-size: 8.5pt;
       color: #555;
       font-style: italic;
-      line-height: 1.5;
-      margin-bottom: 14px;
+      line-height: 1.4;
+      margin-bottom: 8px;
     }
 
     /* ── Footer / Signature ── */
     .footer {
-      margin-top: 14px;
-      padding-top: 12px;
+      margin-top: 8px;
+      padding-top: 8px;
       border-top: 1px solid #d0f4f5;
       display: flex;
       justify-content: space-between;
@@ -281,8 +284,10 @@
     </div>
 
     <!-- Title -->
-    <div class="doc-title">Cuenta de Cobro</div>
-    <div class="doc-number-sub">Nº {{ document_number }}</div>
+    <div class="doc-title-block">
+      <div class="doc-title">Cuenta de Cobro</div>
+      <div class="doc-number-sub">Nº {{ document_number }}</div>
+    </div>
 
     <!-- Client -->
     <div class="client-block">
@@ -365,7 +370,7 @@
         Ref: {{ document_number }}
       </div>
       <div class="signature-block">
-        <div style="font-size:10.5pt; margin-bottom:16px;">Atentamente,</div>
+        <div style="font-size:10.5pt; margin-bottom:10px;">Atentamente,</div>
         <div class="signature-line"></div>
         <div class="signature-name">{{ company_owner }}</div>
         <div class="signature-phone">{{ company_phone }}</div>
