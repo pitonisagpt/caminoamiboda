@@ -144,4 +144,8 @@ def download_pdf(doc_id: int, db: Session = Depends(get_db)):
         path=str(pdf),
         media_type="application/pdf",
         filename=f"{doc.document_number}.pdf",
+        # This URL is stable but the file it points to changes every time the
+        # PDF is regenerated — without this, browsers can serve a stale cached
+        # copy after "Regenerar PDF" instead of re-fetching.
+        headers={"Cache-Control": "no-store"},
     )
