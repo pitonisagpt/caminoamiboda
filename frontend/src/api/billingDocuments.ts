@@ -41,7 +41,10 @@ export const billingDocumentsApi = {
   },
 
   async fetchPdfBlob(id: number): Promise<string> {
-    const res = await api.get(`/billing-documents/${id}/pdf`, { responseType: "blob" });
+    // Cache-bust: this URL is stable but the file it serves changes every
+    // time the PDF is regenerated, and some browsers had already cached it
+    // from before the server sent Cache-Control: no-store.
+    const res = await api.get(`/billing-documents/${id}/pdf?t=${Date.now()}`, { responseType: "blob" });
     return URL.createObjectURL(res.data as Blob);
   },
 
