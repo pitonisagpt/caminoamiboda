@@ -15,7 +15,7 @@
     }
 
     .page {
-      padding: 22px 42px;
+      padding: 16px 40px;
     }
 
     /* ── Header ── */
@@ -24,8 +24,8 @@
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 3px solid #21b2b8;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .brand-tagline {
@@ -43,6 +43,8 @@
       font-size: 9pt;
       color: #555;
       line-height: 1.6;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .header-meta .doc-number {
@@ -54,8 +56,8 @@
     /* ── Title ── */
     .doc-title-block {
       text-align: center;
-      padding: 5px 0 7px;
-      margin-bottom: 10px;
+      padding: 4px 0 5px;
+      margin-bottom: 8px;
       border-top: 1px solid #d0f4f5;
       border-bottom: 1px solid #d0f4f5;
     }
@@ -111,8 +113,8 @@
     .client-block {
       background: #f0fbfb;
       border-left: 4px solid #21b2b8;
-      padding: 8px 18px;
-      margin-bottom: 10px;
+      padding: 6px 18px;
+      margin-bottom: 8px;
       border-radius: 0 4px 4px 0;
     }
 
@@ -214,10 +216,10 @@
       background: #fff8e1;
       border: 1px solid #CA8A04;
       border-radius: 4px;
-      padding: 8px 18px;
+      padding: 6px 18px;
       font-size: 10pt;
       color: #3d2a00;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     /* ── Tax declaration ── */
@@ -225,14 +227,14 @@
       font-size: 8.5pt;
       color: #555;
       font-style: italic;
-      line-height: 1.4;
-      margin-bottom: 8px;
+      line-height: 1.3;
+      margin-bottom: 6px;
     }
 
     /* ── Footer / Signature ── */
     .footer {
-      margin-top: 8px;
-      padding-top: 8px;
+      margin-top: 6px;
+      padding-top: 6px;
       border-top: 1px solid #d0f4f5;
       display: flex;
       justify-content: space-between;
@@ -370,7 +372,7 @@
         Ref: {{ document_number }}
       </div>
       <div class="signature-block">
-        <div style="font-size:10.5pt; margin-bottom:10px;">Atentamente,</div>
+        <div style="font-size:10.5pt; margin-bottom:34px;">Atentamente,</div>
         <div class="signature-line"></div>
         <div class="signature-name">{{ company_owner }}</div>
         <div class="signature-phone">{{ company_phone }}</div>
