@@ -49,6 +49,13 @@ export default function Combobox({
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        // Typed a name that exactly matches an option but clicked away
+        // (e.g. straight into "Guardar") without explicitly selecting it —
+        // commit it instead of silently discarding what was typed.
+        if (query) {
+          const exact = options.find(o => o.label.toLowerCase() === query.toLowerCase());
+          if (exact) onChange(exact.value);
+        }
         setOpen(false);
         setQuery('');
         setActiveIndex(-1);
@@ -56,7 +63,7 @@ export default function Combobox({
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  }, [query, options, onChange]);
 
   // Scroll active item into view
   useEffect(() => {
@@ -106,9 +113,20 @@ export default function Combobox({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActiveIndex(i => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter' && activeIndex >= 0 && filtered[activeIndex]) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      handleSelect(filtered[activeIndex]);
+      // Typing a name and pressing Enter without arrowing to a suggestion
+      // first is the expected flow — fall back to the top filtered match
+      // instead of silently discarding what was typed.
+      const candidate = activeIndex >= 0 ? filtered[activeIndex] : filtered[0];
+      if (candidate) {
+        handleSelect(candidate);
+      } else if (onCreateNew && query) {
+        onCreateNew(query);
+        setOpen(false);
+        setQuery('');
+        setActiveIndex(-1);
+      }
     }
   }
 
