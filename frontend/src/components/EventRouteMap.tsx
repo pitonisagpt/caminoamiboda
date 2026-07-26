@@ -117,15 +117,44 @@ function buildStops(waypoints: { loc: EventLocation; time: string | null }[]): S
 // ─── OSRM route fetch (falls back to straight line on failure) ─────────────────
 
 interface OsrmResponse {
-  routes?: { geometry?: { coordinates?: [number, number][] } }[];
+  routes?: {
+    distance?: number;
+    geometry?: { coordinates?: [number, number][] };
+    legs?: { distance?: number }[];
+  }[];
 }
 
-function useRoutePolyline(waypoints: [number, number][]): [number, number][] | null {
-  const [route, setRoute] = useState<[number, number][] | null>(null);
+interface RouteResult {
+  line: [number, number][] | null;
+  totalKm: number | null;
+  legKm: number[] | null;
+  isApprox: boolean;
+}
+
+/** Great-circle distance in km — used only as a fallback when OSRM can't be reached. */
+function haversineKm([lat1, lng1]: [number, number], [lat2, lng2]: [number, number]): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function straightLineLegs(waypoints: [number, number][]): number[] {
+  const legs: number[] = [];
+  for (let i = 0; i < waypoints.length - 1; i++) legs.push(haversineKm(waypoints[i], waypoints[i + 1]));
+  return legs;
+}
+
+function useRoute(waypoints: [number, number][]): RouteResult {
+  const [result, setResult] = useState<RouteResult>({ line: null, totalKm: null, legKm: null, isApprox: false });
   const waypointsKey = waypoints.map(p => p.join(',')).join('|');
 
   useEffect(() => {
-    setRoute(null);
+    setResult({ line: null, totalKm: null, legKm: null, isApprox: false });
     if (waypoints.length < 2) return;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
@@ -135,19 +164,33 @@ function useRoutePolyline(waypoints: [number, number][]): [number, number][] | n
     fetch(url, { signal: controller.signal })
       .then(res => (res.ok ? res.json() as Promise<OsrmResponse> : Promise.reject(res)))
       .then(data => {
-        const coords = data.routes?.[0]?.geometry?.coordinates;
+        const route = data.routes?.[0];
+        const coords = route?.geometry?.coordinates;
         if (coords && coords.length > 0) {
-          setRoute(coords.map(([lng, lat]) => [lat, lng]));
+          setResult({
+            line: coords.map(([lng, lat]) => [lat, lng]),
+            totalKm: route!.distance != null ? route!.distance / 1000 : null,
+            legKm: route!.legs?.map(l => (l.distance ?? 0) / 1000) ?? null,
+            isApprox: false,
+          });
+        } else {
+          throw new Error('empty OSRM route');
         }
       })
-      .catch(() => { /* falls back to the straight dashed line already rendered */ })
+      .catch(() => {
+        // OSRM unavailable — fall back to straight-line distance (and the
+        // dashed straight polyline already rendered elsewhere) rather than
+        // showing nothing.
+        const legKm = straightLineLegs(waypoints);
+        setResult({ line: null, totalKm: legKm.reduce((a, b) => a + b, 0), legKm, isApprox: true });
+      })
       .finally(() => clearTimeout(timeout));
 
     return () => { controller.abort(); clearTimeout(timeout); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waypointsKey]);
 
-  return route;
+  return result;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -156,7 +199,8 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
   const waypoints = useMemo(() => buildOrderedWaypoints(locations, activities), [locations, activities]);
   const stops = useMemo(() => buildStops(waypoints), [waypoints]);
   const waypointPositions = useMemo<[number, number][]>(() => waypoints.map(w => [w.loc.lat!, w.loc.lng!]), [waypoints]);
-  const routeLine = useRoutePolyline(waypointPositions);
+  const { line: routeLine, totalKm, legKm, isApprox } = useRoute(waypointPositions);
+  const fmtKm = (km: number) => km.toLocaleString('es-CO', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const unlocated = locations.filter(l => l.lat == null || l.lng == null);
   const points = stops.map(s => s.position);
 
@@ -175,75 +219,101 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
   const defaultCenter: [number, number] = points[0] ?? [6.2442, -75.5812];
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm overflow-hidden relative z-0" style={{ minHeight: '340px' }}>
-      <style>{`
-        .leaflet-popup-content-wrapper {
-          border-radius: 14px !important;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
-          border: 1px solid rgba(0,0,0,0.06) !important;
-          padding: 0 !important;
-          overflow: hidden;
-        }
-        .leaflet-popup-content { margin: 0 !important; line-height: 1.5 !important; }
-        .leaflet-popup-tip-container { margin-top: -1px; }
-        .leaflet-popup-tip { box-shadow: none !important; }
-      `}</style>
-      <MapContainer center={defaultCenter} zoom={13} style={{ height: '340px', width: '100%' }} scrollWheelZoom={false}>
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        />
-        <MapFitter points={points} />
-
-        {routeLine ? (
-          <Polyline positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
-        ) : waypointPositions.length >= 2 && (
-          <Polyline
-            positions={waypointPositions}
-            pathOptions={{ color: ROUTE_COLOR, weight: 3, opacity: 0.6, dashArray: '6 8' }}
+    <div className="space-y-3">
+      <div className="rounded-xl border border-gray-100 shadow-sm overflow-hidden relative z-0" style={{ minHeight: '340px' }}>
+        <style>{`
+          .leaflet-popup-content-wrapper {
+            border-radius: 14px !important;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+            border: 1px solid rgba(0,0,0,0.06) !important;
+            padding: 0 !important;
+            overflow: hidden;
+          }
+          .leaflet-popup-content { margin: 0 !important; line-height: 1.5 !important; }
+          .leaflet-popup-tip-container { margin-top: -1px; }
+          .leaflet-popup-tip { box-shadow: none !important; }
+        `}</style>
+        <MapContainer center={defaultCenter} zoom={13} style={{ height: '340px', width: '100%' }} scrollWheelZoom={false}>
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
+          <MapFitter points={points} />
+
+          {routeLine ? (
+            <Polyline positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
+          ) : waypointPositions.length >= 2 && (
+            <Polyline
+              positions={waypointPositions}
+              pathOptions={{ color: ROUTE_COLOR, weight: 3, opacity: 0.6, dashArray: '6 8' }}
+            />
+          )}
+
+          {stops.map(stop => {
+            const primaryType = stop.locations[0].location_type;
+            return (
+              <Marker key={stop.key} position={stop.position} icon={makeIcon(TYPE_HEX[primaryType], String(stop.order))}>
+                <Popup minWidth={200} maxWidth={280}>
+                  <div>
+                    <div style={{ background: TYPE_HEX[primaryType], padding: '10px 14px 8px' }}>
+                      <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>Parada {stop.order}</p>
+                      {stop.time && (
+                        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '11px', margin: '2px 0 0' }}>{stop.time}</p>
+                      )}
+                    </div>
+                    <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {stop.locations.map(loc => (
+                        <div key={loc.id}>
+                          <p style={{ fontSize: '12px', fontWeight: 600, color: '#111827', margin: 0 }}>{loc.location_name}</p>
+                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '1px 0 0' }}>{TYPE_LABELS[loc.location_type]}</p>
+                          {loc.address && <p style={{ fontSize: '11px', color: '#9ca3af', margin: '2px 0 0' }}>{loc.address}</p>}
+                          {loc.google_maps_link && (
+                            <a href={loc.google_maps_link} target="_blank" rel="noopener noreferrer"
+                              style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
+                              <ExternalLink size={10} /> Abrir en Google Maps
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
+
+        {unlocated.length > 0 && (
+          <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[220px]">
+            <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
+            <ul className="space-y-0.5">
+              {unlocated.map(l => (
+                <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.location_name}>• {l.location_name}</li>
+              ))}
+            </ul>
+          </div>
         )}
+      </div>
 
-        {stops.map(stop => {
-          const primaryType = stop.locations[0].location_type;
-          return (
-            <Marker key={stop.key} position={stop.position} icon={makeIcon(TYPE_HEX[primaryType], String(stop.order))}>
-              <Popup minWidth={200} maxWidth={280}>
-                <div>
-                  <div style={{ background: TYPE_HEX[primaryType], padding: '10px 14px 8px' }}>
-                    <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>Parada {stop.order}</p>
-                    {stop.time && (
-                      <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '11px', margin: '2px 0 0' }}>{stop.time}</p>
-                    )}
-                  </div>
-                  <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {stop.locations.map(loc => (
-                      <div key={loc.id}>
-                        <p style={{ fontSize: '12px', fontWeight: 600, color: '#111827', margin: 0 }}>{loc.location_name}</p>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '1px 0 0' }}>{TYPE_LABELS[loc.location_type]}</p>
-                        {loc.address && <p style={{ fontSize: '11px', color: '#9ca3af', margin: '2px 0 0' }}>{loc.address}</p>}
-                        {loc.google_maps_link && (
-                          <a href={loc.google_maps_link} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
-                            <ExternalLink size={10} /> Abrir en Google Maps
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
-
-      {unlocated.length > 0 && (
-        <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[220px]">
-          <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
-          <ul className="space-y-0.5">
-            {unlocated.map(l => (
-              <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.location_name}>• {l.location_name}</li>
+      {waypoints.length >= 2 && (
+        <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-900">Distancia total del recorrido</span>
+            <span className="text-sm font-semibold text-teal-700">
+              {totalKm != null ? `${fmtKm(totalKm)} km` : '—'}
+            </span>
+          </div>
+          {isApprox && (
+            <p className="text-xs text-amber-600 mt-1">
+              Estimado en línea recta — no se pudo calcular la ruta real por carretera.
+            </p>
+          )}
+          <ul className="mt-2 space-y-1">
+            {waypoints.slice(0, -1).map((w, i) => (
+              <li key={i} className="flex items-center justify-between text-xs text-gray-500">
+                <span className="truncate pr-3">{w.loc.location_name} → {waypoints[i + 1].loc.location_name}</span>
+                <span className="shrink-0">{legKm?.[i] != null ? `${fmtKm(legKm[i])} km` : '—'}</span>
+              </li>
             ))}
           </ul>
         </div>
