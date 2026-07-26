@@ -26,6 +26,8 @@ import {
   Plus,
   PowerOff,
   Search,
+  SlidersHorizontal,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,6 +38,19 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import type { VehicleListItem, VehicleStatus } from "../../types/vehicle";
 import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
+import {
+  COLOR_HEX,
+  COLOR_ORDER,
+  DECADE_OPTIONS,
+  BODY_TYPE_OPTIONS,
+  CAPACITY_OPTIONS,
+  LOCATION_OPTIONS,
+  canonicalColor,
+  vehiclePrice,
+  toggleItem,
+  FilterSection,
+  Pill,
+} from "../../components/vehicleFilterKit";
 
 const STATUS_LABEL: Record<VehicleStatus, string> = {
   active: "Activo",
@@ -53,6 +68,40 @@ const LOCATION_LABEL: Record<string, string> = {
   rionegro: "Rionegro",
   carmen_de_viboral: "Carmen de Viboral",
 };
+
+// ─── Filters (mirrors the public catalog's filter set, plus admin-only ones) ──
+interface VehicleFilters {
+  type: "all" | "car" | "motorcycle";
+  brands: string[];
+  colors: string[];
+  decades: number[];
+  bodyTypes: string[];
+  capacities: number[];
+  locations: string[];
+  priceMin: string;
+  priceMax: string;
+  statuses: VehicleStatus[];
+  owners: string[];
+}
+
+const EMPTY_FILTERS: VehicleFilters = {
+  type: "all",
+  brands: [],
+  colors: [],
+  decades: [],
+  bodyTypes: [],
+  capacities: [],
+  locations: [],
+  priceMin: "",
+  priceMax: "",
+  statuses: [],
+  owners: [],
+};
+
+const toParam = (arr: (string | number)[]): string | null =>
+  arr.length ? arr.map(String).join(",") : null;
+const fromParam = (s: string | null): string[] =>
+  s ? s.split(",").filter(Boolean) : [];
 
 function todayISO() {
   const d = new Date();
@@ -248,12 +297,63 @@ export function VehicleList() {
   const [waVehicle, setWaVehicle] = useState<VehicleListItem | null>(null);
   const [waDate, setWaDate] = useState(todayISO());
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [showFilters, setShowFilters] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = searchParams.get('q') ?? '';
   const sortKey = (searchParams.get('sort') ?? 'display_order') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as SortDir;
   const [inputSearch, setInputSearch] = useState(search);
+
+  const filters: VehicleFilters = {
+    type: (searchParams.get("type") ?? "all") as VehicleFilters["type"],
+    brands: fromParam(searchParams.get("brands")),
+    colors: fromParam(searchParams.get("colors")),
+    decades: fromParam(searchParams.get("decades")).map(Number),
+    bodyTypes: fromParam(searchParams.get("bodyTypes")),
+    capacities: fromParam(searchParams.get("capacities")).map(Number),
+    locations: fromParam(searchParams.get("locations")),
+    priceMin: searchParams.get("priceMin") ?? "",
+    priceMax: searchParams.get("priceMax") ?? "",
+    statuses: fromParam(searchParams.get("statuses")) as VehicleStatus[],
+    owners: fromParam(searchParams.get("owners")),
+  };
+
+  const setFilters = (f: VehicleFilters) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (f.type && f.type !== "all") next.set("type", f.type); else next.delete("type");
+      const arrKeys: Array<[keyof VehicleFilters, string]> = [
+        ["brands", "brands"], ["colors", "colors"], ["decades", "decades"],
+        ["bodyTypes", "bodyTypes"], ["capacities", "capacities"], ["locations", "locations"],
+        ["statuses", "statuses"], ["owners", "owners"],
+      ];
+      for (const [fk, pk] of arrKeys) {
+        const arr = f[fk] as (string | number)[];
+        const v = toParam(arr);
+        if (v) next.set(pk, v); else next.delete(pk);
+      }
+      if (f.priceMin) next.set("priceMin", f.priceMin); else next.delete("priceMin");
+      if (f.priceMax) next.set("priceMax", f.priceMax); else next.delete("priceMax");
+      return next;
+    }, { replace: true });
+  };
+  const setFilter = (patch: Partial<VehicleFilters>) => setFilters({ ...filters, ...patch });
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (filters.type !== "all") n++;
+    if (filters.brands.length) n++;
+    if (filters.colors.length) n++;
+    if (filters.decades.length) n++;
+    if (filters.bodyTypes.length) n++;
+    if (filters.capacities.length) n++;
+    if (filters.locations.length) n++;
+    if (filters.priceMin || filters.priceMax) n++;
+    if (filters.statuses.length) n++;
+    if (filters.owners.length) n++;
+    return n;
+  }, [filters]);
 
   const handleSearchChange = (val: string) => {
     setInputSearch(val);
@@ -269,8 +369,8 @@ export function VehicleList() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // Drag is only meaningful when showing default order and no search active
-  const dragEnabled = sortKey === "display_order" && sortDir === "asc" && search === "";
+  // Drag is only meaningful when showing default order, no search, and no filters active
+  const dragEnabled = sortKey === "display_order" && sortDir === "asc" && search === "" && activeFilterCount === 0;
 
   const fetchVehicles = async () => {
     try {
@@ -285,14 +385,48 @@ export function VehicleList() {
 
   useEffect(() => { fetchVehicles(); }, []);
 
+  const availableBrands = useMemo(
+    () => [...new Set(vehicles.map(v => v.brand).filter(Boolean))].sort(),
+    [vehicles]
+  );
+  const availableOwners = useMemo(
+    () => [...new Set(vehicles.map(v => v.owner_name).filter((n): n is string => !!n))].sort(),
+    [vehicles]
+  );
+
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
-    const filtered = q
-      ? vehicles.filter(v =>
-          [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString(), v.owner_name]
-            .some(f => f?.toLowerCase().includes(q))
-        )
-      : vehicles;
+    const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+    const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+
+    const filtered = vehicles
+      .filter(v => !q || [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString(), v.owner_name]
+        .some(f => f?.toLowerCase().includes(q)))
+      .filter(v => filters.type === "all" || v.vehicle_type === filters.type)
+      .filter(v => filters.brands.length === 0 || filters.brands.includes(v.brand))
+      .filter(v => {
+        if (filters.colors.length === 0) return true;
+        const c = canonicalColor(v.color);
+        return c !== null && filters.colors.includes(c);
+      })
+      .filter(v => {
+        if (filters.decades.length === 0) return true;
+        if (!v.year) return false;
+        return filters.decades.includes(Math.floor(v.year / 10) * 10);
+      })
+      .filter(v => filters.bodyTypes.length === 0 || (v.body_type != null && filters.bodyTypes.includes(v.body_type)))
+      .filter(v => filters.capacities.length === 0 || (v.capacity !== null && filters.capacities.includes(v.capacity!)))
+      .filter(v => filters.locations.length === 0 || filters.locations.includes(v.location))
+      .filter(v => filters.statuses.length === 0 || filters.statuses.includes(v.status))
+      .filter(v => filters.owners.length === 0 || (v.owner_name != null && filters.owners.includes(v.owner_name)))
+      .filter(v => {
+        if (priceMin === null && priceMax === null) return true;
+        const p = vehiclePrice(v, filters.locations);
+        if (p === null) return false;
+        if (priceMin !== null && p < priceMin) return false;
+        if (priceMax !== null && p > priceMax) return false;
+        return true;
+      });
 
     return [...filtered].sort((a, b) => {
       let av: string | number | null;
@@ -308,7 +442,7 @@ export function VehicleList() {
       const cmp = av < bv ? -1 : av > bv ? 1 : 0;
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [vehicles, search, sortKey, sortDir]);
+  }, [vehicles, search, sortKey, sortDir, filters]);
 
   const toggleSort = (key: SortKey) => {
     const newDir = sortKey === key ? (sortDir === "asc" ? "desc" : "asc") : "asc";
@@ -406,6 +540,27 @@ export function VehicleList() {
             </button>
           )}
         </div>
+        <button
+          onClick={() => setShowFilters(v => !v)}
+          className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border transition-colors cursor-pointer ${
+            showFilters || activeFilterCount > 0
+              ? "border-brand-300 bg-brand-50 text-brand-700"
+              : "border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600"
+          }`}
+        >
+          <SlidersHorizontal size={15} />
+          Filtros
+          {activeFilterCount > 0 && (
+            <span className="w-5 h-5 flex items-center justify-center rounded-full bg-brand-600 text-white text-xs">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+        {activeFilterCount > 0 && (
+          <button onClick={() => setFilters(EMPTY_FILTERS)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer">
+            Limpiar filtros
+          </button>
+        )}
         {saveStatus === "saving" && (
           <span className="text-xs text-gray-400 flex items-center gap-1.5">
             <Loader2 size={12} className="animate-spin" /> Guardando orden…
@@ -418,6 +573,141 @@ export function VehicleList() {
           <span className="text-xs text-gray-400">Arrastra las filas para reordenar</span>
         )}
       </div>
+
+      {showFilters && (
+        <div className="bg-white rounded-2xl border border-brand-100 shadow-sm px-5 py-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8">
+          <FilterSection title="Tipo" active={filters.type !== "all"}>
+            <div className="flex flex-wrap gap-1.5">
+              {(["all", "car", "motorcycle"] as const).map(t => (
+                <Pill key={t} active={filters.type === t} onClick={() => setFilter({ type: t })}>
+                  {t === "all" ? "Todos" : t === "car" ? "Carros" : "Motos"}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Estado" active={filters.statuses.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {(["active", "inactive", "pending"] as VehicleStatus[]).map(s => (
+                <Pill key={s} active={filters.statuses.includes(s)} onClick={() => setFilter({ statuses: toggleItem(filters.statuses, s) })}>
+                  {STATUS_LABEL[s]}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Marca" active={filters.brands.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {availableBrands.map(b => (
+                <Pill key={b} active={filters.brands.includes(b)} onClick={() => setFilter({ brands: toggleItem(filters.brands, b) })}>
+                  {b}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Propietario" active={filters.owners.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {availableOwners.map(o => (
+                <Pill key={o} active={filters.owners.includes(o)} onClick={() => setFilter({ owners: toggleItem(filters.owners, o) })}>
+                  {o}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Color" active={filters.colors.length > 0}>
+            <div className="flex flex-wrap gap-2">
+              {COLOR_ORDER.map(color => {
+                const selected = filters.colors.includes(color);
+                const hex = COLOR_HEX[color];
+                const isLight = color === "Blanco" || color === "Beige" || color === "Amarillo";
+                return (
+                  <button
+                    key={color}
+                    onClick={() => setFilter({ colors: toggleItem(filters.colors, color) })}
+                    title={color}
+                    className={`relative w-7 h-7 rounded-full transition-all cursor-pointer ${
+                      selected ? "ring-2 ring-brand-400 ring-offset-2" : "ring-1 ring-gray-200 hover:ring-brand-300"
+                    }`}
+                    style={{ backgroundColor: hex }}
+                  >
+                    {isLight && !selected && (
+                      <span className="absolute inset-0 rounded-full border border-gray-300" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {filters.colors.length > 0 && (
+              <p className="text-[11px] text-gray-400 mt-1.5">{filters.colors.join(", ")}</p>
+            )}
+          </FilterSection>
+
+          <FilterSection title="Década" active={filters.decades.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {DECADE_OPTIONS.map(d => (
+                <Pill key={d.value} active={filters.decades.includes(d.value)} onClick={() => setFilter({ decades: toggleItem(filters.decades, d.value) })}>
+                  {d.label}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Carrocería" active={filters.bodyTypes.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {BODY_TYPE_OPTIONS.map(bt => (
+                <Pill key={bt} active={filters.bodyTypes.includes(bt)} onClick={() => setFilter({ bodyTypes: toggleItem(filters.bodyTypes, bt) })}>
+                  {bt}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Pasajeros" active={filters.capacities.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {CAPACITY_OPTIONS.map(c => (
+                <Pill key={c} active={filters.capacities.includes(c)} onClick={() => setFilter({ capacities: toggleItem(filters.capacities, c) })}>
+                  <span className="flex items-center gap-1">
+                    <Users size={11} />
+                    {c}
+                  </span>
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Ubicación" active={filters.locations.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {LOCATION_OPTIONS.map(loc => (
+                <Pill key={loc.value} active={filters.locations.includes(loc.value)} onClick={() => setFilter({ locations: toggleItem(filters.locations, loc.value) })}>
+                  {loc.label}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Precio (COP)" active={!!filters.priceMin || !!filters.priceMax}>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="Desde"
+                value={filters.priceMin}
+                onChange={e => setFilter({ priceMin: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+              <span className="text-gray-300 text-xs shrink-0">–</span>
+              <input
+                type="number"
+                placeholder="Hasta"
+                value={filters.priceMax}
+                onChange={e => setFilter({ priceMax: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+          </FilterSection>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">{error}</div>
@@ -561,7 +851,9 @@ export function VehicleList() {
                     {displayed.length === 0 ? (
                       <tr>
                         <td colSpan={12} className="px-6 py-10 text-center text-sm text-gray-400">
-                          No hay vehículos que coincidan con "{search}"
+                          {search
+                            ? `No hay vehículos que coincidan con "${search}"`
+                            : "Ningún vehículo coincide con los filtros seleccionados"}
                         </td>
                       </tr>
                     ) : displayed.map((v) => (
@@ -580,7 +872,7 @@ export function VehicleList() {
               </SortableContext>
             </DndContext>
           </div>
-          {search && displayed.length > 0 && (
+          {(search || activeFilterCount > 0) && displayed.length > 0 && (
             <p className="px-6 py-2 text-xs text-gray-400 border-t border-brand-50">
               {displayed.length} de {vehicles.length} vehículos
             </p>
