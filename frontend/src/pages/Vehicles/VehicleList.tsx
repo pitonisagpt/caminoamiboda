@@ -143,7 +143,7 @@ function ScoreBar({ total }: { total: number | null }) {
   );
 }
 
-type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total";
+type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name";
 type SortDir = "asc" | "desc";
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -232,6 +232,7 @@ function SortableVehicleRow({
       <td className="px-4 py-3 text-gray-600">{v.year ?? "—"}</td>
       <td className="px-4 py-3 text-gray-700">{v.color ?? "—"}</td>
       <td className="px-4 py-3 text-gray-700">{LOCATION_LABEL[v.location] ?? v.location}</td>
+      <td className="px-4 py-3 text-gray-700">{v.owner_name ?? "—"}</td>
       <td className="px-4 py-3">
         <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
       </td>
@@ -494,6 +495,7 @@ export function VehicleList() {
     { label: "Año",         key: "year" },
     { label: "Color",       key: "color" },
     { label: "Ubicación",   key: null },
+    { label: "Propietario", key: "owner_name" },
     { label: "Estado",      key: "status" },
     { label: "Score",       key: "score_total" },
     { label: "Pico y Placa", key: null },
@@ -850,7 +852,7 @@ export function VehicleList() {
                   <tbody className="divide-y divide-pink-50">
                     {displayed.length === 0 ? (
                       <tr>
-                        <td colSpan={12} className="px-6 py-10 text-center text-sm text-gray-400">
+                        <td colSpan={13} className="px-6 py-10 text-center text-sm text-gray-400">
                           {search
                             ? `No hay vehículos que coincidan con "${search}"`
                             : "Ningún vehículo coincide con los filtros seleccionados"}
