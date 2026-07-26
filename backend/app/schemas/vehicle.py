@@ -154,10 +154,11 @@ class VehicleList(BaseModel):
     pico_y_placa_day: Optional[str] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
+    is_company_owned: bool = False
     allowed_locations: Optional[List[str]] = None
     photos: List[VehiclePhotoRead] = []
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
-        d = _build_dict(vehicle, ["owner_name", "owner_contact", "allowed_locations"])
+        d = _build_dict(vehicle, ["owner_name", "owner_contact", "is_company_owned", "allowed_locations"])
         return cls.model_validate(d)

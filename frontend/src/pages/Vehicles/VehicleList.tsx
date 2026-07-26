@@ -232,7 +232,15 @@ function SortableVehicleRow({
       <td className="px-4 py-3 text-gray-600">{v.year ?? "—"}</td>
       <td className="px-4 py-3 text-gray-700">{v.color ?? "—"}</td>
       <td className="px-4 py-3 text-gray-700">{LOCATION_LABEL[v.location] ?? v.location}</td>
-      <td className="px-4 py-3 text-gray-700">{v.owner_name ?? "—"}</td>
+      <td className="px-4 py-3 text-gray-700">
+        {v.is_company_owned ? (
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-700">
+            Camino a mi Boda
+          </span>
+        ) : (
+          v.owner_name ?? "—"
+        )}
+      </td>
       <td className="px-4 py-3">
         <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
       </td>
