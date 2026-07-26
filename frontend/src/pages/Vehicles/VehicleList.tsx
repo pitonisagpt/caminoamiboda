@@ -289,7 +289,7 @@ export function VehicleList() {
     const q = search.toLowerCase();
     const filtered = q
       ? vehicles.filter(v =>
-          [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString()]
+          [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString(), v.owner_name]
             .some(f => f?.toLowerCase().includes(q))
         )
       : vehicles;

@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, ChevronsUpDown, Loader2, MessageCircle, Pencil, Plus, Search, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { vehicleOwnersApi } from "../../api/vehicleOwners";
 import { vehiclesApi } from "../../api/vehicles";
 import { Button } from "../../components/ui/Button";
@@ -165,7 +165,16 @@ export function OwnerList() {
                       {o.account_type && o.account_number ? `${o.account_type} · ${o.account_number}` : "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600 font-medium">
-                      {vehicleCounts.get(o.full_name) ?? 0}
+                      {(vehicleCounts.get(o.full_name) ?? 0) > 0 ? (
+                        <Link
+                          to={`/vehiculos?q=${encodeURIComponent(o.full_name)}`}
+                          className="text-brand-600 hover:text-brand-700 hover:underline"
+                        >
+                          {vehicleCounts.get(o.full_name)}
+                        </Link>
+                      ) : (
+                        vehicleCounts.get(o.full_name) ?? 0
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
