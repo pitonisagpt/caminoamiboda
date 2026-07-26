@@ -129,40 +129,6 @@ class VehicleRead(VehicleBase):
         return cls.model_validate(d)
 
 
-class VehiclePublic(BaseModel):
-    """Public-facing schema — excludes owner info."""
-    id: int
-    license_plate: str
-    brand: str
-    model_line: Optional[str] = None
-    color: Optional[str] = None
-    year: Optional[int] = None
-    vehicle_type: VehicleType
-    body_type: Optional[str] = None
-    capacity: Optional[int] = None
-    location: VehicleLocation
-    status: VehicleStatus
-    price_medellin: Optional[float] = None
-    price_rionegro: Optional[float] = None
-    score_elegance: Optional[int] = None
-    score_exclusivity: Optional[int] = None
-    score_photogeny: Optional[int] = None
-    score_comfort: Optional[int] = None
-    score_romance: Optional[int] = None
-    score_total: Optional[int] = None
-    pico_y_placa_day: Optional[str] = None
-    pico_y_placa_hours: Optional[str] = None
-    description: Optional[str] = None
-    photos: List[VehiclePhotoRead] = []
-    created_at: datetime
-    updated_at: datetime
-
-    @classmethod
-    def from_orm_with_pico(cls, vehicle) -> "VehiclePublic":
-        d = _build_dict(vehicle, ["created_at", "updated_at"])
-        return cls.model_validate(d)
-
-
 class VehicleList(BaseModel):
     """Lightweight list item for both admin and public."""
     id: int

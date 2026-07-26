@@ -45,20 +45,26 @@ export default function Combobox({
     ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
     : options;
 
+  // Typed a name that exactly matches an option but the field lost focus
+  // (Tab, clicking elsewhere, submitting via Enter on another field) without
+  // explicitly selecting it — commit it instead of silently discarding what
+  // was typed. Shared by the outside-click handler and the input's onBlur
+  // so every way focus can leave the field is covered, not just mouse clicks.
+  function commitExactMatchIfAny() {
+    if (query) {
+      const exact = options.find(o => o.label.toLowerCase() === query.toLowerCase());
+      if (exact) onChange(exact.value);
+    }
+    setOpen(false);
+    setQuery('');
+    setActiveIndex(-1);
+  }
+
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        // Typed a name that exactly matches an option but clicked away
-        // (e.g. straight into "Guardar") without explicitly selecting it —
-        // commit it instead of silently discarding what was typed.
-        if (query) {
-          const exact = options.find(o => o.label.toLowerCase() === query.toLowerCase());
-          if (exact) onChange(exact.value);
-        }
-        setOpen(false);
-        setQuery('');
-        setActiveIndex(-1);
+        commitExactMatchIfAny();
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -151,6 +157,12 @@ export default function Combobox({
           value={displayValue}
           onChange={handleInputChange}
           onFocus={() => setOpen(true)}
+          onBlur={() => {
+            // Give a dropdown option's onMouseDown (which fires before blur)
+            // a chance to run first and clear `query` via handleSelect —
+            // only commit an exact-match fallback if nothing was selected.
+            setTimeout(commitExactMatchIfAny, 0);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}

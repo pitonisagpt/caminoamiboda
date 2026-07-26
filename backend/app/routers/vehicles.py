@@ -8,7 +8,7 @@ from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
-from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehiclePublic, VehicleRead, VehicleUpdate
+from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehicleRead, VehicleUpdate
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"], redirect_slashes=False)
 
@@ -63,12 +63,14 @@ def reorder_vehicles(items: List[ReorderItem], db: Session = Depends(get_db)):
     return {"ok": True}
 
 
-@router.get("/{vehicle_id}", response_model=VehiclePublic)
+@router.get("/{vehicle_id}", response_model=VehicleRead, dependencies=[Depends(get_current_user)])
 def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
+    """Admin endpoint (owner name/contact are internal, not public data) — the
+    public catalog reuses the already-fetched list item instead of calling this."""
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    return VehiclePublic.from_orm_with_pico(vehicle)
+    return VehicleRead.from_orm_with_pico(vehicle)
 
 
 @router.post("", response_model=VehicleRead, dependencies=[Depends(require_admin)], status_code=201)
