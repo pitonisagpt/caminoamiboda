@@ -24,8 +24,10 @@ const DIGIT_TO_DAY: Record<string, string> = {
   "7": "Viernes", "9": "Viernes",
 };
 
-function computePicoYPlaca(plate: string, type: string, location: string): string | null {
-  if (location !== "medellin" || !plate) return null;
+// A vehicle based outside Medellín can still be booked for a Medellín event,
+// so its home location never suppresses this — it's purely plate-based.
+function computePicoYPlaca(plate: string, type: string): string | null {
+  if (!plate) return null;
   const p = plate.toUpperCase().trim();
   const digit = type === "car" ? p[p.length - 1] : p[3];
   return DIGIT_TO_DAY[digit] ?? null;
@@ -76,8 +78,8 @@ export function VehicleForm() {
   ];
 
   const picoYPlaca = useMemo(
-    () => computePicoYPlaca(plate, vehicleType, location),
-    [plate, vehicleType, location]
+    () => computePicoYPlaca(plate, vehicleType),
+    [plate, vehicleType]
   );
 
   const scoreTotal = useMemo(() => {
@@ -195,14 +197,9 @@ export function VehicleForm() {
             Pico y Placa: {picoYPlaca}
           </span>
         )}
-        {!picoYPlaca && location === "medellin" && plate && (
+        {!picoYPlaca && plate && (
           <span className="ml-auto px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
             Pico y Placa: calculando...
-          </span>
-        )}
-        {location !== "medellin" && (
-          <span className="ml-auto px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-            Sin Pico y Placa
           </span>
         )}
       </div>

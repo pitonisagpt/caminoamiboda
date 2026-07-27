@@ -47,11 +47,12 @@ def is_festivo(d: date) -> bool:
 def compute_pico_y_placa(
     license_plate: str,
     vehicle_type: str,
-    location: str,
 ) -> Optional[str]:
-    """Return the restricted weekday for pico y placa, or None if it doesn't apply."""
-    if location != "medellin":
-        return None
+    """Return the restricted weekday for pico y placa (Medellín/Valle de Aburrá).
+
+    Based purely on the plate digit — a vehicle based outside Medellín can
+    still be booked for a Medellín event, so the vehicle's home location
+    never suppresses this."""
     plate = license_plate.upper().strip()
     if not plate:
         return None
@@ -88,5 +89,4 @@ def get_effective_pyp(vehicle, event_date: Optional[date] = None) -> Optional[st
     return compute_pico_y_placa(
         vehicle.license_plate,
         vehicle.vehicle_type.value,
-        vehicle.location.value,
     )
