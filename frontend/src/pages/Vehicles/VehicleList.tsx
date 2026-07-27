@@ -143,7 +143,9 @@ function ScoreBar({ total }: { total: number | null }) {
   );
 }
 
-type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name";
+type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name" | "pico_y_placa_day";
+
+const WEEKDAY_ORDER: Record<string, number> = { Lunes: 0, Martes: 1, Miércoles: 2, Jueves: 3, Viernes: 4 };
 type SortDir = "asc" | "desc";
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -443,6 +445,10 @@ export function VehicleList() {
       if (sortKey === "score_total")    { av = a.score_total;    bv = b.score_total; }
       else if (sortKey === "year")      { av = a.year;           bv = b.year; }
       else if (sortKey === "display_order") { av = a.display_order; bv = b.display_order; }
+      else if (sortKey === "pico_y_placa_day") {
+        av = a.pico_y_placa_day ? WEEKDAY_ORDER[a.pico_y_placa_day] : null;
+        bv = b.pico_y_placa_day ? WEEKDAY_ORDER[b.pico_y_placa_day] : null;
+      }
       else                              { av = (a as any)[sortKey] ?? ""; bv = (b as any)[sortKey] ?? ""; }
 
       if (av === null && bv === null) return 0;
@@ -506,7 +512,7 @@ export function VehicleList() {
     { label: "Propietario", key: "owner_name" },
     { label: "Estado",      key: "status" },
     { label: "Score",       key: "score_total" },
-    { label: "Pico y Placa", key: null },
+    { label: "Pico y Placa", key: "pico_y_placa_day" },
   ];
 
   return (
