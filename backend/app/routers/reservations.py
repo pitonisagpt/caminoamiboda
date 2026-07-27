@@ -144,13 +144,13 @@ def create_reservation(body: ReservationCreate, db: Session = Depends(get_db)):
     r = Reservation(**body.model_dump(), reservation_number=_next_number(db))
     db.add(r)
     db.flush()
-    _auto_create_timeline(r, db)
+    gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
-    return ReservationRead.build(r)
+    return ReservationRead.build(r, gcal_synced=gcal_synced)
 
 
-def _auto_create_timeline(r: Reservation, db: Session) -> None:
+def _auto_create_timeline(r: Reservation, db: Session) -> Optional[bool]:
     import uuid
     from app.models.event_timeline import EventTimeline
     from app.services.google_calendar_service import calendar_category_for
@@ -182,7 +182,7 @@ def _auto_create_timeline(r: Reservation, db: Session) -> None:
     db.add(tl)
     db.flush()
     from app.routers.timelines import _gcal_sync
-    _gcal_sync(tl, db, "auto on reservation create")
+    return _gcal_sync(tl, db, "auto on reservation create")
 
 
 @router.get("/api/reservations/{reservation_id}", response_model=ReservationRead, dependencies=[Depends(get_current_user)])
@@ -213,13 +213,12 @@ def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session
     db.commit()
     db.refresh(r)
 
-    if needs_timeline_sync:
-        _sync_linked_timelines(r, db)
+    gcal_synced = _sync_linked_timelines(r, db) if needs_timeline_sync else None
 
-    return ReservationRead.build(r)
+    return ReservationRead.build(r, gcal_synced=gcal_synced)
 
 
-def _sync_linked_timelines(reservation, db):
+def _sync_linked_timelines(reservation, db) -> Optional[bool]:
     from app.models.event_timeline import EventTimeline
     from app.services.google_calendar_service import calendar_category_for
     from app.routers.timelines import _gcal_sync
@@ -232,6 +231,7 @@ def _sync_linked_timelines(reservation, db):
         EventTimeline.reservation_id == reservation.id,
         EventTimeline.gcal_imported.is_(False),
     ).all()
+    results: list = []
     for tl in linked:
         tl.calendar_category = new_category
         tl.event_date = reservation.event_date
@@ -255,7 +255,15 @@ def _sync_linked_timelines(reservation, db):
         if reservation.special_instructions:
             tl.special_instructions = reservation.special_instructions
         db.commit()
-        _gcal_sync(tl, db, "on reservation change")
+        results.append(_gcal_sync(tl, db, "on reservation change"))
+
+    if not results:
+        return None
+    if any(res is False for res in results):
+        return False
+    if any(res is True for res in results):
+        return True
+    return None
 
 
 @router.delete("/api/reservations/{reservation_id}", status_code=204, dependencies=[Depends(get_current_user)])
@@ -287,10 +295,10 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     db.add(r)
     quote.status = "accepted"
     db.flush()
-    _auto_create_timeline(r, db)
+    gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
-    return ReservationRead.build(r)
+    return ReservationRead.build(r, gcal_synced=gcal_synced)
 
 
 # ── Reservation Payments ──────────────────────────────────────────────────────

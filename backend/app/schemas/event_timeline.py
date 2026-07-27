@@ -43,6 +43,7 @@ class LocationRead(LocationBase):
     timeline_id: int
     lat: Optional[float] = None
     lng: Optional[float] = None
+    gcal_synced: Optional[bool] = None
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
@@ -80,6 +81,7 @@ class ActivityRead(ActivityBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     timeline_id: int
+    gcal_synced: Optional[bool] = None
 
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
@@ -106,6 +108,7 @@ class TimelineContactRead(TimelineContactBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     timeline_id: int
+    gcal_synced: Optional[bool] = None
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -181,15 +184,17 @@ class TimelineRead(TimelineBase):
     contacts: List[TimelineContactRead] = []
     created_at: datetime
     updated_at: datetime
+    gcal_synced: Optional[bool] = None
 
     @classmethod
-    def build(cls, timeline, locations: list, activities: list, contacts: list) -> "TimelineRead":
+    def build(cls, timeline, locations: list, activities: list, contacts: list, gcal_synced: Optional[bool] = None) -> "TimelineRead":
         d = _build_timeline_dict(timeline, locations, activities, contacts, extra_fields=[
             "gcal_event_id", "gcal_calendar_id", "gcal_imported",
             "calendar_category", "reservation_id",
             "share_token_driver", "share_token_customer", "share_token_ops",
             "created_at", "updated_at",
         ])
+        d["gcal_synced"] = gcal_synced
         return cls.model_validate(d)
 
 

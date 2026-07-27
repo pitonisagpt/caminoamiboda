@@ -23,7 +23,7 @@ export const timelinesApi = {
   updateLocation: (timelineId: number, locationId: number, data: Record<string, unknown>) =>
     api.put<EventLocation>(`/timelines/${timelineId}/locations/${locationId}`, data),
   deleteLocation: (timelineId: number, locationId: number) =>
-    api.delete(`/timelines/${timelineId}/locations/${locationId}`),
+    api.delete<{ gcal_synced: boolean | null }>(`/timelines/${timelineId}/locations/${locationId}`),
 
   // Activities
   listActivities: (timelineId: number) => api.get<TimelineActivity[]>(`/timelines/${timelineId}/activities`),
@@ -32,7 +32,7 @@ export const timelinesApi = {
   updateActivity: (timelineId: number, activityId: number, data: Record<string, unknown>) =>
     api.put<TimelineActivity>(`/timelines/${timelineId}/activities/${activityId}`, data),
   deleteActivity: (timelineId: number, activityId: number) =>
-    api.delete(`/timelines/${timelineId}/activities/${activityId}`),
+    api.delete<{ gcal_synced: boolean | null }>(`/timelines/${timelineId}/activities/${activityId}`),
   reorderActivities: (timelineId: number, items: { id: number; display_order: number }[]) =>
     api.put(`/timelines/${timelineId}/activities/reorder`, items),
 
@@ -43,7 +43,7 @@ export const timelinesApi = {
   updateContact: (timelineId: number, contactId: number, data: Record<string, unknown>) =>
     api.put<TimelineContact>(`/timelines/${timelineId}/contacts/${contactId}`, data),
   deleteContact: (timelineId: number, contactId: number) =>
-    api.delete(`/timelines/${timelineId}/contacts/${contactId}`),
+    api.delete<{ gcal_synced: boolean | null }>(`/timelines/${timelineId}/contacts/${contactId}`),
 
   // PDF
   fetchPdfBlob: async (id: number): Promise<string> => {

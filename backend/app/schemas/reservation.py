@@ -143,10 +143,13 @@ class ReservationRead(BaseModel):
     addons_total: Decimal = Decimal("0")
     created_at: datetime
     updated_at: datetime
+    gcal_synced: Optional[bool] = None
 
     @classmethod
-    def build(cls, r) -> "ReservationRead":
-        return cls.model_validate(_build(r))
+    def build(cls, r, gcal_synced: Optional[bool] = None) -> "ReservationRead":
+        d = _build(r)
+        d["gcal_synced"] = gcal_synced
+        return cls.model_validate(d)
 
 
 class ReservationList(BaseModel):

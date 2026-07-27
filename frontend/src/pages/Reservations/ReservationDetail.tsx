@@ -35,7 +35,7 @@ export default function ReservationDetail() {
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [advancing, setAdvancing] = useState(false);
-  const { toast: gcalToast, checkAndNotify: checkGcalSync, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
+  const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const load = () => {
     setLoading(true);
@@ -47,9 +47,9 @@ export default function ReservationDetail() {
   useEffect(() => { load(); }, [id]);
 
   useEffect(() => {
-    const state = location.state as { gcalConnected?: boolean } | null;
-    if (state && typeof state.gcalConnected === 'boolean') {
-      notifyGcalSync(state.gcalConnected);
+    const state = location.state as { gcalSynced?: boolean | null } | null;
+    if (state && typeof state.gcalSynced !== 'undefined') {
+      notifyGcalSync(state.gcalSynced ?? null);
       navigate(location.pathname + location.search, { replace: true, state: null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,7 +63,7 @@ export default function ReservationDetail() {
     try {
       const res = await reservationsApi.update(reservation.id, { status: next } as any);
       setReservation(res.data);
-      await checkGcalSync();
+      notifyGcalSync(res.data.gcal_synced);
     } finally {
       setAdvancing(false);
     }
@@ -75,7 +75,7 @@ export default function ReservationDetail() {
     try {
       const res = await reservationsApi.updateStatus(reservation.id, status);
       setReservation(res.data);
-      await checkGcalSync();
+      notifyGcalSync(res.data.gcal_synced);
     } catch (err: any) {
       alert(err?.response?.data?.detail ?? 'No se pudo cambiar el estado de la reserva.');
     } finally {

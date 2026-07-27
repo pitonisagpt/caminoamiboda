@@ -92,6 +92,7 @@ export interface Reservation extends ReservationListItem {
   event_location: string | null;
   timeline_event_name: string | null;
   updated_at: string;
+  gcal_synced: boolean | null;
 }
 
 export interface ReservationPage {

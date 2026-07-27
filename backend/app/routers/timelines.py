@@ -2,7 +2,7 @@ import io
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -101,10 +101,10 @@ def create_timeline(body: TimelineCreate, db: Session = Depends(get_db)):
     db.add(timeline)
     db.commit()
     tl = _get_timeline(timeline.id, db)
-    _gcal_sync(tl, db, "on create")
+    gcal_synced = _gcal_sync(tl, db, "on create")
     db.refresh(tl)
     locs, acts, contacts = _load_locs_acts(tl.id, db)
-    return TimelineRead.build(tl, locs, acts, contacts)
+    return TimelineRead.build(tl, locs, acts, contacts, gcal_synced=gcal_synced)
 
 
 @router.get("/api/timelines/{timeline_id}", response_model=TimelineRead, dependencies=[Depends(get_current_user)])
@@ -120,10 +120,10 @@ def update_timeline(timeline_id: int, body: TimelineUpdate, db: Session = Depend
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(timeline, field, value)
     db.commit()
-    _gcal_sync(timeline, db, "on update")
+    gcal_synced = _gcal_sync(timeline, db, "on update")
     db.refresh(timeline)
     locs, acts, contacts = _load_locs_acts(timeline_id, db)
-    return TimelineRead.build(timeline, locs, acts, contacts)
+    return TimelineRead.build(timeline, locs, acts, contacts, gcal_synced=gcal_synced)
 
 
 @router.delete("/api/timelines/{timeline_id}", status_code=204, dependencies=[Depends(get_current_user)])
@@ -154,12 +154,20 @@ def regenerate_tokens(timeline_id: int, db: Session = Depends(get_db)):
     return TimelineRead.build(_get_timeline(timeline_id, db), locs, acts, contacts)
 
 
-def _gcal_sync(timeline, db: Session, label: str = ""):
+def _gcal_sync(timeline, db: Session, label: str = "") -> Optional[bool]:
+    """True = synced successfully, False = a sync was attempted and failed,
+    None = nothing needed syncing (GCal not configured, or an imported
+    timeline that's intentionally never overwritten — sync_timeline() would
+    just hand back the existing event id without pushing this change, which
+    isn't a real success worth announcing)."""
+    if timeline.gcal_imported:
+        return None
     try:
         from app.services.google_calendar_service import sync_timeline
-        sync_timeline(timeline, db)
+        return True if sync_timeline(timeline, db) else None
     except Exception as e:
         print(f"[GCal] sync failed{' ' + label if label else ''}: {e}")
+        return False
 
 
 # ── Locations ──────────────────────────────────────────────────────────────────
@@ -180,13 +188,14 @@ def create_location(timeline_id: int, body: LocationCreate, db: Session = Depend
     db.add(loc)
     db.commit()
     db.refresh(loc)
-    _gcal_sync(tl, db, "on location create")
+    gcal_synced = _gcal_sync(tl, db, "on location create")
     try:
         catalog_loc = sync_to_catalog(db, loc)
         loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
         db.commit()
     except Exception:
         pass
+    loc.gcal_synced = gcal_synced
     return loc
 
 
@@ -198,23 +207,25 @@ def update_location(timeline_id: int, location_id: int, body: LocationUpdate, db
         setattr(loc, field, value)
     db.commit()
     db.refresh(loc)
-    _gcal_sync(tl, db, "on location update")
+    gcal_synced = _gcal_sync(tl, db, "on location update")
     try:
         catalog_loc = sync_to_catalog(db, loc)
         loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
         db.commit()
     except Exception:
         pass
+    loc.gcal_synced = gcal_synced
     return loc
 
 
-@router.delete("/api/timelines/{timeline_id}/locations/{location_id}", status_code=204, dependencies=[Depends(get_current_user)])
+@router.delete("/api/timelines/{timeline_id}/locations/{location_id}", dependencies=[Depends(get_current_user)])
 def delete_location(timeline_id: int, location_id: int, db: Session = Depends(get_db)):
     tl = _get_timeline(timeline_id, db)
     loc = _get_location(timeline_id, location_id, db)
     db.delete(loc)
     db.commit()
-    _gcal_sync(tl, db, "on location delete")
+    gcal_synced = _gcal_sync(tl, db, "on location delete")
+    return {"gcal_synced": gcal_synced}
 
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
@@ -235,7 +246,8 @@ def create_contact(timeline_id: int, body: TimelineContactCreate, db: Session = 
     db.add(contact)
     db.commit()
     db.refresh(contact)
-    _gcal_sync(tl, db, "on contact create")
+    gcal_synced = _gcal_sync(tl, db, "on contact create")
+    contact.gcal_synced = gcal_synced
     return contact
 
 
@@ -247,17 +259,19 @@ def update_contact(timeline_id: int, contact_id: int, body: TimelineContactUpdat
         setattr(contact, field, value)
     db.commit()
     db.refresh(contact)
-    _gcal_sync(tl, db, "on contact update")
+    gcal_synced = _gcal_sync(tl, db, "on contact update")
+    contact.gcal_synced = gcal_synced
     return contact
 
 
-@router.delete("/api/timelines/{timeline_id}/contacts/{contact_id}", status_code=204, dependencies=[Depends(get_current_user)])
+@router.delete("/api/timelines/{timeline_id}/contacts/{contact_id}", dependencies=[Depends(get_current_user)])
 def delete_contact(timeline_id: int, contact_id: int, db: Session = Depends(get_db)):
     tl = _get_timeline(timeline_id, db)
     contact = _get_contact(timeline_id, contact_id, db)
     db.delete(contact)
     db.commit()
-    _gcal_sync(tl, db, "on contact delete")
+    gcal_synced = _gcal_sync(tl, db, "on contact delete")
+    return {"gcal_synced": gcal_synced}
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
@@ -287,7 +301,7 @@ def list_activities(timeline_id: int, db: Session = Depends(get_db)):
 
 @router.post("/api/timelines/{timeline_id}/activities", response_model=ActivityRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_activity(timeline_id: int, body: ActivityCreate, db: Session = Depends(get_db)):
-    _get_timeline(timeline_id, db)
+    tl = _get_timeline(timeline_id, db)
     existing = db.query(TimelineActivity).filter(
         TimelineActivity.timeline_id == timeline_id
     ).order_by(TimelineActivity.display_order).all()
@@ -307,6 +321,8 @@ def create_activity(timeline_id: int, body: ActivityCreate, db: Session = Depend
     db.add(act)
     db.commit()
     db.refresh(act)
+    gcal_synced = _gcal_sync(tl, db, "on activity create")
+    act.gcal_synced = gcal_synced
     return act
 
 
@@ -323,6 +339,7 @@ def reorder_activities(timeline_id: int, body: List[ActivityReorderItem], db: Se
 
 @router.put("/api/timelines/{timeline_id}/activities/{activity_id}", response_model=ActivityRead, dependencies=[Depends(get_current_user)])
 def update_activity(timeline_id: int, activity_id: int, body: ActivityUpdate, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
     act = _get_activity(timeline_id, activity_id, db)
     update_data = body.model_dump(exclude_unset=True)
     old_key = (act.day_number, act.time)
@@ -346,14 +363,19 @@ def update_activity(timeline_id: int, activity_id: int, body: ActivityUpdate, db
 
     db.commit()
     db.refresh(act)
+    gcal_synced = _gcal_sync(tl, db, "on activity update")
+    act.gcal_synced = gcal_synced
     return act
 
 
-@router.delete("/api/timelines/{timeline_id}/activities/{activity_id}", status_code=204, dependencies=[Depends(get_current_user)])
+@router.delete("/api/timelines/{timeline_id}/activities/{activity_id}", dependencies=[Depends(get_current_user)])
 def delete_activity(timeline_id: int, activity_id: int, db: Session = Depends(get_db)):
+    tl = _get_timeline(timeline_id, db)
     act = _get_activity(timeline_id, activity_id, db)
     db.delete(act)
     db.commit()
+    gcal_synced = _gcal_sync(tl, db, "on activity delete")
+    return {"gcal_synced": gcal_synced}
 
 
 # ── PDF ───────────────────────────────────────────────────────────────────────

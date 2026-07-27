@@ -26,6 +26,7 @@ export interface EventLocation {
   display_order: number;
   lat: number | null;
   lng: number | null;
+  gcal_synced: boolean | null;
 }
 
 export interface TimelineActivity {
@@ -38,6 +39,7 @@ export interface TimelineActivity {
   estimated_duration: string | null;
   notes: string | null;
   display_order: number;
+  gcal_synced: boolean | null;
 }
 
 export interface TimelineContact {
@@ -47,6 +49,7 @@ export interface TimelineContact {
   phone: string | null;
   role: string | null;
   display_order: number;
+  gcal_synced: boolean | null;
 }
 
 export interface EventTimeline {
@@ -75,6 +78,7 @@ export interface EventTimeline {
   contacts: TimelineContact[];
   created_at: string;
   updated_at: string;
+  gcal_synced: boolean | null;
 }
 
 export interface TimelineListItem {

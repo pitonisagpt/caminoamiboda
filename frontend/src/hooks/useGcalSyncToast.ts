@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { integrationsApi } from '../api/integrations';
 
 export interface GcalToastState {
   message: string;
@@ -9,22 +8,17 @@ export interface GcalToastState {
 export function useGcalSyncToast() {
   const [toast, setToast] = useState<GcalToastState | null>(null);
 
-  const notify = (connected: boolean) => {
+  /** Pass the real per-action sync result. `null` means nothing needed
+   * syncing (e.g. GCal not configured, or an unaffected field changed) —
+   * stay quiet rather than show a toast for an action that never happened. */
+  const notify = (synced: boolean | null) => {
+    if (synced === null) return;
     setToast(
-      connected
+      synced
         ? { message: 'Sincronizado con Google Calendar', variant: 'success' }
         : { message: 'No se pudo sincronizar con Google Calendar', variant: 'warning' }
     );
   };
 
-  const checkAndNotify = async () => {
-    try {
-      const res = await integrationsApi.googleCalendarStatus();
-      notify(res.data.connected);
-    } catch {
-      // status check itself failed — stay quiet rather than show a misleading toast
-    }
-  };
-
-  return { toast, checkAndNotify, notify, dismiss: () => setToast(null) };
+  return { toast, notify, dismiss: () => setToast(null) };
 }

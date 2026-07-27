@@ -11,7 +11,6 @@ import { driversApi } from '../../api/drivers';
 import { vehicleOwnersApi } from '../../api/vehicleOwners';
 import type { VehicleOwnerBasic } from '../../api/vehicleOwners';
 import { calendarApi } from '../../api/calendar';
-import { integrationsApi } from '../../api/integrations';
 import type { ConflictItem } from '../../api/calendar';
 import type { ReservationFormData, ReservationStatus } from '../../types/reservation';
 import { EVENT_CATEGORY_LABEL, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
@@ -162,20 +161,17 @@ export default function ReservationForm() {
     };
 
     let savedId: number;
+    let gcalSynced: boolean | null = null;
     if (isEdit) {
-      await reservationsApi.update(Number(id), payload);
+      const res = await reservationsApi.update(Number(id), payload);
       savedId = Number(id);
+      gcalSynced = res.data.gcal_synced;
     } else {
-      savedId = (await reservationsApi.create(payload)).data.id;
+      const res = await reservationsApi.create(payload);
+      savedId = res.data.id;
+      gcalSynced = res.data.gcal_synced;
     }
-
-    let gcalConnected: boolean | undefined;
-    try {
-      gcalConnected = (await integrationsApi.googleCalendarStatus()).data.connected;
-    } catch {
-      // ignore — don't block navigation on a failed status check
-    }
-    navigate(`/reservas/${savedId}`, { state: { gcalConnected } });
+    navigate(`/reservas/${savedId}`, { state: { gcalSynced } });
   };
 
   const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';

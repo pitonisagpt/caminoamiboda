@@ -457,7 +457,7 @@ export default function EventoTab({
   const [contactModal, setContactModal] = useState<{ open: boolean; editing: TimelineContact | null }>({ open: false, editing: null });
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
-  const { toast: gcalToast, checkAndNotify: showGcalToast, dismiss: dismissGcalToast } = useGcalSyncToast();
+  const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -511,52 +511,55 @@ export default function EventoTab({
   const saveLocation = async (data: LocationFormData) => {
     if (!timelineId) return;
     const payload = { ...data, address: data.address || null, google_maps_link: data.google_maps_link || null, contact_person: data.contact_person || null, contact_phone: data.contact_phone || null, notes: data.notes || null };
-    if (locModal.editing) await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload);
-    else await timelinesApi.createLocation(timelineId, payload);
+    const res = locModal.editing
+      ? await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload)
+      : await timelinesApi.createLocation(timelineId, payload);
     setLocModal({ open: false, editing: null });
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const deleteLocation = async (locId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta ubicación?')) return;
-    await timelinesApi.deleteLocation(timelineId, locId);
+    const res = await timelinesApi.deleteLocation(timelineId, locId);
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const saveActivity = async (data: ActivityFormData) => {
     if (!timelineId) return;
     const payload = { ...data, estimated_duration: data.estimated_duration || null, notes: data.notes || null };
-    if (actModal.editing) await timelinesApi.updateActivity(timelineId, actModal.editing.id, payload);
-    else await timelinesApi.createActivity(timelineId, payload);
+    const res = actModal.editing
+      ? await timelinesApi.updateActivity(timelineId, actModal.editing.id, payload)
+      : await timelinesApi.createActivity(timelineId, payload);
     setActModal({ open: false, editing: null });
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const deleteActivity = async (actId: number) => {
     if (!timelineId || !confirm('¿Eliminar esta actividad?')) return;
-    await timelinesApi.deleteActivity(timelineId, actId);
+    const res = await timelinesApi.deleteActivity(timelineId, actId);
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const saveContact = async (data: TimelineContactFormData) => {
     if (!timelineId) return;
     const payload = { ...data, phone: data.phone || null, role: data.role || null };
-    if (contactModal.editing) await timelinesApi.updateContact(timelineId, contactModal.editing.id, payload);
-    else await timelinesApi.createContact(timelineId, payload);
+    const res = contactModal.editing
+      ? await timelinesApi.updateContact(timelineId, contactModal.editing.id, payload)
+      : await timelinesApi.createContact(timelineId, payload);
     setContactModal({ open: false, editing: null });
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const deleteContact = async (contactId: number) => {
     if (!timelineId || !confirm('¿Eliminar este contacto?')) return;
-    await timelinesApi.deleteContact(timelineId, contactId);
+    const res = await timelinesApi.deleteContact(timelineId, contactId);
     await load();
-    await showGcalToast();
+    notifyGcalSync(res.data.gcal_synced);
   };
 
   const copyLink = async (token: string, label: string) => {
