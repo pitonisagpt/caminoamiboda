@@ -1,7 +1,7 @@
 import { Loader2, SlidersHorizontal, Star, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
@@ -202,6 +202,7 @@ export function CatalogPage() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<VehicleListItem | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const location = useLocation();
 
   // Derive filters from URL — no useState, client-side filtering only
   const filters: Filters = {
@@ -255,6 +256,22 @@ export function CatalogPage() {
       .finally(() => setLoading(false));
     reviewsApi.listPublic().then((r: { data: Review[] }) => setReviews(r.data)).catch(() => {});
   }, []);
+
+  // Jump to the reviews section when arriving via the "Opiniones" nav link
+  // (#opiniones) — the section only exists once reviews have loaded.
+  useEffect(() => {
+    if (location.hash !== "#opiniones" || reviews.length === 0) return;
+    // Vehicle card images below load progressively and keep growing the
+    // page height, so the target position shifts after the first scroll —
+    // re-scroll a couple more times to catch up once layout settles.
+    const attempts = [0, 400, 1000];
+    const timers = attempts.map(delay =>
+      setTimeout(() => {
+        document.getElementById("opiniones")?.scrollIntoView({ behavior: "smooth" });
+      }, delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [location.hash, reviews]);
 
   const availableBrands = useMemo(
     () => [...new Set(vehicles.map(v => v.brand).filter(b => b && b !== "Test"))].sort(),
@@ -508,7 +525,7 @@ export function CatalogPage() {
 
       {/* Reviews section */}
       {reviews.length > 0 && (
-        <div className="mt-16 space-y-6">
+        <div id="opiniones" className="mt-16 space-y-6 scroll-mt-24">
           <h2 className="text-2xl font-brand text-brand-500 text-center">Lo que dicen nuestros clientes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map(r => (
