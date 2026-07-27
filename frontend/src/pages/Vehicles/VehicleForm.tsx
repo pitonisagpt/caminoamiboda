@@ -49,13 +49,14 @@ export function VehicleForm() {
   const [saving, setSaving] = useState(false);
   const [owners, setOwners] = useState<VehicleOwner[]>([]);
   const [ownerContact, setOwnerContact] = useState("");
+  const [legacyOwnerName, setLegacyOwnerName] = useState<string | null>(null);
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
 
   useEffect(() => {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
   }, []);
 
-  const { register, handleSubmit, watch, reset, setValue, control, formState: { errors } } = useForm<VehicleFormData>({
+  const { register, handleSubmit, watch, reset, control, formState: { errors } } = useForm<VehicleFormData>({
     defaultValues: {
       vehicle_type: "car",
       location: "medellin",
@@ -92,6 +93,7 @@ export function VehicleForm() {
     vehiclesApi.get(Number(id)).then((res) => {
       const v = res.data;
       setOwnerContact(v.owner_contact ?? "");
+      setLegacyOwnerName(!v.owner_id && v.owner_name ? v.owner_name : null);
       setAllowedLocations(v.allowed_locations ?? []);
       reset({
         license_plate: v.license_plate,
@@ -104,8 +106,7 @@ export function VehicleForm() {
         capacity: v.capacity?.toString() ?? "",
         location: v.location,
         status: v.status,
-        owner_name: v.owner_name ?? "",
-        owner_contact: v.owner_contact ?? "",
+        owner_id: v.owner_id?.toString() ?? "",
         is_company_owned: v.is_company_owned ?? false,
         price_medellin: v.price_medellin?.toString() ?? "",
         price_rionegro: v.price_rionegro?.toString() ?? "",
@@ -137,8 +138,7 @@ export function VehicleForm() {
         capacity: data.capacity ? parseInt(data.capacity) : null,
         location: data.location,
         status: data.status,
-        owner_name: data.is_company_owned ? null : (data.owner_name || null),
-        owner_contact: data.is_company_owned ? null : (data.owner_contact || null),
+        owner_id: data.is_company_owned ? null : (data.owner_id ? parseInt(data.owner_id) : null),
         is_company_owned: data.is_company_owned,
         allowed_locations: allowedLocations.length > 0 ? allowedLocations : null,
         price_medellin: data.price_medellin ? parseFloat(data.price_medellin) : null,
@@ -334,25 +334,31 @@ export function VehicleForm() {
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Controller
-                name="owner_name"
-                control={control}
-                render={({ field }) => (
-                  <Combobox
-                    label="Propietario"
-                    options={owners.map(o => ({ value: o.full_name, label: o.full_name }))}
-                    value={field.value ?? ''}
-                    onChange={val => {
-                      field.onChange(val);
-                      const selected = owners.find(o => o.full_name === val);
-                      const contact = selected?.whatsapp || selected?.phone || '';
-                      setValue('owner_contact', contact);
-                      setOwnerContact(contact);
-                    }}
-                    placeholder="Buscar propietario..."
-                  />
+              <div>
+                <Controller
+                  name="owner_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Combobox
+                      label="Propietario"
+                      options={owners.map(o => ({ value: String(o.id), label: o.full_name }))}
+                      value={field.value ?? ''}
+                      onChange={val => {
+                        field.onChange(val);
+                        const selected = owners.find(o => String(o.id) === val);
+                        setOwnerContact(selected?.whatsapp || selected?.phone || '');
+                        setLegacyOwnerName(null);
+                      }}
+                      placeholder="Buscar propietario..."
+                    />
+                  )}
+                />
+                {legacyOwnerName && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Antes: "{legacyOwnerName}" — no está vinculado a ningún propietario registrado. Selecciona el propietario correcto arriba.
+                  </p>
                 )}
-              />
+              </div>
               <Input
                 label="Contacto del dueño"
                 value={ownerContact}

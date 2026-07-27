@@ -30,8 +30,7 @@ class VehicleBase(BaseModel):
 
 
 class VehicleCreate(VehicleBase):
-    owner_name: Optional[str] = None
-    owner_contact: Optional[str] = None
+    owner_id: Optional[int] = None
     is_company_owned: bool = False
     allowed_locations: Optional[List[str]] = None
     pyp_day_override: Optional[str] = None
@@ -50,8 +49,7 @@ class VehicleUpdate(BaseModel):
     capacity: Optional[int] = None
     location: Optional[VehicleLocation] = None
     status: Optional[VehicleStatus] = None
-    owner_name: Optional[str] = None
-    owner_contact: Optional[str] = None
+    owner_id: Optional[int] = None
     is_company_owned: Optional[bool] = None
     allowed_locations: Optional[List[str]] = None
     price_medellin: Optional[float] = None
@@ -109,6 +107,7 @@ def _build_dict(vehicle, extra: list) -> dict:
 
 class VehicleRead(VehicleBase):
     id: int
+    owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
     is_company_owned: bool = False
@@ -125,7 +124,7 @@ class VehicleRead(VehicleBase):
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleRead":
-        d = _build_dict(vehicle, ["owner_name", "owner_contact", "is_company_owned", "allowed_locations", "created_at", "updated_at"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "is_company_owned", "allowed_locations", "created_at", "updated_at"])
         return cls.model_validate(d)
 
 
@@ -152,6 +151,7 @@ class VehicleList(BaseModel):
     score_romance: Optional[int] = None
     score_total: Optional[int] = None
     pico_y_placa_day: Optional[str] = None
+    owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
     is_company_owned: bool = False
@@ -160,5 +160,5 @@ class VehicleList(BaseModel):
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
-        d = _build_dict(vehicle, ["owner_name", "owner_contact", "is_company_owned", "allowed_locations"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "is_company_owned", "allowed_locations"])
         return cls.model_validate(d)

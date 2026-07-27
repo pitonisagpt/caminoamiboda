@@ -19,7 +19,6 @@ from app.models.owner_settlement import OwnerSettlement
 from app.models.owner_settlement_payment import OwnerSettlementPayment
 from app.models.reservation import Reservation
 from app.models.vehicle import Vehicle
-from app.models.vehicle_owner import VehicleOwner
 from app.schemas.owner_settlement import OwnerSettlementCreate, OwnerSettlementList, OwnerSettlementRead
 
 router = APIRouter(prefix="/api/owner-settlements", tags=["owner-settlements"], redirect_slashes=False)
@@ -84,15 +83,11 @@ def create_settlement(body: OwnerSettlementCreate, db: Session = Depends(get_db)
     vehicle_id = body.vehicle_id or reservation.vehicle_id
     owner_id = body.owner_id
 
-    # Auto-resolve owner from vehicle's owner_name if not explicitly provided
+    # Auto-resolve owner from the vehicle's linked owner if not explicitly provided
     if not owner_id and vehicle_id:
         vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-        if vehicle and vehicle.owner_name:
-            matched = db.query(VehicleOwner).filter(
-                VehicleOwner.full_name == vehicle.owner_name
-            ).first()
-            if matched:
-                owner_id = matched.id
+        if vehicle:
+            owner_id = vehicle.owner_id
 
     settlement = OwnerSettlement(
         settlement_number=_next_number(db),

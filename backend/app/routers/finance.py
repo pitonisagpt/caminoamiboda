@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import require_admin
 from app.database import get_db
@@ -129,14 +129,18 @@ def owner_revenue(
     owner_map: dict = {}
     for reservation, vehicle in rows:
         is_company = vehicle.is_company_owned if vehicle else False
+        # Group by owner_id (falls back to the raw name string only for
+        # vehicles with no linked VehicleOwner) so two owners who happen to
+        # share a display name don't get merged into one row.
+        key = "company" if is_company else (vehicle.owner_id if vehicle and vehicle.owner_id else (vehicle.owner_name if vehicle and vehicle.owner_name else "sin-propietario"))
         owner_name = (
             "Camino a mi Boda" if is_company
             else (vehicle.owner_name if vehicle and vehicle.owner_name else "Sin propietario")
         )
-        if owner_name not in owner_map:
-            owner_map[owner_name] = {"owner_name": owner_name, "completed_count": 0, "total_revenue": 0.0, "is_company": is_company}
-        owner_map[owner_name]["completed_count"] += 1
-        owner_map[owner_name]["total_revenue"] += float(reservation.total_amount)
+        if key not in owner_map:
+            owner_map[key] = {"owner_name": owner_name, "completed_count": 0, "total_revenue": 0.0, "is_company": is_company}
+        owner_map[key]["completed_count"] += 1
+        owner_map[key]["total_revenue"] += float(reservation.total_amount)
 
     owners = []
     for entry in owner_map.values():
@@ -250,7 +254,7 @@ def _vehicle_perf(db: Session, eff_from: date, eff_to: date) -> tuple[list, int]
     all_months = _months_set(eff_from, eff_to)
     total_months = len(all_months)
 
-    vehicles = db.query(Vehicle).order_by(Vehicle.display_order).all()
+    vehicles = db.query(Vehicle).options(joinedload(Vehicle.owner)).order_by(Vehicle.display_order).all()
 
     completed = (
         db.query(Reservation)

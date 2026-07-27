@@ -35,6 +35,7 @@ export interface VehicleListItem {
   score_romance: number | null;
   score_total: number | null;
   pico_y_placa_day: string | null;
+  owner_id: number | null;
   owner_name: string | null;
   owner_contact: string | null;
   is_company_owned: boolean;
@@ -63,8 +64,7 @@ export interface VehicleFormData {
   capacity: string;
   location: VehicleLocation;
   status: VehicleStatus;
-  owner_name: string;
-  owner_contact: string;
+  owner_id: string;
   is_company_owned: boolean;
   price_medellin: string;
   price_rionegro: string;

@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
+from app.models.vehicle_owner import VehicleOwner
 
 XLSX_PATH = "/app/docs/base_de_datos_autos/2025_03_23_base_de_datos_autos.xlsx"
 
@@ -96,6 +97,10 @@ def seed_vehicles(db: Session) -> int:
 
         owner_name = str(row[12]).strip() if row[12] else None
         owner_contact = _to_phone(row[13])
+        owner_id = None
+        if owner_name:
+            matched = db.query(VehicleOwner).filter(VehicleOwner.full_name == owner_name).first()
+            owner_id = matched.id if matched else None
 
         price_medellin = _to_float(row[17])
         price_rionegro = _to_float(row[18])
@@ -120,8 +125,9 @@ def seed_vehicles(db: Session) -> int:
             capacity=capacity,
             location=location,
             status=status,
-            owner_name=owner_name,
-            owner_contact=owner_contact,
+            owner_name_raw=owner_name,
+            owner_contact_raw=owner_contact,
+            owner_id=owner_id,
             price_medellin=price_medellin,
             price_rionegro=price_rionegro,
             score_elegance=score_elegance,

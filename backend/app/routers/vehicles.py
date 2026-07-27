@@ -2,7 +2,7 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
@@ -24,7 +24,7 @@ def list_vehicles(
     vehicle_type: Optional[VehicleType] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Vehicle).order_by(Vehicle.display_order)
+    query = db.query(Vehicle).options(joinedload(Vehicle.owner)).order_by(Vehicle.display_order)
     if status:
         query = query.filter(Vehicle.status == status)
     else:
@@ -45,7 +45,7 @@ def list_all_vehicles(
     db: Session = Depends(get_db),
 ):
     """Admin endpoint that returns all vehicles regardless of status."""
-    query = db.query(Vehicle).order_by(Vehicle.display_order)
+    query = db.query(Vehicle).options(joinedload(Vehicle.owner)).order_by(Vehicle.display_order)
     if status:
         query = query.filter(Vehicle.status == status)
     if location:

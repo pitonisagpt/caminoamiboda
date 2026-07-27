@@ -2,10 +2,11 @@ import enum
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, Integer, JSON, Numeric, SmallInteger, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, JSON, Numeric, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.models.vehicle_owner import VehicleOwner
 from app.models.vehicle_photo import VehiclePhoto
 
 
@@ -43,8 +44,12 @@ class Vehicle(Base):
     location: Mapped[VehicleLocation] = mapped_column(Enum(VehicleLocation), default=VehicleLocation.medellin)
     status: Mapped[VehicleStatus] = mapped_column(Enum(VehicleStatus), default=VehicleStatus.active)
 
-    owner_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    owner_contact: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    # Legacy free-text fallback, kept only for vehicles with no matching
+    # VehicleOwner (owner_id is the real relationship, see below).
+    owner_name_raw: Mapped[Optional[str]] = mapped_column("owner_name", String(255), nullable=True)
+    owner_contact_raw: Mapped[Optional[str]] = mapped_column("owner_contact", String(100), nullable=True)
+    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicle_owners.id", ondelete="SET NULL"), nullable=True)
+    owner: Mapped[Optional["VehicleOwner"]] = relationship("VehicleOwner")
     is_company_owned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     allowed_locations: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
@@ -84,3 +89,13 @@ class Vehicle(Base):
         if all(s is not None for s in scores):
             return sum(scores)
         return None
+
+    @property
+    def owner_name(self) -> Optional[str]:
+        return self.owner.full_name if self.owner else self.owner_name_raw
+
+    @property
+    def owner_contact(self) -> Optional[str]:
+        if self.owner:
+            return self.owner.whatsapp or self.owner.phone
+        return self.owner_contact_raw

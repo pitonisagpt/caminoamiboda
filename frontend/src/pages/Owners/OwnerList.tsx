@@ -26,7 +26,7 @@ function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 
 export function OwnerList() {
   const navigate = useNavigate();
   const [owners, setOwners] = useState<VehicleOwner[]>([]);
-  const [vehicleCounts, setVehicleCounts] = useState<Map<string, number>>(new Map());
+  const [vehicleCounts, setVehicleCounts] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -37,10 +37,10 @@ export function OwnerList() {
     Promise.all([vehicleOwnersApi.list(), vehiclesApi.listAll()])
       .then(([ownersRes, vehiclesRes]) => {
         setOwners(ownersRes.data);
-        const counts = new Map<string, number>();
+        const counts = new Map<number, number>();
         for (const v of vehiclesRes.data) {
-          if (!v.owner_name) continue;
-          counts.set(v.owner_name, (counts.get(v.owner_name) ?? 0) + 1);
+          if (!v.owner_id) continue;
+          counts.set(v.owner_id, (counts.get(v.owner_id) ?? 0) + 1);
         }
         setVehicleCounts(counts);
       })
@@ -69,8 +69,8 @@ export function OwnerList() {
     const dirMul = sortDir === "asc" ? 1 : -1;
     return [...filtered].sort((a, b) => {
       if (sortKey === "vehicle_count") {
-        const av = vehicleCounts.get(a.full_name) ?? 0;
-        const bv = vehicleCounts.get(b.full_name) ?? 0;
+        const av = vehicleCounts.get(a.id) ?? 0;
+        const bv = vehicleCounts.get(b.id) ?? 0;
         return (av - bv) * dirMul;
       }
       const av = (a[sortKey] ?? "").toString().toLowerCase();
@@ -165,15 +165,15 @@ export function OwnerList() {
                       {o.account_type && o.account_number ? `${o.account_type} · ${o.account_number}` : "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600 font-medium">
-                      {(vehicleCounts.get(o.full_name) ?? 0) > 0 ? (
+                      {(vehicleCounts.get(o.id) ?? 0) > 0 ? (
                         <Link
                           to={`/vehiculos?q=${encodeURIComponent(o.full_name)}`}
                           className="text-brand-600 hover:text-brand-700 hover:underline"
                         >
-                          {vehicleCounts.get(o.full_name)}
+                          {vehicleCounts.get(o.id)}
                         </Link>
                       ) : (
-                        vehicleCounts.get(o.full_name) ?? 0
+                        vehicleCounts.get(o.id) ?? 0
                       )}
                     </td>
                     <td className="px-4 py-3">
