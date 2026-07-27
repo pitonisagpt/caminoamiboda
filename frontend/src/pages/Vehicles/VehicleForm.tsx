@@ -14,12 +14,14 @@ import { Select } from "../../components/ui/Select";
 import { TextArea } from "../../components/ui/TextArea";
 import type { VehicleFormData } from "../../types/vehicle";
 
+// Medellín / Valle de Aburrá, segundo semestre de 2026 — mirrors
+// backend/app/services/pico_y_placa.py, which rotates by semester.
 const DIGIT_TO_DAY: Record<string, string> = {
-  "1": "Lunes", "2": "Lunes",
-  "3": "Martes", "4": "Martes",
-  "5": "Miércoles", "6": "Miércoles",
-  "7": "Jueves", "8": "Jueves",
-  "9": "Viernes", "0": "Viernes",
+  "5": "Lunes", "8": "Lunes",
+  "1": "Martes", "4": "Martes",
+  "0": "Miércoles", "2": "Miércoles",
+  "3": "Jueves", "6": "Jueves",
+  "7": "Viernes", "9": "Viernes",
 };
 
 function computePicoYPlaca(plate: string, type: string, location: string): string | null {
