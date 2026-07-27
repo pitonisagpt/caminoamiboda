@@ -51,6 +51,7 @@ class Vehicle(Base):
     owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicle_owners.id", ondelete="SET NULL"), nullable=True)
     owner: Mapped[Optional["VehicleOwner"]] = relationship("VehicleOwner")
     is_company_owned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     allowed_locations: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     price_medellin: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)

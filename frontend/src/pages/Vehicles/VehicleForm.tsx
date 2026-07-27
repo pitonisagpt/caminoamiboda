@@ -62,10 +62,12 @@ export function VehicleForm() {
       location: "medellin",
       status: "active",
       is_company_owned: false,
+      is_featured: false,
     },
   });
 
   const isCompanyOwned = watch("is_company_owned");
+  const isFeatured = watch("is_featured");
 
   const plate = watch("license_plate") ?? "";
   const vehicleType = watch("vehicle_type") ?? "car";
@@ -108,6 +110,7 @@ export function VehicleForm() {
         status: v.status,
         owner_id: v.owner_id?.toString() ?? "",
         is_company_owned: v.is_company_owned ?? false,
+        is_featured: v.is_featured ?? false,
         price_medellin: v.price_medellin?.toString() ?? "",
         price_rionegro: v.price_rionegro?.toString() ?? "",
         score_elegance: v.score_elegance?.toString() ?? "",
@@ -140,6 +143,7 @@ export function VehicleForm() {
         status: data.status,
         owner_id: data.is_company_owned ? null : (data.owner_id ? parseInt(data.owner_id) : null),
         is_company_owned: data.is_company_owned,
+        is_featured: data.is_featured,
         allowed_locations: allowedLocations.length > 0 ? allowedLocations : null,
         price_medellin: data.price_medellin ? parseFloat(data.price_medellin) : null,
         price_rionegro: data.price_rionegro ? parseFloat(data.price_rionegro) : null,
@@ -282,6 +286,20 @@ export function VehicleForm() {
                 </label>
               ))}
             </div>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  {...register("is_featured")}
+                />
+                <div className={`w-10 h-6 rounded-full transition-colors ${isFeatured ? 'bg-brand-500' : 'bg-gray-200'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isFeatured ? 'translate-x-4' : ''}`} />
+              </div>
+              <span className="text-sm font-medium text-gray-700">Destacado en el catálogo público</span>
+            </label>
           </div>
         </CardBody>
       </Card>

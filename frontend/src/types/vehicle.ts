@@ -39,6 +39,7 @@ export interface VehicleListItem {
   owner_name: string | null;
   owner_contact: string | null;
   is_company_owned: boolean;
+  is_featured: boolean;
   allowed_locations: string[] | null;
   photos: VehiclePhoto[];
 }
@@ -66,6 +67,7 @@ export interface VehicleFormData {
   status: VehicleStatus;
   owner_id: string;
   is_company_owned: boolean;
+  is_featured: boolean;
   price_medellin: string;
   price_rionegro: string;
   score_elegance: string;

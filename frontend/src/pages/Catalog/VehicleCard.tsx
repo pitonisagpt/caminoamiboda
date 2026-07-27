@@ -1,3 +1,4 @@
+import { Star } from "lucide-react";
 import type { VehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 
@@ -68,7 +69,13 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
         />
 
         {/* Badges over photo */}
-        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
+          {vehicle.is_featured && (
+            <span className="flex items-center gap-1 bg-brand-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
+              <Star size={11} className="fill-white" />
+              Destacado
+            </span>
+          )}
           {vehicle.body_type && vehicle.body_type !== "NA" && (
             <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
               {vehicle.body_type}
