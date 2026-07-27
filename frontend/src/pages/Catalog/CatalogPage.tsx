@@ -347,6 +347,17 @@ export function CatalogPage() {
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
             Vehículos clásicos y especiales para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño.
           </p>
+          <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
+            <div className="text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-brand-600">Desde 2017</p>
+              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Experiencia</p>
+            </div>
+            <div className="w-px h-10 bg-gray-200" />
+            <div className="text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-brand-600">+380</p>
+              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Bodas y eventos</p>
+            </div>
+          </div>
         </div>
 
         {loading && (
