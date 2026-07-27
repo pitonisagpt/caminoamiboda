@@ -26,6 +26,7 @@ import { CatalogPage } from "./pages/Catalog/CatalogPage";
 import EventoPage from "./pages/Public/EventoPage";
 import ContactoPage from "./pages/Public/ContactoPage";
 import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
+import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
@@ -72,6 +73,7 @@ export default function App() {
             <Route path="blog/:slug" element={<BlogPostPage />} />
             <Route path="contacto" element={<ContactoPage />} />
             <Route path="politica-de-datos" element={<PoliticaDatosPage />} />
+            <Route path="politica-de-reservas" element={<PoliticaReservasPage />} />
           </Route>
 
           {/* Public event view — no auth, no site chrome (private per-event tool) */}

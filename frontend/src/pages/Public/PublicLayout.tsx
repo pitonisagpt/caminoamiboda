@@ -116,6 +116,9 @@ export function PublicLayout() {
               <Link to="/politica-de-datos" className="hover:text-brand-600 transition-colors">
                 Política de datos
               </Link>
+              <Link to="/politica-de-reservas" className="hover:text-brand-600 transition-colors">
+                Política de reservas
+              </Link>
             </nav>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-gray-500 border-t border-gray-100 pt-6">
