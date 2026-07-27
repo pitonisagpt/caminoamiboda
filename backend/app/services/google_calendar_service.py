@@ -60,6 +60,7 @@ def _get_calendar_id(category: str) -> str:
         "ok":         settings.google_calendar_ok,
         "obsequio":   settings.google_calendar_obsequio,
         "publicidad": settings.google_calendar_publicidad,
+        "cancelados": settings.google_calendar_cancelados,
     }
     return mapping.get(category) or settings.google_calendar_id
 
@@ -73,7 +74,9 @@ def calendar_category_for(reservation) -> str:
 
     status = reservation.status
 
-    if status in ("lead", "quoted", "cancelled"):
+    if status == "cancelled":
+        return "cancelados"
+    if status in ("lead", "quoted"):
         return "prospectos"
 
     # reserved, deposit_received, confirmed, completed → depends on how much was paid
