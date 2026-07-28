@@ -84,6 +84,10 @@ interface VehicleFilters {
   owners: string[];
 }
 
+// "Activo" is the default status filter — inactive/pending vehicles stay
+// hidden until explicitly selected in the Estado filter.
+const DEFAULT_STATUSES: VehicleStatus[] = ["active"];
+
 const EMPTY_FILTERS: VehicleFilters = {
   type: "all",
   brands: [],
@@ -94,7 +98,7 @@ const EMPTY_FILTERS: VehicleFilters = {
   locations: [],
   priceMin: "",
   priceMax: "",
-  statuses: [],
+  statuses: DEFAULT_STATUSES,
   owners: [],
 };
 
@@ -340,7 +344,15 @@ export function VehicleList() {
     locations: fromParam(searchParams.get("locations")),
     priceMin: searchParams.get("priceMin") ?? "",
     priceMax: searchParams.get("priceMax") ?? "",
-    statuses: fromParam(searchParams.get("statuses")) as VehicleStatus[],
+    // No "statuses" param at all means a fresh visit → default to Activo.
+    // Once the user has touched the filter, "none" marks "show every status"
+    // so clearing it doesn't snap back to the default on the next render.
+    statuses: (() => {
+      const raw = searchParams.get("statuses");
+      if (raw === null) return DEFAULT_STATUSES;
+      if (raw === "none") return [];
+      return fromParam(raw) as VehicleStatus[];
+    })(),
     owners: fromParam(searchParams.get("owners")),
   };
 
@@ -348,10 +360,14 @@ export function VehicleList() {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       if (f.type && f.type !== "all") next.set("type", f.type); else next.delete("type");
+      // "statuses" never gets deleted — an explicitly empty selection is
+      // written as "none" so it doesn't get reinterpreted as "unset" (which
+      // would snap back to the Activo default) on the next render.
+      next.set("statuses", toParam(f.statuses) ?? "none");
       const arrKeys: Array<[keyof VehicleFilters, string]> = [
         ["brands", "brands"], ["colors", "colors"], ["decades", "decades"],
         ["bodyTypes", "bodyTypes"], ["capacities", "capacities"], ["locations", "locations"],
-        ["statuses", "statuses"], ["owners", "owners"],
+        ["owners", "owners"],
       ];
       for (const [fk, pk] of arrKeys) {
         const arr = f[fk] as (string | number)[];
@@ -395,7 +411,15 @@ export function VehicleList() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Drag is only meaningful when showing default order, no search, and no filters active
-  const dragEnabled = sortKey === "display_order" && sortDir === "asc" && search === "" && activeFilterCount === 0;
+  // Reordering is also safe with just the default Activo filter applied:
+  // inactive/pending vehicles are always kept after active ones in
+  // display_order, so dragging within the active-only view never needs to
+  // touch a hidden row.
+  const onlyDefaultStatusFilterActive =
+    filters.statuses.length === 1 && filters.statuses[0] === "active" && activeFilterCount === 1;
+  const dragEnabled =
+    sortKey === "display_order" && sortDir === "asc" && search === "" &&
+    (activeFilterCount === 0 || onlyDefaultStatusFilterActive);
 
   const fetchVehicles = async () => {
     try {

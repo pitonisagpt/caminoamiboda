@@ -17,6 +17,21 @@ def _serialize_list(vehicles) -> list:
     return [VehicleList.from_orm_with_pico(v) for v in vehicles]
 
 
+def _normalize_display_order(db: Session) -> None:
+    """Keep active vehicles ordered before inactive/pending ones, preserving
+    relative order within each group — lets the default (Activo-only) admin
+    view stay drag-reorderable without ever touching hidden vehicles."""
+    vehicles = (
+        db.query(Vehicle)
+        .order_by(Vehicle.status != VehicleStatus.active, Vehicle.display_order)
+        .all()
+    )
+    for i, v in enumerate(vehicles, start=1):
+        if v.display_order != i:
+            v.display_order = i
+    db.commit()
+
+
 @router.get("", response_model=List[VehicleList])
 def list_vehicles(
     status: Optional[VehicleStatus] = Query(None),
@@ -60,6 +75,7 @@ def reorder_vehicles(items: List[ReorderItem], db: Session = Depends(get_db)):
     for item in items:
         db.query(Vehicle).filter(Vehicle.id == item.id).update({"display_order": item.display_order})
     db.commit()
+    _normalize_display_order(db)
     return {"ok": True}
 
 
@@ -82,6 +98,9 @@ def create_vehicle(payload: VehicleCreate, db: Session = Depends(get_db)):
     db.add(vehicle)
     db.commit()
     db.refresh(vehicle)
+    if vehicle.status != VehicleStatus.active:
+        _normalize_display_order(db)
+        db.refresh(vehicle)
     return VehicleRead.from_orm_with_pico(vehicle)
 
 
@@ -90,12 +109,16 @@ def update_vehicle(vehicle_id: int, payload: VehicleUpdate, db: Session = Depend
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    changed = payload.model_dump(exclude_unset=True)
+    for field, value in changed.items():
         if field == "license_plate" and value:
             value = value.upper()
         setattr(vehicle, field, value)
     db.commit()
     db.refresh(vehicle)
+    if "status" in changed:
+        _normalize_display_order(db)
+        db.refresh(vehicle)
     return VehicleRead.from_orm_with_pico(vehicle)
 
 
@@ -106,6 +129,7 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
     vehicle.status = VehicleStatus.inactive
     db.commit()
+    _normalize_display_order(db)
 
 
 @router.get("/{vehicle_id}/stats", dependencies=[Depends(get_current_user)])
