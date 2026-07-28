@@ -20,6 +20,9 @@ import type { Contact } from '../../types/contact';
 import type { VehicleListItem } from '../../types/vehicle';
 import { useAuth } from '../../context/AuthContext';
 
+const CANCELLATION_REASONS = ['Consiguió otro carro', 'No contestó', 'Muy caro', 'Cambio de fecha'];
+const OTHER_REASON = 'Otro';
+
 export default function ReservationForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,11 +39,13 @@ export default function ReservationForm() {
   const [vehicleQuickCreate, setVehicleQuickCreate] = useState<{ open: boolean; name: string; editing: VehicleListItem | null }>({ open: false, name: '', editing: null });
   const [driverQuickCreate, setDriverQuickCreate] = useState<{ open: boolean; name: string; editing: Driver | null }>({ open: false, name: '', editing: null });
   const [contactQuickCreate, setContactQuickCreate] = useState<{ open: boolean; name: string; editing: Contact | null }>({ open: false, name: '', editing: null });
+  const [reasonPreset, setReasonPreset] = useState('');
 
   const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } =
     useForm<ReservationFormData>({
       defaultValues: {
         status: 'lead',
+        cancellation_reason: '',
         event_category: 'standard',
         total_amount: '0',
         deposit_paid: '0',
@@ -80,6 +85,7 @@ export default function ReservationForm() {
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
+          cancellation_reason: v.cancellation_reason ?? '',
           event_category: v.event_category ?? 'standard',
           event_location: v.event_location ?? '',
           is_tentative: v.is_tentative ?? false,
@@ -87,6 +93,9 @@ export default function ReservationForm() {
           special_instructions: v.special_instructions ?? '',
           notes: v.notes ?? '',
         });
+        if (v.cancellation_reason) {
+          setReasonPreset(CANCELLATION_REASONS.includes(v.cancellation_reason) ? v.cancellation_reason : OTHER_REASON);
+        }
       });
     }
   }, [id, isEdit, reset]);
@@ -95,6 +104,7 @@ export default function ReservationForm() {
   const watchedTentative = useWatch({ control, name: 'is_tentative' });
   const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
   const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
+  const watchedStatus = useWatch({ control, name: 'status' });
   const watchedStart   = useWatch({ control, name: 'start_time' });
   const watchedEnd     = useWatch({ control, name: 'end_time' });
   const watchedZone    = useWatch({ control, name: 'event_location' });
@@ -152,6 +162,7 @@ export default function ReservationForm() {
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
       status: data.status,
+      cancellation_reason: data.status === 'cancelled' ? (data.cancellation_reason || null) : null,
       event_category: data.event_category,
       event_location: data.event_location || null,
       is_tentative: data.is_tentative,
@@ -386,6 +397,34 @@ export default function ReservationForm() {
               ))}
             </select>
           </div>
+
+          {watchedStatus === 'cancelled' && (
+            <div className="space-y-3">
+              <div>
+                <label className={labelCls}>Motivo de cancelación</label>
+                <select
+                  value={reasonPreset}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setReasonPreset(val);
+                    setValue('cancellation_reason', val === OTHER_REASON ? '' : val);
+                  }}
+                  className={inputCls}
+                >
+                  <option value="">Seleccionar...</option>
+                  {CANCELLATION_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                  <option value={OTHER_REASON}>{OTHER_REASON}</option>
+                </select>
+              </div>
+              {reasonPreset === OTHER_REASON && (
+                <input
+                  {...register('cancellation_reason')}
+                  className={inputCls}
+                  placeholder="Especifica el motivo..."
+                />
+              )}
+            </div>
+          )}
 
           <div>
             <label className={labelCls}>Tipo de evento</label>

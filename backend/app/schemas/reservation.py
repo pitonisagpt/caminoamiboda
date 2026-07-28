@@ -10,6 +10,7 @@ _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
     "owner_driver_id",
     "event_date", "start_time", "end_time", "total_amount", "deposit_paid", "status",
+    "cancellation_reason",
     "event_category", "event_location", "gcal_imported",
     "is_tentative", "event_date_notes",
     "special_instructions", "notes",
@@ -61,6 +62,7 @@ class ReservationCreate(BaseModel):
     total_amount: Decimal = Decimal("0")
     deposit_paid: Decimal = Decimal("0")
     status: ReservationStatus = ReservationStatus.lead
+    cancellation_reason: Optional[str] = None
     event_category: str = "standard"
     event_location: Optional[str] = None
     is_tentative: bool = False
@@ -85,6 +87,7 @@ class ReservationUpdate(BaseModel):
     total_amount: Optional[Decimal] = None
     deposit_paid: Optional[Decimal] = None
     status: Optional[ReservationStatus] = None
+    cancellation_reason: Optional[str] = None
     event_category: Optional[str] = None
     event_location: Optional[str] = None
     is_tentative: Optional[bool] = None
@@ -113,6 +116,7 @@ class ReservationRead(BaseModel):
     deposit_paid: Decimal
     remaining_balance: Decimal
     status: ReservationStatus
+    cancellation_reason: Optional[str] = None
     event_category: str = "standard"
     event_location: Optional[str] = None
     gcal_imported: bool = False

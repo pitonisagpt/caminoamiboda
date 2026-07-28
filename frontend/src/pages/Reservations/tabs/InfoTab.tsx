@@ -129,6 +129,13 @@ export default function InfoTab({
         </div>
       </div>
 
+      {reservation.status === 'cancelled' && reservation.cancellation_reason && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
+          <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-0.5">Motivo de cancelación</p>
+          <p className="text-sm text-red-800">{reservation.cancellation_reason}</p>
+        </div>
+      )}
+
       {/* Event info */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Evento</h2>

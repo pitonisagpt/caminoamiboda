@@ -93,6 +93,7 @@ export interface Reservation extends ReservationListItem {
   timeline_event_name: string | null;
   updated_at: string;
   gcal_synced: boolean | null;
+  cancellation_reason: string | null;
 }
 
 export interface ReservationPage {
@@ -115,6 +116,7 @@ export interface ReservationFormData {
   total_amount: string;
   deposit_paid: string;
   status: ReservationStatus;
+  cancellation_reason: string;
   event_category: EventCategory;
   is_tentative: boolean;
   event_date_notes: string;
