@@ -122,6 +122,10 @@ function toWhatsAppUrl(phone: string, message: string): string {
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
 }
 
+function formatCOP(amount: number): string {
+  return `$${amount.toLocaleString("es-CO")}`;
+}
+
 const DAY_COLOR: Record<string, string> = {
   Lunes: "bg-blue-100 text-blue-700",
   Martes: "bg-purple-100 text-purple-700",
@@ -257,6 +261,16 @@ function SortableVehicleRow({
         ) : (
           <span className="text-gray-400 text-xs">N/A</span>
         )}
+      </td>
+      <td className="px-4 py-3 text-xs whitespace-nowrap">
+        <div className="text-gray-700">
+          <span className="text-gray-400">MED </span>
+          {v.price_medellin != null ? formatCOP(v.price_medellin) : <span className="text-gray-400">No aplica</span>}
+        </div>
+        <div className="text-gray-700">
+          <span className="text-gray-400">LLA </span>
+          {v.price_rionegro != null ? formatCOP(v.price_rionegro) : <span className="text-gray-400">No aplica</span>}
+        </div>
       </td>
       <td className="px-6 py-3">
         <div className="flex items-center justify-end gap-1">
@@ -513,6 +527,7 @@ export function VehicleList() {
     { label: "Estado",      key: "status" },
     { label: "Score",       key: "score_total" },
     { label: "Pico y Placa", key: "pico_y_placa_day" },
+    { label: "Precios",     key: null },
   ];
 
   return (
@@ -866,7 +881,7 @@ export function VehicleList() {
                   <tbody className="divide-y divide-pink-50">
                     {displayed.length === 0 ? (
                       <tr>
-                        <td colSpan={13} className="px-6 py-10 text-center text-sm text-gray-400">
+                        <td colSpan={14} className="px-6 py-10 text-center text-sm text-gray-400">
                           {search
                             ? `No hay vehículos que coincidan con "${search}"`
                             : "Ningún vehículo coincide con los filtros seleccionados"}
