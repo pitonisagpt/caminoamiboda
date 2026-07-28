@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { BarChart2, BookUser, ExternalLink, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  BarChart2, BookUser, ChevronDown, ChevronUp, ChevronsUpDown, ExternalLink,
+  Loader2, MessageCircle, Pencil, Plus, Search, Trash2,
+} from 'lucide-react';
 import { contactsApi } from '../../api/contacts';
 import type { Contact, ContactStatus, ContactType } from '../../types/contact';
 import {
@@ -23,6 +26,15 @@ const STATUS_FILTERS: { value: ContactStatus | 'all'; label: string }[] = [
   { value: 'inactive', label: 'Inactivos' },
 ];
 
+type SortKey = 'full_name' | 'contact_type' | 'location' | 'status' | 'total_events' | 'last_contacted_at';
+
+function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 'asc' | 'desc' }) {
+  if (col !== current) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 inline ml-1" />;
+  return dir === 'asc'
+    ? <ChevronUp className="w-3.5 h-3.5 text-brand-500 inline ml-1" />
+    : <ChevronDown className="w-3.5 h-3.5 text-brand-500 inline ml-1" />;
+}
+
 function formatRelativeDate(iso: string | null): string {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -41,7 +53,18 @@ export default function ContactList() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [waLoadingId, setWaLoadingId] = useState<number | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>('full_name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
 
   const q = searchParams.get('q') ?? '';
   const typeFilter = (searchParams.get('type') ?? 'all') as ContactType | 'all';
@@ -86,6 +109,28 @@ export default function ContactList() {
       setWaLoadingId(null);
     }
   };
+
+  const sortedContacts = useMemo(() => {
+    const dirMul = sortDir === 'asc' ? 1 : -1;
+    return [...contacts].sort((a, b) => {
+      if (sortKey === 'total_events') {
+        return (a.total_events - b.total_events) * dirMul;
+      }
+      let av: string;
+      let bv: string;
+      if (sortKey === 'contact_type') {
+        av = CONTACT_TYPE_LABEL[a.contact_type];
+        bv = CONTACT_TYPE_LABEL[b.contact_type];
+      } else if (sortKey === 'status') {
+        av = CONTACT_STATUS_LABEL[a.status];
+        bv = CONTACT_STATUS_LABEL[b.status];
+      } else {
+        av = (a[sortKey] ?? '').toString();
+        bv = (b[sortKey] ?? '').toString();
+      }
+      return av.toLowerCase().localeCompare(bv.toLowerCase()) * dirMul;
+    });
+  }, [contacts, sortKey, sortDir]);
 
   const handleDelete = async (c: Contact) => {
     if (!confirm(`¿Eliminar a ${c.full_name}?`)) return;
@@ -174,18 +219,30 @@ export default function ContactList() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
-                <th className="text-left px-4 py-3">Nombre</th>
-                <th className="text-left px-4 py-3">Tipo</th>
-                <th className="text-left px-4 py-3 hidden md:table-cell">Ciudad</th>
+                <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => handleSort('full_name')}>
+                  Nombre <SortIcon col="full_name" current={sortKey} dir={sortDir} />
+                </th>
+                <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => handleSort('contact_type')}>
+                  Tipo <SortIcon col="contact_type" current={sortKey} dir={sortDir} />
+                </th>
+                <th className="text-left px-4 py-3 hidden md:table-cell cursor-pointer select-none" onClick={() => handleSort('location')}>
+                  Ciudad <SortIcon col="location" current={sortKey} dir={sortDir} />
+                </th>
                 <th className="text-left px-4 py-3 hidden lg:table-cell">Instagram</th>
-                <th className="text-left px-4 py-3">Estado</th>
-                <th className="text-left px-4 py-3">Eventos</th>
-                <th className="text-left px-4 py-3 hidden lg:table-cell">Último contacto</th>
+                <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => handleSort('status')}>
+                  Estado <SortIcon col="status" current={sortKey} dir={sortDir} />
+                </th>
+                <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => handleSort('total_events')}>
+                  Eventos <SortIcon col="total_events" current={sortKey} dir={sortDir} />
+                </th>
+                <th className="text-left px-4 py-3 hidden lg:table-cell cursor-pointer select-none" onClick={() => handleSort('last_contacted_at')}>
+                  Último contacto <SortIcon col="last_contacted_at" current={sortKey} dir={sortDir} />
+                </th>
                 <th className="text-right px-4 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {contacts.map(c => (
+              {sortedContacts.map(c => (
                 <tr
                   key={c.id}
                   className="hover:bg-brand-50/40 transition-colors cursor-pointer"
