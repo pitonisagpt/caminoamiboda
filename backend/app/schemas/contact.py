@@ -43,3 +43,4 @@ class ContactRead(BaseModel):
     last_contacted_at: Optional[datetime]
     created_at: datetime
     updated_at: datetime
+    total_events: int = 0

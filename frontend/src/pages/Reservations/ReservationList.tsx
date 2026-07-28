@@ -91,7 +91,10 @@ export default function ReservationList() {
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
   const page = Number(searchParams.get('page') ?? '1');
-  const dateFrom = searchParams.get('from') ?? localToday();
+  // Arriving with a ?contact= filter and no explicit date range (e.g. from
+  // /contactos) should show that contact's full history, not just "today
+  // onward" — otherwise past events silently disappear from "ver todas".
+  const dateFrom = searchParams.get('from') ?? (contactFilter ? '' : localToday());
   const dateTo = searchParams.get('to') ?? '';
   const q = searchParams.get('q') ?? '';
 

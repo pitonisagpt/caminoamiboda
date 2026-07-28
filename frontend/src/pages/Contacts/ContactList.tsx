@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BarChart2, BookUser, ExternalLink, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { contactsApi } from '../../api/contacts';
 import type { Contact, ContactStatus, ContactType } from '../../types/contact';
@@ -179,6 +179,7 @@ export default function ContactList() {
                 <th className="text-left px-4 py-3 hidden md:table-cell">Ciudad</th>
                 <th className="text-left px-4 py-3 hidden lg:table-cell">Instagram</th>
                 <th className="text-left px-4 py-3">Estado</th>
+                <th className="text-left px-4 py-3">Eventos</th>
                 <th className="text-left px-4 py-3 hidden lg:table-cell">Último contacto</th>
                 <th className="text-right px-4 py-3">Acciones</th>
               </tr>
@@ -216,6 +217,19 @@ export default function ContactList() {
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CONTACT_STATUS_COLOR[c.status]}`}>
                       {CONTACT_STATUS_LABEL[c.status]}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-600" onClick={e => e.stopPropagation()}>
+                    {c.total_events > 0 ? (
+                      <Link
+                        to={`/reservas?contact=${c.id}`}
+                        className="text-brand-600 hover:text-brand-700 hover:underline"
+                        title="Ver todas las reservas de este contacto"
+                      >
+                        {c.total_events}
+                      </Link>
+                    ) : (
+                      c.total_events
+                    )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-400 hidden lg:table-cell">
                     {formatRelativeDate(c.last_contacted_at)}

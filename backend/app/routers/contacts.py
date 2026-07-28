@@ -2,6 +2,7 @@ from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -45,7 +46,16 @@ def list_contacts(
             Contact.email.ilike(like) |
             Contact.instagram.ilike(like)
         )
-    return q.all()
+    contacts = q.all()
+    counts = dict(
+        db.query(Reservation.contact_id, func.count(Reservation.id))
+        .filter(Reservation.contact_id.isnot(None))
+        .group_by(Reservation.contact_id)
+        .all()
+    )
+    for c in contacts:
+        c.total_events = counts.get(c.id, 0)
+    return contacts
 
 
 @router.post("", response_model=ContactRead, status_code=201)
