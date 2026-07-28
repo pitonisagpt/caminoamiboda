@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Download, FileQuestion } from "lucide-react";
 
 interface FilePreviewModalProps {
@@ -25,7 +26,7 @@ export function FilePreviewModal({ src, contentType, fileName, onClose, onDownlo
   const isImage = contentType.startsWith("image/");
   const isPdf = contentType === "application/pdf";
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
@@ -73,6 +74,7 @@ export function FilePreviewModal({ src, contentType, fileName, onClose, onDownlo
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
