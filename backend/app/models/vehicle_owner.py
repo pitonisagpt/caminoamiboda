@@ -12,6 +12,7 @@ class VehicleOwner(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255))
+    company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     identification_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     whatsapp: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)

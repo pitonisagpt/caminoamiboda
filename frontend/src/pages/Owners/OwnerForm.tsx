@@ -19,7 +19,7 @@ export function OwnerForm() {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<VehicleOwnerFormData>({
     defaultValues: {
-      full_name: "", identification_number: "", phone: "", whatsapp: "",
+      full_name: "", company_name: "", identification_number: "", phone: "", whatsapp: "",
       email: "", bank_name: "", account_type: "", account_number: "",
     },
   });
@@ -30,6 +30,7 @@ export function OwnerForm() {
       const o = r.data;
       reset({
         full_name: o.full_name,
+        company_name: o.company_name ?? "",
         identification_number: o.identification_number ?? "",
         phone: o.phone ?? "",
         whatsapp: o.whatsapp ?? "",
@@ -46,6 +47,7 @@ export function OwnerForm() {
     try {
       const payload = {
         full_name: data.full_name,
+        company_name: data.company_name || null,
         identification_number: data.identification_number || null,
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
@@ -97,6 +99,7 @@ export function OwnerForm() {
             placeholder="Jaime Cadavid"
             className="sm:col-span-2"
           />
+          <Input label="Empresa (opcional)" {...register("company_name")} placeholder="Carros de Bodas SAS" className="sm:col-span-2" />
           <Input label="Número de identificación" {...register("identification_number")} placeholder="12345678" />
         </CardBody>
       </Card>

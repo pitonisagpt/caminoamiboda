@@ -1,6 +1,7 @@
 export interface VehicleOwner {
   id: number;
   full_name: string;
+  company_name: string | null;
   identification_number: string | null;
   phone: string | null;
   whatsapp: string | null;
@@ -14,6 +15,7 @@ export interface VehicleOwner {
 
 export interface VehicleOwnerFormData {
   full_name: string;
+  company_name: string;
   identification_number: string;
   phone: string;
   whatsapp: string;

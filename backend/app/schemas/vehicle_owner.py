@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 class VehicleOwnerBase(BaseModel):
     full_name: str
+    company_name: Optional[str] = None
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
@@ -21,6 +22,7 @@ class VehicleOwnerCreate(VehicleOwnerBase):
 
 class VehicleOwnerUpdate(BaseModel):
     full_name: Optional[str] = None
+    company_name: Optional[str] = None
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None

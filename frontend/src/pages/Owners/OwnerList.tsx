@@ -138,6 +138,7 @@ export function OwnerList() {
                   <th className="text-left px-4 py-3 font-semibold text-brand-600 cursor-pointer select-none" onClick={() => handleSort("full_name")}>
                     Nombre <SortIcon col="full_name" current={sortKey} dir={sortDir} />
                   </th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-600">Empresa</th>
                   <th className="text-left px-4 py-3 font-semibold text-brand-600 cursor-pointer select-none" onClick={() => handleSort("identification_number")}>
                     Identificación <SortIcon col="identification_number" current={sortKey} dir={sortDir} />
                   </th>
@@ -157,6 +158,7 @@ export function OwnerList() {
                 {visibleOwners.map((o) => (
                   <tr key={o.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900">{o.full_name}</td>
+                    <td className="px-4 py-3 text-gray-500">{o.company_name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{o.identification_number ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-600">{o.phone ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{o.email ?? "—"}</td>
