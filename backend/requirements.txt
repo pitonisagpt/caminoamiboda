@@ -17,3 +17,5 @@ google-api-python-client==2.131.0
 num2words==0.5.13
 slowapi==0.1.9
 filetype==1.2.0
+Pillow==12.2.0
+pillow-heif==1.5.0

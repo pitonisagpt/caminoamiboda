@@ -7,8 +7,10 @@ from pathlib import Path
 from typing import List
 
 import filetype
+import pillow_heif
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
+from PIL import Image, ImageOps
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -18,9 +20,12 @@ from app.models.vehicle import Vehicle
 from app.models.vehicle_photo import VehiclePhoto
 from app.schemas.vehicle_photo import VehiclePhotoBatchUpdate, VehiclePhotoRead
 
+pillow_heif.register_heif_opener()
+
 UPLOAD_DIR = Path("/app/uploads/vehicles")
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+HEIC_EXTENSIONS = {".heic", ".heif"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 router = APIRouter(
@@ -70,9 +75,26 @@ async def upload_photos(
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=413, detail=f"El archivo '{file.filename}' excede el límite de 10 MB")
-        kind = filetype.guess(content)
-        if kind is None or kind.mime not in ALLOWED_MIME_TYPES:
-            raise HTTPException(status_code=415, detail=f"El archivo '{file.filename}' no es una imagen válida")
+
+        if ext in HEIC_EXTENSIONS:
+            # HEIC/HEIF can't be displayed in an <img> by most non-Safari
+            # browsers — convert to JPEG on upload instead of just accepting it.
+            try:
+                img = Image.open(io.BytesIO(content))
+                img = ImageOps.exif_transpose(img)  # iPhone HEIC rotation is EXIF-only
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
+                out = io.BytesIO()
+                img.save(out, format="JPEG", quality=90)
+                content = out.getvalue()
+                ext = ".jpg"
+            except Exception:
+                raise HTTPException(status_code=415, detail=f"El archivo '{file.filename}' no es una imagen válida")
+        else:
+            kind = filetype.guess(content)
+            if kind is None or kind.mime not in ALLOWED_MIME_TYPES:
+                raise HTTPException(status_code=415, detail=f"El archivo '{file.filename}' no es una imagen válida")
+
         file_name = f"{uuid.uuid4().hex}{ext}"
         dest = UPLOAD_DIR / file_name
         dest.write_bytes(content)

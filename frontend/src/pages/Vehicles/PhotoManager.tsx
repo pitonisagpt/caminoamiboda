@@ -132,7 +132,8 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     if (!vehicleId) return;
-    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const isImage = (f: File) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name);
+    const imageFiles = Array.from(files).filter(isImage);
     if (!imageFiles.length) return;
     setUploading(true);
     try {
@@ -217,11 +218,11 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
       {/* Upload zone */}
       <Dropzone
         onFiles={handleFiles}
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         uploading={uploading}
         label="Arrastra fotos o haz clic para seleccionar"
         dragLabel="Suelta las fotos aquí"
-        helpText="JPG, PNG, WebP — múltiples archivos permitidos"
+        helpText="JPG, PNG, WebP, HEIC (iPhone) — múltiples archivos permitidos"
         uploadingText="Subiendo fotos..."
       />
 
