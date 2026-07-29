@@ -184,8 +184,8 @@ def vehicle_stats(
 
     # Status breakdown
     STATUS_LABELS = {
-        "lead": "Lead", "quoted": "Cotizado", "deposit_received": "Abono",
-        "reserved": "Reservado", "confirmed": "Confirmado",
+        "lead": "Lead", "quoted": "Cotizado", "pre_reserved": "Pre-reserva",
+        "deposit_received": "Abono", "reserved": "Reservado", "confirmed": "Confirmado",
         "completed": "Completado", "cancelled": "Cancelado",
     }
     status_map: dict = {}

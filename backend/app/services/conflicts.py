@@ -9,7 +9,7 @@ from app.models.reservation import Reservation
 from app.models.vehicle import Vehicle
 from app.services.pico_y_placa import PICO_HOURS, WEEKDAY_ES, get_effective_pyp, is_festivo
 
-BLOCKING_STATUSES = {"deposit_received", "reserved", "confirmed"}
+BLOCKING_STATUSES = {"pre_reserved", "deposit_received", "reserved", "confirmed"}
 
 
 def _times_overlap(a_start: time, a_end: time, b_start: time, b_end: time) -> bool:

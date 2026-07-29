@@ -13,6 +13,7 @@ from app.database import Base
 class ReservationStatus(str, Enum):
     lead = "lead"
     quoted = "quoted"
+    pre_reserved = "pre_reserved"
     deposit_received = "deposit_received"
     reserved = "reserved"
     confirmed = "confirmed"

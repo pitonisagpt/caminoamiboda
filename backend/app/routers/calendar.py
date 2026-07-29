@@ -16,6 +16,7 @@ router = APIRouter(tags=["calendar"], redirect_slashes=False)
 _STATUS_COLOR = {
     "lead": "#9CA3AF",
     "quoted": "#60A5FA",
+    "pre_reserved": "#2DD4BF",
     "deposit_received": "#FBBF24",
     "reserved": "#A78BFA",
     "confirmed": "#F472B6",

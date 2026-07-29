@@ -61,6 +61,7 @@ def _get_calendar_id(category: str) -> str:
         "obsequio":   settings.google_calendar_obsequio,
         "publicidad": settings.google_calendar_publicidad,
         "cancelados": settings.google_calendar_cancelados,
+        "prereserva": settings.google_calendar_prereserva,
     }
     return mapping.get(category) or settings.google_calendar_id
 
@@ -78,6 +79,8 @@ def calendar_category_for(reservation) -> str:
         return "cancelados"
     if status in ("lead", "quoted"):
         return "prospectos"
+    if status == "pre_reserved":
+        return "prereserva"
 
     # reserved, deposit_received, confirmed, completed → depends on how much was paid
     total = float(reservation.total_amount or 0)
@@ -232,6 +235,7 @@ _CATEGORY_LABEL = {
     "ok":         "OK",
     "obsequio":   "Obsequio",
     "publicidad": "Publicidad",
+    "prereserva": "Pre-reserva",
 }
 
 # Google Calendar's event colorId palette (1-11) is smaller and separate from the
@@ -245,6 +249,7 @@ _CATEGORY_EVENT_COLOR = {
     "ok":         "10",  # Basil (green)
     "obsequio":   "3",   # Grape (purple)
     "publicidad": "9",   # Blueberry (blue)
+    "prereserva": "1",   # Lavender
 }
 
 _EVENT_TYPE_LABEL = {

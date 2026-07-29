@@ -17,6 +17,7 @@ router = APIRouter(tags=["dashboard"], redirect_slashes=False)
 ACTIVE_STATUSES = {
     ReservationStatus.lead,
     ReservationStatus.quoted,
+    ReservationStatus.pre_reserved,
     ReservationStatus.deposit_received,
     ReservationStatus.reserved,
     ReservationStatus.confirmed,
@@ -253,6 +254,7 @@ def analytics(
     STATUS_ORDER = [
         ReservationStatus.lead,
         ReservationStatus.quoted,
+        ReservationStatus.pre_reserved,
         ReservationStatus.deposit_received,
         ReservationStatus.reserved,
         ReservationStatus.confirmed,
@@ -261,6 +263,7 @@ def analytics(
     STATUS_LABELS = {
         "lead": "Lead",
         "quoted": "Cotizado",
+        "pre_reserved": "Pre-reserva",
         "deposit_received": "Abono",
         "reserved": "Reservado",
         "confirmed": "Confirmado",

@@ -1,6 +1,7 @@
 export type ReservationStatus =
   | 'lead'
   | 'quoted'
+  | 'pre_reserved'
   | 'deposit_received'
   | 'reserved'
   | 'confirmed'
@@ -10,6 +11,7 @@ export type ReservationStatus =
 export const RESERVATION_STATUS_LABEL: Record<ReservationStatus, string> = {
   lead: 'Lead',
   quoted: 'Cotizado',
+  pre_reserved: 'Pre-reserva',
   deposit_received: 'Depósito recibido',
   reserved: 'Reservado',
   confirmed: 'Confirmado',
@@ -20,6 +22,7 @@ export const RESERVATION_STATUS_LABEL: Record<ReservationStatus, string> = {
 export const RESERVATION_STATUS_COLOR: Record<ReservationStatus, string> = {
   lead: 'bg-gray-100 text-gray-600',
   quoted: 'bg-blue-100 text-blue-700',
+  pre_reserved: 'bg-cyan-100 text-cyan-700',
   deposit_received: 'bg-yellow-100 text-yellow-700',
   reserved: 'bg-purple-100 text-purple-700',
   confirmed: 'bg-brand-100 text-brand-700',
@@ -28,7 +31,7 @@ export const RESERVATION_STATUS_COLOR: Record<ReservationStatus, string> = {
 };
 
 export const STATUS_FLOW: ReservationStatus[] = [
-  'lead', 'quoted', 'deposit_received', 'reserved', 'confirmed', 'completed', 'cancelled',
+  'lead', 'quoted', 'pre_reserved', 'deposit_received', 'reserved', 'confirmed', 'completed', 'cancelled',
 ];
 
 export type EventCategory = 'standard' | 'obsequio' | 'publicidad';

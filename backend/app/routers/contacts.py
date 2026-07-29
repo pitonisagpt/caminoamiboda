@@ -118,8 +118,8 @@ def contact_stats(
         return f
 
     ACTIVE_STATUSES = {
-        ReservationStatus.lead, ReservationStatus.quoted, ReservationStatus.deposit_received,
-        ReservationStatus.reserved, ReservationStatus.confirmed,
+        ReservationStatus.lead, ReservationStatus.quoted, ReservationStatus.pre_reserved,
+        ReservationStatus.deposit_received, ReservationStatus.reserved, ReservationStatus.confirmed,
     }
 
     all_res = db.query(Reservation).filter(*_df()).all()
@@ -159,8 +159,8 @@ def contact_stats(
 
     # Status breakdown
     STATUS_LABELS = {
-        "lead": "Lead", "quoted": "Cotizado", "deposit_received": "Abono",
-        "reserved": "Reservado", "confirmed": "Confirmado",
+        "lead": "Lead", "quoted": "Cotizado", "pre_reserved": "Pre-reserva",
+        "deposit_received": "Abono", "reserved": "Reservado", "confirmed": "Confirmado",
         "completed": "Completado", "cancelled": "Cancelado",
     }
     status_map: dict = {}

@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/finance", tags=["finance"], redirect_slashes=Fal
 ACTIVE_STATUSES = {
     ReservationStatus.lead,
     ReservationStatus.quoted,
+    ReservationStatus.pre_reserved,
     ReservationStatus.deposit_received,
     ReservationStatus.reserved,
     ReservationStatus.confirmed,

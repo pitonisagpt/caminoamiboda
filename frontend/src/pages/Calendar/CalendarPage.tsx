@@ -25,6 +25,7 @@ function daysInMonth(y: number, m: number): number {
 const LEGEND = [
   { label: 'Lead', color: '#9CA3AF' },
   { label: 'Cotizado', color: '#60A5FA' },
+  { label: 'Pre-reserva', color: '#2DD4BF' },
   { label: 'Depósito', color: '#FBBF24' },
   { label: 'Reservado', color: '#A78BFA' },
   { label: 'Confirmado', color: '#F472B6' },

@@ -22,6 +22,7 @@ const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
   { value: 'all',              label: 'Todas' },
   { value: 'lead',             label: 'Lead' },
   { value: 'quoted',           label: 'Cotizadas' },
+  { value: 'pre_reserved',     label: 'Pre-reserva' },
   { value: 'deposit_received', label: 'Depósito' },
   { value: 'reserved',         label: 'Reservadas' },
   { value: 'confirmed',        label: 'Confirmadas' },
