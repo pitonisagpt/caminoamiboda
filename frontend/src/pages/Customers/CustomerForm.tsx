@@ -1,7 +1,7 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
 import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
@@ -17,6 +17,8 @@ const REFERRAL_OPTIONS = [
 export function CustomerForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const isEditing = Boolean(id);
   const [loadingDoc, setLoadingDoc] = useState(isEditing);
   const [saving, setSaving] = useState(false);
@@ -75,7 +77,7 @@ export function CustomerForm() {
       } else {
         await customersApi.create(payload);
       }
-      navigate("/clientes");
+      navigate(returnTo || "/clientes");
     } catch {
       alert("Error al guardar el cliente.");
     } finally {
@@ -92,7 +94,7 @@ export function CustomerForm() {
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => navigate("/clientes")}
+          onClick={() => navigate(returnTo || "/clientes")}
           className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
@@ -164,7 +166,7 @@ export function CustomerForm() {
       </Card>
 
       <div className="flex justify-end gap-3 pb-8">
-        <Button type="button" variant="secondary" onClick={() => navigate("/clientes")}>Cancelar</Button>
+        <Button type="button" variant="secondary" onClick={() => navigate(returnTo || "/clientes")}>Cancelar</Button>
         <Button type="submit" loading={saving}>{isEditing ? "Guardar cambios" : "Crear cliente"}</Button>
       </div>
     </form>

@@ -41,7 +41,7 @@ export default function ReservationForm() {
   const [contactQuickCreate, setContactQuickCreate] = useState<{ open: boolean; name: string; editing: Contact | null }>({ open: false, name: '', editing: null });
   const [reasonPreset, setReasonPreset] = useState('');
 
-  const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting, isDirty } } =
     useForm<ReservationFormData>({
       defaultValues: {
         status: 'lead',
@@ -507,6 +507,8 @@ export default function ReservationForm() {
         <CustomerQuickCreateModal
           initialName={customerQuickCreate.name}
           initial={customerQuickCreate.editing}
+          returnTo={`/reservas/${id}/editar`}
+          isDirty={isDirty}
           onSave={async (form) => {
             const payload = {
               main_contact_name: form.main_contact_name,
@@ -619,14 +621,25 @@ interface CustomerQuickCreateForm {
 function CustomerQuickCreateModal({
   initialName,
   initial,
+  returnTo,
+  isDirty,
   onSave,
   onClose,
 }: {
   initialName: string;
   initial?: Customer | null;
+  returnTo: string;
+  isDirty: boolean;
   onSave: (data: CustomerQuickCreateForm) => Promise<void>;
   onClose: () => void;
 }) {
+  const navigate = useNavigate();
+  const handleGoToFullEdit = () => {
+    if (!initial) return;
+    if (isDirty && !confirm('Tienes cambios sin guardar en la reserva. ¿Continuar de todas formas?')) return;
+    navigate(`/clientes/editar/${initial.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  };
+
   const [form, setForm] = useState<CustomerQuickCreateForm>({
     bride_name: initial?.bride_name ?? '',
     groom_name: initial?.groom_name ?? '',
@@ -687,7 +700,17 @@ function CustomerQuickCreateModal({
             <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
-          <p className="text-xs text-gray-400">Podrás completar cédula, email y más datos luego desde Clientes.</p>
+          <p className="text-xs text-gray-400">
+            Podrás completar cédula, email y más datos luego desde Clientes.
+            {initial && (
+              <>
+                {' '}·{' '}
+                <button type="button" onClick={handleGoToFullEdit} className="text-brand-600 hover:underline cursor-pointer font-medium">
+                  Editar cliente completo
+                </button>
+              </>
+            )}
+          </p>
         </div>
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
           <button
