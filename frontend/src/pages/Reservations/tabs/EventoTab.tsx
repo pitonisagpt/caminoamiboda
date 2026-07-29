@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
   Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText, Eye,
-  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route,
+  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route, Mail,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
@@ -25,7 +25,7 @@ import type { ComboboxOption } from '../../../components/ui/Combobox';
 import type {
   EventTimeline, EventLocation, TimelineActivity, EventType,
   LocationType, LocationFormData, ActivityFormData,
-  TimelineContact, TimelineContactFormData,
+  TimelineContact, TimelineContactFormData, ClientInviteResult,
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
@@ -457,6 +457,8 @@ export default function EventoTab({
   const [contactModal, setContactModal] = useState<{ open: boolean; editing: TimelineContact | null }>({ open: false, editing: null });
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
+  const [invitingClients, setInvitingClients] = useState(false);
+  const [inviteResult, setInviteResult] = useState<ClientInviteResult | null>(null);
   const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const sensors = useSensors(
@@ -574,6 +576,31 @@ export default function EventoTab({
     load();
   };
 
+  const handleInviteClients = async () => {
+    if (!timelineId) return;
+    setInvitingClients(true);
+    setInviteResult(null);
+    try {
+      const res = await timelinesApi.inviteClients(timelineId);
+      setInviteResult(res.data);
+      if (!res.data.error) load();
+    } finally {
+      setInvitingClients(false);
+    }
+  };
+
+  const handleDeleteClientInvite = async () => {
+    if (!timelineId || !confirm('¿Borrar el evento de clientes en Google Calendar? Esto cancela la invitación para los invitados.')) return;
+    setInvitingClients(true);
+    try {
+      await timelinesApi.deleteClientInvite(timelineId);
+      setInviteResult(null);
+      load();
+    } finally {
+      setInvitingClients(false);
+    }
+  };
+
   const handlePreviewPdf = async () => {
     if (!timelineId) return;
     setPdfPreviewLoading(true);
@@ -611,6 +638,9 @@ export default function EventoTab({
 
   const gcalLink = timeline.gcal_html_link
     ? `${timeline.gcal_html_link}&authuser=caminoatuboda@gmail.com`
+    : null;
+  const gcalClientLink = timeline.gcal_client_html_link
+    ? `${timeline.gcal_client_html_link}&authuser=caminoatuboda@gmail.com`
     : null;
 
   return (
@@ -779,6 +809,60 @@ export default function EventoTab({
             );
           })}
         </div>
+      </div>
+
+      {/* Client invite */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Mail className="w-4 h-4 text-brand-500" />
+          <h3 className="font-semibold text-gray-900 text-sm">Invitar a clientes por Google Calendar</h3>
+        </div>
+        <p className="text-xs text-gray-500 mb-3">
+          Crea (o actualiza) una copia del evento en el calendario "Clientes" — con una descripción cálida y sin info interna — e invita por correo a la novia, el novio y el planeador según los emails registrados.
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleInviteClients}
+            disabled={invitingClients}
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {invitingClients ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+            Invitar a clientes al evento
+          </button>
+          {timeline.gcal_client_html_link && (
+            <button
+              onClick={handleDeleteClientInvite}
+              disabled={invitingClients}
+              className="flex items-center gap-2 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors cursor-pointer disabled:opacity-60"
+            >
+              <Trash2 className="w-4 h-4" />
+              Borrar evento
+            </button>
+          )}
+        </div>
+
+        {inviteResult && (
+          <div className={`mt-3 text-sm rounded-lg px-3 py-2 ${inviteResult.error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+            {inviteResult.error === 'no_emails' && (
+              <>No hay correos registrados para invitar. Agrega el email de la novia o el novio en la ficha del cliente, o el email del planeador en el contacto.</>
+            )}
+            {inviteResult.error === 'not_configured' && (
+              <>El calendario de clientes todavía no está configurado.</>
+            )}
+            {!inviteResult.error && (
+              <>Invitación enviada a: {inviteResult.invited.join(', ')}</>
+            )}
+          </div>
+        )}
+
+        {timeline.gcal_client_invited_at && (
+          <p className="text-xs text-gray-400 mt-2">
+            Última invitación: {new Date(timeline.gcal_client_invited_at).toLocaleString('es-CO')}
+            {gcalClientLink && (
+              <> · <a href={gcalClientLink} target="_blank" rel="noreferrer" className="text-brand-500 hover:underline">ver evento</a></>
+            )}
+          </p>
+        )}
       </div>
 
       {/* WhatsApp */}

@@ -36,6 +36,8 @@ class CustomerBase(BaseModel):
     def validate_phone(cls, v):
         return _validate_phone(v)
     email: Optional[str] = None
+    bride_email: Optional[str] = None
+    groom_email: Optional[str] = None
     wedding_date: Optional[date] = None
     instagram: Optional[str] = None
     referral_source: Optional[str] = None
@@ -57,6 +59,8 @@ class CustomerUpdate(BaseModel):
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
     email: Optional[str] = None
+    bride_email: Optional[str] = None
+    groom_email: Optional[str] = None
     wedding_date: Optional[date] = None
     instagram: Optional[str] = None
     referral_source: Optional[str] = None

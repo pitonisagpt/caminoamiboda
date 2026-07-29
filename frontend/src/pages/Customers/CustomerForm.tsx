@@ -25,7 +25,7 @@ export function CustomerForm() {
     defaultValues: {
       bride_name: "", groom_name: "", main_contact_name: "",
       identification_number: "",
-      phone: "", whatsapp: "", email: "",
+      phone: "", whatsapp: "", email: "", bride_email: "", groom_email: "",
       wedding_date: "", instagram: "", referral_source: "", notes: "",
     },
   });
@@ -42,6 +42,8 @@ export function CustomerForm() {
         phone: c.phone ?? "",
         whatsapp: c.whatsapp ?? "",
         email: c.email ?? "",
+        bride_email: c.bride_email ?? "",
+        groom_email: c.groom_email ?? "",
         wedding_date: c.wedding_date ?? "",
         instagram: c.instagram ?? "",
         referral_source: c.referral_source ?? "",
@@ -61,6 +63,8 @@ export function CustomerForm() {
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
         email: data.email || null,
+        bride_email: data.bride_email || null,
+        groom_email: data.groom_email || null,
         wedding_date: data.wedding_date || null,
         instagram: data.instagram || null,
         referral_source: data.referral_source || null,
@@ -104,6 +108,8 @@ export function CustomerForm() {
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Nombre de la novia" {...register("bride_name")} placeholder="María" />
           <Input label="Nombre del novio" {...register("groom_name")} placeholder="Carlos" />
+          <Input label="Email de la novia" {...register("bride_email")} type="email" placeholder="maria@ejemplo.com" />
+          <Input label="Email del novio" {...register("groom_email")} type="email" placeholder="carlos@ejemplo.com" />
           <Input
             label="Contacto principal *"
             {...register("main_contact_name", { required: "El contacto es obligatorio" })}

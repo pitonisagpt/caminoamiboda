@@ -7,6 +7,13 @@ from app.models.event_timeline import EventType
 from app.models.event_location import LocationType
 
 
+# ── Client invite ──────────────────────────────────────────────────────────────
+
+class ClientInviteResult(BaseModel):
+    invited: List[str] = []
+    error: Optional[str] = None
+
+
 # ── Locations ──────────────────────────────────────────────────────────────────
 
 class LocationBase(BaseModel):
@@ -185,6 +192,8 @@ class TimelineRead(TimelineBase):
     created_at: datetime
     updated_at: datetime
     gcal_synced: Optional[bool] = None
+    gcal_client_html_link: Optional[str] = None
+    gcal_client_invited_at: Optional[datetime] = None
 
     @classmethod
     def build(cls, timeline, locations: list, activities: list, contacts: list, gcal_synced: Optional[bool] = None) -> "TimelineRead":
@@ -193,6 +202,7 @@ class TimelineRead(TimelineBase):
             "calendar_category", "reservation_id",
             "share_token_driver", "share_token_customer", "share_token_ops",
             "created_at", "updated_at",
+            "gcal_client_html_link", "gcal_client_invited_at",
         ])
         d["gcal_synced"] = gcal_synced
         return cls.model_validate(d)

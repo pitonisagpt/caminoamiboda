@@ -19,6 +19,7 @@ from app.models.timeline_activity import TimelineActivity
 from app.models.timeline_contact import TimelineContact
 from app.schemas.event_timeline import (
     ActivityCreate, ActivityRead, ActivityReorderItem, ActivityUpdate,
+    ClientInviteResult,
     LocationCreate, LocationRead, LocationUpdate,
     TimelineContactCreate, TimelineContactRead, TimelineContactUpdate,
     TimelineCreate, TimelineList, TimelinePublic, TimelineRead, TimelineUpdate,
@@ -152,6 +153,21 @@ def regenerate_tokens(timeline_id: int, db: Session = Depends(get_db)):
     db.commit()
     locs, acts, contacts = _load_locs_acts(timeline_id, db)
     return TimelineRead.build(_get_timeline(timeline_id, db), locs, acts, contacts)
+
+
+@router.post("/api/timelines/{timeline_id}/invite-clients", response_model=ClientInviteResult, dependencies=[Depends(get_current_user)])
+def invite_clients(timeline_id: int, db: Session = Depends(get_db)):
+    timeline = _get_timeline(timeline_id, db)
+    from app.services.google_calendar_service import invite_clients as _invite_clients
+    result = _invite_clients(timeline, db)
+    return ClientInviteResult(**result)
+
+
+@router.delete("/api/timelines/{timeline_id}/invite-clients", status_code=204, dependencies=[Depends(get_current_user)])
+def delete_client_invite(timeline_id: int, db: Session = Depends(get_db)):
+    timeline = _get_timeline(timeline_id, db)
+    from app.services.google_calendar_service import delete_client_invite as _delete_client_invite
+    _delete_client_invite(timeline, db)
 
 
 def _gcal_sync(timeline, db: Session, label: str = "") -> Optional[bool]:

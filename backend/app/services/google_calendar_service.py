@@ -264,6 +264,33 @@ def _short_name(event_name: str) -> str:
     return event_name.split()[0] if event_name else event_name
 
 
+def _given_name(name: str | None) -> str:
+    """Best-effort given name(s) from a full name string. Colombian full names
+    are usually 'Nombre(s) Apellido(s)' with 2-4+ words and no reliable marker
+    between the two — a 4+ word name is taken as two given names + surname(s)
+    (e.g. 'Juan Sebastián Piedrahita Ruiz' → 'Juan Sebastián'), anything
+    shorter as a single given name."""
+    words = (name or "").strip().split()
+    if not words:
+        return ""
+    return " ".join(words[:2]) if len(words) >= 4 else words[0]
+
+
+def _couple_first_names(timeline, reservation=None, sep: str = " y ") -> str:
+    """Both given names for the client-facing calendar (e.g. 'Diana Carolina y Juan Sebastián')."""
+    customer = getattr(reservation, "customer", None) if reservation else None
+    bride = _given_name(getattr(customer, "bride_name", None)) if customer else ""
+    groom = _given_name(getattr(customer, "groom_name", None)) if customer else ""
+    if not (bride and groom):
+        parts = (timeline.event_name or "").split("&")
+        if len(parts) > 1:
+            bride = bride or _given_name(parts[0])
+            groom = groom or _given_name(parts[1])
+    if bride and groom:
+        return f"{bride}{sep}{groom}"
+    return bride or groom or _short_name(timeline.event_name or "")
+
+
 def _short_vehicle(vehicle: str) -> str:
     """Return brand + color from a vehicle string like 'Mercedes Benz Gazelle Beige y negro'."""
     words = vehicle.split()
@@ -294,6 +321,149 @@ def _build_gcal_event(timeline, locations: list, activities: list | None = None,
         "end": {"date": str(event_date + timedelta(days=max_day))},
         "colorId": _CATEGORY_EVENT_COLOR.get(timeline.calendar_category or "", "8"),
     }
+
+
+def _build_client_description(timeline, locations: list, activities: list | None = None, reservation=None) -> str:
+    lines = []
+    couple = _couple_first_names(timeline, reservation)
+    lines.append(f"¡Hola {couple}! 💛 Aquí están los detalles de su gran día.")
+
+    if timeline.assigned_vehicle:
+        lines.append(f"\nVehículo: {timeline.assigned_vehicle}")
+
+    if locations:
+        lines.append("")
+        lines.append("— Ubicaciones —")
+        for loc in locations:
+            emoji = _LOCATION_EMOJI.get(loc.location_type, "📌")
+            loc_line = f"{emoji} {loc.location_name}"
+            if loc.address:
+                loc_line += f" – {loc.address}"
+            lines.append(loc_line)
+            if loc.google_maps_link:
+                lines.append(f"   {loc.google_maps_link}")
+
+    if activities:
+        sorted_acts = sorted(activities, key=lambda a: a.display_order)
+        lines.append("")
+        lines.append("— Itinerario —")
+        for act in sorted_acts:
+            lines.append(f"{_fmt_time(act.time)} – {act.description}")
+
+    lines.append("")
+    lines.append(
+        "Estamos muy emocionados de acompañarlos en su gran día. Les deseamos lo mejor "
+        "en esta recta final de preparación, en la boda, ¡y en toda la vida que viene "
+        "juntos como pareja! 💛"
+    )
+    lines.append("")
+    lines.append("Con cariño,")
+    lines.append("Camino a mi Boda")
+    lines.append(f"📞 {settings.company_phone}")
+    lines.append("https://www.instagram.com/caminoamiboda")
+
+    return "\n".join(lines)
+
+
+def _build_client_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, attendee_emails: list | None = None) -> dict:
+    event_date = timeline.event_date
+    event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
+    couple = _couple_first_names(timeline, reservation, sep=" & ")
+    date_str = _format_date_es(event_date)
+    summary = f"💍 {event_type_label} {couple} {date_str}"
+    max_day = max((getattr(a, "day_number", 1) or 1 for a in (activities or [])), default=1)
+    return {
+        "summary": summary,
+        "location": _primary_location_address(locations),
+        "description": _build_client_description(timeline, locations, activities, reservation),
+        "start": {"date": str(event_date)},
+        "end": {"date": str(event_date + timedelta(days=max_day))},
+        "attendees": [{"email": e} for e in (attendee_emails or [])],
+    }
+
+
+def invite_clients(timeline, db: Session) -> dict:
+    """
+    Create/update a client-facing copy of the event in the "Clientes" calendar,
+    inviting the bride, groom, and wedding planner as attendees. Never touches
+    the internal operational event managed by sync_timeline().
+    """
+    if not _gcal_configured() or not settings.google_calendar_clientes:
+        return {"invited": [], "error": "not_configured"}
+
+    from app.models.event_location import EventLocation
+    from app.models.timeline_activity import TimelineActivity
+    from app.models.reservation import Reservation
+
+    reservation = (
+        db.query(Reservation).filter(Reservation.id == timeline.reservation_id).first()
+        if timeline.reservation_id else None
+    )
+
+    customer = reservation.customer if reservation else None
+    contact = reservation.contact if reservation else None
+    emails = list(dict.fromkeys(
+        e for e in [
+            getattr(customer, "bride_email", None) if customer else None,
+            getattr(customer, "groom_email", None) if customer else None,
+            contact.email if contact else None,
+        ] if e
+    ))
+    if not emails:
+        return {"invited": [], "error": "no_emails"}
+
+    locations = (
+        db.query(EventLocation)
+        .filter(EventLocation.timeline_id == timeline.id)
+        .order_by(EventLocation.display_order)
+        .all()
+    )
+    activities = (
+        db.query(TimelineActivity)
+        .filter(TimelineActivity.timeline_id == timeline.id)
+        .order_by(TimelineActivity.display_order)
+        .all()
+    )
+
+    service = _get_service()
+    body = _build_client_gcal_event(timeline, locations, activities, reservation, emails)
+    cal_id = settings.google_calendar_clientes
+
+    if timeline.gcal_client_event_id:
+        result = (
+            service.events()
+            .update(calendarId=cal_id, eventId=timeline.gcal_client_event_id, body=body, sendUpdates="all")
+            .execute()
+        )
+    else:
+        result = (
+            service.events()
+            .insert(calendarId=cal_id, body=body, sendUpdates="all")
+            .execute()
+        )
+        timeline.gcal_client_calendar_id = cal_id
+
+    gcal_id = result.get("id")
+    html_link = result.get("htmlLink")
+    if gcal_id:
+        timeline.gcal_client_event_id = gcal_id
+    if html_link:
+        timeline.gcal_client_html_link = html_link
+    timeline.gcal_client_invited_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return {"invited": emails, "error": None}
+
+
+def delete_client_invite(timeline, db: Session) -> None:
+    """Delete the client-facing invite event (if any) and clear its tracking fields."""
+    if timeline.gcal_client_event_id:
+        delete_timeline_event(timeline.gcal_client_event_id, timeline.gcal_client_calendar_id)
+    timeline.gcal_client_event_id = None
+    timeline.gcal_client_calendar_id = None
+    timeline.gcal_client_html_link = None
+    timeline.gcal_client_invited_at = None
+    db.commit()
 
 
 def sync_timeline(timeline, db: Session) -> Optional[str]:

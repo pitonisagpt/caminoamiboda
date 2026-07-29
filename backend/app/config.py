@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     google_calendar_obsequio: str = ""
     google_calendar_publicidad: str = ""
     google_calendar_cancelados: str = ""
+    google_calendar_clientes: str = ""
 
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
     frontend_url: str = "http://localhost:5173"

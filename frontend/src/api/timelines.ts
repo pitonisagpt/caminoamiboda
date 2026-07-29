@@ -6,6 +6,7 @@ import type {
   EventLocation,
   TimelineActivity,
   TimelineContact,
+  ClientInviteResult,
 } from '../types/timeline';
 
 export const timelinesApi = {
@@ -15,6 +16,8 @@ export const timelinesApi = {
   update: (id: number, data: Record<string, unknown>) => api.put<EventTimeline>(`/timelines/${id}`, data),
   delete: (id: number) => api.delete(`/timelines/${id}`),
   regenerateTokens: (id: number) => api.post<EventTimeline>(`/timelines/${id}/regenerate-tokens`),
+  inviteClients: (id: number) => api.post<ClientInviteResult>(`/timelines/${id}/invite-clients`),
+  deleteClientInvite: (id: number) => api.delete(`/timelines/${id}/invite-clients`),
 
   // Locations
   listLocations: (timelineId: number) => api.get<EventLocation[]>(`/timelines/${timelineId}/locations`),

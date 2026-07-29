@@ -79,6 +79,13 @@ export interface EventTimeline {
   created_at: string;
   updated_at: string;
   gcal_synced: boolean | null;
+  gcal_client_html_link: string | null;
+  gcal_client_invited_at: string | null;
+}
+
+export interface ClientInviteResult {
+  invited: string[];
+  error: 'not_configured' | 'no_emails' | null;
 }
 
 export interface TimelineListItem {

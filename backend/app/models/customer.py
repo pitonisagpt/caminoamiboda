@@ -17,6 +17,8 @@ class Customer(Base):
     phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     whatsapp: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    bride_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    groom_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     wedding_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     identification_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
