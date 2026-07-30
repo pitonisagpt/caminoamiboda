@@ -41,6 +41,7 @@ export interface VehicleListItem {
   is_company_owned: boolean;
   is_featured: boolean;
   allowed_locations: string[] | null;
+  bride_description: string | null;
   photos: VehiclePhoto[];
 }
 
@@ -76,6 +77,7 @@ export interface VehicleFormData {
   score_comfort: string;
   score_romance: string;
   description: string;
+  bride_description: string;
   photo_urls: string; // kept for form register compatibility, not submitted
   pyp_day_override: string;
   pyp_valid_from: string;

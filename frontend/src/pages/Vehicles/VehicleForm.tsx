@@ -119,6 +119,7 @@ export function VehicleForm() {
         score_comfort: v.score_comfort?.toString() ?? "",
         score_romance: v.score_romance?.toString() ?? "",
         description: v.description ?? "",
+        bride_description: v.bride_description ?? "",
         photo_urls: "",
         pyp_day_override: v.pyp_day_override ?? "",
         pyp_valid_from: v.pyp_valid_from ? v.pyp_valid_from.split("T")[0] : "",
@@ -153,6 +154,7 @@ export function VehicleForm() {
         score_comfort: data.score_comfort ? parseInt(data.score_comfort) : null,
         score_romance: data.score_romance ? parseInt(data.score_romance) : null,
         description: data.description || null,
+        bride_description: data.bride_description || null,
         pyp_day_override: data.pyp_day_override || null,
         pyp_valid_from: data.pyp_valid_from || null,
         pyp_valid_to: data.pyp_valid_to || null,
@@ -462,6 +464,20 @@ export function VehicleForm() {
         <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Notas internas</h2></CardHeader>
         <CardBody>
           <TextArea label="Descripción / notas" {...register("description")} rows={3} placeholder="Detalles adicionales del vehículo..." />
+        </CardBody>
+      </Card>
+
+      {/* Bride-facing description */}
+      <Card>
+        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Descripción para novias</h2></CardHeader>
+        <CardBody>
+          <TextArea
+            label="Descripción inspiradora"
+            {...register("bride_description")}
+            rows={5}
+            placeholder="Lenguaje cálido y cercano: para qué tipo de novia es este carro, qué sienten al verlo, no una ficha técnica..."
+          />
+          <p className="text-xs text-gray-400 mt-1">Esto se muestra en el popup del carro en el catálogo público (/catalogo).</p>
         </CardBody>
       </Card>
 

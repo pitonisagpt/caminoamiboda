@@ -70,6 +70,7 @@ class Vehicle(Base):
     pyp_valid_to: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
 
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    bride_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     photo_urls: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

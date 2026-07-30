@@ -27,6 +27,7 @@ class VehicleBase(BaseModel):
     score_comfort: Optional[int] = None
     score_romance: Optional[int] = None
     description: Optional[str] = None
+    bride_description: Optional[str] = None
 
 
 class VehicleCreate(VehicleBase):
@@ -62,6 +63,7 @@ class VehicleUpdate(BaseModel):
     score_comfort: Optional[int] = None
     score_romance: Optional[int] = None
     description: Optional[str] = None
+    bride_description: Optional[str] = None
     pyp_day_override: Optional[str] = None
     pyp_valid_from: Optional[date] = None
     pyp_valid_to: Optional[date] = None
@@ -73,7 +75,7 @@ _BASE_SCALARS = [
     "display_order",
     "price_medellin", "price_rionegro",
     "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
-    "description",
+    "description", "bride_description",
     "pyp_day_override", "pyp_valid_from", "pyp_valid_to",
 ]
 
@@ -160,6 +162,7 @@ class VehicleList(BaseModel):
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
+    bride_description: Optional[str] = None
     photos: List[VehiclePhotoRead] = []
 
     @classmethod

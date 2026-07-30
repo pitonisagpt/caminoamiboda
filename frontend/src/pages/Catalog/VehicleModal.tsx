@@ -177,6 +177,12 @@ export function VehicleModal({ vehicle, onClose }: Props) {
               </p>
             </div>
 
+            {vehicle.bride_description && (
+              <p className="text-sm text-gray-600 leading-relaxed italic">
+                {vehicle.bride_description}
+              </p>
+            )}
+
             {/* Location + Price */}
             <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-3 bg-gray-50">
               <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
