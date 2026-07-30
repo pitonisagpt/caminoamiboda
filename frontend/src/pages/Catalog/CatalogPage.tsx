@@ -1,4 +1,4 @@
-import { Loader2, SlidersHorizontal, Star, Users, X } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, Star, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, useSearchParams } from "react-router-dom";
@@ -36,6 +36,7 @@ interface Filters {
   locations: string[];
   priceMin: string;
   priceMax: string;
+  search: string;
 }
 
 const EMPTY_FILTERS: Filters = {
@@ -48,6 +49,7 @@ const EMPTY_FILTERS: Filters = {
   locations: [],
   priceMin: "",
   priceMax: "",
+  search: "",
 };
 
 // ─── FilterPanel ───────────────────────────────────────────────────────────
@@ -215,6 +217,7 @@ export function CatalogPage() {
     locations: fromParam(searchParams.get("locations")),
     priceMin: searchParams.get("priceMin") ?? "",
     priceMax: searchParams.get("priceMax") ?? "",
+    search: searchParams.get("q") ?? "",
   };
   const sort = (searchParams.get("sort") ?? "default") as SortKey;
 
@@ -236,6 +239,8 @@ export function CatalogPage() {
       // price
       if (f.priceMin) next.set("priceMin", f.priceMin); else next.delete("priceMin");
       if (f.priceMax) next.set("priceMax", f.priceMax); else next.delete("priceMax");
+      // search
+      if (f.search) next.set("q", f.search); else next.delete("q");
       return next;
     }, { replace: true });
   }
@@ -315,6 +320,12 @@ export function CatalogPage() {
         if (priceMax !== null && p > priceMax) return false;
         return true;
       })
+      .filter(v => {
+        if (!filters.search.trim()) return true;
+        const q = filters.search.trim().toLowerCase();
+        return [v.brand, v.model_line, v.color, v.body_type, v.year?.toString()]
+          .some(f => f?.toLowerCase().includes(q));
+      })
       .sort((a, b) => {
         if (sort === "default") return (a.display_order ?? 0) - (b.display_order ?? 0);
         if (sort === "year") return (a.year ?? 0) - (b.year ?? 0);
@@ -334,6 +345,7 @@ export function CatalogPage() {
     if (filters.capacities.length) n++;
     if (filters.locations.length) n++;
     if (filters.priceMin || filters.priceMax) n++;
+    if (filters.search) n++;
     return n;
   }, [filters]);
 
@@ -411,6 +423,26 @@ export function CatalogPage() {
 
             {/* Main content */}
             <div className="flex-1 min-w-0 space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={e => setFilters({ ...filters, search: e.target.value })}
+                  placeholder="Buscar por marca, modelo, color, año..."
+                  className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                {filters.search && (
+                  <button
+                    onClick={() => setFilters({ ...filters, search: "" })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
               {/* Top bar */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-sm text-gray-400">
