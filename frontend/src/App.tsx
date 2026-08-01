@@ -27,6 +27,7 @@ import EventoPage from "./pages/Public/EventoPage";
 import ContactoPage from "./pages/Public/ContactoPage";
 import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
+import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
@@ -69,6 +70,7 @@ export default function App() {
           {/* Public site — no auth, shared header/footer */}
           <Route element={<PublicLayout />}>
             <Route path="catalogo" element={<CatalogPage />} />
+            <Route path="como-funciona" element={<ComoFuncionaPage />} />
             <Route path="blog" element={<BlogListPage />} />
             <Route path="blog/:slug" element={<BlogPostPage />} />
             <Route path="contacto" element={<ContactoPage />} />
