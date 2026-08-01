@@ -1,6 +1,7 @@
-import { Star } from "lucide-react";
+import { Star, Lock } from "lucide-react";
 import type { VehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
+import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM";
@@ -36,7 +37,17 @@ function formatCOP(amount: number) {
   return `COP $${amount.toLocaleString("es-CO")}`;
 }
 
-export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; onClick?: () => void }) {
+export function VehicleCard({
+  vehicle,
+  onClick,
+  unlock,
+  onRequestUnlock,
+}: {
+  vehicle: VehicleListItem;
+  onClick?: () => void;
+  unlock?: PriceUnlock | null;
+  onRequestUnlock?: () => void;
+}) {
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
   const whatsappMsg = encodeURIComponent(
@@ -127,18 +138,26 @@ export function VehicleCard({ vehicle, onClick }: { vehicle: VehicleListItem; on
         {/* Price */}
         {vehicle.price_medellin == null && vehicle.price_rionegro == null ? (
           <p className="text-sm text-gray-400">Precio a consultar</p>
+        ) : !unlock ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRequestUnlock?.(); }}
+            className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
+          >
+            <Lock size={13} />
+            Ver precio
+          </button>
         ) : (
           <div className="space-y-0.5">
             {vehicle.price_medellin != null && (
               <p className="text-sm text-gray-700">
                 <span className="font-medium">Medellín</span>
-                <span className="ml-2 font-semibold text-gray-900">{formatCOP(vehicle.price_medellin)}</span>
+                <span className="ml-2 font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate))}</span>
               </p>
             )}
             {vehicle.price_rionegro != null && (
               <p className="text-sm text-gray-700">
                 <span className="font-medium">Llanogrande</span>
-                <span className="ml-2 font-semibold text-gray-900">{formatCOP(vehicle.price_rionegro)}</span>
+                <span className="ml-2 font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate))}</span>
               </p>
             )}
             <p className="text-[11px] text-gray-400">Para otras zonas, consultar precio</p>

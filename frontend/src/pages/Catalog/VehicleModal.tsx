@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, X, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MapPin, Lock } from "lucide-react";
 import type { VehicleListItem } from "../../types/vehicle";
+import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM";
@@ -29,9 +30,11 @@ function formatCOP(amount: number) {
 interface Props {
   vehicle: VehicleListItem;
   onClose: () => void;
+  unlock?: PriceUnlock | null;
+  onRequestUnlock?: () => void;
 }
 
-export function VehicleModal({ vehicle, onClose }: Props) {
+export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Props) {
   const photos = (vehicle.photos ?? []).filter((p) => p.is_visible);
   const [current, setCurrent] = useState(0);
 
@@ -189,19 +192,28 @@ export function VehicleModal({ vehicle, onClose }: Props) {
                 <MapPin size={12} />
                 <span>{LOCATION_LABEL[vehicle.location] ?? vehicle.location}</span>
               </div>
-              {vehicle.price_medellin && (
+              {(vehicle.price_medellin || vehicle.price_rionegro) && !unlock && (
+                <button
+                  onClick={() => onRequestUnlock?.()}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
+                >
+                  <Lock size={13} />
+                  Ver precio
+                </button>
+              )}
+              {vehicle.price_medellin && unlock && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Medellín</span>
-                  <span className="font-semibold text-gray-900">{formatCOP(vehicle.price_medellin)}</span>
+                  <span className="font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate))}</span>
                 </div>
               )}
-              {vehicle.price_rionegro && (
+              {vehicle.price_rionegro && unlock && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Llanogrande</span>
-                  <span className="font-semibold text-gray-900">{formatCOP(vehicle.price_rionegro)}</span>
+                  <span className="font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate))}</span>
                 </div>
               )}
-              {(vehicle.price_medellin || vehicle.price_rionegro) && (
+              {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <p className="text-[11px] text-gray-400">Para otras zonas, consultar precio</p>
               )}
               {!vehicle.price_medellin && !vehicle.price_rionegro && (

@@ -5,10 +5,12 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
+import { RevealPricesModal } from "./RevealPricesModal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
 import { reviewsApi, type Review } from "../../api/reviews";
 import type { VehicleListItem } from "../../types/vehicle";
+import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -195,6 +197,10 @@ const toParam = (arr: (string | number)[]): string | null =>
 const fromParam = (s: string | null): string[] =>
   s ? s.split(",").filter(Boolean) : [];
 
+function formatCOP(amount: number) {
+  return `$${Math.round(amount).toLocaleString("es-CO")}`;
+}
+
 // ─── Main page ─────────────────────────────────────────────────────────────
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -204,7 +210,15 @@ export function CatalogPage() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<VehicleListItem | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [unlock, setUnlockState] = useState<PriceUnlock | null>(() => getUnlock());
+  const [gateOpen, setGateOpen] = useState(false);
   const location = useLocation();
+
+  const effectivePrice = (v: VehicleListItem, locations: string[]): number | null => {
+    const base = vehiclePrice(v, locations);
+    if (base === null) return null;
+    return unlock ? priceForYear(base, unlock.weddingDate) : base;
+  };
 
   // Derive filters from URL — no useState, client-side filtering only
   const filters: Filters = {
@@ -283,6 +297,11 @@ export function CatalogPage() {
     [vehicles]
   );
 
+  const minPrice = useMemo(() => {
+    const prices = vehicles.map(v => vehiclePrice(v, [])).filter((p): p is number => p !== null);
+    return prices.length ? Math.min(...prices) : null;
+  }, [vehicles]);
+
   const filtered = useMemo(() => {
     const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
     const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
@@ -314,7 +333,7 @@ export function CatalogPage() {
       })
       .filter(v => {
         if (priceMin === null && priceMax === null) return true;
-        const p = vehiclePrice(v, filters.locations);
+        const p = effectivePrice(v, filters.locations);
         if (p === null) return false;
         if (priceMin !== null && p < priceMin) return false;
         if (priceMax !== null && p > priceMax) return false;
@@ -329,11 +348,11 @@ export function CatalogPage() {
       .sort((a, b) => {
         if (sort === "default") return (a.display_order ?? 0) - (b.display_order ?? 0);
         if (sort === "year") return (a.year ?? 0) - (b.year ?? 0);
-        const pa = vehiclePrice(a, filters.locations) ?? 0;
-        const pb = vehiclePrice(b, filters.locations) ?? 0;
+        const pa = effectivePrice(a, filters.locations) ?? 0;
+        const pb = effectivePrice(b, filters.locations) ?? 0;
         return sort === "price_asc" ? pa - pb : pb - pa;
       });
-  }, [vehicles, filters, sort]);
+  }, [vehicles, filters, sort, unlock]);
 
   const activeFilterCount = useMemo(() => {
     let n = 0;
@@ -388,6 +407,21 @@ export function CatalogPage() {
             </div>
           </div>
         </div>
+
+        {!unlock && !loading && !error && minPrice !== null && (
+          <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Carros desde {formatCOP(minPrice)}</p>
+              <p className="text-xs text-gray-500 mt-0.5">Cuéntanos tu fecha para ver el precio exacto de cada vehículo.</p>
+            </div>
+            <button
+              onClick={() => setGateOpen(true)}
+              className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
+            >
+              Ver precios
+            </button>
+          </div>
+        )}
 
         {loading && (
           <div className="flex items-center justify-center py-20 text-brand-400">
@@ -482,7 +516,13 @@ export function CatalogPage() {
               {filtered.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                   {filtered.map(v => (
-                    <VehicleCard key={v.id} vehicle={v} onClick={() => setSelected(v)} />
+                    <VehicleCard
+                      key={v.id}
+                      vehicle={v}
+                      onClick={() => setSelected(v)}
+                      unlock={unlock}
+                      onRequestUnlock={() => setGateOpen(true)}
+                    />
                   ))}
                 </div>
               )}
@@ -553,7 +593,24 @@ export function CatalogPage() {
         </div>
       )}
 
-      {selected && <VehicleModal vehicle={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <VehicleModal
+          vehicle={selected}
+          onClose={() => setSelected(null)}
+          unlock={unlock}
+          onRequestUnlock={() => setGateOpen(true)}
+        />
+      )}
+
+      {gateOpen && (
+        <RevealPricesModal
+          onClose={() => setGateOpen(false)}
+          onUnlocked={(weddingDate) => {
+            setUnlockState({ weddingDate });
+            setGateOpen(false);
+          }}
+        />
+      )}
 
       {/* Reviews section */}
       {reviews.length > 0 && (
