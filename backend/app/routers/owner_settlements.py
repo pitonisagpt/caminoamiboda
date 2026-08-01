@@ -125,6 +125,17 @@ def mark_paid(settlement_id: int, db: Session = Depends(get_db)):
 def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     s = _get(settlement_id, db)
 
+    # Regenerating should reflect the reservation's current value — the amounts
+    # are frozen on the settlement at creation time and otherwise never sync
+    # if the reservation's total_amount changes afterwards (e.g. more days added).
+    if s.reservation and s.reservation.total_amount != s.reservation_value:
+        s.reservation_value = s.reservation.total_amount
+        s.owner_amount = (s.reservation_value * Decimal(s.owner_percentage) / Decimal(100)).quantize(Decimal("0.01"))
+        s.company_amount = (s.reservation_value - s.owner_amount).quantize(Decimal("0.01"))
+        db.commit()
+        db.refresh(s)
+        _sync_settlement_status(s, db)
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("settlement.html")
 
