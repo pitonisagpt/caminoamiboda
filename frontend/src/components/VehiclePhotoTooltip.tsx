@@ -63,44 +63,47 @@ export default function VehiclePhotoTooltip({
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
-            className="z-50 w-64 bg-white rounded-xl border border-gray-200 shadow-lg p-3 space-y-2"
+            className="z-50 w-72 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
           >
-            <div className="flex items-start gap-2">
-              <Car className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Vehículo</p>
-                <p className="text-sm text-gray-900 font-medium truncate">{vehicleName}</p>
-                {licensePlate && <p className="text-xs text-gray-500">{licensePlate}</p>}
+            <img src={photoUrl} alt={vehicleName} className="w-full h-40 object-cover" loading="lazy" />
+            <div className="p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <Car className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Vehículo</p>
+                  <p className="text-sm text-gray-900 font-medium truncate">{vehicleName}</p>
+                  {licensePlate && <p className="text-xs text-gray-500">{licensePlate}</p>}
+                </div>
               </div>
+              {driverName && (
+                <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
+                  <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conductor</p>
+                    <p className="text-sm text-gray-900 truncate">{driverName}</p>
+                    {driverPhone && (
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {driverPhone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {ownerName && (
+                <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
+                  <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Propietario</p>
+                    <p className="text-sm text-gray-900 truncate">{ownerName}</p>
+                    {ownerPhone && (
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {ownerPhone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-            {driverName && (
-              <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
-                <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conductor</p>
-                  <p className="text-sm text-gray-900 truncate">{driverName}</p>
-                  {driverPhone && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {driverPhone}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-            {ownerName && (
-              <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
-                <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Propietario</p>
-                  <p className="text-sm text-gray-900 truncate">{ownerName}</p>
-                  {ownerPhone && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {ownerPhone}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </FloatingPortal>
       )}
