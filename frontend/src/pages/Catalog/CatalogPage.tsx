@@ -412,13 +412,31 @@ export function CatalogPage() {
           <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
               <p className="text-sm font-semibold text-gray-900">Carros desde {formatCOP(minPrice)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cuéntanos tu fecha para ver el precio exacto de cada vehículo.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Cuéntanos tu fecha para ver el precio estimado de cada vehículo.</p>
             </div>
             <button
               onClick={() => setGateOpen(true)}
               className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
             >
               Ver precios
+            </button>
+          </div>
+        )}
+
+        {unlock && !loading && !error && (
+          <div className="flex items-center justify-between gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-2.5 text-sm">
+            <div>
+              <span className="text-gray-700 font-medium">
+                Precios estimados para el{" "}
+                {new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" })}
+              </span>
+              <p className="text-xs text-gray-500 mt-0.5">El valor final depende del recorrido — vías largas o de difícil acceso (como Guatapé o El Carmen de Viboral) pueden tener un costo adicional. Escríbenos y te lo confirmamos en minutos.</p>
+            </div>
+            <button
+              onClick={() => setGateOpen(true)}
+              className="text-brand-700 hover:text-brand-800 font-semibold cursor-pointer shrink-0"
+            >
+              Cambiar fecha
             </button>
           </div>
         )}
@@ -605,8 +623,9 @@ export function CatalogPage() {
       {gateOpen && (
         <RevealPricesModal
           onClose={() => setGateOpen(false)}
-          onUnlocked={(weddingDate) => {
-            setUnlockState({ weddingDate });
+          initial={unlock ?? undefined}
+          onUnlocked={() => {
+            setUnlockState(getUnlock());
             setGateOpen(false);
           }}
         />

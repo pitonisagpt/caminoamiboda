@@ -2,6 +2,8 @@ const STORAGE_KEY = "camino_price_unlock";
 
 export interface PriceUnlock {
   weddingDate: string;
+  name: string;
+  phone: string;
 }
 
 export function getUnlock(): PriceUnlock | null {
@@ -9,14 +11,19 @@ export function getUnlock(): PriceUnlock | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    return typeof parsed?.weddingDate === "string" ? { weddingDate: parsed.weddingDate } : null;
+    if (typeof parsed?.weddingDate !== "string") return null;
+    return {
+      weddingDate: parsed.weddingDate,
+      name: typeof parsed?.name === "string" ? parsed.name : "",
+      phone: typeof parsed?.phone === "string" ? parsed.phone : "",
+    };
   } catch {
     return null;
   }
 }
 
-export function setUnlock(weddingDate: string): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ weddingDate }));
+export function setUnlock(weddingDate: string, name: string, phone: string): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ weddingDate, name, phone }));
 }
 
 /**

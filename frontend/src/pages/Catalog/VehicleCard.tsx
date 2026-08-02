@@ -148,19 +148,19 @@ export function VehicleCard({
           </button>
         ) : (
           <div className="space-y-0.5">
-            {vehicle.price_medellin != null && (
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Medellín</span>
-                <span className="ml-2 font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate))}</span>
-              </p>
-            )}
-            {vehicle.price_rionegro != null && (
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Llanogrande</span>
-                <span className="ml-2 font-semibold text-gray-900">{formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate))}</span>
-              </p>
-            )}
-            <p className="text-[11px] text-gray-400">Para otras zonas, consultar precio</p>
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">Medellín</span>
+              <span className={`ml-2 font-semibold ${vehicle.price_medellin != null ? "text-gray-900" : "text-gray-400"}`}>
+                {vehicle.price_medellin != null ? formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate)) : "No aplica"}
+              </span>
+            </p>
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">Llanogrande</span>
+              <span className={`ml-2 font-semibold ${vehicle.price_rionegro != null ? "text-gray-900" : "text-gray-400"}`}>
+                {vehicle.price_rionegro != null ? formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate)) : "No aplica"}
+              </span>
+            </p>
+            <p className="text-[11px] text-gray-400">Precio estimado — el recorrido final puede tener un costo adicional. Para otras zonas, consultar precio.</p>
           </div>
         )}
 

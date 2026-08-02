@@ -16,11 +16,20 @@ function firstValidationMessage(err: unknown): string | null {
   return null;
 }
 
-export function RevealPricesModal({ onClose, onUnlocked }: { onClose: () => void; onUnlocked: (weddingDate: string) => void }) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [weddingDate, setWeddingDate] = useState("");
-  const [consent, setConsent] = useState(false);
+interface Props {
+  onClose: () => void;
+  onUnlocked: (weddingDate: string) => void;
+  initial?: { name: string; phone: string; weddingDate: string };
+}
+
+export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [phone, setPhone] = useState(initial?.phone ?? "");
+  const [weddingDate, setWeddingDate] = useState(initial?.weddingDate ?? "");
+  // Editing (initial set) means they already accepted the policy moments ago
+  // in this same browser — re-showing the checkbox pre-checked avoids
+  // friction for a simple date correction, but they can still uncheck it.
+  const [consent, setConsent] = useState(Boolean(initial));
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +53,7 @@ export function RevealPricesModal({ onClose, onUnlocked }: { onClose: () => void
         elapsed_ms: Date.now() - mountedAt.current,
         hp_website: honeypot || undefined,
       });
-      setUnlock(weddingDate);
+      setUnlock(weddingDate, name, phone);
       onUnlocked(weddingDate);
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -74,9 +83,11 @@ export function RevealPricesModal({ onClose, onUnlocked }: { onClose: () => void
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Cuéntanos tu fecha</h2>
+            <h2 className="text-lg font-bold text-gray-900">{initial ? "Actualiza tu fecha" : "Cuéntanos tu fecha"}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Déjanos tus datos y desbloquea el precio de cada carro de la flota, calculado según tu fecha.
+              {initial
+                ? "Corrige los datos y volvemos a calcular el precio estimado de cada carro."
+                : "Déjanos tus datos y desbloquea el precio estimado de cada carro de la flota, según tu fecha."}
             </p>
           </div>
 
@@ -149,7 +160,7 @@ export function RevealPricesModal({ onClose, onUnlocked }: { onClose: () => void
           )}
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting} loading={submitting}>
-            Ver precios
+            {initial ? "Actualizar precios" : "Ver precios"}
           </Button>
         </form>
       </div>
