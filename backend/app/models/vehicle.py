@@ -27,6 +27,12 @@ class VehicleLocation(str, enum.Enum):
     carmen_de_viboral = "carmen_de_viboral"
 
 
+class VehicleCategory(str, enum.Enum):
+    clasico = "clasico"
+    vintage = "vintage"
+    moderno = "moderno"
+
+
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
@@ -39,6 +45,7 @@ class Vehicle(Base):
 
     vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType), default=VehicleType.car)
     body_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    category: Mapped[Optional[VehicleCategory]] = mapped_column(Enum(VehicleCategory), nullable=True)
     capacity: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
 
     location: Mapped[VehicleLocation] = mapped_column(Enum(VehicleLocation), default=VehicleLocation.medellin)

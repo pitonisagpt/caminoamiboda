@@ -2,6 +2,9 @@ import { Star, Lock } from "lucide-react";
 import type { VehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
+
+const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM";
@@ -85,6 +88,11 @@ export function VehicleCard({
             <span className="flex items-center gap-1 bg-brand-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
               <Star size={11} className="fill-white" />
               Destacado
+            </span>
+          )}
+          {vehicle.category && (
+            <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
+              {CATEGORY_LABEL[vehicle.category]}
             </span>
           )}
           {vehicle.body_type && vehicle.body_type !== "NA" && (

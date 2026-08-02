@@ -36,13 +36,14 @@ import { vehiclesApi } from "../../api/vehicles";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
-import type { VehicleListItem, VehicleStatus } from "../../types/vehicle";
+import type { VehicleCategory, VehicleListItem, VehicleStatus } from "../../types/vehicle";
 import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
 import {
   COLOR_HEX,
   COLOR_ORDER,
   DECADE_OPTIONS,
   BODY_TYPE_OPTIONS,
+  CATEGORY_OPTIONS,
   CAPACITY_OPTIONS,
   LOCATION_OPTIONS,
   canonicalColor,
@@ -76,6 +77,7 @@ interface VehicleFilters {
   colors: string[];
   decades: number[];
   bodyTypes: string[];
+  categories: VehicleCategory[];
   capacities: number[];
   locations: string[];
   priceMin: string;
@@ -94,6 +96,7 @@ const EMPTY_FILTERS: VehicleFilters = {
   colors: [],
   decades: [],
   bodyTypes: [],
+  categories: [],
   capacities: [],
   locations: [],
   priceMin: "",
@@ -340,6 +343,7 @@ export function VehicleList() {
     colors: fromParam(searchParams.get("colors")),
     decades: fromParam(searchParams.get("decades")).map(Number),
     bodyTypes: fromParam(searchParams.get("bodyTypes")),
+    categories: fromParam(searchParams.get("categories")) as VehicleCategory[],
     capacities: fromParam(searchParams.get("capacities")).map(Number),
     locations: fromParam(searchParams.get("locations")),
     priceMin: searchParams.get("priceMin") ?? "",
@@ -366,7 +370,7 @@ export function VehicleList() {
       next.set("statuses", toParam(f.statuses) ?? "none");
       const arrKeys: Array<[keyof VehicleFilters, string]> = [
         ["brands", "brands"], ["colors", "colors"], ["decades", "decades"],
-        ["bodyTypes", "bodyTypes"], ["capacities", "capacities"], ["locations", "locations"],
+        ["bodyTypes", "bodyTypes"], ["categories", "categories"], ["capacities", "capacities"], ["locations", "locations"],
         ["owners", "owners"],
       ];
       for (const [fk, pk] of arrKeys) {
@@ -388,6 +392,7 @@ export function VehicleList() {
     if (filters.colors.length) n++;
     if (filters.decades.length) n++;
     if (filters.bodyTypes.length) n++;
+    if (filters.categories.length) n++;
     if (filters.capacities.length) n++;
     if (filters.locations.length) n++;
     if (filters.priceMin || filters.priceMax) n++;
@@ -464,6 +469,7 @@ export function VehicleList() {
         return filters.decades.includes(Math.floor(v.year / 10) * 10);
       })
       .filter(v => filters.bodyTypes.length === 0 || (v.body_type != null && filters.bodyTypes.includes(v.body_type)))
+      .filter(v => filters.categories.length === 0 || (v.category != null && filters.categories.includes(v.category)))
       .filter(v => filters.capacities.length === 0 || (v.capacity !== null && filters.capacities.includes(v.capacity!)))
       .filter(v => filters.locations.length === 0 || filters.locations.includes(v.location))
       .filter(v => filters.statuses.length === 0 || filters.statuses.includes(v.status))
@@ -714,6 +720,16 @@ export function VehicleList() {
               {BODY_TYPE_OPTIONS.map(bt => (
                 <Pill key={bt} active={filters.bodyTypes.includes(bt)} onClick={() => setFilter({ bodyTypes: toggleItem(filters.bodyTypes, bt) })}>
                   {bt}
+                </Pill>
+              ))}
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Categoría" active={filters.categories.length > 0}>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORY_OPTIONS.map(c => (
+                <Pill key={c.value} active={filters.categories.includes(c.value)} onClick={() => setFilter({ categories: toggleItem(filters.categories, c.value) })}>
+                  {c.label}
                 </Pill>
               ))}
             </div>

@@ -1,5 +1,5 @@
 import { Users } from "lucide-react";
-import type { VehicleListItem, VehicleLocation } from "../types/vehicle";
+import type { VehicleCategory, VehicleListItem, VehicleLocation } from "../types/vehicle";
 
 // ─── Color normalization ───────────────────────────────────────────────────
 export const COLOR_MAP: Record<string, string> = {
@@ -36,6 +36,12 @@ export const DECADE_OPTIONS = [
 
 export const BODY_TYPE_OPTIONS = ["Convertible", "Hardtop", "Semi Descapotable", "Sidecar"];
 export const CAPACITY_OPTIONS = [2, 3, 4, 5, 8];
+
+export const CATEGORY_OPTIONS: { value: VehicleCategory; label: string }[] = [
+  { value: "clasico", label: "Clásico" },
+  { value: "vintage", label: "Vintage" },
+  { value: "moderno", label: "Moderno" },
+];
 
 export const LOCATION_OPTIONS: { value: VehicleLocation; label: string }[] = [
   { value: "medellin", label: "Medellín" },

@@ -9,13 +9,14 @@ import { RevealPricesModal } from "./RevealPricesModal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
 import { reviewsApi, type Review } from "../../api/reviews";
-import type { VehicleListItem } from "../../types/vehicle";
+import type { VehicleCategory, VehicleListItem } from "../../types/vehicle";
 import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
   COLOR_HEX,
   COLOR_ORDER,
   DECADE_OPTIONS,
   BODY_TYPE_OPTIONS,
+  CATEGORY_OPTIONS,
   CAPACITY_OPTIONS,
   LOCATION_OPTIONS,
   canonicalColor,
@@ -34,6 +35,7 @@ interface Filters {
   colors: string[];
   decades: number[];
   bodyTypes: string[];
+  categories: VehicleCategory[];
   capacities: number[];
   locations: string[];
   priceMin: string;
@@ -47,6 +49,7 @@ const EMPTY_FILTERS: Filters = {
   colors: [],
   decades: [],
   bodyTypes: [],
+  categories: [],
   capacities: [],
   locations: [],
   priceMin: "",
@@ -141,6 +144,17 @@ function FilterPanel({
         </div>
       </FilterSection>
 
+      {/* Categoría */}
+      <FilterSection title="Categoría" active={filters.categories.length > 0}>
+        <div className="flex flex-wrap gap-1.5">
+          {CATEGORY_OPTIONS.map(c => (
+            <Pill key={c.value} active={filters.categories.includes(c.value)} onClick={() => set({ categories: toggleItem(filters.categories, c.value) })}>
+              {c.label}
+            </Pill>
+          ))}
+        </div>
+      </FilterSection>
+
       {/* Pasajeros */}
       <FilterSection title="Pasajeros" active={filters.capacities.length > 0}>
         <div className="flex flex-wrap gap-1.5">
@@ -227,6 +241,7 @@ export function CatalogPage() {
     colors: fromParam(searchParams.get("colors")),
     decades: fromParam(searchParams.get("decades")).map(Number),
     bodyTypes: fromParam(searchParams.get("bodyTypes")),
+    categories: fromParam(searchParams.get("categories")) as VehicleCategory[],
     capacities: fromParam(searchParams.get("capacities")).map(Number),
     locations: fromParam(searchParams.get("locations")),
     priceMin: searchParams.get("priceMin") ?? "",
@@ -243,7 +258,7 @@ export function CatalogPage() {
       // arrays
       const arrKeys: Array<[keyof Filters, string]> = [
         ["brands", "brands"], ["colors", "colors"], ["decades", "decades"],
-        ["bodyTypes", "bodyTypes"], ["capacities", "capacities"], ["locations", "locations"],
+        ["bodyTypes", "bodyTypes"], ["categories", "categories"], ["capacities", "capacities"], ["locations", "locations"],
       ];
       for (const [fk, pk] of arrKeys) {
         const arr = f[fk] as (string | number)[];
@@ -324,6 +339,10 @@ export function CatalogPage() {
         return v.body_type && filters.bodyTypes.includes(v.body_type);
       })
       .filter(v => {
+        if (filters.categories.length === 0) return true;
+        return v.category !== null && filters.categories.includes(v.category);
+      })
+      .filter(v => {
         if (filters.capacities.length === 0) return true;
         return v.capacity !== null && filters.capacities.includes(v.capacity!);
       })
@@ -361,6 +380,7 @@ export function CatalogPage() {
     if (filters.colors.length) n++;
     if (filters.decades.length) n++;
     if (filters.bodyTypes.length) n++;
+    if (filters.categories.length) n++;
     if (filters.capacities.length) n++;
     if (filters.locations.length) n++;
     if (filters.priceMin || filters.priceMax) n++;

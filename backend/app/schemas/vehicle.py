@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from app.models.vehicle import VehicleLocation, VehicleStatus, VehicleType
+from app.models.vehicle import VehicleCategory, VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
 from app.services.pico_y_placa import PICO_HOURS, get_effective_pyp
 
@@ -16,6 +16,7 @@ class VehicleBase(BaseModel):
     year: Optional[int] = None
     vehicle_type: VehicleType = VehicleType.car
     body_type: Optional[str] = None
+    category: Optional[VehicleCategory] = None
     capacity: Optional[int] = None
     location: VehicleLocation = VehicleLocation.medellin
     status: VehicleStatus = VehicleStatus.active
@@ -48,6 +49,7 @@ class VehicleUpdate(BaseModel):
     year: Optional[int] = None
     vehicle_type: Optional[VehicleType] = None
     body_type: Optional[str] = None
+    category: Optional[VehicleCategory] = None
     capacity: Optional[int] = None
     location: Optional[VehicleLocation] = None
     status: Optional[VehicleStatus] = None
@@ -71,7 +73,7 @@ class VehicleUpdate(BaseModel):
 
 _BASE_SCALARS = [
     "id", "license_plate", "brand", "model_line", "color", "year",
-    "vehicle_type", "body_type", "capacity", "location", "status",
+    "vehicle_type", "body_type", "category", "capacity", "location", "status",
     "display_order",
     "price_medellin", "price_rionegro",
     "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
@@ -143,6 +145,7 @@ class VehicleList(BaseModel):
     year: Optional[int] = None
     vehicle_type: VehicleType
     body_type: Optional[str] = None
+    category: Optional[VehicleCategory] = None
     capacity: Optional[int] = None
     location: VehicleLocation
     status: VehicleStatus

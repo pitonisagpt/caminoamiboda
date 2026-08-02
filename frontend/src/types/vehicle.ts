@@ -1,6 +1,7 @@
 export type VehicleType = "car" | "motorcycle";
 export type VehicleStatus = "active" | "inactive" | "pending";
 export type VehicleLocation = "medellin" | "rionegro" | "carmen_de_viboral";
+export type VehicleCategory = "clasico" | "vintage" | "moderno";
 
 export interface VehiclePhoto {
   id: number;
@@ -22,6 +23,7 @@ export interface VehicleListItem {
   year: number | null;
   vehicle_type: VehicleType;
   body_type: string | null;
+  category: VehicleCategory | null;
   capacity: number | null;
   display_order: number;
   location: VehicleLocation;
@@ -63,6 +65,7 @@ export interface VehicleFormData {
   year: string;
   vehicle_type: VehicleType;
   body_type: string;
+  category: VehicleCategory | "";
   capacity: string;
   location: VehicleLocation;
   status: VehicleStatus;

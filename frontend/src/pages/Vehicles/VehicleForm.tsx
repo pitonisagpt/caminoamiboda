@@ -13,6 +13,7 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { TextArea } from "../../components/ui/TextArea";
 import type { VehicleFormData } from "../../types/vehicle";
+import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 
 // Medellín / Valle de Aburrá, segundo semestre de 2026 — mirrors
 // backend/app/services/pico_y_placa.py, which rotates by semester.
@@ -105,6 +106,7 @@ export function VehicleForm() {
         year: v.year?.toString() ?? "",
         vehicle_type: v.vehicle_type,
         body_type: v.body_type ?? "",
+        category: v.category ?? "",
         capacity: v.capacity?.toString() ?? "",
         location: v.location,
         status: v.status,
@@ -139,6 +141,7 @@ export function VehicleForm() {
         year: data.year ? parseInt(data.year) : null,
         vehicle_type: data.vehicle_type,
         body_type: data.body_type || null,
+        category: data.category || null,
         capacity: data.capacity ? parseInt(data.capacity) : null,
         location: data.location,
         status: data.status,
@@ -234,6 +237,14 @@ export function VehicleForm() {
             ]}
           />
           <Input label="Tipo de carrocería" {...register("body_type")} placeholder="Convertible" />
+          <Select
+            label="Categoría"
+            {...register("category")}
+            options={[
+              { value: "", label: "Sin categoría" },
+              ...CATEGORY_OPTIONS,
+            ]}
+          />
           <Input label="Capacidad de pasajeros" {...register("capacity")} type="number" placeholder="4" />
         </CardBody>
       </Card>

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X, MapPin, Lock } from "lucide-react";
 import type { VehicleListItem } from "../../types/vehicle";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
+
+const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM";
@@ -158,6 +161,11 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
             {/* Header */}
             <div>
               <div className="flex flex-wrap gap-1.5 mb-2">
+                {vehicle.category && (
+                  <span className="px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
+                    {CATEGORY_LABEL[vehicle.category]}
+                  </span>
+                )}
                 {vehicle.body_type && vehicle.body_type !== "NA" && (
                   <span className="px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
                     {vehicle.body_type}
