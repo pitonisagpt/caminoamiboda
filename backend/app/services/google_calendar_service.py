@@ -15,6 +15,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.services.event_span import max_day_number
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
@@ -317,7 +318,7 @@ def _build_gcal_event(timeline, locations: list, activities: list | None = None,
     summary = f"{prefix}{event_type_label} {short} {date_str}{vehicle_str}"
     # Multi-day events (rare — mostly ad/production shoots) have activities with
     # day_number > 1; the all-day event must span all of them, not just day 1.
-    max_day = max((getattr(a, "day_number", 1) or 1 for a in (activities or [])), default=1)
+    max_day = max_day_number(activities)
     return {
         "summary": summary,
         "location": _primary_location_address(locations),
@@ -376,7 +377,7 @@ def _build_client_gcal_event(timeline, locations: list, activities: list | None 
     couple = _couple_first_names(timeline, reservation, sep=" & ")
     date_str = _format_date_es(event_date)
     summary = f"💍 {event_type_label} {couple} {date_str}"
-    max_day = max((getattr(a, "day_number", 1) or 1 for a in (activities or [])), default=1)
+    max_day = max_day_number(activities)
     return {
         "summary": summary,
         "location": _primary_location_address(locations),

@@ -8,6 +8,7 @@ export interface CalendarEvent {
   subtitle: string | null;
   vehicle?: string | null;
   date: string;
+  end_date?: string | null;
   status: string;
   color: string;
   vehicle_id: number | null;

@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -8,10 +8,29 @@ from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.event_timeline import EventTimeline
+from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle_photo import VehiclePhoto
 from app.services.conflicts import find_conflicts
+from app.services.event_span import effective_end_date
 
 router = APIRouter(tags=["calendar"], redirect_slashes=False)
+
+# Multi-day events are rare (mostly ad/production shoots) and typically short —
+# this lookback is generous enough to catch one that started before the visible
+# range but still spans into it, without scanning the whole table.
+MULTI_DAY_LOOKBACK_DAYS = 14
+
+def _activities_by_timeline(db: Session, timeline_ids: list[int]) -> dict[int, list]:
+    # EventTimeline.activities (the ORM relationship) doesn't reliably behave
+    # as a list here — same workaround used everywhere else in the codebase
+    # (e.g. owner_settlements.py, timelines.py): query TimelineActivity directly.
+    if not timeline_ids:
+        return {}
+    by_timeline: dict[int, list] = {}
+    for a in db.query(TimelineActivity).filter(TimelineActivity.timeline_id.in_(timeline_ids)).all():
+        by_timeline.setdefault(a.timeline_id, []).append(a)
+    return by_timeline
+
 
 _STATUS_COLOR = {
     "lead": "#9CA3AF",
@@ -33,14 +52,23 @@ def calendar_events(
 ):
     events = []
 
-    # Reservations (with timeline presence)
+    # Reservations (with timeline presence). The lower bound is widened by
+    # MULTI_DAY_LOOKBACK_DAYS to catch multi-day events that started before
+    # `start` but still span into the visible range — filtered precisely
+    # against each reservation's real end date below.
     reservations = (
         db.query(Reservation)
-        .filter(Reservation.event_date >= start, Reservation.event_date <= end)
+        .filter(Reservation.event_date >= start - timedelta(days=MULTI_DAY_LOOKBACK_DAYS))
+        .filter(Reservation.event_date <= end)
         .filter(Reservation.status != "cancelled")
         .options(selectinload(Reservation.timelines))
         .all()
     )
+    res_activities = _activities_by_timeline(db, [r.timelines[0].id for r in reservations if r.timelines])
+    reservations = [
+        r for r in reservations
+        if effective_end_date(r.event_date, res_activities.get(r.timelines[0].id, []) if r.timelines else []) >= start
+    ]
     # Pre-fetch first visible photo per vehicle
     vehicle_ids = [r.vehicle_id for r in reservations if r.vehicle_id]
     photo_map: dict[int, str] = {}
@@ -63,6 +91,7 @@ def calendar_events(
         if vehicle != "—":
             title_parts.append(vehicle)
         has_timeline = bool(r.timelines)
+        end_date = effective_end_date(r.event_date, res_activities.get(r.timelines[0].id, []) if has_timeline else [])
         events.append({
             "id": f"res-{r.id}",
             "type": "reservation",
@@ -71,6 +100,7 @@ def calendar_events(
             "subtitle": driver if driver != "—" else None,
             "vehicle": vehicle if vehicle != "—" else None,
             "date": str(r.event_date),
+            "end_date": str(end_date),
             "status": r.status,
             "color": _STATUS_COLOR.get(r.status, "#9CA3AF"),
             "vehicle_id": r.vehicle_id,
@@ -89,10 +119,13 @@ def calendar_events(
     # Timelines — only standalone ones (linked timelines are already shown via their reservation)
     timelines = (
         db.query(EventTimeline)
-        .filter(EventTimeline.event_date >= start, EventTimeline.event_date <= end)
+        .filter(EventTimeline.event_date >= start - timedelta(days=MULTI_DAY_LOOKBACK_DAYS))
+        .filter(EventTimeline.event_date <= end)
         .filter(EventTimeline.reservation_id.is_(None))
         .all()
     )
+    tl_activities = _activities_by_timeline(db, [t.id for t in timelines])
+    timelines = [t for t in timelines if effective_end_date(t.event_date, tl_activities.get(t.id, [])) >= start]
     for t in timelines:
         events.append({
             "id": f"tl-{t.id}",
@@ -101,6 +134,7 @@ def calendar_events(
             "title": t.event_name,
             "subtitle": t.assigned_vehicle,
             "date": str(t.event_date),
+            "end_date": str(effective_end_date(t.event_date, tl_activities.get(t.id, []))),
             "status": "timeline",
             "color": "#FB923C",
             "vehicle_id": None,

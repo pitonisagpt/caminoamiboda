@@ -22,6 +22,11 @@ function daysInMonth(y: number, m: number): number {
   return new Date(y, m + 1, 0).getDate();
 }
 
+function daysBetweenYMD(a: string, b: string): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / msPerDay);
+}
+
 const LEGEND = [
   { label: 'Lead', color: '#9CA3AF' },
   { label: 'Cotizado', color: '#60A5FA' },
@@ -104,9 +109,17 @@ export default function CalendarPage() {
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
+  // Multi-day events (rare — mostly ad/production shoots) get indexed under
+  // every date they span, not just their start date, so they show up on the
+  // calendar for as long as they actually occupy the vehicle/driver.
   const eventsByDate = events.reduce<Record<string, CalendarEvent[]>>((acc, e) => {
-    acc[e.date] = acc[e.date] || [];
-    acc[e.date].push(e);
+    const start = new Date(`${e.date}T00:00:00`);
+    const end = new Date(`${e.end_date ?? e.date}T00:00:00`);
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const ymd = toYMD(d);
+      acc[ymd] = acc[ymd] || [];
+      acc[ymd].push(e);
+    }
     return acc;
   }, {});
 
@@ -198,13 +211,16 @@ export default function CalendarPage() {
                           {day}
                         </div>
                         <div className="space-y-0.5">
-                          {dayEvents.slice(0, 3).map(e => (
+                          {dayEvents.slice(0, 3).map(e => {
+                            const totalDays = daysBetweenYMD(e.date, e.end_date ?? e.date) + 1;
+                            const dayLabel = totalDays > 1 ? `Día ${daysBetweenYMD(e.date, ymd!) + 1}/${totalDays} · ` : '';
+                            return (
                             <div
                               key={e.id}
                               onClick={ev => { ev.stopPropagation(); handleEventClick(e); }}
                               className="flex items-center gap-1.5 truncate text-white text-[10px] font-medium px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: e.color }}
-                              title={e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ${e.title}` : e.title}
+                              title={`${dayLabel}${e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ` : ''}${e.title}`}
                             >
                               {e.vehicle_photo_url && (
                                 <VehiclePhotoTooltip
@@ -218,10 +234,12 @@ export default function CalendarPage() {
                                   ownerPhone={e.owner_whatsapp}
                                 />
                               )}
+                              {dayLabel && <span className="opacity-80 mr-0.5">{dayLabel}</span>}
                               {e.start_time && <span className="opacity-80 mr-0.5">{e.start_time}</span>}
                               {e.title}
                             </div>
-                          ))}
+                            );
+                          })}
                           {dayEvents.length > 3 && (
                             <div className="text-[10px] text-gray-500 px-1">+{dayEvents.length - 3} más</div>
                           )}
@@ -248,7 +266,10 @@ export default function CalendarPage() {
                 <p className="text-sm text-gray-400">Sin eventos este día.</p>
               ) : (
                 <div className="space-y-2">
-                  {selectedEvents.map(e => (
+                  {selectedEvents.map(e => {
+                    const totalDays = daysBetweenYMD(e.date, e.end_date ?? e.date) + 1;
+                    const dayLabel = totalDays > 1 ? `Día ${daysBetweenYMD(e.date, selectedDay!) + 1}/${totalDays}` : null;
+                    return (
                     <div
                       key={e.id}
                       onClick={() => handleEventClick(e)}
@@ -281,6 +302,11 @@ export default function CalendarPage() {
                           <p className="text-[10px] text-gray-500 uppercase tracking-wide">
                             {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
                           </p>
+                          {dayLabel && (
+                            <p className="text-[10px] text-orange-600 font-medium uppercase tracking-wide">
+                              {dayLabel}
+                            </p>
+                          )}
                           {e.has_timeline && e.timeline_id && (
                             <button
                               onClick={ev => handleTimelineClick(e, ev)}
@@ -292,7 +318,8 @@ export default function CalendarPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
