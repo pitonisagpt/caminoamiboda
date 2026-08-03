@@ -27,16 +27,21 @@ function daysBetweenYMD(a: string, b: string): number {
   return Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / msPerDay);
 }
 
-const LEGEND = [
-  { label: 'Lead', color: '#9CA3AF' },
-  { label: 'Cotizado', color: '#60A5FA' },
-  { label: 'Pre-reserva', color: '#2DD4BF' },
-  { label: 'Depósito', color: '#FBBF24' },
-  { label: 'Reservado', color: '#A78BFA' },
-  { label: 'Confirmado', color: '#F472B6' },
-  { label: 'Completado', color: '#34D399' },
-  { label: 'Timeline', color: '#FB923C' },
+const LEGEND: { label: string; color: string; status: string | null }[] = [
+  { label: 'Lead', color: '#9CA3AF', status: 'lead' },
+  { label: 'Cotizado', color: '#60A5FA', status: 'quoted' },
+  { label: 'Pre-reserva', color: '#2DD4BF', status: 'pre_reserved' },
+  { label: 'Depósito', color: '#FBBF24', status: 'deposit_received' },
+  { label: 'Reservado', color: '#A78BFA', status: 'reserved' },
+  { label: 'Confirmado', color: '#F472B6', status: 'confirmed' },
+  { label: 'Completado', color: '#34D399', status: 'completed' },
+  { label: 'Timeline', color: '#FB923C', status: null }, // not a reservation status — not filterable
 ];
+
+// Only the statuses that represent a real commitment are shown by default —
+// Lead/Cotizado/Completado (and anything else) start hidden to declutter the
+// grid, but can be toggled back on via the legend.
+const DEFAULT_VISIBLE_STATUSES = ['pre_reserved', 'deposit_received', 'reserved', 'confirmed'];
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -65,6 +70,26 @@ export default function CalendarPage() {
       const next = new URLSearchParams(prev);
       if (day) next.set('day', day); else next.delete('day');
       return next;
+    }, { replace: true });
+  }
+
+  // "statuses" absent → default set; "none" → explicitly cleared to empty
+  // (so clearing doesn't snap back to the default on the next render).
+  const visibleStatuses = (() => {
+    const raw = searchParams.get('statuses');
+    if (raw === null) return DEFAULT_VISIBLE_STATUSES;
+    if (raw === 'none') return [];
+    return raw.split(',').filter(Boolean);
+  })();
+
+  function toggleStatus(status: string) {
+    const next = visibleStatuses.includes(status)
+      ? visibleStatuses.filter(s => s !== status)
+      : [...visibleStatuses, status];
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      p.set('statuses', next.length ? next.join(',') : 'none');
+      return p;
     }, { replace: true });
   }
 
@@ -113,6 +138,7 @@ export default function CalendarPage() {
   // every date they span, not just their start date, so they show up on the
   // calendar for as long as they actually occupy the vehicle/driver.
   const eventsByDate = events.reduce<Record<string, CalendarEvent[]>>((acc, e) => {
+    if (e.type === 'reservation' && !visibleStatuses.includes(e.status)) return acc;
     const start = new Date(`${e.date}T00:00:00`);
     const end = new Date(`${e.end_date ?? e.date}T00:00:00`);
     for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -161,14 +187,26 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Legend — doubles as a status filter; click to show/hide that status */}
       <div className="flex flex-wrap gap-3">
-        {LEGEND.map(l => (
-          <div key={l.label} className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-3 h-3 rounded-full shrink-0" style={{ background: l.color }} />
-            {l.label}
-          </div>
-        ))}
+        {LEGEND.map(l => {
+          const filterable = l.status !== null;
+          const active = !filterable || visibleStatuses.includes(l.status!);
+          return (
+            <button
+              key={l.label}
+              type="button"
+              disabled={!filterable}
+              onClick={() => filterable && toggleStatus(l.status!)}
+              className={`flex items-center gap-1.5 text-xs transition-opacity ${
+                filterable ? 'cursor-pointer hover:opacity-100' : 'cursor-default'
+              } ${active ? 'text-gray-600 opacity-100' : 'text-gray-400 opacity-40'}`}
+            >
+              <span className="w-3 h-3 rounded-full shrink-0" style={{ background: l.color }} />
+              {l.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
