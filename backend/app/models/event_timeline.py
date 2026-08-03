@@ -46,6 +46,11 @@ class EventTimeline(Base):
     gcal_client_calendar_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     gcal_client_html_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     gcal_client_invited_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    gcal_team_event_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    gcal_team_calendar_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    gcal_team_html_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    gcal_team_invited_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     reservation_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("reservations.id", ondelete="SET NULL"), nullable=True
     )

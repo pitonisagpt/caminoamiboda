@@ -472,6 +472,167 @@ def delete_client_invite(timeline, db: Session) -> None:
     db.commit()
 
 
+def _build_team_description(timeline, locations: list, activities: list | None = None, reservation=None) -> str:
+    lines = []
+    if timeline.assigned_vehicle:
+        lines.append(f"Vehículo: {timeline.assigned_vehicle}")
+    if timeline.assigned_driver:
+        driver_line = f"Conductor: {timeline.assigned_driver}"
+        if timeline.assigned_driver_phone:
+            driver_line += f" · {timeline.assigned_driver_phone}"
+        lines.append(driver_line)
+    if timeline.main_contact_name:
+        contact_line = f"Contacto: {timeline.main_contact_name}"
+        if timeline.main_contact_phone:
+            contact_line += f" · {timeline.main_contact_phone}"
+        lines.append(contact_line)
+    if reservation:
+        contact = getattr(reservation, "contact", None)
+        if contact:
+            planner_line = f"Planeador: {contact.full_name}"
+            if contact.phone:
+                planner_line += f" · {contact.phone}"
+            lines.append(planner_line)
+    if timeline.special_instructions:
+        lines.append(f"\nInstrucciones: {timeline.special_instructions}")
+
+    if locations:
+        lines.append("")
+        lines.append("— Ubicaciones —")
+        for loc in locations:
+            emoji = _LOCATION_EMOJI.get(loc.location_type, "📌")
+            loc_line = f"{emoji} {loc.location_name}"
+            if loc.address:
+                loc_line += f" – {loc.address}"
+            lines.append(loc_line)
+            if loc.google_maps_link:
+                lines.append(f"   {loc.google_maps_link}")
+            if loc.road_access_notes:
+                lines.append(f"   🚧 Acceso: {loc.road_access_notes}")
+
+    if activities:
+        sorted_acts = sorted(activities, key=lambda a: a.display_order)
+        lines.append("")
+        lines.append("— Itinerario —")
+        for act in sorted_acts:
+            lines.append(f"{_fmt_time(act.time)} – {act.description}")
+
+    lines.append("")
+    lines.append(f"Cualquier duda o cambio, contáctanos: {settings.company_phone}")
+    lines.append(f"Última actualización: {_updated_at_str()}")
+
+    return "\n".join(lines)
+
+
+def _build_team_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, attendee_emails: list | None = None) -> dict:
+    event_date = timeline.event_date
+    event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
+    short = _short_name(timeline.event_name or "")
+    date_str = _format_date_es(event_date)
+    vehicle_str = f" ({timeline.assigned_vehicle})" if timeline.assigned_vehicle else ""
+    summary = f"🚗 {event_type_label} {short} {date_str}{vehicle_str}"
+    max_day = max_day_number(activities)
+    return {
+        "summary": summary,
+        "location": _primary_location_address(locations),
+        "description": _build_team_description(timeline, locations, activities, reservation),
+        "start": {"date": str(event_date)},
+        "end": {"date": str(event_date + timedelta(days=max_day))},
+        "attendees": [{"email": e} for e in (attendee_emails or [])],
+    }
+
+
+def invite_team(timeline, db: Session) -> dict:
+    """
+    Create/update a team-facing copy of the event in the "Equipo" calendar,
+    inviting the vehicle owner and whoever is actually driving (owner-driver
+    takes priority over hired driver, per Reservation.display_driver). Content
+    is operational only — no financial or owner-settlement figures. Never
+    touches the internal operational event managed by sync_timeline() nor
+    the client-facing event managed by invite_clients().
+    """
+    if not _gcal_configured() or not settings.google_calendar_team:
+        return {"invited": [], "error": "not_configured"}
+
+    from app.models.event_location import EventLocation
+    from app.models.timeline_activity import TimelineActivity
+    from app.models.reservation import Reservation
+
+    reservation = (
+        db.query(Reservation).filter(Reservation.id == timeline.reservation_id).first()
+        if timeline.reservation_id else None
+    )
+
+    raw_emails = []
+    if reservation:
+        vehicle = reservation.vehicle
+        if vehicle and vehicle.owner and vehicle.owner.email:
+            raw_emails.append(vehicle.owner.email)
+        if reservation.owner_driver_id and reservation.owner_driver:
+            if reservation.owner_driver.email:
+                raw_emails.append(reservation.owner_driver.email)
+        elif reservation.driver_id and reservation.driver:
+            if reservation.driver.email:
+                raw_emails.append(reservation.driver.email)
+
+    emails = list(dict.fromkeys(e for e in raw_emails if e))
+    if not emails:
+        return {"invited": [], "error": "no_emails"}
+
+    locations = (
+        db.query(EventLocation)
+        .filter(EventLocation.timeline_id == timeline.id)
+        .order_by(EventLocation.display_order)
+        .all()
+    )
+    activities = (
+        db.query(TimelineActivity)
+        .filter(TimelineActivity.timeline_id == timeline.id)
+        .order_by(TimelineActivity.display_order)
+        .all()
+    )
+
+    service = _get_service()
+    body = _build_team_gcal_event(timeline, locations, activities, reservation, emails)
+    cal_id = settings.google_calendar_team
+
+    if timeline.gcal_team_event_id:
+        result = (
+            service.events()
+            .update(calendarId=cal_id, eventId=timeline.gcal_team_event_id, body=body, sendUpdates="all")
+            .execute()
+        )
+    else:
+        result = (
+            service.events()
+            .insert(calendarId=cal_id, body=body, sendUpdates="all")
+            .execute()
+        )
+        timeline.gcal_team_calendar_id = cal_id
+
+    gcal_id = result.get("id")
+    html_link = result.get("htmlLink")
+    if gcal_id:
+        timeline.gcal_team_event_id = gcal_id
+    if html_link:
+        timeline.gcal_team_html_link = html_link
+    timeline.gcal_team_invited_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return {"invited": emails, "error": None}
+
+
+def delete_team_invite(timeline, db: Session) -> None:
+    """Delete the team-facing invite event (if any) and clear its tracking fields."""
+    if timeline.gcal_team_event_id:
+        delete_timeline_event(timeline.gcal_team_event_id, timeline.gcal_team_calendar_id)
+    timeline.gcal_team_event_id = None
+    timeline.gcal_team_calendar_id = None
+    timeline.gcal_team_html_link = None
+    timeline.gcal_team_invited_at = None
+    db.commit()
+
+
 def sync_timeline(timeline, db: Session) -> Optional[str]:
     """
     Create or update the Google Calendar event for this timeline.

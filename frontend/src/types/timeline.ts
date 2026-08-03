@@ -81,9 +81,16 @@ export interface EventTimeline {
   gcal_synced: boolean | null;
   gcal_client_html_link: string | null;
   gcal_client_invited_at: string | null;
+  gcal_team_html_link: string | null;
+  gcal_team_invited_at: string | null;
 }
 
 export interface ClientInviteResult {
+  invited: string[];
+  error: 'not_configured' | 'no_emails' | null;
+}
+
+export interface TeamInviteResult {
   invited: string[];
   error: 'not_configured' | 'no_emails' | null;
 }

@@ -14,6 +14,11 @@ class ClientInviteResult(BaseModel):
     error: Optional[str] = None
 
 
+class TeamInviteResult(BaseModel):
+    invited: List[str] = []
+    error: Optional[str] = None
+
+
 # ── Locations ──────────────────────────────────────────────────────────────────
 
 class LocationBase(BaseModel):
@@ -194,6 +199,8 @@ class TimelineRead(TimelineBase):
     gcal_synced: Optional[bool] = None
     gcal_client_html_link: Optional[str] = None
     gcal_client_invited_at: Optional[datetime] = None
+    gcal_team_html_link: Optional[str] = None
+    gcal_team_invited_at: Optional[datetime] = None
 
     @classmethod
     def build(cls, timeline, locations: list, activities: list, contacts: list, gcal_synced: Optional[bool] = None) -> "TimelineRead":
@@ -203,6 +210,7 @@ class TimelineRead(TimelineBase):
             "share_token_driver", "share_token_customer", "share_token_ops",
             "created_at", "updated_at",
             "gcal_client_html_link", "gcal_client_invited_at",
+            "gcal_team_html_link", "gcal_team_invited_at",
         ])
         d["gcal_synced"] = gcal_synced
         return cls.model_validate(d)

@@ -7,6 +7,7 @@ import type {
   TimelineActivity,
   TimelineContact,
   ClientInviteResult,
+  TeamInviteResult,
 } from '../types/timeline';
 
 export const timelinesApi = {
@@ -18,6 +19,8 @@ export const timelinesApi = {
   regenerateTokens: (id: number) => api.post<EventTimeline>(`/timelines/${id}/regenerate-tokens`),
   inviteClients: (id: number) => api.post<ClientInviteResult>(`/timelines/${id}/invite-clients`),
   deleteClientInvite: (id: number) => api.delete(`/timelines/${id}/invite-clients`),
+  inviteTeam: (id: number) => api.post<TeamInviteResult>(`/timelines/${id}/invite-team`),
+  deleteTeamInvite: (id: number) => api.delete(`/timelines/${id}/invite-team`),
 
   // Locations
   listLocations: (timelineId: number) => api.get<EventLocation[]>(`/timelines/${timelineId}/locations`),

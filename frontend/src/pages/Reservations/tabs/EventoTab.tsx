@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
   Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText, Eye,
-  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route, Mail,
+  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route, Mail, Users,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
@@ -25,7 +25,7 @@ import type { ComboboxOption } from '../../../components/ui/Combobox';
 import type {
   EventTimeline, EventLocation, TimelineActivity, EventType,
   LocationType, LocationFormData, ActivityFormData,
-  TimelineContact, TimelineContactFormData, ClientInviteResult,
+  TimelineContact, TimelineContactFormData, ClientInviteResult, TeamInviteResult,
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
@@ -459,6 +459,8 @@ export default function EventoTab({
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
   const [invitingClients, setInvitingClients] = useState(false);
   const [inviteResult, setInviteResult] = useState<ClientInviteResult | null>(null);
+  const [invitingTeam, setInvitingTeam] = useState(false);
+  const [teamInviteResult, setTeamInviteResult] = useState<TeamInviteResult | null>(null);
   const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const sensors = useSensors(
@@ -601,6 +603,31 @@ export default function EventoTab({
     }
   };
 
+  const handleInviteTeam = async () => {
+    if (!timelineId) return;
+    setInvitingTeam(true);
+    setTeamInviteResult(null);
+    try {
+      const res = await timelinesApi.inviteTeam(timelineId);
+      setTeamInviteResult(res.data);
+      if (!res.data.error) load();
+    } finally {
+      setInvitingTeam(false);
+    }
+  };
+
+  const handleDeleteTeamInvite = async () => {
+    if (!timelineId || !confirm('¿Borrar el evento del equipo en Google Calendar? Esto cancela la invitación para los invitados.')) return;
+    setInvitingTeam(true);
+    try {
+      await timelinesApi.deleteTeamInvite(timelineId);
+      setTeamInviteResult(null);
+      load();
+    } finally {
+      setInvitingTeam(false);
+    }
+  };
+
   const handlePreviewPdf = async () => {
     if (!timelineId) return;
     setPdfPreviewLoading(true);
@@ -641,6 +668,9 @@ export default function EventoTab({
     : null;
   const gcalClientLink = timeline.gcal_client_html_link
     ? `${timeline.gcal_client_html_link}&authuser=caminoatuboda@gmail.com`
+    : null;
+  const gcalTeamLink = timeline.gcal_team_html_link
+    ? `${timeline.gcal_team_html_link}&authuser=caminoatuboda@gmail.com`
     : null;
 
   return (
@@ -860,6 +890,60 @@ export default function EventoTab({
             Última invitación: {new Date(timeline.gcal_client_invited_at).toLocaleString('es-CO')}
             {gcalClientLink && (
               <> · <a href={gcalClientLink} target="_blank" rel="noreferrer" className="text-brand-500 hover:underline">ver evento</a></>
+            )}
+          </p>
+        )}
+      </div>
+
+      {/* Team invite */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Users className="w-4 h-4 text-brand-500" />
+          <h3 className="font-semibold text-gray-900 text-sm">Invitar a propietarios y conductores por Google Calendar</h3>
+        </div>
+        <p className="text-xs text-gray-500 mb-3">
+          Crea (o actualiza) una copia operativa del evento en el calendario "Equipo" — vehículo, conductor, contactos, ubicaciones con acceso y minuto a minuto, sin cifras — e invita por correo al propietario del vehículo y a quien maneje (propietario-conductor o conductor asignado).
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleInviteTeam}
+            disabled={invitingTeam}
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+          >
+            {invitingTeam ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+            Invitar al equipo del evento
+          </button>
+          {timeline.gcal_team_html_link && (
+            <button
+              onClick={handleDeleteTeamInvite}
+              disabled={invitingTeam}
+              className="flex items-center gap-2 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors cursor-pointer disabled:opacity-60"
+            >
+              <Trash2 className="w-4 h-4" />
+              Borrar evento
+            </button>
+          )}
+        </div>
+
+        {teamInviteResult && (
+          <div className={`mt-3 text-sm rounded-lg px-3 py-2 ${teamInviteResult.error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+            {teamInviteResult.error === 'no_emails' && (
+              <>No hay correos registrados para invitar. Agrega el email del propietario del vehículo y/o del conductor asignado.</>
+            )}
+            {teamInviteResult.error === 'not_configured' && (
+              <>El calendario del equipo todavía no está configurado.</>
+            )}
+            {!teamInviteResult.error && (
+              <>Invitación enviada a: {teamInviteResult.invited.join(', ')}</>
+            )}
+          </div>
+        )}
+
+        {timeline.gcal_team_invited_at && (
+          <p className="text-xs text-gray-400 mt-2">
+            Última invitación: {new Date(timeline.gcal_team_invited_at).toLocaleString('es-CO')}
+            {gcalTeamLink && (
+              <> · <a href={gcalTeamLink} target="_blank" rel="noreferrer" className="text-brand-500 hover:underline">ver evento</a></>
             )}
           </p>
         )}
