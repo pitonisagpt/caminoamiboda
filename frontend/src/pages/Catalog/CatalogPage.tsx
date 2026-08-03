@@ -307,6 +307,22 @@ export function CatalogPage() {
     return () => timers.forEach(clearTimeout);
   }, [location.hash, reviews]);
 
+  // Deep link from the AI chat assistant (?vehiculo=<id>) — auto-opens that
+  // vehicle's modal once the list has loaded, then strips the param so it
+  // doesn't reopen on a later filter change.
+  useEffect(() => {
+    if (vehicles.length === 0) return;
+    const vehiculoParam = searchParams.get("vehiculo");
+    if (!vehiculoParam) return;
+    const match = vehicles.find(v => v.id === Number(vehiculoParam));
+    if (match) setSelected(match);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete("vehiculo");
+      return next;
+    }, { replace: true });
+  }, [vehicles]);
+
   const availableBrands = useMemo(
     () => [...new Set(vehicles.map(v => v.brand).filter(b => b && b !== "Test"))].sort(),
     [vehicles]

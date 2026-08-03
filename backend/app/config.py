@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480
 
+    anthropic_api_key: str = ""
+    ai_assistant_model: str = "claude-haiku-4-5"
+    ai_assistant_max_tokens: int = 500
+    ai_assistant_max_turns_per_session: int = 20
+    ai_assistant_daily_message_budget: int = 300
+    ai_assistant_consecutive_error_threshold: int = 3
+
     class Config:
         env_file = ".env"
 

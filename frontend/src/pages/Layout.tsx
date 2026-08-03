@@ -6,6 +6,8 @@ import type { LucideIcon } from "lucide-react";
 import logo from "../assets/logo_camino_a_mi_boda.png";
 import { integrationsApi } from "../api/integrations";
 import { GcalStatusBanner } from "../components/ui/GcalStatusBanner";
+import { aiAssistantApi } from "../api/aiAssistant";
+import { AiAssistantStatusBanner } from "../components/ui/AiAssistantStatusBanner";
 
 interface NavItemProps {
   to: string;
@@ -55,10 +57,15 @@ export function Layout() {
     () => localStorage.getItem('sidebar-collapsed') === 'true'
   );
   const [gcalDown, setGcalDown] = useState(false);
+  const [aiDisabledReason, setAiDisabledReason] = useState<string | null>(null);
+  const [aiBannerDismissed, setAiBannerDismissed] = useState(false);
 
   useEffect(() => {
     integrationsApi.googleCalendarStatus()
       .then(res => setGcalDown(!res.data.connected))
+      .catch(() => {});
+    aiAssistantApi.status()
+      .then(res => setAiDisabledReason(res.data.configured && !res.data.enabled ? res.data.disabled_reason : null))
       .catch(() => {});
   }, []);
 
@@ -214,6 +221,13 @@ export function Layout() {
       <main className={`${mainML} pt-14 lg:pt-0 transition-all duration-200`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {gcalDown && <GcalStatusBanner onDismiss={() => setGcalDown(false)} />}
+          {aiDisabledReason && !aiBannerDismissed && (
+            <AiAssistantStatusBanner
+              disabledReason={aiDisabledReason}
+              onDismiss={() => setAiBannerDismissed(true)}
+              onReenabled={() => setAiDisabledReason(null)}
+            />
+          )}
           <Outlet />
         </div>
       </main>

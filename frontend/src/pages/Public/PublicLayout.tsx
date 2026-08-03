@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Menu, X, Phone, Mail, Instagram } from "lucide-react";
+import { AiChatWidget } from "../../components/chat/AiChatWidget";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -151,6 +152,8 @@ export function PublicLayout() {
           </div>
         </div>
       </footer>
+
+      <AiChatWidget />
     </div>
   );
 }
