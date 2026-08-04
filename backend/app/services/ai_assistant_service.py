@@ -133,16 +133,37 @@ def _register_transient_error(db: Session, status_row: AiAssistantStatus, detail
     return False
 
 
+def _extract_signal(text: str, keyword_map: dict[str, list[str]]) -> Optional[str]:
+    t = text.lower()
+    for key, keywords in keyword_map.items():
+        if any(k in t for k in keywords):
+            return key
+    return None
+
+
 def _parse_conversation_signals(history: list[dict], user_message: str) -> dict:
-    text = " ".join([h.get("content", "") for h in history[-6:]] + [user_message]).lower()
+    # Only ever look at what the *user* actually said. The assistant's own
+    # clarifying questions list every category/location every turn
+    # ("clásico, vintage o moderno" / "Medellín, Rionegro/Llanogrande o El
+    # Carmen de Viboral"), so including assistant text here made "clasico"
+    # and "medellin" — the first keyword checked in each map — win almost
+    # every time regardless of what the user actually picked. Scan the
+    # user's messages most-recent-first so a later answer (e.g. "mejor
+    # moderno") overrides an earlier one.
+    user_texts = [h.get("content", "") for h in history if h.get("role") == "user"]
+    user_texts.append(user_message)
+
     signals: dict = {}
-    for category, keywords in _CATEGORY_KEYWORDS.items():
-        if any(k in text for k in keywords):
-            signals["category"] = category
-            break
-    for location, keywords in _LOCATION_KEYWORDS.items():
-        if any(k in text for k in keywords):
-            signals["location"] = location
+    for text in reversed(user_texts):
+        if "category" not in signals:
+            cat = _extract_signal(text, _CATEGORY_KEYWORDS)
+            if cat:
+                signals["category"] = cat
+        if "location" not in signals:
+            loc = _extract_signal(text, _LOCATION_KEYWORDS)
+            if loc:
+                signals["location"] = loc
+        if "category" in signals and "location" in signals:
             break
     return signals
 
