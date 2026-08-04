@@ -37,6 +37,7 @@ const DEFAULT_VALUES: BillingDocumentFormData = {
   payment_instructions: DEFAULT_PAYMENT,
   include_cancellation_policy: true,
   include_breakdown_policy: true,
+  include_no_retencion_declaration: false,
   notes: "",
 };
 
@@ -129,6 +130,7 @@ export function BillingDocumentForm() {
         payment_instructions: doc.payment_instructions,
         include_cancellation_policy: doc.include_cancellation_policy,
         include_breakdown_policy: doc.include_breakdown_policy,
+        include_no_retencion_declaration: doc.include_no_retencion_declaration,
         notes: doc.notes ?? "",
       });
       if (doc.route) {
@@ -201,6 +203,7 @@ export function BillingDocumentForm() {
         special_conditions: isLetter ? data.special_conditions || "" : "",
         include_cancellation_policy: isLetter ? data.include_cancellation_policy : true,
         include_breakdown_policy: isLetter ? data.include_breakdown_policy : true,
+        include_no_retencion_declaration: isCompany ? data.include_no_retencion_declaration : false,
         notes: data.notes || "",
       };
 
@@ -373,14 +376,33 @@ export function BillingDocumentForm() {
                 />
               </div>
               {isCompany && (
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Representante legal"
-                    placeholder="Ej: Estefanía Ramírez"
-                    {...register("client_legal_rep_name")}
-                    error={errors.client_legal_rep_name?.message}
-                  />
-                </div>
+                <>
+                  <div className="sm:col-span-2">
+                    <Input
+                      label="Representante legal"
+                      placeholder="Ej: Estefanía Ramírez"
+                      {...register("client_legal_rep_name")}
+                      error={errors.client_legal_rep_name?.message}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        {...register("include_no_retencion_declaration")}
+                        className="mt-0.5 accent-pink-600 w-4 h-4"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          Declaración de no retención en la fuente (Decreto 2231 de 2023)
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Incluye la declaración jurada de que el cliente no tomará costos ni deducciones asociados a esta renta, solicitando no practicar retención en la fuente.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </>
               )}
               <Select
                 label="Tipo de identificación"

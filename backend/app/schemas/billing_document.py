@@ -34,6 +34,7 @@ class BillingDocumentBase(BaseModel):
     payment_instructions: str
     include_cancellation_policy: bool = True
     include_breakdown_policy: bool = True
+    include_no_retencion_declaration: bool = False
     notes: Optional[str] = None
 
     @field_validator("total_amount")
@@ -82,6 +83,7 @@ class BillingDocumentUpdate(BaseModel):
     payment_instructions: Optional[str] = None
     include_cancellation_policy: Optional[bool] = None
     include_breakdown_policy: Optional[bool] = None
+    include_no_retencion_declaration: Optional[bool] = None
     notes: Optional[str] = None
 
 

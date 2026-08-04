@@ -31,6 +31,7 @@ export interface BillingDocument {
   payment_instructions: string;
   include_cancellation_policy: boolean;
   include_breakdown_policy: boolean;
+  include_no_retencion_declaration: boolean;
   pdf_path: string | null;
   notes: string | null;
 }
@@ -70,5 +71,6 @@ export interface BillingDocumentFormData {
   payment_instructions: string;
   include_cancellation_policy: boolean;
   include_breakdown_policy: boolean;
+  include_no_retencion_declaration: boolean;
   notes: string;
 }

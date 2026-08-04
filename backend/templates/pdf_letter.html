@@ -334,6 +334,15 @@
       </div>
     </div>
 
+    <!-- No retención en la fuente declaration (company clients, opt-in) -->
+    {% if doc.client_type.value == 'company' and doc.include_no_retencion_declaration %}
+    <div class="policy-section">
+      <div class="policy-text" style="font-style:italic; color:#555;">
+        De acuerdo al decreto 2231 del 2023 en su artículo 9, manifiesto bajo la gravedad de juramento que no me voy a tomar costos o deducciones asociados a esta renta, dado lo anterior se solicita no practicar retención en la fuente.
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Closing -->
     <div class="closing">
       Espero que nuestros servicios sean de total agrado. Siempre dispuestos a servirles,

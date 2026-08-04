@@ -73,6 +73,9 @@ class BillingDocument(Base):
     include_cancellation_policy: Mapped[bool] = mapped_column(Boolean, default=True)
     include_breakdown_policy: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # Tax declaration flag (company clients only) — Decreto 2231 de 2023, Art. 9
+    include_no_retencion_declaration: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Storage
     pdf_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
