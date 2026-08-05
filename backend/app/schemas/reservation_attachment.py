@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, model_validator
 
+from app.core.urls import build_upload_url
+
 
 class ReservationAttachmentUpdate(BaseModel):
     category: str
@@ -22,5 +24,5 @@ class ReservationAttachmentRead(BaseModel):
 
     @model_validator(mode="after")
     def set_url(self) -> "ReservationAttachmentRead":
-        self.url = f"/api/uploads/reservations/{self.file_name}"
+        self.url = build_upload_url(f"/api/uploads/reservations/{self.file_name}")
         return self

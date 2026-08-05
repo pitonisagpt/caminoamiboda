@@ -1,6 +1,10 @@
 import axios from "axios";
 
-export const api = axios.create({ baseURL: "/api", withCredentials: true, timeout: 15000 });
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  withCredentials: true,
+  timeout: 15000,
+});
 
 api.interceptors.response.use(
   (res) => res,

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.dependencies import get_current_user
+from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.event_timeline import EventTimeline
@@ -81,7 +82,7 @@ def calendar_events(
         )
         for p in photos:
             if p.vehicle_id not in photo_map:
-                photo_map[p.vehicle_id] = f"/api/uploads/vehicles/{p.file_name}"
+                photo_map[p.vehicle_id] = build_upload_url(f"/api/uploads/vehicles/{p.file_name}")
 
     for r in reservations:
         customer = r.display_customer

@@ -34,11 +34,13 @@ class Settings(BaseSettings):
 
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
     frontend_url: str = "http://localhost:5173"
+    public_backend_url: str = ""
     initial_admin_password: str = ""
 
     secret_key: str = "change-me-in-production-use-a-random-32-byte-hex"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480
+    cookie_secure: bool = False
 
     anthropic_api_key: str = ""
     ai_assistant_model: str = "claude-haiku-4-5"

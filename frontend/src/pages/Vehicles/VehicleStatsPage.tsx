@@ -46,9 +46,7 @@ export default function VehicleStatsPage() {
     }).finally(() => setLoading(false));
   }, [id, range.from, range.to]);
 
-  const photoUrl = vehicle?.photos?.find(p => p.is_visible)?.file_name
-    ? `/api/uploads/vehicles/${vehicle!.photos!.find(p => p.is_visible)!.file_name}`
-    : null;
+  const photoUrl = vehicle?.photos?.find(p => p.is_visible)?.url ?? null;
 
   const displayName = vehicle
     ? [vehicle.brand, vehicle.color].filter(Boolean).join(' ')

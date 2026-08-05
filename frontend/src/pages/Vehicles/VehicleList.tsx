@@ -163,7 +163,7 @@ type SaveStatus = "idle" | "saving" | "saved";
 function vehiclePhoto(v: VehicleListItem): string | null {
   if (!v.photos?.length) return null;
   const visible = v.photos.find(p => p.is_visible) ?? v.photos[0];
-  return visible ? `/api/uploads/vehicles/${visible.file_name}` : null;
+  return visible?.url ?? null;
 }
 
 // ─── Sortable row ──────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import { Loader2, Search, SlidersHorizontal, Star, Users, X } from "lucide-react
 import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import { vehiclesApi } from "../../api/vehicles";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
@@ -283,8 +283,8 @@ export function CatalogPage() {
   }
 
   useEffect(() => {
-    axios
-      .get<VehicleListItem[]>("/api/vehicles")
+    vehiclesApi
+      .list()
       .then(res => setVehicles(res.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));

@@ -7,6 +7,7 @@ from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
 from app.models.reservation import Reservation, ReservationStatus
@@ -59,7 +60,7 @@ def get_summary(
             return None
         photos = v.photos if isinstance(v.photos, list) else ([v.photos] if v.photos else [])
         first = next((p for p in photos if p.is_visible), None)
-        return f"/api/uploads/vehicles/{first.file_name}" if first else None
+        return build_upload_url(f"/api/uploads/vehicles/{first.file_name}") if first else None
 
     upcoming = []
     for r in upcoming_qs:
@@ -481,7 +482,7 @@ def vehicle_usage(
             return None
         photos = vehicle.photos if isinstance(vehicle.photos, list) else ([vehicle.photos] if vehicle.photos else [])
         first = next((p for p in photos if p.is_visible), None)
-        return f"/api/uploads/vehicles/{first.file_name}" if first else None
+        return build_upload_url(f"/api/uploads/vehicles/{first.file_name}") if first else None
 
     result = []
     for row in res_rows:

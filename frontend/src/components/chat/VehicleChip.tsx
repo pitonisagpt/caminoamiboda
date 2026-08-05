@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Car } from "lucide-react";
+import { vehiclesApi } from "../../api/vehicles";
 import type { VehicleListItem } from "../../types/vehicle";
 
 // Shared across every chip instance in the widget so we fetch the public
@@ -9,7 +9,7 @@ import type { VehicleListItem } from "../../types/vehicle";
 let vehiclesPromise: Promise<VehicleListItem[]> | null = null;
 function loadVehicles(): Promise<VehicleListItem[]> {
   if (!vehiclesPromise) {
-    vehiclesPromise = axios.get<VehicleListItem[]>("/api/vehicles").then(res => res.data);
+    vehiclesPromise = vehiclesApi.list().then(res => res.data);
   }
   return vehiclesPromise;
 }

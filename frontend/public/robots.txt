@@ -17,4 +17,4 @@ Disallow: /contactos
 Disallow: /eventos/
 Disallow: /api/
 
-Sitemap: https://caminoamiboda.com/sitemap.xml
+Sitemap: https://api.caminoamiboda.com/sitemap.xml

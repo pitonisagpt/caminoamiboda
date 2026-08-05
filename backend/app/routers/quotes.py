@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.core.dependencies import get_current_user
 from app.core.files import safe_pdf_path
+from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.quote import LocationZone, Quote, QuoteStatus
 from app.models.reservation import Reservation, ReservationStatus
@@ -163,7 +164,7 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
             VehiclePhoto.is_visible,
         ).order_by(VehiclePhoto.display_order).first()
         if photo:
-            vehicle_photo_url = photo.url
+            vehicle_photo_url = build_upload_url(f"/api/uploads/vehicles/{photo.file_name}")
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("quote.html")

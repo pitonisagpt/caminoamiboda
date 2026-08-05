@@ -68,6 +68,7 @@ def login(request: Request, response: Response, payload: LoginRequest, db: Sessi
         value=token,
         httponly=True,
         samesite="strict",
+        secure=settings.cookie_secure,
         max_age=settings.access_token_expire_minutes * 60,
     )
     return UserRead.model_validate(user)
@@ -75,7 +76,7 @@ def login(request: Request, response: Response, payload: LoginRequest, db: Sessi
 
 @router.post("/logout", status_code=204)
 def logout(response: Response):
-    response.delete_cookie("access_token")
+    response.delete_cookie("access_token", httponly=True, samesite="strict", secure=settings.cookie_secure)
 
 
 @router.get("/me", response_model=UserRead)

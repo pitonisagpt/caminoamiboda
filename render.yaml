@@ -1,0 +1,92 @@
+databases:
+  - name: caminoamiboda-db
+    plan: starter      # VERIFICAR slug exacto en el dashboard de Render al crear
+    region: oregon      # VERIFICAR; debe coincidir con la región del web service
+
+services:
+  - type: web
+    name: caminoamiboda-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile.prod
+    dockerContext: backend
+    plan: starter        # VERIFICAR slug
+    region: oregon        # VERIFICAR, debe coincidir con la DB
+    healthCheckPath: /health
+    disk:
+      name: caminoamiboda-uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: caminoamiboda-db
+          property: connectionString
+      - key: ALLOWED_ORIGINS
+        value: https://caminoamiboda.com
+      - key: FRONTEND_URL
+        value: https://caminoamiboda.com
+      - key: PUBLIC_BACKEND_URL
+        value: https://api.caminoamiboda.com
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: PDF_STORAGE_PATH
+        value: /app/uploads/generated_pdfs
+      - key: COMPANY_NAME
+        value: "Camino a mi Boda"
+      - key: COMPANY_OWNER
+        value: "Juan Camilo Yepes Correa"
+      - key: COMPANY_PHONE
+        value: "+(57) 314 737 2030"
+      - key: COMPANY_CC
+        value: "1040735268"
+      - key: BANK_NAME
+        value: "Bancolombia"
+      - key: BANK_ACCOUNT
+        value: "00484248273"
+      - key: CITY
+        value: "Medellín"
+      - key: GOOGLE_CALENDAR_ID
+        value: primary
+      - key: AI_ASSISTANT_MODEL
+        value: claude-haiku-4-5
+      - key: AI_ASSISTANT_MAX_TOKENS
+        value: "500"
+      - key: AI_ASSISTANT_MAX_TURNS_PER_SESSION
+        value: "20"
+      - key: AI_ASSISTANT_DAILY_MESSAGE_BUDGET
+        value: "300"
+      - key: AI_ASSISTANT_CONSECUTIVE_ERROR_THRESHOLD
+        value: "3"
+      # --- secrets: se llenan a mano en el dashboard de Render después del primer deploy ---
+      - key: SECRET_KEY
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false
+      - key: GOOGLE_CALENDAR_PROSPECTOS
+        sync: false
+      - key: GOOGLE_CALENDAR_PENDIENTE
+        sync: false
+      - key: GOOGLE_CALENDAR_ABONO
+        sync: false
+      - key: GOOGLE_CALENDAR_OK
+        sync: false
+      - key: GOOGLE_CALENDAR_OBSEQUIO
+        sync: false
+      - key: GOOGLE_CALENDAR_PUBLICIDAD
+        sync: false
+      - key: GOOGLE_CALENDAR_CANCELADOS
+        sync: false
+      - key: GOOGLE_CALENDAR_CLIENTES
+        sync: false
+      - key: GOOGLE_CALENDAR_PRERESERVA
+        sync: false
+      - key: GOOGLE_CALENDAR_TEAM
+        sync: false

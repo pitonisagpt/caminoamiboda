@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from app.core.urls import build_upload_url
 from app.models.reservation import ReservationStatus
 
 _SCALARS = [
@@ -40,7 +41,7 @@ def _build(r) -> dict:
     if r.vehicle:
         photos = r.vehicle.photos if isinstance(r.vehicle.photos, list) else ([r.vehicle.photos] if r.vehicle.photos else [])
         first_photo = next((p for p in photos if p.is_visible), None)
-        d["vehicle_photo_url"] = f"/api/uploads/vehicles/{first_photo.file_name}" if first_photo else None
+        d["vehicle_photo_url"] = build_upload_url(f"/api/uploads/vehicles/{first_photo.file_name}") if first_photo else None
     else:
         d["vehicle_photo_url"] = None
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []

@@ -28,6 +28,7 @@ import ContactoPage from "./pages/Public/ContactoPage";
 import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
 import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
+import NotFoundPage from "./pages/Public/NotFoundPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="contacto" element={<ContactoPage />} />
             <Route path="politica-de-datos" element={<PoliticaDatosPage />} />
             <Route path="politica-de-reservas" element={<PoliticaReservasPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* Public event view — no auth, no site chrome (private per-event tool) */}

@@ -3,6 +3,8 @@ from typing import List
 
 from pydantic import BaseModel, model_validator
 
+from app.core.urls import build_upload_url
+
 
 class VehiclePhotoRead(BaseModel):
     id: int
@@ -18,7 +20,7 @@ class VehiclePhotoRead(BaseModel):
 
     @model_validator(mode="after")
     def set_url(self) -> "VehiclePhotoRead":
-        self.url = f"/api/uploads/vehicles/{self.file_name}"
+        self.url = build_upload_url(f"/api/uploads/vehicles/{self.file_name}")
         return self
 
 
