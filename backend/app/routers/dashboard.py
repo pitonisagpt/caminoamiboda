@@ -24,6 +24,16 @@ ACTIVE_STATUSES = {
     ReservationStatus.confirmed,
 }
 
+# Statuses shown in the dashboard's individual event lists ("Próximos
+# eventos", "Eventos · {rango}") — deliberately narrower than
+# ACTIVE_STATUSES, which still drives the finance figures. Leads/quoted/
+# pre-reservas/depósitos aren't "real" bookings yet for this purpose.
+DASHBOARD_VISIBLE_STATUSES = {
+    ReservationStatus.reserved,
+    ReservationStatus.confirmed,
+    ReservationStatus.completed,
+}
+
 
 @router.get("/api/dashboard/summary")
 def get_summary(
@@ -43,7 +53,7 @@ def get_summary(
     upcoming_filters = [
         Reservation.event_date >= today,
         Reservation.event_date <= next_30,
-        Reservation.status.notin_(["cancelled", "completed"]),
+        Reservation.status.in_([s.value for s in DASHBOARD_VISIBLE_STATUSES]),
     ]
 
     upcoming_qs = (
@@ -140,8 +150,14 @@ def get_summary(
     for status, cnt in vehicle_rows:
         vehicles_by_status[status if isinstance(status, str) else status.value] = cnt
 
-    # --- Period events table (all reservations in the date range, sorted by date) ---
-    period_events = sorted(period_res, key=lambda r: r.event_date)
+    # --- Period events table (reserved/confirmed/completed only, sorted by date) ---
+    # Filters the already-loaded `period_res` list in Python rather than the
+    # query itself — `period_res` also feeds the finance figures above,
+    # which must keep seeing every status in range.
+    period_events = sorted(
+        [r for r in period_res if r.status in DASHBOARD_VISIBLE_STATUSES],
+        key=lambda r: r.event_date,
+    )
     period_events_data = [
         {
             "id": r.id,
