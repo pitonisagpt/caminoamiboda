@@ -433,7 +433,7 @@ function buildFullMsg(t: EventTimeline): string {
     lines.push(`*${c.role || 'Contacto'}:* ${c.name}${c.phone ? ' – ' + c.phone : ''}`);
   });
   lines.push(t.assigned_driver
-    ? `*Conductor:* ${t.assigned_driver}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`
+    ? `*Conductor:* ${t.assigned_driver.split(' ')[0]}${t.assigned_driver_phone ? ' – ' + t.assigned_driver_phone : ''}`
     : `*Conductor:* Pendiente de asignar`);
   if (t.special_instructions) {
     lines.push('');
