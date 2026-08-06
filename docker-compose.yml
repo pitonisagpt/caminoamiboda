@@ -48,6 +48,11 @@ services:
       SECRET_KEY: "${SECRET_KEY}"
       INITIAL_ADMIN_PASSWORD: "${INITIAL_ADMIN_PASSWORD}"
       FRONTEND_URL: "${FRONTEND_URL:-http://localhost:5173}"
+      SMTP_HOST: "${SMTP_HOST:-smtp.gmail.com}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      OPS_NOTIFICATION_EMAIL: "${OPS_NOTIFICATION_EMAIL:-}"
     volumes:
       - ./backend:/app
       - pdf_storage:/app/generated_pdfs

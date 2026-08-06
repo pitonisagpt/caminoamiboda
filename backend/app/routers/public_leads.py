@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from app.database import get_db
 from app.models.customer import Customer
 from app.models.reservation import Reservation, ReservationStatus
 from app.schemas.public_lead import PublicLeadCreate, PublicLeadResponse
+from app.services.email_service import send_new_lead_email
 
 router = APIRouter(prefix="/api/public", tags=["public-leads"], redirect_slashes=False)
 
@@ -31,7 +32,7 @@ def _find_existing(db: Session, phone_digits: str) -> Customer | None:
     return None
 
 
-def _maybe_create_lead_reservation(db: Session, customer: Customer, wedding_date: date | None) -> None:
+def _maybe_create_lead_reservation(db: Session, customer: Customer, wedding_date: date | None) -> Reservation | None:
     """Give inbound public leads a placeholder in the operational pipeline
     (/reservas) instead of only existing as a Customer record. Deliberately
     bypasses create_reservation()'s auto-timeline/GCal sync — there's no
@@ -45,21 +46,24 @@ def _maybe_create_lead_reservation(db: Session, customer: Customer, wedding_date
     "Lead" reservation from an accidental double-submit is cheap for ops to
     spot and merge; silently dropping a second couple's inquiry is not."""
     if not wedding_date:
-        return
+        return None
     from app.routers.reservations import _next_number
-    db.add(Reservation(
+    reservation = Reservation(
         reservation_number=_next_number(db),
         customer_id=customer.id,
         event_date=wedding_date,
         status=ReservationStatus.lead,
         is_tentative=True,
-    ))
+    )
+    db.add(reservation)
     db.commit()
+    db.refresh(reservation)
+    return reservation
 
 
 @router.post("/leads", response_model=PublicLeadResponse, status_code=201)
 @limiter.limit("5/minute;20/hour")
-def create_public_lead(request: Request, body: PublicLeadCreate, db: Session = Depends(get_db)):
+def create_public_lead(request: Request, body: PublicLeadCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if body.hp_website or body.elapsed_ms < MIN_ELAPSED_MS:
         return PublicLeadResponse(ok=True)
 
@@ -89,6 +93,7 @@ def create_public_lead(request: Request, body: PublicLeadCreate, db: Session = D
         existing.notes = f"{existing.notes}\n\n{note_line}" if existing.notes else note_line
         db.commit()
         customer = existing
+        is_new_customer = False
     else:
         customer = Customer(
             main_contact_name=body.main_contact_name,
@@ -109,6 +114,10 @@ def create_public_lead(request: Request, body: PublicLeadCreate, db: Session = D
         db.add(customer)
         db.commit()
         db.refresh(customer)
+        is_new_customer = True
 
-    _maybe_create_lead_reservation(db, customer, body.wedding_date)
+    reservation = _maybe_create_lead_reservation(db, customer, body.wedding_date)
+    background_tasks.add_task(
+        send_new_lead_email, body, customer.id, reservation.id if reservation else None, is_new_customer
+    )
     return PublicLeadResponse(ok=True)

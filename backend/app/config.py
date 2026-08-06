@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     ai_assistant_daily_message_budget: int = 300
     ai_assistant_consecutive_error_threshold: int = 3
 
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    ops_notification_email: str = ""
+
     class Config:
         env_file = ".env"
 

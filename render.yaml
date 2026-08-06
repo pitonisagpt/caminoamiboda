@@ -57,6 +57,10 @@ services:
         value: "300"
       - key: AI_ASSISTANT_CONSECUTIVE_ERROR_THRESHOLD
         value: "3"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
       # --- secrets: se llenan a mano en el dashboard de Render después del primer deploy ---
       - key: SECRET_KEY
         sync: false
@@ -89,4 +93,10 @@ services:
       - key: GOOGLE_CALENDAR_PRERESERVA
         sync: false
       - key: GOOGLE_CALENDAR_TEAM
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: OPS_NOTIFICATION_EMAIL
         sync: false
