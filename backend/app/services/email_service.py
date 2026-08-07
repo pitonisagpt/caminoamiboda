@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import smtplib
+import ssl
 from email.message import EmailMessage
 
 from app.config import settings
@@ -59,7 +60,10 @@ def send_new_lead_email(
 
     try:
         with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
-            server.starttls()
+            # smtplib.starttls() with no context= skips certificate/hostname
+            # validation (ssl._create_stdlib_context, not create_default_context)
+            # — pass one explicitly or the handshake accepts any certificate.
+            server.starttls(context=ssl.create_default_context())
             server.login(settings.smtp_user, settings.smtp_password)
             server.send_message(msg)
     except Exception as e:
