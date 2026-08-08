@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     google_calendar_clientes: str = ""
     google_calendar_prereserva: str = ""
     google_calendar_team: str = ""
+    google_calendar_sync_enabled: bool = True
 
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
     frontend_url: str = "http://localhost:5173"

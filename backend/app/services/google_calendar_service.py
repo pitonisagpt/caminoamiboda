@@ -36,6 +36,15 @@ def _gcal_configured() -> bool:
     )
 
 
+def _sync_enabled() -> bool:
+    """Separate from _gcal_configured(): credentials can be valid (and the
+    admin status check should keep reflecting that) while sync writes are
+    still turned off locally via GOOGLE_CALENDAR_SYNC_ENABLED — local dev
+    and production share the same real calendars, so this is how local
+    testing avoids writing events into calendars real people see."""
+    return settings.google_calendar_sync_enabled
+
+
 def _get_service():
     """Build an authorized Google Calendar API service object."""
     from google.oauth2.credentials import Credentials
@@ -394,7 +403,7 @@ def invite_clients(timeline, db: Session) -> dict:
     inviting the bride, groom, and wedding planner as attendees. Never touches
     the internal operational event managed by sync_timeline().
     """
-    if not _gcal_configured() or not settings.google_calendar_clientes:
+    if not _gcal_configured() or not _sync_enabled() or not settings.google_calendar_clientes:
         return {"invited": [], "error": "not_configured"}
 
     from app.models.event_location import EventLocation
@@ -551,7 +560,7 @@ def invite_team(timeline, db: Session) -> dict:
     touches the internal operational event managed by sync_timeline() nor
     the client-facing event managed by invite_clients().
     """
-    if not _gcal_configured() or not settings.google_calendar_team:
+    if not _gcal_configured() or not _sync_enabled() or not settings.google_calendar_team:
         return {"invited": [], "error": "not_configured"}
 
     from app.models.event_location import EventLocation
@@ -639,7 +648,7 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
     Skips timelines with gcal_imported=True — never overwrite imported events.
     Saves gcal_event_id and gcal_calendar_id back to the timeline row.
     """
-    if not _gcal_configured():
+    if not _gcal_configured() or not _sync_enabled():
         return None
 
     if timeline.gcal_imported:
@@ -724,7 +733,7 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
 
 def delete_timeline_event(gcal_event_id: str, gcal_calendar_id: Optional[str] = None) -> None:
     """Delete the Google Calendar event. Uses gcal_calendar_id if provided."""
-    if not _gcal_configured():
+    if not _gcal_configured() or not _sync_enabled():
         return
 
     cal_id = gcal_calendar_id or settings.google_calendar_id
