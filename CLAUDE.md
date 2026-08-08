@@ -321,11 +321,12 @@ Widgets:
 - PostgreSQL
 
 ### Infrastructure
-- Docker
-- Railway or Render
+- Docker (local dev)
+- Production: Cloudflare Pages (frontend) + Render (backend + Postgres, Starter plan) — see `render.yaml` and `backend/Dockerfile.prod`. Decision made 2026-08-05 after evaluating Railway/Fly.io; documented in `docs/desarrollo/deploy-readiness.md`.
+- CI: GitHub Actions (`.github/workflows/ci.yml`) — lint, typecheck/build, and a migration-apply check on every push/PR. No test suite yet (frontend or backend).
 
 ### Storage
-- AWS S3 compatible storage
+- Persistent disk (Render Disk, mounted at `/app/uploads`), not S3. Evaluated Cloudflare R2 but a paid persistent disk doesn't have the ephemeral-storage risk that motivated it — not needed at this scale.
 
 ### Authentication
 - Email + password
@@ -354,7 +355,7 @@ Widgets:
 4. ✅ Reservation lifecycle + quote conversion
 5. ✅ Timeline module + share links + driver mobile view
 6. ✅ Calendar + conflict detection
-7. ⬜ WhatsApp/email automation (partial — cobro and minuto-a-minuto done; confirmation, reminders, driver assignment, post-event pending)
+7. ⬜ WhatsApp/email automation (partial — cobro and minuto-a-minuto done via WhatsApp, new-lead-to-ops email notification done via SMTP; customer-facing confirmation, reminders, driver assignment, post-event still pending)
 8. ✅ Billing docs + owner settlements
 9. ✅ Finance and dashboard metrics
 
@@ -380,8 +381,9 @@ Highest operational value. Eliminates the remaining manual steps in daily ops.
 - Post-event follow-up (review request + photo testimonial, sent 24h after event)
 
 ### Email Notifications
-- Channel: Gmail SMTP via App Password (configured as env var, never hardcoded)
-- Transactional triggers (same events as WhatsApp, as fallback/parallel):
+- Channel: Gmail SMTP via App Password (configured as env var, never hardcoded) ✅ done — `backend/app/services/email_service.py`, stdlib `smtplib` + verified TLS context
+- ✅ done — internal ops trigger: new public lead (`/contacto`, AI chat capture card, reveal-prices modal — all via `POST /api/public/leads`) sends to `OPS_NOTIFICATION_EMAIL`, best-effort via `BackgroundTasks`, inert until SMTP env vars are set
+- Transactional triggers below (customer-facing) are still pending — same events as WhatsApp, as fallback/parallel:
   - Reservation confirmation (deposit received or confirmed)
   - 24h reminder before event
   - Driver assignment notification
