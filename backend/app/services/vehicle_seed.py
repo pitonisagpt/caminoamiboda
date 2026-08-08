@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
 from app.models.vehicle_owner import VehicleOwner
 
-XLSX_PATH = "/app/docs/base_de_datos_autos/2025_03_23_base_de_datos_autos.xlsx"
+XLSX_PATH = "/app/docs/archivo/base_de_datos_autos/2025_03_23_base_de_datos_autos.xlsx"
 
 _LOCATION_MAP = {
     "medellín": VehicleLocation.medellin,

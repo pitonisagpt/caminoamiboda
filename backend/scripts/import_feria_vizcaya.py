@@ -1,6 +1,6 @@
 """Import wedding-fair leads from the Feria Vizcaya (9 mayo) spreadsheet.
 
-Source: docs/eventos/Ruta de Novias Vizcaya - BASE DATOS CONSOLIDADO. 9 MAYO.xlsx
+Source: docs/archivo/eventos/Ruta de Novias Vizcaya - BASE DATOS CONSOLIDADO. 9 MAYO.xlsx
 Idempotent upsert by phone (falls back to email) — safe to re-run.
 
 Usage:
@@ -37,7 +37,7 @@ from app.services.lead_messaging import build_lead_whatsapp_message
 
 DRY_RUN = "--dry-run" in sys.argv
 
-SOURCE_XLSX = "docs/eventos/Ruta de Novias Vizcaya - BASE DATOS CONSOLIDADO. 9 MAYO.xlsx"
+SOURCE_XLSX = "docs/archivo/eventos/Ruta de Novias Vizcaya - BASE DATOS CONSOLIDADO. 9 MAYO.xlsx"
 SHEET_NAME = "RDNV 2026"
 REFERRAL_SOURCE = "Feria Vizcaya Mayo"
 FAIR_NOTE = "Asistió a Feria Vizcaya Mayo (9 mayo 2026)."
