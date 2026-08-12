@@ -211,7 +211,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
               )}
               {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Medellín</span>
+                  <span className="text-gray-600">Medellín*</span>
                   <span className={`font-semibold ${vehicle.price_medellin != null ? "text-gray-900" : "text-gray-400"}`}>
                     {vehicle.price_medellin != null ? formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate)) : "No aplica"}
                   </span>
@@ -219,14 +219,14 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
               )}
               {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Llanogrande</span>
+                  <span className="text-gray-600">Llanogrande*</span>
                   <span className={`font-semibold ${vehicle.price_rionegro != null ? "text-gray-900" : "text-gray-400"}`}>
                     {vehicle.price_rionegro != null ? formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate)) : "No aplica"}
                   </span>
                 </div>
               )}
               {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
-                <p className="text-[11px] text-gray-400">Precio estimado — el recorrido final puede tener un costo adicional. Para otras zonas, consultar precio.</p>
+                <p className="text-[11px] text-gray-400">*Precio para Medellín/Llanogrande y alrededores — puede variar según zona o distancia. ¿Otro pueblo (Guatapé, Santa Fe de Antioquia, etc.)? Pregúntanos.</p>
               )}
               {!vehicle.price_medellin && !vehicle.price_rionegro && (
                 <p className="text-sm text-gray-400">Precio a consultar</p>

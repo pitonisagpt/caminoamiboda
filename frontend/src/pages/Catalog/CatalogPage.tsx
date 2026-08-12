@@ -467,7 +467,7 @@ export function CatalogPage() {
                 Precios estimados para el{" "}
                 {new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" })}
               </span>
-              <p className="text-xs text-gray-500 mt-0.5">El valor final depende del recorrido — vías largas o de difícil acceso (como Guatapé o El Carmen de Viboral) pueden tener un costo adicional. Escríbenos y te lo confirmamos en minutos.</p>
+              <p className="text-xs text-gray-500 mt-0.5">El valor final depende del recorrido — vías largas o de difícil acceso (como Guatapé o El Carmen de Viboral) pueden tener un costo adicional. Escríbenos y te lo confirmamos en minutos. También cubrimos otras zonas — Santa Fe de Antioquia, otros pueblos del oriente y más — pregúntanos por la tuya.</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button
