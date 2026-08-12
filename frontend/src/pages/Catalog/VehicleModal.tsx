@@ -7,7 +7,7 @@ import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
 const WHATSAPP_NUMBER = "573147372030";
-const PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM";
+const PICO_HOURS = "5:00 AM – 8:00 PM";
 
 const DAY_COLOR: Record<string, string> = {
   Lunes: "bg-blue-100 text-blue-700",

@@ -11,7 +11,7 @@ DIGIT_TO_DAY = {
     "7": "Viernes", "9": "Viernes",
 }
 
-PICO_HOURS = "6:00–8:30 AM  |  5:00–7:30 PM"
+PICO_HOURS = "5:00 AM – 8:00 PM"
 
 WEEKDAY_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
