@@ -125,7 +125,7 @@ def list_reservations(
     items = q.offset((page - 1) * page_size).limit(page_size).all()
 
     return ReservationPage(
-        items=[ReservationList.build(r) for r in items],
+        items=[ReservationList.build(r, db) for r in items],
         total=total,
         page=page,
         page_size=page_size,
@@ -147,7 +147,7 @@ def create_reservation(body: ReservationCreate, db: Session = Depends(get_db)):
     gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
-    return ReservationRead.build(r, gcal_synced=gcal_synced)
+    return ReservationRead.build(r, db, gcal_synced=gcal_synced)
 
 
 def _auto_create_timeline(r: Reservation, db: Session) -> Optional[bool]:
@@ -187,7 +187,7 @@ def _auto_create_timeline(r: Reservation, db: Session) -> Optional[bool]:
 
 @router.get("/api/reservations/{reservation_id}", response_model=ReservationRead, dependencies=[Depends(get_current_user)])
 def get_reservation(reservation_id: int, db: Session = Depends(get_db)):
-    return ReservationRead.build(_get(reservation_id, db))
+    return ReservationRead.build(_get(reservation_id, db), db)
 
 
 @router.put("/api/reservations/{reservation_id}", response_model=ReservationRead, dependencies=[Depends(get_current_user)])
@@ -215,7 +215,7 @@ def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session
 
     gcal_synced = _sync_linked_timelines(r, db) if needs_timeline_sync else None
 
-    return ReservationRead.build(r, gcal_synced=gcal_synced)
+    return ReservationRead.build(r, db, gcal_synced=gcal_synced)
 
 
 def _sync_linked_timelines(reservation, db) -> Optional[bool]:
@@ -298,7 +298,7 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
-    return ReservationRead.build(r, gcal_synced=gcal_synced)
+    return ReservationRead.build(r, db, gcal_synced=gcal_synced)
 
 
 # ── Reservation Payments ──────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict
 
 from app.core.urls import build_upload_url
 from app.models.reservation import ReservationStatus
+from app.models.timeline_activity import TimelineActivity
+from app.services.event_span import effective_end_date
 
 _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
@@ -20,7 +22,7 @@ _SCALARS = [
 ]
 
 
-def _build(r) -> dict:
+def _build(r, db) -> dict:
     d = {f: getattr(r, f, None) for f in _SCALARS}
     d["remaining_balance"] = r.remaining_balance
     d["display_customer"] = r.display_customer
@@ -47,6 +49,11 @@ def _build(r) -> dict:
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
     d["timeline_id"] = tls[0].id if tls else None
     d["timeline_event_name"] = tls[0].event_name if tls else None
+    # EventTimeline.activities (the ORM relationship) doesn't reliably behave
+    # as a list here — same workaround used elsewhere (owner_settlements.py,
+    # calendar.py): query TimelineActivity directly.
+    activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all() if tls else []
+    d["event_end_date"] = effective_end_date(r.event_date, activities)
     return d
 
 
@@ -151,8 +158,8 @@ class ReservationRead(BaseModel):
     gcal_synced: Optional[bool] = None
 
     @classmethod
-    def build(cls, r, gcal_synced: Optional[bool] = None) -> "ReservationRead":
-        d = _build(r)
+    def build(cls, r, db, gcal_synced: Optional[bool] = None) -> "ReservationRead":
+        d = _build(r, db)
         d["gcal_synced"] = gcal_synced
         return cls.model_validate(d)
 
@@ -169,6 +176,7 @@ class ReservationList(BaseModel):
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     event_date: date
+    event_end_date: date
     total_amount: Decimal
     deposit_paid: Decimal
     remaining_balance: Decimal
@@ -182,8 +190,8 @@ class ReservationList(BaseModel):
     created_at: datetime
 
     @classmethod
-    def build(cls, r) -> "ReservationList":
-        return cls.model_validate(_build(r))
+    def build(cls, r, db) -> "ReservationList":
+        return cls.model_validate(_build(r, db))
 
 
 class ReservationPage(BaseModel):

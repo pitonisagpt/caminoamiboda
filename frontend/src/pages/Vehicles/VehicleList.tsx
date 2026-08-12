@@ -200,9 +200,15 @@ function SortableVehicleRow({
   const photo = vehiclePhoto(v);
 
   return (
-    <tr ref={setNodeRef} style={style} {...attributes} className="hover:bg-brand-50/40 transition-colors duration-150">
+    <tr
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      onClick={() => navigate(`/vehiculos/${v.id}`)}
+      className="hover:bg-brand-50/40 transition-colors duration-150 cursor-pointer"
+    >
       {/* Drag handle */}
-      <td className="pl-3 pr-1 py-2 w-8">
+      <td className="pl-3 pr-1 py-2 w-8" onClick={(e) => e.stopPropagation()}>
         {dragEnabled ? (
           <button
             {...listeners}
@@ -279,7 +285,7 @@ function SortableVehicleRow({
           {v.price_rionegro != null ? formatCOP(v.price_rionegro) : <span className="text-gray-400">No aplica</span>}
         </div>
       </td>
-      <td className="px-6 py-3">
+      <td className="px-6 py-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-1">
           {v.owner_contact && (
             <button
