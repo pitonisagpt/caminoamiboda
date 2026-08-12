@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 import { blogApi, type BlogPost } from '../../api/blog';
+import { AdminEditLink } from '../../components/AdminEditLink';
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -53,11 +54,14 @@ export default function BlogPostPage() {
         </button>
 
         <header className="mb-8">
-          {post.published_at && (
-            <p className="text-xs text-gray-400 mb-2">
-              {new Date(post.published_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
+          <div className="flex items-center gap-2 mb-2">
+            {post.published_at && (
+              <p className="text-xs text-gray-400">
+                {new Date(post.published_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            )}
+            <AdminEditLink to={`/blog-admin?edit=${post.id}`} />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-3">{post.title}</h1>
           {post.excerpt && <p className="text-gray-500 text-lg leading-relaxed">{post.excerpt}</p>}
         </header>

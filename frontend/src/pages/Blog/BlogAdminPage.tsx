@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, BookOpen, ExternalLink } from 'lucide-react';
 import { blogApi, type BlogPost, type BlogPostForm } from '../../api/blog';
@@ -22,6 +23,7 @@ export default function BlogAdminPage() {
   const [modal, setModal] = useState<{ open: boolean; editing?: BlogPost | null }>({ open: false });
   const [form, setForm] = useState<BlogPostForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const load = async () => {
     setLoading(true);
@@ -39,6 +41,21 @@ export default function BlogAdminPage() {
     });
     setModal({ open: true, editing: post });
   };
+
+  // Deep-link from a public page's "Editar" button (?edit=<id>) — open that
+  // post's modal as soon as the list has loaded, then clear the param so it
+  // doesn't reopen if the admin edits something else afterward.
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (!editId || posts.length === 0) return;
+    const match = posts.find(p => p.id === Number(editId));
+    if (match) openEdit(match);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('edit');
+      return next;
+    }, { replace: true });
+  }, [searchParams, posts]);
 
   const handleSave = async () => {
     setSaving(true);

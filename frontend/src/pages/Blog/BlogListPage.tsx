@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { blogApi, type BlogPost } from '../../api/blog';
+import { AdminEditLink } from '../../components/AdminEditLink';
 
 export default function BlogListPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -53,11 +54,14 @@ export default function BlogListPage() {
                   </div>
                 )}
                 <div className="space-y-2">
-                  {post.published_at && (
-                    <p className="text-xs text-gray-400">
-                      {new Date(post.published_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {post.published_at && (
+                      <p className="text-xs text-gray-400">
+                        {new Date(post.published_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                    <AdminEditLink to={`/blog-admin?edit=${post.id}`} />
+                  </div>
                   <h2 className="text-xl font-bold text-gray-900 group-hover:text-brand-500 transition-colors leading-snug">
                     {post.title}
                   </h2>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Pencil, Plus, Star, Trash2, X, Check } from 'lucide-react';
 import { reviewsApi, type Review, type ReviewForm } from '../../api/reviews';
 
@@ -26,6 +27,7 @@ export default function ReviewsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<ReviewForm>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const load = () =>
     reviewsApi.listAdmin().then((r: { data: Review[] }) => setReviews(r.data)).finally(() => setLoading(false));
@@ -38,6 +40,21 @@ export default function ReviewsPage() {
     setEditingId(r.id);
     setShowForm(true);
   };
+
+  // Deep-link from a public page's "Editar" button (?edit=<id>) — open that
+  // review's inline form as soon as the list has loaded, then clear the
+  // param so it doesn't reopen if the admin edits something else afterward.
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (!editId || reviews.length === 0) return;
+    const match = reviews.find(r => r.id === Number(editId));
+    if (match) openEdit(match);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('edit');
+      return next;
+    }, { replace: true });
+  }, [searchParams, reviews]);
 
   const handleSave = async () => {
     setSaving(true);

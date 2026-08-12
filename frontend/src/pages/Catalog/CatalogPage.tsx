@@ -9,6 +9,7 @@ import { RevealPricesModal } from "./RevealPricesModal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
 import { reviewsApi, type Review } from "../../api/reviews";
+import { AdminEditLink } from "../../components/AdminEditLink";
 import type { VehicleCategory, VehicleListItem } from "../../types/vehicle";
 import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
@@ -673,7 +674,8 @@ export function CatalogPage() {
           <h2 className="text-2xl font-brand text-brand-500 text-center">Lo que dicen nuestros clientes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map(r => (
-              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+              <div key={r.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+                <AdminEditLink to={`/admin/opiniones?edit=${r.id}`} className="absolute top-2 right-2" />
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map(s => (
                     <Star key={s} size={14} className={s <= r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />

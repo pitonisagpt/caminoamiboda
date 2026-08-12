@@ -3,6 +3,7 @@ import type { VehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
+import { AdminEditLink } from "../../components/AdminEditLink";
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
@@ -108,6 +109,8 @@ export function VehicleCard({
             </span>
           )}
         </div>
+
+        <AdminEditLink to={`/vehiculos/editar/${vehicle.id}`} className="absolute bottom-2 right-2" />
       </div>
 
       {/* Content */}
