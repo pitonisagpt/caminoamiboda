@@ -11,7 +11,7 @@ import { InstagramGrid } from "./InstagramGrid";
 import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import type { VehicleCategory, VehicleListItem } from "../../types/vehicle";
-import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { getUnlock, clearUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -469,12 +469,20 @@ export function CatalogPage() {
               </span>
               <p className="text-xs text-gray-500 mt-0.5">El valor final depende del recorrido — vías largas o de difícil acceso (como Guatapé o El Carmen de Viboral) pueden tener un costo adicional. Escríbenos y te lo confirmamos en minutos.</p>
             </div>
-            <button
-              onClick={() => setGateOpen(true)}
-              className="text-brand-700 hover:text-brand-800 font-semibold cursor-pointer shrink-0"
-            >
-              Cambiar fecha
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => setGateOpen(true)}
+                className="text-brand-700 hover:text-brand-800 font-semibold cursor-pointer"
+              >
+                Cambiar fecha
+              </button>
+              <button
+                onClick={() => { clearUnlock(); setUnlockState(null); }}
+                className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer"
+              >
+                Eliminar fecha
+              </button>
+            </div>
           </div>
         )}
 

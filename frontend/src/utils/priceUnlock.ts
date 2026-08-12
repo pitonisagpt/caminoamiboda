@@ -26,6 +26,10 @@ export function setUnlock(weddingDate: string, name: string, phone: string): voi
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ weddingDate, name, phone }));
 }
 
+export function clearUnlock(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 /**
  * Applies the +10%-per-year (compounded) rescheduling rule from the
  * reservation policy to a base (current-year) price, based on the wedding's
