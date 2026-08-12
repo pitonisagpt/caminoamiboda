@@ -62,37 +62,51 @@ interface Stop {
   time: string | null;
 }
 
-/** Every geocoded location in timeline order — one entry per location,
- * duplicates included, so a venue used twice (e.g. pickup AND reception at
- * the same place) produces the real "there and back" path.
+/** Every geocoded location in timeline order — one entry per *activity* that
+ * references a location, duplicates included, so a venue visited twice (e.g.
+ * pickup, then back to the same point at the end) produces the real "there
+ * and back" path instead of collapsing to a single one-way leg.
  *
- * Order comes from each location's first-referencing activity's display_order
- * (the timeline's own, user-reorderable order) rather than comparing the
- * `time` field as text — `time` is stored in 12h format without AM/PM
- * ("01:30" for 1:30 p.m.), so a plain string compare sorts it before "12:15"
- * p.m. and inverts the route whenever the event crosses noon. */
+ * Order comes from each activity's display_order (the timeline's own,
+ * user-reorderable order) rather than comparing the `time` field as text —
+ * `time` is stored in 12h format without AM/PM ("01:30" for 1:30 p.m.), so a
+ * plain string compare sorts it before "12:15" p.m. and inverts the route
+ * whenever the event crosses noon.
+ *
+ * Consecutive activities at the same location (e.g. "arrival" then "start
+ * activity" both at the venue) collapse into a single waypoint — but a
+ * location revisited later in the timeline still gets its own waypoint,
+ * which is what makes a round trip show both legs. */
 function buildOrderedWaypoints(locations: EventLocation[], activities: TimelineActivity[]): { loc: EventLocation; time: string | null }[] {
-  const withCoords = locations.filter((l): l is EventLocation & { lat: number; lng: number } => l.lat != null && l.lng != null);
+  const locById = new Map(
+    locations
+      .filter((l): l is EventLocation & { lat: number; lng: number } => l.lat != null && l.lng != null)
+      .map(l => [l.id, l] as const)
+  );
 
   const sortedActivities = [...activities].sort((a, b) => a.display_order - b.display_order);
-  const orderByLocation = new Map<number, number>();
-  const timeByLocation = new Map<number, string>();
-  sortedActivities.forEach(a => {
-    if (a.location_id == null || orderByLocation.has(a.location_id)) return;
-    orderByLocation.set(a.location_id, orderByLocation.size);
-    timeByLocation.set(a.location_id, a.time);
-  });
+  const waypoints: { loc: EventLocation; time: string | null }[] = [];
+  const referencedIds = new Set<number>();
 
-  return [...withCoords]
-    .sort((a, b) => {
-      const oa = orderByLocation.get(a.id);
-      const ob = orderByLocation.get(b.id);
-      if (oa != null && ob != null) return oa - ob;
-      if (oa != null) return -1;
-      if (ob != null) return 1;
-      return a.display_order - b.display_order;
-    })
-    .map(loc => ({ loc, time: timeByLocation.get(loc.id) ?? null }));
+  for (const a of sortedActivities) {
+    if (a.location_id == null) continue;
+    const loc = locById.get(a.location_id);
+    if (!loc) continue;
+    referencedIds.add(loc.id);
+    const last = waypoints[waypoints.length - 1];
+    if (last && last.loc.id === loc.id) continue;
+    waypoints.push({ loc, time: a.time });
+  }
+
+  // Locations never referenced by any activity still need to show up
+  // somewhere — append them in their own display_order, after the
+  // activity-ordered ones.
+  const leftovers = [...locById.values()]
+    .filter(l => !referencedIds.has(l.id))
+    .sort((a, b) => a.display_order - b.display_order)
+    .map(loc => ({ loc, time: null as string | null }));
+
+  return [...waypoints, ...leftovers];
 }
 
 /** Groups same-coordinate waypoints into one marker each (numbered by first
@@ -107,7 +121,7 @@ function buildStops(waypoints: { loc: EventLocation; time: string | null }[]): S
       indexByKey.set(key, stops.length);
       stops.push({ key, position: [loc.lat!, loc.lng!], locations: [loc], order: stops.length + 1, time });
     } else {
-      stops[idx].locations.push(loc);
+      if (!stops[idx].locations.some(l => l.id === loc.id)) stops[idx].locations.push(loc);
       if (time && (!stops[idx].time || time < stops[idx].time!)) stops[idx].time = time;
     }
   });
