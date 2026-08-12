@@ -349,6 +349,7 @@ def add_payment(reservation_id: int, body: PaymentCreate, db: Session = Depends(
     db.flush()
     db.refresh(r)
     _sync_deposit(r, db)
+    _sync_linked_timelines(r, db)
     db.refresh(payment)
     return payment
 
@@ -367,3 +368,4 @@ def delete_payment(reservation_id: int, payment_id: int, db: Session = Depends(g
     if r:
         db.refresh(r)
         _sync_deposit(r, db)
+        _sync_linked_timelines(r, db)
