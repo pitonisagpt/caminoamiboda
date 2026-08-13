@@ -63,9 +63,9 @@ export default function VehiclePhotoTooltip({
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
-            className="z-50 w-72 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
+            className="z-50 w-80 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
           >
-            <img src={photoUrl} alt={vehicleName} className="w-full h-40 object-cover" loading="lazy" />
+            <img src={photoUrl} alt={vehicleName} className="w-full h-48 object-cover" loading="lazy" />
             <div className="p-3 space-y-2">
               <div className="flex items-start gap-2">
                 <Car className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
