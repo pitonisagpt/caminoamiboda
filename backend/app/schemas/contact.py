@@ -11,6 +11,7 @@ class ContactCreate(BaseModel):
     contact_type: ContactType = ContactType.planner
     location: Optional[str] = None
     phone: Optional[str] = None
+    whatsapp_username: Optional[str] = None
     instagram: Optional[str] = None
     email: Optional[str] = None
     status: ContactStatus = ContactStatus.prospect
@@ -22,6 +23,7 @@ class ContactUpdate(BaseModel):
     contact_type: Optional[ContactType] = None
     location: Optional[str] = None
     phone: Optional[str] = None
+    whatsapp_username: Optional[str] = None
     instagram: Optional[str] = None
     email: Optional[str] = None
     status: Optional[ContactStatus] = None
@@ -36,6 +38,7 @@ class ContactRead(BaseModel):
     contact_type: ContactType
     location: Optional[str]
     phone: Optional[str]
+    whatsapp_username: Optional[str]
     instagram: Optional[str]
     email: Optional[str]
     status: ContactStatus

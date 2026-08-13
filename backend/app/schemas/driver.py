@@ -30,6 +30,7 @@ class DriverBase(BaseModel):
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
+    whatsapp_username: Optional[str] = None
 
     @field_validator("phone", "whatsapp", mode="before")
     @classmethod
@@ -52,6 +53,7 @@ class DriverUpdate(BaseModel):
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
+    whatsapp_username: Optional[str] = None
     email: Optional[str] = None
     driver_license_number: Optional[str] = None
     license_expiration_date: Optional[date] = None

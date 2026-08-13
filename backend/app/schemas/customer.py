@@ -30,6 +30,7 @@ class CustomerBase(BaseModel):
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
+    whatsapp_username: Optional[str] = None
 
     @field_validator("phone", "whatsapp", mode="before")
     @classmethod
@@ -58,6 +59,7 @@ class CustomerUpdate(BaseModel):
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
+    whatsapp_username: Optional[str] = None
     email: Optional[str] = None
     bride_email: Optional[str] = None
     groom_email: Optional[str] = None

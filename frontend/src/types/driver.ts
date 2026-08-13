@@ -6,6 +6,7 @@ export interface Driver {
   identification_number: string | null;
   phone: string | null;
   whatsapp: string | null;
+  whatsapp_username: string | null;
   email: string | null;
   driver_license_number: string | null;
   license_expiration_date: string | null;
@@ -21,6 +22,7 @@ export interface DriverFormData {
   identification_number: string;
   phone: string;
   whatsapp: string;
+  whatsapp_username: string;
   email: string;
   driver_license_number: string;
   license_expiration_date: string;

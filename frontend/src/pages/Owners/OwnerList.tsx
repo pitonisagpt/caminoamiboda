@@ -160,7 +160,12 @@ export function OwnerList() {
                     <td className="px-4 py-3 font-medium text-gray-900">{o.full_name}</td>
                     <td className="px-4 py-3 text-gray-500">{o.company_name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{o.identification_number ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-600">{o.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {o.phone ?? "—"}
+                      {o.whatsapp_username && (
+                        <p className="text-xs text-gray-400">@{o.whatsapp_username}</p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{o.email ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-600">{o.bank_name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">

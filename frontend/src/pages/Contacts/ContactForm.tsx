@@ -31,6 +31,7 @@ export default function ContactForm() {
       contact_type: 'planner',
       location: '',
       phone: '',
+      whatsapp_username: '',
       instagram: '',
       email: '',
       status: 'prospect',
@@ -48,6 +49,7 @@ export default function ContactForm() {
           contact_type: c.contact_type ?? 'planner',
           location: c.location ?? '',
           phone: c.phone ?? '',
+          whatsapp_username: c.whatsapp_username ?? '',
           instagram: c.instagram ?? '',
           email: c.email ?? '',
           status: c.status ?? 'prospect',
@@ -65,6 +67,7 @@ export default function ContactForm() {
         contact_type: data.contact_type,
         location: data.location || null,
         phone: data.phone || null,
+        whatsapp_username: data.whatsapp_username || null,
         instagram: data.instagram || null,
         email: data.email || null,
         status: data.status,
@@ -175,6 +178,14 @@ export default function ContactForm() {
               {...register('email')}
               type="email"
               placeholder="contacto@ejemplo.com"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Usuario de WhatsApp</label>
+            <input
+              {...register('whatsapp_username')}
+              placeholder="usuario.whatsapp"
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>

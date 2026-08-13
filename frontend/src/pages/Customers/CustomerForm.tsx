@@ -27,7 +27,7 @@ export function CustomerForm() {
     defaultValues: {
       bride_name: "", groom_name: "", main_contact_name: "",
       identification_number: "",
-      phone: "", whatsapp: "", email: "", bride_email: "", groom_email: "",
+      phone: "", whatsapp: "", whatsapp_username: "", email: "", bride_email: "", groom_email: "",
       wedding_date: "", instagram: "", referral_source: "", notes: "",
     },
   });
@@ -43,6 +43,7 @@ export function CustomerForm() {
         identification_number: c.identification_number ?? "",
         phone: c.phone ?? "",
         whatsapp: c.whatsapp ?? "",
+        whatsapp_username: c.whatsapp_username ?? "",
         email: c.email ?? "",
         bride_email: c.bride_email ?? "",
         groom_email: c.groom_email ?? "",
@@ -64,6 +65,7 @@ export function CustomerForm() {
         identification_number: data.identification_number || null,
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
+        whatsapp_username: data.whatsapp_username || null,
         email: data.email || null,
         bride_email: data.bride_email || null,
         groom_email: data.groom_email || null,
@@ -134,6 +136,7 @@ export function CustomerForm() {
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
+          <Input label="Usuario de WhatsApp" {...register("whatsapp_username")} placeholder="usuario.whatsapp" />
           <Input label="Email" {...register("email")} type="email" placeholder="maria@ejemplo.com" />
           <Input label="Instagram" {...register("instagram")} placeholder="@mariaycarlos" />
         </CardBody>

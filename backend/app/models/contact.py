@@ -29,6 +29,7 @@ class Contact(Base):
     contact_type: Mapped[ContactType] = mapped_column(Enum(ContactType), default=ContactType.planner, nullable=False)
     location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    whatsapp_username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     status: Mapped[ContactStatus] = mapped_column(Enum(ContactStatus), default=ContactStatus.prospect, nullable=False)

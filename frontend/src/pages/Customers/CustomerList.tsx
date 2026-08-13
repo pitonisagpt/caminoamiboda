@@ -239,7 +239,12 @@ export function CustomerList() {
                       {[c.bride_name, c.groom_name].filter(Boolean).join(" & ") || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(c.wedding_date)}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {c.phone ?? "—"}
+                      {c.whatsapp_username && (
+                        <p className="text-xs text-gray-400">@{c.whatsapp_username}</p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
                       <div className="flex flex-col gap-1">
                         <span>{c.referral_source ?? "—"}</span>

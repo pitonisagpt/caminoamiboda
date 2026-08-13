@@ -119,7 +119,12 @@ export function DriverList() {
                     <tr key={d.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-900">{d.full_name}</td>
                       <td className="px-4 py-3 text-gray-500">{d.identification_number ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{d.phone ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {d.phone ?? "—"}
+                        {d.whatsapp_username && (
+                          <p className="text-xs text-gray-400">@{d.whatsapp_username}</p>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 font-mono text-xs">{d.driver_license_number ?? "—"}</td>
                       <td className="px-4 py-3">
                         <span className={expiredSoon ? "text-red-500 font-semibold" : "text-gray-600"}>

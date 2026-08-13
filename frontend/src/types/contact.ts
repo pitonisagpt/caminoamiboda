@@ -33,6 +33,7 @@ export interface Contact {
   contact_type: ContactType;
   location: string | null;
   phone: string | null;
+  whatsapp_username: string | null;
   instagram: string | null;
   email: string | null;
   status: ContactStatus;
@@ -48,6 +49,7 @@ export interface ContactFormData {
   contact_type: ContactType;
   location: string;
   phone: string;
+  whatsapp_username: string;
   instagram: string;
   email: string;
   status: ContactStatus;

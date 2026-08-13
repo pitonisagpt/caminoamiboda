@@ -19,7 +19,7 @@ export function OwnerForm() {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<VehicleOwnerFormData>({
     defaultValues: {
-      full_name: "", company_name: "", identification_number: "", phone: "", whatsapp: "",
+      full_name: "", company_name: "", identification_number: "", phone: "", whatsapp: "", whatsapp_username: "",
       email: "", bank_name: "", account_type: "", account_number: "",
     },
   });
@@ -34,6 +34,7 @@ export function OwnerForm() {
         identification_number: o.identification_number ?? "",
         phone: o.phone ?? "",
         whatsapp: o.whatsapp ?? "",
+        whatsapp_username: o.whatsapp_username ?? "",
         email: o.email ?? "",
         bank_name: o.bank_name ?? "",
         account_type: o.account_type ?? "",
@@ -51,6 +52,7 @@ export function OwnerForm() {
         identification_number: data.identification_number || null,
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
+        whatsapp_username: data.whatsapp_username || null,
         email: data.email || null,
         bank_name: data.bank_name || null,
         account_type: data.account_type || null,
@@ -110,6 +112,7 @@ export function OwnerForm() {
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
+          <Input label="Usuario de WhatsApp" {...register("whatsapp_username")} placeholder="usuario.whatsapp" />
           <Input label="Email" {...register("email")} type="email" placeholder="jaime@ejemplo.com" />
         </CardBody>
       </Card>

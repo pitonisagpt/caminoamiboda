@@ -19,7 +19,7 @@ export function DriverForm() {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<DriverFormData>({
     defaultValues: {
-      full_name: "", identification_number: "", phone: "", whatsapp: "",
+      full_name: "", identification_number: "", phone: "", whatsapp: "", whatsapp_username: "",
       email: "", driver_license_number: "", license_expiration_date: "",
       authorized_vehicles: "", notes: "", status: "active",
     },
@@ -34,6 +34,7 @@ export function DriverForm() {
         identification_number: d.identification_number ?? "",
         phone: d.phone ?? "",
         whatsapp: d.whatsapp ?? "",
+        whatsapp_username: d.whatsapp_username ?? "",
         email: d.email ?? "",
         driver_license_number: d.driver_license_number ?? "",
         license_expiration_date: d.license_expiration_date ?? "",
@@ -52,6 +53,7 @@ export function DriverForm() {
         identification_number: data.identification_number || null,
         phone: data.phone || null,
         whatsapp: data.whatsapp || null,
+        whatsapp_username: data.whatsapp_username || null,
         email: data.email || null,
         driver_license_number: data.driver_license_number || null,
         license_expiration_date: data.license_expiration_date || null,
@@ -120,6 +122,7 @@ export function DriverForm() {
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Teléfono" {...register("phone")} placeholder="312 345 6789" />
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
+          <Input label="Usuario de WhatsApp" {...register("whatsapp_username")} placeholder="usuario.whatsapp" />
           <Input label="Email" {...register("email")} type="email" placeholder="juan@ejemplo.com" />
         </CardBody>
       </Card>
