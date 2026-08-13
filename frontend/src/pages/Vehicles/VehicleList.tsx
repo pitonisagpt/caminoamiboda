@@ -243,6 +243,7 @@ function SortableVehicleRow({
       </td>
       <td className="px-4 py-3">
         <span className="font-mono text-brand-600 font-semibold text-xs tracking-wide">{v.license_plate}</span>
+        <p className="text-[11px] text-gray-400 font-mono">{v.sku}</p>
       </td>
       <td className="px-4 py-3">
         <div className="font-medium text-gray-900">{v.brand}</div>
@@ -460,7 +461,7 @@ export function VehicleList() {
     const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
 
     const filtered = vehicles
-      .filter(v => !q || [v.license_plate, v.brand, v.model_line, v.color, v.year?.toString(), v.owner_name]
+      .filter(v => !q || [v.license_plate, v.sku, v.brand, v.model_line, v.color, v.year?.toString(), v.owner_name]
         .some(f => f?.toLowerCase().includes(q)))
       .filter(v => filters.type === "all" || v.vehicle_type === filters.type)
       .filter(v => filters.brands.length === 0 || filters.brands.includes(v.brand))
@@ -598,7 +599,7 @@ export function VehicleList() {
             type="text"
             value={inputSearch}
             onChange={e => handleSearchChange(e.target.value)}
-            placeholder="Buscar por placa, marca, color…"
+            placeholder="Buscar por placa, código, marca, color…"
             className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           {inputSearch && (

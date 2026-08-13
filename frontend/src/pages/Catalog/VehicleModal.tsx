@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X, MapPin, Lock } from "lucide-react";
-import type { VehicleListItem } from "../../types/vehicle";
+import type { PublicVehicleListItem } from "../../types/vehicle";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
@@ -31,7 +32,7 @@ function formatCOP(amount: number) {
 }
 
 interface Props {
-  vehicle: VehicleListItem;
+  vehicle: PublicVehicleListItem;
   onClose: () => void;
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
@@ -66,9 +67,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
     vehicle.score_romance,
   ];
 
-  const whatsappMsg = encodeURIComponent(
-    `Hola, estoy interesado en el ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""} (${vehicle.license_plate}). ¿Está disponible?`
-  );
+  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
 
   return (
     <div

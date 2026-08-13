@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Car } from "lucide-react";
 import { vehiclesApi } from "../../api/vehicles";
-import type { VehicleListItem } from "../../types/vehicle";
+import type { PublicVehicleListItem } from "../../types/vehicle";
 
 // Shared across every chip instance in the widget so we fetch the public
 // vehicle list at most once per page load, regardless of how many
 // [VEHICLE:id] tags appear across the conversation.
-let vehiclesPromise: Promise<VehicleListItem[]> | null = null;
-function loadVehicles(): Promise<VehicleListItem[]> {
+let vehiclesPromise: Promise<PublicVehicleListItem[]> | null = null;
+function loadVehicles(): Promise<PublicVehicleListItem[]> {
   if (!vehiclesPromise) {
     vehiclesPromise = vehiclesApi.list().then(res => res.data);
   }
@@ -21,7 +21,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export function VehicleChip({ id }: { id: number }) {
-  const [vehicle, setVehicle] = useState<VehicleListItem | null | undefined>(undefined);
+  const [vehicle, setVehicle] = useState<PublicVehicleListItem | null | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;

@@ -10,7 +10,7 @@ import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
 import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
-import type { VehicleCategory, VehicleListItem } from "../../types/vehicle";
+import type { VehicleCategory, PublicVehicleListItem } from "../../types/vehicle";
 import { getUnlock, clearUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
   COLOR_HEX,
@@ -219,17 +219,17 @@ function formatCOP(amount: number) {
 // ─── Main page ─────────────────────────────────────────────────────────────
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
+  const [vehicles, setVehicles] = useState<PublicVehicleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [selected, setSelected] = useState<VehicleListItem | null>(null);
+  const [selected, setSelected] = useState<PublicVehicleListItem | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [unlock, setUnlockState] = useState<PriceUnlock | null>(() => getUnlock());
   const [gateOpen, setGateOpen] = useState(false);
   const location = useLocation();
 
-  const effectivePrice = (v: VehicleListItem, locations: string[]): number | null => {
+  const effectivePrice = (v: PublicVehicleListItem, locations: string[]): number | null => {
     const base = vehiclePrice(v, locations);
     if (base === null) return null;
     return unlock ? priceForYear(base, unlock.weddingDate) : base;

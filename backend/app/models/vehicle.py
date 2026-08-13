@@ -38,6 +38,7 @@ class Vehicle(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     license_plate: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    sku: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     brand: Mapped[str] = mapped_column(String(100))
     model_line: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     color: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

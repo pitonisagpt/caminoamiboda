@@ -72,7 +72,7 @@ class VehicleUpdate(BaseModel):
 
 
 _BASE_SCALARS = [
-    "id", "license_plate", "brand", "model_line", "color", "year",
+    "id", "license_plate", "sku", "brand", "model_line", "color", "year",
     "vehicle_type", "body_type", "category", "capacity", "location", "status",
     "display_order",
     "price_medellin", "price_rionegro",
@@ -113,6 +113,7 @@ def _build_dict(vehicle, extra: list) -> dict:
 
 class VehicleRead(VehicleBase):
     id: int
+    sku: str
     owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
@@ -136,9 +137,10 @@ class VehicleRead(VehicleBase):
 
 
 class VehicleList(BaseModel):
-    """Lightweight list item for both admin and public."""
+    """Lightweight list item for the admin — includes plate + owner contact info."""
     id: int
     license_plate: str
+    sku: str
     brand: str
     model_line: Optional[str] = None
     color: Optional[str] = None
@@ -171,4 +173,41 @@ class VehicleList(BaseModel):
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
         d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "is_company_owned", "is_featured", "allowed_locations"])
+        return cls.model_validate(d)
+
+
+class VehiclePublicList(BaseModel):
+    """Public catalog list item — never includes the license plate or the
+    vehicle owner's name/contact info (a real person's phone number)."""
+    id: int
+    sku: str
+    brand: str
+    model_line: Optional[str] = None
+    color: Optional[str] = None
+    year: Optional[int] = None
+    vehicle_type: VehicleType
+    body_type: Optional[str] = None
+    category: Optional[VehicleCategory] = None
+    capacity: Optional[int] = None
+    location: VehicleLocation
+    status: VehicleStatus
+    display_order: int = 0
+    price_medellin: Optional[float] = None
+    price_rionegro: Optional[float] = None
+    score_elegance: Optional[int] = None
+    score_exclusivity: Optional[int] = None
+    score_photogeny: Optional[int] = None
+    score_comfort: Optional[int] = None
+    score_romance: Optional[int] = None
+    score_total: Optional[int] = None
+    pico_y_placa_day: Optional[str] = None
+    is_company_owned: bool = False
+    is_featured: bool = False
+    allowed_locations: Optional[List[str]] = None
+    bride_description: Optional[str] = None
+    photos: List[VehiclePhotoRead] = []
+
+    @classmethod
+    def from_orm_with_pico(cls, vehicle) -> "VehiclePublicList":
+        d = _build_dict(vehicle, ["is_company_owned", "is_featured", "allowed_locations"])
         return cls.model_validate(d)

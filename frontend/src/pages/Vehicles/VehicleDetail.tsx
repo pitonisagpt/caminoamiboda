@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BarChart2, Calendar, Edit, Loader2, MessageCircle } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, BarChart2, Calendar, Edit, Loader2, MessageCircle, PhoneCall } from 'lucide-react';
 import { vehiclesApi } from '../../api/vehicles';
 import { reservationsApi } from '../../api/reservations';
 import type { Vehicle } from '../../types/vehicle';
@@ -54,6 +54,11 @@ function buildWaUrl(phone: string | null | undefined, message: string): string {
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
+function buildAvailabilityCheckMsg(vehicle: Vehicle, fechaISO: string): string {
+  const name = `${vehicle.color ? `${vehicle.color} ` : ''}${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ''}`;
+  return `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${name} (${vehicle.license_plate}) para el ${formatDateLong(fechaISO)}?`;
+}
+
 function buildBookingsMsg(vehicle: Vehicle, bookings: ReservationListItem[]): string {
   const vehicleName = [vehicle.brand, vehicle.model_line, vehicle.color].filter(Boolean).join(' ');
   const lines: string[] = [
@@ -81,6 +86,8 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 export default function VehicleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fecha = searchParams.get('fecha');
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [bookings, setBookings] = useState<ReservationListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,11 +154,32 @@ export default function VehicleDetail() {
         </div>
       </div>
 
+      {/* Un cliente preguntó por este vehículo con fecha */}
+      {fecha && (
+        <div className="flex items-center justify-between flex-wrap gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
+          <p className="text-sm text-brand-800">
+            Un cliente preguntó por este vehículo para el <span className="font-semibold capitalize">{formatDateLong(fecha)}</span>.
+          </p>
+          {vehicle.owner_contact && (
+            <a
+              href={buildWaUrl(vehicle.owner_contact, buildAvailabilityCheckMsg(vehicle, fecha))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer shrink-0"
+            >
+              <PhoneCall size={13} />
+              Consultar disponibilidad con el propietario
+            </a>
+          )}
+        </div>
+      )}
+
       {/* Basic info */}
       <Card>
         <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Información básica</h2></CardHeader>
         <CardBody className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Placa" value={vehicle.license_plate} />
+          <Field label="Código interno" value={vehicle.sku} />
           <Field label="Marca" value={vehicle.brand} />
           <Field label="Línea / Modelo" value={vehicle.model_line} />
           <Field label="Color" value={vehicle.color} />

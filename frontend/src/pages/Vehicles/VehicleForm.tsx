@@ -50,6 +50,7 @@ export function VehicleForm() {
   const [saving, setSaving] = useState(false);
   const [owners, setOwners] = useState<VehicleOwner[]>([]);
   const [ownerContact, setOwnerContact] = useState("");
+  const [sku, setSku] = useState<string | null>(null);
   const [legacyOwnerName, setLegacyOwnerName] = useState<string | null>(null);
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
 
@@ -96,6 +97,7 @@ export function VehicleForm() {
     vehiclesApi.get(Number(id)).then((res) => {
       const v = res.data;
       setOwnerContact(v.owner_contact ?? "");
+      setSku(v.sku);
       setLegacyOwnerName(!v.owner_id && v.owner_name ? v.owner_name : null);
       setAllowedLocations(v.allowed_locations ?? []);
       reset({
@@ -224,6 +226,15 @@ export function VehicleForm() {
             placeholder="ABC123"
             className="uppercase"
           />
+          {sku && (
+            <Input
+              label="Código interno"
+              value={sku}
+              onChange={() => {}}
+              readOnly
+              disabled
+            />
+          )}
           <Input label="Marca *" {...register("brand", { required: "La marca es obligatoria" })} error={errors.brand?.message} placeholder="Chevrolet" />
           <Input label="Línea / Modelo" {...register("model_line")} placeholder="Bel Air" />
           <Input label="Color" {...register("color")} placeholder="Rosa coral" />

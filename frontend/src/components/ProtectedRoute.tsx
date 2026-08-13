@@ -23,7 +23,7 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
     // audience) — an anonymous visitor to the bare domain should land on
     // the public site, not the admin login screen.
     if (location.pathname === "/") return <Navigate to="/catalogo" replace />;
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   if (adminOnly && user.role !== "admin") return <Navigate to="/" replace />;
 

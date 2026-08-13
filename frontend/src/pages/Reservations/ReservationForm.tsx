@@ -61,7 +61,7 @@ export default function ReservationForm() {
   useEffect(() => {
     customersApi.list().then(r => setCustomers(r.data));
     contactsApi.list().then(r => setContacts(r.data));
-    vehiclesApi.list({}).then(r => setVehicles(r.data));
+    vehiclesApi.listAll({ status: 'active' }).then(r => setVehicles(r.data));
     driversApi.list().then(r => setDrivers(r.data));
     vehicleOwnersApi.listBasic().then(r => setOwners(r.data));
 

@@ -1,4 +1,4 @@
-import type { Vehicle, VehicleListItem, VehicleLocation, VehiclePhoto, VehicleStatus, VehicleType } from "../types/vehicle";
+import type { PublicVehicleListItem, Vehicle, VehicleListItem, VehicleLocation, VehiclePhoto, VehicleStatus, VehicleType } from "../types/vehicle";
 import { api } from "./index";
 
 export interface VehicleStatsSummary {
@@ -35,7 +35,7 @@ interface ListParams {
 
 export const vehiclesApi = {
   list(params?: ListParams) {
-    return api.get<VehicleListItem[]>("/vehicles", { params });
+    return api.get<PublicVehicleListItem[]>("/vehicles", { params });
   },
 
   listAll(params?: ListParams) {

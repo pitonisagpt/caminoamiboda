@@ -8,13 +8,23 @@ from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
-from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehicleRead, VehicleUpdate
+from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehiclePublicList, VehicleRead, VehicleUpdate
 
 router = APIRouter(prefix="/api/vehicles", tags=["vehicles"], redirect_slashes=False)
 
 
 def _serialize_list(vehicles) -> list:
     return [VehicleList.from_orm_with_pico(v) for v in vehicles]
+
+
+def _serialize_public_list(vehicles) -> list:
+    return [VehiclePublicList.from_orm_with_pico(v) for v in vehicles]
+
+
+def _next_sku(db: Session) -> str:
+    last = db.query(Vehicle).filter(Vehicle.sku.like("CAB-%")).order_by(Vehicle.sku.desc()).first()
+    seq = int(last.sku.split("-")[-1]) + 1 if last else 1
+    return f"CAB-{seq:03d}"
 
 
 def _normalize_display_order(db: Session) -> None:
@@ -32,7 +42,7 @@ def _normalize_display_order(db: Session) -> None:
     db.commit()
 
 
-@router.get("", response_model=List[VehicleList])
+@router.get("", response_model=List[VehiclePublicList])
 def list_vehicles(
     status: Optional[VehicleStatus] = Query(None),
     location: Optional[VehicleLocation] = Query(None),
@@ -49,7 +59,7 @@ def list_vehicles(
         query = query.filter(Vehicle.location == location)
     if vehicle_type:
         query = query.filter(Vehicle.vehicle_type == vehicle_type)
-    return _serialize_list(query.all())
+    return _serialize_public_list(query.all())
 
 
 @router.get("/all", response_model=List[VehicleList], dependencies=[Depends(get_current_user)])
@@ -95,6 +105,7 @@ def create_vehicle(payload: VehicleCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Ya existe un vehículo con esa placa")
     vehicle = Vehicle(**payload.model_dump())
     vehicle.license_plate = vehicle.license_plate.upper()
+    vehicle.sku = _next_sku(db)
     db.add(vehicle)
     db.commit()
     db.refresh(vehicle)

@@ -10,7 +10,7 @@ import { reservationsApi } from '../../api/reservations';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
 import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { vehiclesApi } from '../../api/vehicles';
-import type { VehicleListItem } from '../../types/vehicle';
+import type { PublicVehicleListItem } from '../../types/vehicle';
 import { contactsApi } from '../../api/contacts';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import Combobox from '../../components/ui/Combobox';
@@ -137,7 +137,7 @@ export default function ReservationList() {
   // Load vehicles for filter combobox
   useEffect(() => {
     vehiclesApi.list().then(r => {
-      const opts: ComboboxOption[] = (r.data as VehicleListItem[]).map(v => ({
+      const opts: ComboboxOption[] = (r.data as PublicVehicleListItem[]).map(v => ({
         value: String(v.id),
         label: [v.brand, v.model_line, v.color].filter(Boolean).join(' '),
       }));

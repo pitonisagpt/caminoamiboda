@@ -55,7 +55,7 @@ export function canonicalColor(raw: string | null): string | null {
   return COLOR_MAP[raw] ?? null;
 }
 
-export function vehiclePrice(v: VehicleListItem, locations: string[]): number | null {
+export function vehiclePrice(v: Pick<VehicleListItem, "price_medellin" | "price_rionegro">, locations: string[]): number | null {
   if (locations.length === 1 && locations[0] === "rionegro") {
     return v.price_rionegro ?? v.price_medellin ?? null;
   }

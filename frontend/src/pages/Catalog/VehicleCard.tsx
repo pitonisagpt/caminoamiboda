@@ -1,7 +1,8 @@
 import { Star, Lock } from "lucide-react";
-import type { VehicleListItem } from "../../types/vehicle";
+import type { PublicVehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 import { AdminEditLink } from "../../components/AdminEditLink";
 
@@ -47,16 +48,14 @@ export function VehicleCard({
   unlock,
   onRequestUnlock,
 }: {
-  vehicle: VehicleListItem;
+  vehicle: PublicVehicleListItem;
   onClick?: () => void;
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
 }) {
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
-  const whatsappMsg = encodeURIComponent(
-    `Hola, estoy interesado en el ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""} (${vehicle.license_plate}). ¿Está disponible?`
-  );
+  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
 
   const scores = [
     vehicle.score_elegance ?? null,

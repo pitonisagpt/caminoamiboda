@@ -17,6 +17,7 @@ export interface VehiclePhoto {
 export interface VehicleListItem {
   id: number;
   license_plate: string;
+  sku: string;
   brand: string;
   model_line: string | null;
   color: string | null;
@@ -40,6 +41,40 @@ export interface VehicleListItem {
   owner_id: number | null;
   owner_name: string | null;
   owner_contact: string | null;
+  is_company_owned: boolean;
+  is_featured: boolean;
+  allowed_locations: string[] | null;
+  bride_description: string | null;
+  photos: VehiclePhoto[];
+}
+
+// Public catalog shape — never carries the license plate or the vehicle
+// owner's name/contact info (a real person's phone number). Use this for
+// anything rendered on /catalogo or fed by the unauthenticated
+// GET /api/vehicles endpoint.
+export interface PublicVehicleListItem {
+  id: number;
+  sku: string;
+  brand: string;
+  model_line: string | null;
+  color: string | null;
+  year: number | null;
+  vehicle_type: VehicleType;
+  body_type: string | null;
+  category: VehicleCategory | null;
+  capacity: number | null;
+  display_order: number;
+  location: VehicleLocation;
+  status: VehicleStatus;
+  price_medellin: number | null;
+  price_rionegro: number | null;
+  score_elegance: number | null;
+  score_exclusivity: number | null;
+  score_photogeny: number | null;
+  score_comfort: number | null;
+  score_romance: number | null;
+  score_total: number | null;
+  pico_y_placa_day: string | null;
   is_company_owned: boolean;
   is_featured: boolean;
   allowed_locations: string[] | null;
