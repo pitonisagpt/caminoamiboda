@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, X, MapPin, Lock } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight, X, MapPin, Lock, PhoneCall } from "lucide-react";
 import type { PublicVehicleListItem } from "../../types/vehicle";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
+import { AdminEditLink } from "../../components/AdminEditLink";
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
@@ -41,6 +43,8 @@ interface Props {
 export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Props) {
   const photos = (vehicle.photos ?? []).filter((p) => p.is_visible);
   const [current, setCurrent] = useState(0);
+  const [searchParams] = useSearchParams();
+  const fecha = searchParams.get("fecha");
 
   const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
@@ -177,6 +181,13 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
                   >
                     Pico y placa {vehicle.pico_y_placa_day}
                   </span>
+                )}
+                {fecha && (
+                  <AdminEditLink
+                    to={`/vehiculos/${vehicle.id}?fecha=${fecha}`}
+                    label="Contactar propietario"
+                    icon={PhoneCall}
+                  />
                 )}
               </div>
               <h2 className="text-xl font-bold text-gray-900 leading-tight">
