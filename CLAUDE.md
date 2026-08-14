@@ -46,15 +46,27 @@ Can manage:
 - Finance and reports
 
 ### Operations Assistant
+Implemented as the `operations` role (`backend/app/models/user.py`). The
+backend has no granular permission system — every router is either open to
+any authenticated user or gated by the same binary `require_admin`
+dependency (`backend/app/core/dependencies.py`) used for the admin role.
+`operations` is enforced entirely by what the frontend shows/hides:
 Can:
-- Create quotes
-- Create reservations
+- Create and manage quotes
+- Create and manage reservations
 - View calendar
-- View customers
-- Manage event logistics
+- Manage customers, contacts, and drivers
+- Manage event logistics (timeline / minuto a minuto)
+- View vehicles and drivers (read-only, needed for pickers)
 Cannot:
+- View the Dashboard (`/`, redirected to `/calendario` instead) or the
+  Finance Dashboard (`/finanzas`)
+- View or manage billing documents (`/documentos`)
+- View owner payouts/settlements
+- See the owner/company revenue split ("empresa X%", "Distribución 70/30")
+  on any reservation or dashboard list — only the plain total/deposit/balance
+- Create, edit, or delete vehicles or vehicle owners (admin-only)
 - Modify financial settings
-- View owner payouts
 
 ### Driver
 Can access only:

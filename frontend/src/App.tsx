@@ -1,7 +1,7 @@
-import { BrowserRouter, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./pages/Layout";
 import { LoginPage } from "./pages/Login/LoginPage";
@@ -48,6 +48,15 @@ import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
 import ReviewsPage from "./pages/Admin/ReviewsPage";
 import { timelinesApi } from "./api/timelines";
 
+// The Dashboard is finance-heavy and fully admin-only on the backend — a
+// non-admin landing on "/" would just see every widget fail with a 403.
+// Send them somewhere that actually works for their role instead.
+function HomeRedirect() {
+  const { isAdmin } = useAuth();
+  if (!isAdmin) return <Navigate to="/calendario" replace />;
+  return <DashboardPage />;
+}
+
 function TimelineRedirect() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -93,13 +102,13 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardPage />} />
+            <Route index element={<HomeRedirect />} />
 
-            {/* Billing Documents */}
-            <Route path="documentos" element={<BillingDocumentList />} />
-            <Route path="documentos/nuevo" element={<BillingDocumentForm />} />
-            <Route path="documentos/editar/:id" element={<BillingDocumentForm />} />
-            <Route path="documentos/:id" element={<BillingDocumentDetail />} />
+            {/* Billing Documents — admin only */}
+            <Route path="documentos" element={<ProtectedRoute adminOnly><BillingDocumentList /></ProtectedRoute>} />
+            <Route path="documentos/nuevo" element={<ProtectedRoute adminOnly><BillingDocumentForm /></ProtectedRoute>} />
+            <Route path="documentos/editar/:id" element={<ProtectedRoute adminOnly><BillingDocumentForm /></ProtectedRoute>} />
+            <Route path="documentos/:id" element={<ProtectedRoute adminOnly><BillingDocumentDetail /></ProtectedRoute>} />
 
             {/* Vehicles */}
             <Route path="vehiculos" element={<VehicleList />} />

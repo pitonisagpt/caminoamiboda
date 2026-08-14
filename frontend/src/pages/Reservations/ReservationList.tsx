@@ -17,6 +17,7 @@ import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
 import ReservationKanban from './ReservationKanban';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
   { value: 'all',              label: 'Todas' },
@@ -65,6 +66,7 @@ function localToday() {
 
 export default function ReservationList() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [data, setData] = useState<ReservationPage | null>(null);
@@ -448,11 +450,11 @@ export default function ReservationList() {
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                    <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    {isAdmin && <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>}
                   </td>
                   <td className={`px-4 py-3 text-right whitespace-nowrap ${Number(r.remaining_balance) > 0 ? 'text-red-500' : 'text-green-600'}`}>
                     <p className="font-semibold">{formatCOP(r.remaining_balance)}</p>
-                    <p className="text-xs text-brand-700">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    {isAdmin && <p className="text-xs text-brand-700">empresa {formatCOP(Number(r.remaining_balance) * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1 items-start">

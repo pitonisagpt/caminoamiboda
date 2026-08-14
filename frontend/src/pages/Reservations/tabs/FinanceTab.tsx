@@ -296,19 +296,19 @@ export default function FinanceTab({
           <div className="bg-gray-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-lg font-bold text-gray-900">{formatCOP(reservation.total_amount)}</p>
-            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>}
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Depósitos</p>
             <p className="text-lg font-bold text-green-700">{formatCOP(totalDeposit)}</p>
-            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>}
           </div>
           <div className={`rounded-xl p-4 text-center ${remaining > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
             <p className={`text-lg font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-700'}`}>
               {formatCOP(remaining)}
             </p>
-            <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>}
           </div>
         </div>
 
@@ -326,8 +326,8 @@ export default function FinanceTab({
           </div>
         </div>
 
-        {/* Split */}
-        {reservation.total_amount > 0 && (
+        {/* Split — admin only, same boundary as the owner settlement below */}
+        {isAdmin && reservation.total_amount > 0 && (
           <div className="border-t border-gray-100 pt-4 space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
               {reservation.vehicle_is_company_owned ? 'Distribución (100% empresa)' : 'Distribución (70/30)'}

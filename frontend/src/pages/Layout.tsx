@@ -144,7 +144,9 @@ export function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-          <NavItem to="/" end icon={LayoutDashboard} label="Dashboard" onClick={closeSidebar} collapsed={c} />
+          {isAdmin && (
+            <NavItem to="/" end icon={LayoutDashboard} label="Dashboard" onClick={closeSidebar} collapsed={c} />
+          )}
 
           <SidebarSection label="Operaciones" collapsed={c} />
           <NavItem to="/calendario"   icon={Calendar}      label="Calendario"   onClick={closeSidebar} collapsed={c} />
@@ -169,9 +171,13 @@ export function Layout() {
             </>
           )}
 
-          <SidebarSection label="Finanzas" collapsed={c} />
-          <NavItem to="/finanzas"   icon={TrendingUp} label="Dashboard Financiero" onClick={closeSidebar} collapsed={c} />
-          <NavItem to="/documentos" icon={FileText}   label="Cuentas de Cobro"     onClick={closeSidebar} collapsed={c} />
+          {isAdmin && (
+            <>
+              <SidebarSection label="Finanzas" collapsed={c} />
+              <NavItem to="/finanzas"   icon={TrendingUp} label="Dashboard Financiero" onClick={closeSidebar} collapsed={c} />
+              <NavItem to="/documentos" icon={FileText}   label="Cuentas de Cobro"     onClick={closeSidebar} collapsed={c} />
+            </>
+          )}
         </nav>
 
         {/* User footer + desktop toggle */}

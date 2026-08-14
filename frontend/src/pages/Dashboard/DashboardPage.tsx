@@ -8,6 +8,7 @@ import AnalyticsSection from './AnalyticsSection';
 import VehicleStatsSection from './VehicleStatsSection';
 import DateRangeFilter, { DEFAULT_RANGE, buildPresets, type DateRange } from './DateRangeFilter';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
+import { useAuth } from '../../context/AuthContext';
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -29,6 +30,7 @@ const STATUS_ORDER: ReservationStatus[] = [
 ];
 
 export default function DashboardPage() {
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<DashboardSummary | null>(null);
@@ -217,7 +219,7 @@ export default function DashboardPage() {
                     {r.remaining_balance > 0 && (
                       <p className="text-xs text-red-500 font-medium">{formatCOP(r.remaining_balance)} pendiente</p>
                     )}
-                    <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                    {isAdmin && <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>}
                   </div>
                 </div>
               ))}
@@ -374,7 +376,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <p className="font-semibold text-gray-900">{formatCOP(r.total_amount)}</p>
-                          <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>
+                          {isAdmin && <p className="text-xs text-brand-700">empresa {formatCOP(r.total_amount * (r.vehicle_is_company_owned ? 1 : 0.3))}</p>}
                         </td>
                         <td className="px-5 py-3 text-right hidden sm:table-cell whitespace-nowrap">
                           {Number(r.remaining_balance) > 0
