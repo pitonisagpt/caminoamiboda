@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import get_current_user
-from app.database import get_db
+from app.database import SessionLocal, get_db
 from app.models.event_timeline import EventTimeline
 from app.models.event_location import EventLocation
 from app.routers.catalog_locations import sync_to_catalog
@@ -201,6 +201,35 @@ def _gcal_sync(timeline, db: Session, label: str = "") -> Optional[bool]:
         return False
 
 
+def _background_location_sync(location_id: int, label: str = "") -> None:
+    """Runs after the response is sent (FastAPI BackgroundTasks) — GCal sync
+    and geocoding are both slow (network calls, no bounded timeout on the
+    GCal side, up to ~45s worst case on geocoding), so they're deferred here
+    instead of blocking the location create/update request. Opens its own
+    session: the request's `db` is already closed by the time this runs (see
+    app/services/email_service.py:send_new_lead_email for the same pattern).
+    Never raises — a failure here must never surface anywhere, it's a
+    best-effort sync of data already saved successfully."""
+    db = SessionLocal()
+    try:
+        loc = db.query(EventLocation).filter(EventLocation.id == location_id).first()
+        if not loc:
+            return
+        timeline = db.query(EventTimeline).filter(EventTimeline.id == loc.timeline_id).first()
+        if timeline:
+            _gcal_sync(timeline, db, label)
+        try:
+            catalog_loc = sync_to_catalog(db, loc)
+            loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
+            db.commit()
+        except Exception:
+            pass
+    except Exception as e:
+        print(f"[LocationSync] background sync failed{' ' + label if label else ''}: {e}")
+    finally:
+        db.close()
+
+
 # ── Locations ──────────────────────────────────────────────────────────────────
 
 @router.get("/api/timelines/{timeline_id}/locations", response_model=List[LocationRead], dependencies=[Depends(get_current_user)])
@@ -210,8 +239,8 @@ def list_locations(timeline_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/api/timelines/{timeline_id}/locations", response_model=LocationRead, status_code=201, dependencies=[Depends(get_current_user)])
-def create_location(timeline_id: int, body: LocationCreate, db: Session = Depends(get_db)):
-    tl = _get_timeline(timeline_id, db)
+def create_location(timeline_id: int, body: LocationCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    _get_timeline(timeline_id, db)
     max_order = db.query(EventLocation).filter(EventLocation.timeline_id == timeline_id).count()
     data = body.model_dump()
     data.setdefault("display_order", max_order)
@@ -219,33 +248,24 @@ def create_location(timeline_id: int, body: LocationCreate, db: Session = Depend
     db.add(loc)
     db.commit()
     db.refresh(loc)
-    gcal_synced = _gcal_sync(tl, db, "on location create")
-    try:
-        catalog_loc = sync_to_catalog(db, loc)
-        loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
-        db.commit()
-    except Exception:
-        pass
-    loc.gcal_synced = gcal_synced
+    # GCal sync + geocoding are both slow network calls — deferred so the
+    # response doesn't wait on them (see _background_location_sync). Not
+    # known yet, so explicitly None rather than relying on attribute fallback.
+    background_tasks.add_task(_background_location_sync, loc.id, "on location create")
+    loc.gcal_synced = None
     return loc
 
 
 @router.put("/api/timelines/{timeline_id}/locations/{location_id}", response_model=LocationRead, dependencies=[Depends(get_current_user)])
-def update_location(timeline_id: int, location_id: int, body: LocationUpdate, db: Session = Depends(get_db)):
-    tl = _get_timeline(timeline_id, db)
+def update_location(timeline_id: int, location_id: int, body: LocationUpdate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    _get_timeline(timeline_id, db)
     loc = _get_location(timeline_id, location_id, db)
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(loc, field, value)
     db.commit()
     db.refresh(loc)
-    gcal_synced = _gcal_sync(tl, db, "on location update")
-    try:
-        catalog_loc = sync_to_catalog(db, loc)
-        loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
-        db.commit()
-    except Exception:
-        pass
-    loc.gcal_synced = gcal_synced
+    background_tasks.add_task(_background_location_sync, loc.id, "on location update")
+    loc.gcal_synced = None
     return loc
 
 

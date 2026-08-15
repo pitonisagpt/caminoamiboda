@@ -216,8 +216,9 @@ function SortableActivity({ activity, locations, dayLabel, onEdit, onDelete }: {
 
 // ─── Location Modal ────────────────────────────────────────────────────────────
 
-function LocationModal({ initial, onSave, onClose }: {
+function LocationModal({ initial, saving, onSave, onClose }: {
   initial?: EventLocation | null;
+  saving?: boolean;
   onSave: (data: LocationFormData) => void;
   onClose: () => void;
 }) {
@@ -314,8 +315,14 @@ function LocationModal({ initial, onSave, onClose }: {
           </div>
         </div>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button onClick={() => { if (form.location_name.trim()) onSave(form); }} className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer">Guardar</button>
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Cancelar</button>
+          <button
+            onClick={() => { if (form.location_name.trim()) onSave(form); }}
+            disabled={saving}
+            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
         </div>
       </div>
     </div>
@@ -453,6 +460,8 @@ export default function EventoTab({
   const [showLocations, setShowLocations] = useState(true);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [locModal, setLocModal] = useState<{ open: boolean; editing: EventLocation | null }>({ open: false, editing: null });
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [actModal, setActModal] = useState<{ open: boolean; editing: TimelineActivity | null }>({ open: false, editing: null });
   const [contactModal, setContactModal] = useState<{ open: boolean; editing: TimelineContact | null }>({ open: false, editing: null });
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
@@ -514,13 +523,20 @@ export default function EventoTab({
 
   const saveLocation = async (data: LocationFormData) => {
     if (!timelineId) return;
-    const payload = { ...data, address: data.address || null, google_maps_link: data.google_maps_link || null, contact_person: data.contact_person || null, contact_phone: data.contact_phone || null, notes: data.notes || null };
-    const res = locModal.editing
-      ? await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload)
-      : await timelinesApi.createLocation(timelineId, payload);
-    setLocModal({ open: false, editing: null });
-    await load();
-    notifyGcalSync(res.data.gcal_synced);
+    setSavingLocation(true);
+    try {
+      const payload = { ...data, address: data.address || null, google_maps_link: data.google_maps_link || null, contact_person: data.contact_person || null, contact_phone: data.contact_phone || null, notes: data.notes || null };
+      const res = locModal.editing
+        ? await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload)
+        : await timelinesApi.createLocation(timelineId, payload);
+      setLocModal({ open: false, editing: null });
+      await load();
+      notifyGcalSync(res.data.gcal_synced);
+    } catch {
+      setLocationError('No se pudo guardar la ubicación, intenta de nuevo.');
+    } finally {
+      setSavingLocation(false);
+    }
   };
 
   const deleteLocation = async (locId: number) => {
@@ -676,6 +692,7 @@ export default function EventoTab({
   return (
     <div className="space-y-4">
       {gcalToast && <Toast message={gcalToast.message} variant={gcalToast.variant} onDismiss={dismissGcalToast} />}
+      {locationError && <Toast message={locationError} variant="warning" onDismiss={() => setLocationError(null)} />}
       {pdfPreviewUrl && (
         <FilePreviewModal
           src={pdfPreviewUrl}
@@ -1116,7 +1133,7 @@ export default function EventoTab({
       </div>
 
       {/* Modals */}
-      {locModal.open && <LocationModal initial={locModal.editing} onSave={saveLocation} onClose={() => setLocModal({ open: false, editing: null })} />}
+      {locModal.open && <LocationModal initial={locModal.editing} saving={savingLocation} onSave={saveLocation} onClose={() => setLocModal({ open: false, editing: null })} />}
       {actModal.open && <ActivityModal initial={actModal.editing} locations={timeline.locations} eventDate={timeline.event_date} onSave={saveActivity} onClose={() => setActModal({ open: false, editing: null })} />}
       {contactModal.open && <ContactModal initial={contactModal.editing} onSave={saveContact} onClose={() => setContactModal({ open: false, editing: null })} />}
     </div>
