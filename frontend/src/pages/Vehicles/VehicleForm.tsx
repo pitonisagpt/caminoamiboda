@@ -14,6 +14,7 @@ import { Select } from "../../components/ui/Select";
 import { TextArea } from "../../components/ui/TextArea";
 import type { VehicleFormData } from "../../types/vehicle";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
+import { SCORE_CATEGORIES, ScoreInput, ScoreTotalBar } from "../../components/ui/ScoreRating";
 
 // Medellín / Valle de Aburrá, segundo semestre de 2026 — mirrors
 // backend/app/services/pico_y_placa.py, which rotates by semester.
@@ -88,7 +89,7 @@ export function VehicleForm() {
   );
 
   const scoreTotal = useMemo(() => {
-    const nums = scores.map(Number).filter((n) => n >= 1 && n <= 5);
+    const nums = scores.filter((n): n is number => n !== null && n !== undefined && n >= 1 && n <= 5);
     return nums.length === 5 ? nums.reduce((a, b) => a + b, 0) : null;
   }, [scores.join(",")]);
 
@@ -117,11 +118,11 @@ export function VehicleForm() {
         is_featured: v.is_featured ?? false,
         price_medellin: v.price_medellin?.toString() ?? "",
         price_rionegro: v.price_rionegro?.toString() ?? "",
-        score_elegance: v.score_elegance?.toString() ?? "",
-        score_exclusivity: v.score_exclusivity?.toString() ?? "",
-        score_photogeny: v.score_photogeny?.toString() ?? "",
-        score_comfort: v.score_comfort?.toString() ?? "",
-        score_romance: v.score_romance?.toString() ?? "",
+        score_elegance: v.score_elegance ?? null,
+        score_exclusivity: v.score_exclusivity ?? null,
+        score_photogeny: v.score_photogeny ?? null,
+        score_comfort: v.score_comfort ?? null,
+        score_romance: v.score_romance ?? null,
         description: v.description ?? "",
         bride_description: v.bride_description ?? "",
         photo_urls: "",
@@ -153,11 +154,11 @@ export function VehicleForm() {
         allowed_locations: allowedLocations.length > 0 ? allowedLocations : null,
         price_medellin: data.price_medellin ? parseFloat(data.price_medellin) : null,
         price_rionegro: data.price_rionegro ? parseFloat(data.price_rionegro) : null,
-        score_elegance: data.score_elegance ? parseInt(data.score_elegance) : null,
-        score_exclusivity: data.score_exclusivity ? parseInt(data.score_exclusivity) : null,
-        score_photogeny: data.score_photogeny ? parseInt(data.score_photogeny) : null,
-        score_comfort: data.score_comfort ? parseInt(data.score_comfort) : null,
-        score_romance: data.score_romance ? parseInt(data.score_romance) : null,
+        score_elegance: data.score_elegance ?? null,
+        score_exclusivity: data.score_exclusivity ?? null,
+        score_photogeny: data.score_photogeny ?? null,
+        score_comfort: data.score_comfort ?? null,
+        score_romance: data.score_romance ?? null,
         description: data.description || null,
         bride_description: data.bride_description || null,
         pyp_day_override: data.pyp_day_override || null,
@@ -419,27 +420,23 @@ export function VehicleForm() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Puntuaciones (1–5)</h2>
-            {scoreTotal !== null && (
-              <span className="text-sm font-bold text-brand-700">{scoreTotal}/25</span>
-            )}
+            <ScoreTotalBar total={scoreTotal} size="sm" />
           </div>
         </CardHeader>
-        <CardBody className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {([
-            ["score_elegance", "Elegancia y Estilo"],
-            ["score_exclusivity", "Exclusividad y Rareza"],
-            ["score_photogeny", "Fotogenia"],
-            ["score_comfort", "Comodidad y Espacio"],
-            ["score_romance", "Romanticismo y Encanto"],
-          ] as const).map(([field, label]) => (
-            <Input
+        <CardBody className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {SCORE_CATEGORIES.map(({ field, label, icon }) => (
+            <Controller
               key={field}
-              label={label}
-              {...register(field)}
-              type="number"
-              min={1}
-              max={5}
-              placeholder="5"
+              name={field as keyof VehicleFormData}
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <ScoreInput
+                  label={label}
+                  icon={icon}
+                  value={(value as number | null) ?? null}
+                  onChange={onChange}
+                />
+              )}
             />
           ))}
         </CardBody>

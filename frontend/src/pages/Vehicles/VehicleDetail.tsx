@@ -9,6 +9,7 @@ import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
+import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
 
 const LOCATION_LABEL: Record<string, string> = {
   medellin: 'Medellín',
@@ -246,17 +247,18 @@ export default function VehicleDetail() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Puntuaciones (1–5)</h2>
-            {vehicle.score_total !== null && (
-              <span className="text-sm font-bold text-brand-700">{vehicle.score_total}/25</span>
-            )}
+            <ScoreTotalBar total={vehicle.score_total} size="sm" />
           </div>
         </CardHeader>
-        <CardBody className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Field label="Elegancia y Estilo" value={vehicle.score_elegance} />
-          <Field label="Exclusividad y Rareza" value={vehicle.score_exclusivity} />
-          <Field label="Fotogenia" value={vehicle.score_photogeny} />
-          <Field label="Comodidad y Espacio" value={vehicle.score_comfort} />
-          <Field label="Romanticismo y Encanto" value={vehicle.score_romance} />
+        <CardBody className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {SCORE_CATEGORIES.map(({ field, label, icon }) => (
+            <ScoreDotsRow
+              key={field}
+              label={label}
+              icon={icon}
+              value={vehicle[field as keyof Vehicle] as number | null}
+            />
+          ))}
         </CardBody>
       </Card>
 

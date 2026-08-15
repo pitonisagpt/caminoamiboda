@@ -6,6 +6,7 @@ import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 import { AdminEditLink } from "../../components/AdminEditLink";
+import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
@@ -25,9 +26,6 @@ const LOCATION_LABEL: Record<string, string> = {
   rionegro: "Rionegro",
   carmen_de_viboral: "Carmen de Viboral",
 };
-
-const SCORE_LABELS = ["Elegancia", "Exclusividad", "Fotogenia", "Comodidad", "Romanticismo"];
-const SCORE_ICONS = ["✨", "💎", "📸", "🛋️", "💕"];
 
 function formatCOP(amount: number) {
   return `$${amount.toLocaleString("es-CO")}`;
@@ -62,14 +60,6 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
       document.body.style.overflow = "";
     };
   }, [photos.length]);
-
-  const scores = [
-    vehicle.score_elegance,
-    vehicle.score_exclusivity,
-    vehicle.score_photogeny,
-    vehicle.score_comfort,
-    vehicle.score_romance,
-  ];
 
   const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
 
@@ -246,31 +236,16 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
             {/* Score breakdown */}
             {vehicle.score_total !== null && (
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Puntuación</span>
-                  <span className="text-sm font-bold text-brand-700">{vehicle.score_total}/25</span>
-                </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-                  <div
-                    className="h-full bg-gradient-to-r from-brand-400 to-brand-500 rounded-full"
-                    style={{ width: `${(vehicle.score_total / 25) * 100}%` }}
-                  />
-                </div>
-                <div className="grid grid-cols-5 gap-1">
-                  {scores.map((s, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1">
-                      <span className="text-base">{SCORE_ICONS[i]}</span>
-                      <div className="flex flex-col gap-0.5">
-                        {[1,2,3,4,5].map((dot) => (
-                          <div
-                            key={dot}
-                            className={`w-full h-1 rounded-full ${dot <= (s ?? 0) ? "bg-brand-400" : "bg-gray-200"}`}
-                            style={{ width: "20px" }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[9px] text-gray-400 text-center leading-tight">{SCORE_LABELS[i].slice(0,6)}</span>
-                    </div>
+                <ScoreTotalBar total={vehicle.score_total} size="lg" />
+                <div className="grid grid-cols-5 gap-1 mt-3">
+                  {SCORE_CATEGORIES.map(({ field, label, icon }) => (
+                    <ScoreDotsRow
+                      key={field}
+                      label={label}
+                      icon={icon}
+                      truncateLabel={6}
+                      value={vehicle[field as keyof typeof vehicle] as number | null}
+                    />
                   ))}
                 </div>
               </div>

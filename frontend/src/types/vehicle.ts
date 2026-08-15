@@ -109,11 +109,11 @@ export interface VehicleFormData {
   is_featured: boolean;
   price_medellin: string;
   price_rionegro: string;
-  score_elegance: string;
-  score_exclusivity: string;
-  score_photogeny: string;
-  score_comfort: string;
-  score_romance: string;
+  score_elegance: number | null;
+  score_exclusivity: number | null;
+  score_photogeny: number | null;
+  score_comfort: number | null;
+  score_romance: number | null;
   description: string;
   bride_description: string;
   photo_urls: string; // kept for form register compatibility, not submitted

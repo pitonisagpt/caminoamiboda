@@ -5,6 +5,7 @@ import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { CATEGORY_OPTIONS } from "../../components/vehicleFilterKit";
 import { AdminEditLink } from "../../components/AdminEditLink";
+import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map(c => [c.value, c.label]));
 
@@ -18,25 +19,6 @@ const DAY_COLOR: Record<string, string> = {
   Jueves: "bg-orange-100 text-orange-700",
   Viernes: "bg-green-100 text-green-700",
 };
-
-const SCORE_LABELS = ["Elegancia", "Exclusividad", "Fotogenia", "Comodidad", "Romanticismo"];
-
-function ScoreDot({ value, label }: { value: number | null; label: string }) {
-  const filled = value ?? 0;
-  return (
-    <div className="flex flex-col items-center gap-1" title={`${label}: ${value ?? "—"}/5`}>
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? "bg-brand-400" : "bg-gray-200"}`}
-          />
-        ))}
-      </div>
-      <span className="text-[9px] text-gray-400 leading-none">{label.slice(0, 5)}</span>
-    </div>
-  );
-}
 
 function formatCOP(amount: number) {
   return `COP $${amount.toLocaleString("es-CO")}`;
@@ -56,14 +38,6 @@ export function VehicleCard({
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
   const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
-
-  const scores = [
-    vehicle.score_elegance ?? null,
-    vehicle.score_exclusivity ?? null,
-    vehicle.score_photogeny ?? null,
-    vehicle.score_comfort ?? null,
-    vehicle.score_romance ?? null,
-  ] as (number | null)[];
 
   return (
     <div
@@ -127,19 +101,15 @@ export function VehicleCard({
         {/* Score */}
         {vehicle.score_total !== null && (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">Puntuación</span>
-              <span className="text-xs font-bold text-brand-700">{vehicle.score_total}/25</span>
-            </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-brand-400 to-brand-500 rounded-full"
-                style={{ width: `${(vehicle.score_total / 25) * 100}%` }}
-              />
-            </div>
+            <ScoreTotalBar total={vehicle.score_total} size="lg" />
             <div className="flex justify-between pt-1">
-              {scores.map((s, i) => (
-                <ScoreDot key={i} value={s} label={SCORE_LABELS[i]} />
+              {SCORE_CATEGORIES.map(({ field, label }) => (
+                <ScoreDotsRow
+                  key={field}
+                  label={label}
+                  truncateLabel={5}
+                  value={vehicle[field as keyof typeof vehicle] as number | null}
+                />
               ))}
             </div>
           </div>

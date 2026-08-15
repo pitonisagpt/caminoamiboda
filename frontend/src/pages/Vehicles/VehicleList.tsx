@@ -38,6 +38,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import type { VehicleCategory, VehicleListItem, VehicleStatus } from "../../types/vehicle";
 import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
+import { ScoreTotalBar } from "../../components/ui/ScoreRating";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -140,19 +141,6 @@ const DAY_COLOR: Record<string, string> = {
   Jueves: "bg-orange-100 text-orange-700",
   Viernes: "bg-green-100 text-green-700",
 };
-
-function ScoreBar({ total }: { total: number | null }) {
-  if (total === null) return <span className="text-gray-400 text-xs">—</span>;
-  const pct = (total / 25) * 100;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className="h-full bg-brand-400 rounded-full" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs font-mono text-gray-700">{total}/25</span>
-    </div>
-  );
-}
 
 type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name" | "pico_y_placa_day";
 
@@ -265,7 +253,7 @@ function SortableVehicleRow({
         <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
       </td>
       <td className="px-4 py-3">
-        <ScoreBar total={v.score_total} />
+        <ScoreTotalBar total={v.score_total} size="sm" />
       </td>
       <td className="px-4 py-3">
         {v.pico_y_placa_day ? (
