@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, time, timedelta
+from datetime import date, timedelta
 from typing import Optional
 
 from sqlalchemy.orm import Session, selectinload
@@ -19,24 +19,20 @@ BLOCKING_STATUSES = {"pre_reserved", "deposit_received", "reserved", "confirmed"
 MULTI_DAY_LOOKBACK_DAYS = 14
 
 
-def _times_overlap(a_start: time, a_end: time, b_start: time, b_end: time) -> bool:
-    return a_start < b_end and b_start < a_end
-
-
 def find_conflicts(
     db: Session,
     event_date: date,
     vehicle_id: Optional[int],
     driver_id: Optional[int],
-    new_start: Optional[time] = None,
-    new_end: Optional[time] = None,
     exclude_id: Optional[int] = None,
 ) -> list[dict]:
     """
     Return conflict dicts for vehicle/driver on event_date.
 
-    severity="blocking"  → times confirmed to overlap → hard block
-    severity="warning"   → same day but times unknown → soft warning only
+    Reservations no longer carry a time window, so any same-vehicle or
+    same-driver match on the same day is always a hard block — there's no
+    signal left to distinguish a real overlap from a same-day-different-time
+    booking.
     """
     base = db.query(Reservation).filter(
         Reservation.event_date >= event_date - timedelta(days=MULTI_DAY_LOOKBACK_DAYS),
@@ -71,32 +67,18 @@ def find_conflicts(
         clashes = [r for r in candidates if r.vehicle_id == vehicle_id]
         for clash in clashes:
             if clash.event_date != event_date:
-                # Matched via a multi-day span, not the same calendar day —
-                # the vehicle is committed for the whole day, no same-day
-                # time-window check applies.
-                severity = "blocking"
                 msg = (
                     f"El vehículo está ocupado por un evento de varios días "
                     f"({clash.reservation_number} — {clash.display_customer})"
                 )
-            elif new_start and new_end and clash.start_time and clash.end_time:
-                if not _times_overlap(new_start, new_end, clash.start_time, clash.end_time):
-                    continue  # times don't actually overlap
-                severity = "blocking"
-                msg = (
-                    f"El vehículo ya está reservado de {clash.start_time.strftime('%H:%M')} "
-                    f"a {clash.end_time.strftime('%H:%M')} "
-                    f"({clash.reservation_number} — {clash.display_customer})"
-                )
             else:
-                severity = "warning"
                 msg = (
-                    f"El vehículo tiene otro evento ese día "
-                    f"({clash.reservation_number} — {clash.display_customer}) — verifica los horarios"
+                    f"El vehículo ya está reservado ese día "
+                    f"({clash.reservation_number} — {clash.display_customer})"
                 )
             conflicts.append({
                 "type": "vehicle",
-                "severity": severity,
+                "severity": "blocking",
                 "reservation_number": clash.reservation_number,
                 "message": msg,
             })
@@ -105,29 +87,18 @@ def find_conflicts(
         clashes = [r for r in candidates if r.driver_id == driver_id]
         for clash in clashes:
             if clash.event_date != event_date:
-                severity = "blocking"
                 msg = (
                     f"El conductor está ocupado por un evento de varios días "
                     f"({clash.reservation_number} — {clash.display_customer})"
                 )
-            elif new_start and new_end and clash.start_time and clash.end_time:
-                if not _times_overlap(new_start, new_end, clash.start_time, clash.end_time):
-                    continue
-                severity = "blocking"
-                msg = (
-                    f"El conductor ya está asignado de {clash.start_time.strftime('%H:%M')} "
-                    f"a {clash.end_time.strftime('%H:%M')} "
-                    f"({clash.reservation_number} — {clash.display_customer})"
-                )
             else:
-                severity = "warning"
                 msg = (
-                    f"El conductor tiene otro evento ese día "
-                    f"({clash.reservation_number} — {clash.display_customer}) — verifica los horarios"
+                    f"El conductor ya está asignado ese día "
+                    f"({clash.reservation_number} — {clash.display_customer})"
                 )
             conflicts.append({
                 "type": "driver",
-                "severity": severity,
+                "severity": "blocking",
                 "reservation_number": clash.reservation_number,
                 "message": msg,
             })

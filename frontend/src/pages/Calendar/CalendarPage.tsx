@@ -258,7 +258,7 @@ export default function CalendarPage() {
                               onClick={ev => { ev.stopPropagation(); handleEventClick(e); }}
                               className="flex items-center gap-1.5 truncate text-white text-[10px] font-medium px-1.5 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: e.color }}
-                              title={`${dayLabel}${e.start_time ? `${e.start_time}–${e.end_time ?? '?'} · ` : ''}${e.title}`}
+                              title={`${dayLabel}${e.title}`}
                             >
                               {e.vehicle_photo_url && (
                                 <VehiclePhotoTooltip
@@ -273,7 +273,6 @@ export default function CalendarPage() {
                                 />
                               )}
                               {dayLabel && <span className="opacity-80 mr-0.5">{dayLabel}</span>}
-                              {e.start_time && <span className="opacity-80 mr-0.5">{e.start_time}</span>}
                               {e.title}
                             </div>
                             );
@@ -332,11 +331,6 @@ export default function CalendarPage() {
                           <p className="text-xs text-gray-400 truncate">{e.subtitle}</p>
                         )}
                         <div className="flex items-center gap-2 mt-0.5">
-                          {e.start_time && (
-                            <p className="text-[10px] text-brand-700 font-medium">
-                              {e.start_time}{e.end_time ? ` – ${e.end_time}` : ''}
-                            </p>
-                          )}
                           <p className="text-[10px] text-gray-500 uppercase tracking-wide">
                             {e.type === 'reservation' ? 'Reserva' : 'Timeline'}
                           </p>

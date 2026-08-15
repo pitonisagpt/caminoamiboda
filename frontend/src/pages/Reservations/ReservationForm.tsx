@@ -80,8 +80,6 @@ export default function ReservationForm() {
           vehicle_id: v.vehicle_id?.toString() ?? '',
           driver_combined: driverCombined,
           event_date: v.event_date,
-          start_time: v.start_time ?? '',
-          end_time: v.end_time ?? '',
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
           status: v.status,
@@ -105,8 +103,6 @@ export default function ReservationForm() {
   const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
   const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
   const watchedStatus = useWatch({ control, name: 'status' });
-  const watchedStart   = useWatch({ control, name: 'start_time' });
-  const watchedEnd     = useWatch({ control, name: 'end_time' });
   const watchedZone    = useWatch({ control, name: 'event_location' });
 
   const compatibleVehicles = vehicles.filter(v =>
@@ -128,13 +124,11 @@ export default function ReservationForm() {
         event_date: watchedDate,
         vehicle_id: watchedVehicle ? Number(watchedVehicle) : null,
         driver_id: watchedDriverId,
-        start_time: watchedStart || null,
-        end_time: watchedEnd || null,
         exclude_reservation_id: isEdit ? Number(id) : null,
       });
       setConflicts(res.data.conflicts);
     } catch { setConflicts([]); }
-  }, [watchedDate, watchedVehicle, watchedDriverId, watchedStart, watchedEnd, id, isEdit]);
+  }, [watchedDate, watchedVehicle, watchedDriverId, id, isEdit]);
 
   useEffect(() => { checkConflicts(); }, [checkConflicts]);
 
@@ -157,8 +151,6 @@ export default function ReservationForm() {
       vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : null,
       ...driverPayload,
       event_date: data.event_date,
-      start_time: data.start_time || null,
-      end_time: data.end_time || null,
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
       status: data.status,
@@ -275,25 +267,6 @@ export default function ReservationForm() {
                 className={`${inputCls} mt-2`}
               />
             )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Hora inicio</label>
-              <input
-                type="time"
-                {...register('start_time')}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Hora fin</label>
-              <input
-                type="time"
-                {...register('end_time')}
-                className={inputCls}
-              />
-            </div>
           </div>
 
           <div>

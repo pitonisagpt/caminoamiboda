@@ -82,8 +82,6 @@ export interface Reservation extends ReservationListItem {
   owner_driver_id: number | null;
   owner_driver_name: string | null;
   owner_driver_phone: string | null;
-  start_time: string | null;
-  end_time: string | null;
   display_contact: string | null;
   contact_phone: string | null;
   contact_type: string | null;
@@ -115,8 +113,6 @@ export interface ReservationFormData {
   vehicle_id: string;
   driver_combined: string;
   event_date: string;
-  start_time: string;
-  end_time: string;
   total_amount: string;
   deposit_paid: string;
   status: ReservationStatus;

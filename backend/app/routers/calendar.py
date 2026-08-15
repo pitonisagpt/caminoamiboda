@@ -1,4 +1,4 @@
-from datetime import date, time, timedelta
+from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -108,8 +108,6 @@ def calendar_events(
             "driver_id": r.driver_id,
             "has_timeline": has_timeline,
             "timeline_id": r.timelines[0].id if has_timeline else None,
-            "start_time": r.start_time.strftime("%H:%M") if r.start_time else None,
-            "end_time": r.end_time.strftime("%H:%M") if r.end_time else None,
             "vehicle_photo_url": photo_map.get(r.vehicle_id) if r.vehicle_id else None,
             "vehicle_license_plate": r.vehicle.license_plate if r.vehicle else None,
             "owner_name": r.vehicle.owner_name if r.vehicle else None,
@@ -150,8 +148,6 @@ def check_conflicts(
     event_date: date = Query(...),
     vehicle_id: Optional[int] = Query(None),
     driver_id: Optional[int] = Query(None),
-    start_time: Optional[time] = Query(None),
-    end_time: Optional[time] = Query(None),
     exclude_reservation_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -160,8 +156,6 @@ def check_conflicts(
         event_date=event_date,
         vehicle_id=vehicle_id,
         driver_id=driver_id,
-        new_start=start_time,
-        new_end=end_time,
         exclude_id=exclude_reservation_id,
     )
     return {"conflicts": conflicts, "has_conflicts": len(conflicts) > 0}

@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional
 
@@ -12,7 +12,7 @@ from app.services.event_span import effective_end_date
 _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
     "owner_driver_id",
-    "event_date", "start_time", "end_time", "total_amount", "deposit_paid", "status",
+    "event_date", "total_amount", "deposit_paid", "status",
     "cancellation_reason",
     "event_category", "event_location", "gcal_imported",
     "is_tentative", "event_date_notes",
@@ -65,8 +65,6 @@ class ReservationCreate(BaseModel):
     driver_id: Optional[int] = None
     owner_driver_id: Optional[int] = None
     event_date: date
-    start_time: Optional[time] = None
-    end_time: Optional[time] = None
     total_amount: Decimal = Decimal("0")
     deposit_paid: Decimal = Decimal("0")
     status: ReservationStatus = ReservationStatus.lead
@@ -90,8 +88,6 @@ class ReservationUpdate(BaseModel):
     driver_id: Optional[int] = None
     owner_driver_id: Optional[int] = None
     event_date: Optional[date] = None
-    start_time: Optional[time] = None
-    end_time: Optional[time] = None
     total_amount: Optional[Decimal] = None
     deposit_paid: Optional[Decimal] = None
     status: Optional[ReservationStatus] = None
@@ -118,8 +114,6 @@ class ReservationRead(BaseModel):
     driver_id: Optional[int] = None
     owner_driver_id: Optional[int] = None
     event_date: date
-    start_time: Optional[time] = None
-    end_time: Optional[time] = None
     total_amount: Decimal
     deposit_paid: Decimal
     remaining_balance: Decimal

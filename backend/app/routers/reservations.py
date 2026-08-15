@@ -144,7 +144,6 @@ def list_reservations(
 def create_reservation(body: ReservationCreate, db: Session = Depends(get_db)):
     blocking = [c for c in find_conflicts(
         db, body.event_date, body.vehicle_id, body.driver_id,
-        new_start=body.start_time, new_end=body.end_time,
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
@@ -205,11 +204,8 @@ def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session
     chk_date     = changed.get("event_date", r.event_date)
     chk_vehicle  = changed.get("vehicle_id", r.vehicle_id)
     chk_driver   = changed.get("driver_id", r.driver_id)
-    chk_start    = changed.get("start_time", r.start_time)
-    chk_end      = changed.get("end_time", r.end_time)
     blocking = [c for c in find_conflicts(
-        db, chk_date, chk_vehicle, chk_driver,
-        new_start=chk_start, new_end=chk_end, exclude_id=reservation_id,
+        db, chk_date, chk_vehicle, chk_driver, exclude_id=reservation_id,
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
