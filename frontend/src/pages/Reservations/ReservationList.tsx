@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
@@ -18,9 +19,9 @@ import type { ComboboxOption } from '../../components/ui/Combobox';
 import ReservationKanban from './ReservationKanban';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 import { useAuth } from '../../context/AuthContext';
+import { CATEGORY_OPTIONS as VEHICLE_CATEGORY_OPTIONS, Pill, toggleItem } from '../../components/vehicleFilterKit';
 
-const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
-  { value: 'all',              label: 'Todas' },
+const STATUS_FILTERS: { value: ReservationStatus; label: string }[] = [
   { value: 'lead',             label: 'Lead' },
   { value: 'quoted',           label: 'Cotizadas' },
   { value: 'pre_reserved',     label: 'Pre-reserva' },
@@ -32,11 +33,13 @@ const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
 ];
 
 const CATEGORY_FILTERS = [
-  { value: 'all',        label: 'Todas' },
   { value: 'standard',   label: 'Estándar' },
   { value: 'obsequio',   label: 'Obsequio' },
   { value: 'publicidad', label: 'Publicidad' },
 ];
+
+const toParam = (arr: string[]): string | null => (arr.length ? arr.join(',') : null);
+const fromParam = (s: string | null): string[] => (s ? s.split(',').filter(Boolean) : []);
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
@@ -64,6 +67,22 @@ function localToday() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function FilterChip({ icon, label, onRemove }: { icon?: ReactNode; label: ReactNode; onRemove: () => void }) {
+  return (
+    <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
+      {icon}
+      {label}
+      <button
+        onClick={onRemove}
+        className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
+        title="Quitar filtro"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
+
 export default function ReservationList() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
@@ -86,8 +105,9 @@ export default function ReservationList() {
   };
 
   // All filter/sort/page state from URL
-  const statusFilter = (searchParams.get('status') ?? 'all') as ReservationStatus | 'all';
-  const categoryFilter = searchParams.get('category') ?? 'all';
+  const statusFilters = fromParam(searchParams.get('status')) as ReservationStatus[];
+  const categoryFilters = fromParam(searchParams.get('category'));
+  const vehicleCategoryFilters = fromParam(searchParams.get('vehicle_category'));
   const vehicleFilter = searchParams.get('vehicle') ?? '';
   const contactFilter = searchParams.get('contact') ?? '';
   const locationFilter = searchParams.get('location') ?? '';
@@ -109,6 +129,25 @@ export default function ReservationList() {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       if (value && value !== 'all' && value !== '') next.set(key, value); else next.delete(key);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  }
+
+  function setArrayFilter(key: string, values: string[]) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      const v = toParam(values);
+      if (v) next.set(key, v); else next.delete(key);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  }
+
+  function clearFilters() {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      ['status', 'category', 'vehicle_category', 'vehicle'].forEach(k => next.delete(k));
       next.delete('page');
       return next;
     }, { replace: true });
@@ -167,8 +206,9 @@ export default function ReservationList() {
   useEffect(() => {
     setLoading(true);
     reservationsApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      event_category: categoryFilter === 'all' ? undefined : categoryFilter,
+      status: statusFilters.length ? statusFilters.join(',') : undefined,
+      event_category: categoryFilters.length ? categoryFilters.join(',') : undefined,
+      vehicle_category: vehicleCategoryFilters.length ? vehicleCategoryFilters.join(',') : undefined,
       vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
       contact_id: contactFilter ? Number(contactFilter) : undefined,
       location_id: locationFilter ? Number(locationFilter) : undefined,
@@ -182,7 +222,7 @@ export default function ReservationList() {
     })
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
-  }, [statusFilter, categoryFilter, vehicleFilter, contactFilter, locationFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
@@ -273,31 +313,58 @@ export default function ReservationList() {
         </div>
       </div>
 
-      {/* Active planner / location filters */}
-      {contactFilter && (
-        <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
-          <BookUser size={15} />
-          Filtrado por planificadora: <strong>{contactName ?? '…'}</strong>
-          <button
-            onClick={() => setFilter('contact', '')}
-            className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
-            title="Quitar filtro"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
-      {locationFilter && (
-        <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium px-3 py-2 rounded-xl w-fit">
-          <MapPin size={15} />
-          Filtrado por ubicación: <strong>{locationName ?? '…'}</strong>
-          <button
-            onClick={() => setFilter('location', '')}
-            className="ml-1 p-0.5 rounded-full hover:bg-brand-100 cursor-pointer"
-            title="Quitar filtro"
-          >
-            <X size={14} />
-          </button>
+      {/* Active filters — one removable chip per selected value */}
+      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {contactFilter && (
+            <FilterChip
+              icon={<BookUser size={15} />}
+              label={<>Planificadora: <strong>{contactName ?? '…'}</strong></>}
+              onRemove={() => setFilter('contact', '')}
+            />
+          )}
+          {locationFilter && (
+            <FilterChip
+              icon={<MapPin size={15} />}
+              label={<>Ubicación: <strong>{locationName ?? '…'}</strong></>}
+              onRemove={() => setFilter('location', '')}
+            />
+          )}
+          {vehicleFilter && (
+            <FilterChip
+              label={<>Vehículo: <strong>{vehicleOptions.find(o => o.value === vehicleFilter)?.label ?? '…'}</strong></>}
+              onRemove={() => setFilter('vehicle', '')}
+            />
+          )}
+          {statusFilters.map(s => (
+            <FilterChip
+              key={s}
+              label={RESERVATION_STATUS_LABEL[s]}
+              onRemove={() => setArrayFilter('status', statusFilters.filter(x => x !== s))}
+            />
+          ))}
+          {categoryFilters.map(c => (
+            <FilterChip
+              key={c}
+              label={CATEGORY_FILTERS.find(f => f.value === c)?.label ?? c}
+              onRemove={() => setArrayFilter('category', categoryFilters.filter(x => x !== c))}
+            />
+          ))}
+          {vehicleCategoryFilters.map(c => (
+            <FilterChip
+              key={c}
+              label={VEHICLE_CATEGORY_OPTIONS.find(o => o.value === c)?.label ?? c}
+              onRemove={() => setArrayFilter('vehicle_category', vehicleCategoryFilters.filter(x => x !== c))}
+            />
+          ))}
+          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter) && (
+            <button
+              onClick={clearFilters}
+              className="text-sm text-gray-400 hover:text-brand-600 underline underline-offset-2 cursor-pointer px-1"
+            >
+              Limpiar filtros
+            </button>
+          )}
         </div>
       )}
 
@@ -337,34 +404,24 @@ export default function ReservationList() {
         </div>
       </div>
 
-      {/* Status filter pills */}
-      <div className="flex flex-wrap gap-2">
+      {/* Status / event category / vehicle category filter pills — all multi-select */}
+      <div className="flex flex-wrap gap-2 items-center">
         {STATUS_FILTERS.map(f => (
-          <button
-            key={f.value}
-            onClick={() => setFilter('status', f.value)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-              statusFilter === f.value
-                ? 'bg-brand-700 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600'
-            }`}
-          >
+          <Pill key={f.value} active={statusFilters.includes(f.value)} onClick={() => setArrayFilter('status', toggleItem(statusFilters, f.value))}>
             {f.label}
-          </button>
+          </Pill>
         ))}
         <span className="w-px h-6 self-center bg-gray-200" />
         {CATEGORY_FILTERS.map(f => (
-          <button
-            key={f.value}
-            onClick={() => setFilter('category', f.value)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-              categoryFilter === f.value
-                ? 'bg-purple-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-700'
-            }`}
-          >
+          <Pill key={f.value} active={categoryFilters.includes(f.value)} onClick={() => setArrayFilter('category', toggleItem(categoryFilters, f.value))}>
             {f.label}
-          </button>
+          </Pill>
+        ))}
+        <span className="w-px h-6 self-center bg-gray-200" />
+        {VEHICLE_CATEGORY_OPTIONS.map(o => (
+          <Pill key={o.value} active={vehicleCategoryFilters.includes(o.value)} onClick={() => setArrayFilter('vehicle_category', toggleItem(vehicleCategoryFilters, o.value))}>
+            {o.label}
+          </Pill>
         ))}
       </div>
 

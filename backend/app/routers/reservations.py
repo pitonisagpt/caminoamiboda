@@ -17,6 +17,7 @@ from app.models.event_timeline import EventTimeline
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_payment import ReservationPayment
 from app.models.quote import Quote
+from app.models.vehicle import Vehicle, VehicleCategory
 from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
 from app.services.conflicts import find_conflicts
 
@@ -61,8 +62,9 @@ _SORT_COLS = {
 
 @router.get("/api/reservations", response_model=ReservationPage, dependencies=[Depends(get_current_user)])
 def list_reservations(
-    status: Optional[ReservationStatus] = Query(None),
+    status: Optional[str] = Query(None),
     event_category: Optional[str] = Query(None),
+    vehicle_category: Optional[str] = Query(None),
     vehicle_id: Optional[int] = Query(None),
     contact_id: Optional[int] = Query(None),
     location_id: Optional[int] = Query(None),
@@ -81,13 +83,18 @@ def list_reservations(
          .options(selectinload(Reservation.timelines)))
 
     if status:
-        q = q.filter(Reservation.status == status)
+        statuses = [ReservationStatus(s) for s in status.split(",") if s]
+        q = q.filter(Reservation.status.in_(statuses))
     else:
         # Cancelled reservations are hidden from the default/unfiltered view —
         # still reachable via the explicit "Canceladas" status filter.
         q = q.filter(Reservation.status != ReservationStatus.cancelled)
     if event_category:
-        q = q.filter(Reservation.event_category == event_category)
+        q = q.filter(Reservation.event_category.in_(event_category.split(",")))
+    if vehicle_category:
+        categories = [VehicleCategory(c) for c in vehicle_category.split(",") if c]
+        q = (q.join(Vehicle, Reservation.vehicle_id == Vehicle.id)
+              .filter(Vehicle.category.in_(categories)))
     if vehicle_id:
         q = q.filter(Reservation.vehicle_id == vehicle_id)
     if contact_id:

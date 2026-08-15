@@ -13,8 +13,9 @@ export interface ReservationPayment {
 }
 
 export interface ReservationListParams {
-  status?: ReservationStatus;
+  status?: string;
   event_category?: string;
+  vehicle_category?: string;
   vehicle_id?: number;
   contact_id?: number;
   location_id?: number;
