@@ -30,13 +30,14 @@ function buildWaUrl(phone: string | null | undefined, message: string): string {
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
-function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[]): string {
-  const firstName = reservation.display_customer.split(' ')[0];
+function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], recipientFirstName?: string): string {
+  const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
+  const reservaRef = recipientFirstName ? `la reserva de ${reservation.display_customer}` : 'tu reserva';
   const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
   const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
 
   const lines: string[] = [
-    `Hola ${firstName}, aquí está el resumen de pagos de tu reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
+    `Hola ${greetName}, aquí está el resumen de pagos de ${reservaRef} con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
     '',
     `*Valor total:* ${formatCOP(reservation.total_amount)}`,
     '',
@@ -457,31 +458,32 @@ export default function FinanceTab({
           <MessageCircle className="w-4 h-4 text-green-600" />
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Enviar cobro por WhatsApp</h2>
         </div>
-        <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
-          <div className="min-w-0">
-            <span className="text-sm font-medium text-gray-700">{reservation.display_customer}</span>
-            {(reservation.customer_whatsapp || reservation.customer_phone) && (
-              <span className="text-xs text-gray-400 ml-2">
-                · {reservation.customer_whatsapp || reservation.customer_phone}
-              </span>
+        {[
+          { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, recipientFirstName: undefined as string | undefined },
+          ...(reservation.display_contact
+            ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, recipientFirstName: reservation.display_contact.split(' ')[0] }]
+            : []),
+        ].map(({ label, name, phone, recipientFirstName }) => (
+          <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-700">{label}</span>
+              <span className="text-sm text-gray-500 ml-2">{name}</span>
+              {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
+            </div>
+            {phone ? (
+              <a
+                href={buildWaUrl(phone, buildCobroMsg(reservation, payments, recipientFirstName))}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> Enviar
+              </a>
+            ) : (
+              <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
             )}
           </div>
-          {(reservation.customer_whatsapp || reservation.customer_phone) ? (
-            <a
-              href={buildWaUrl(
-                reservation.customer_whatsapp || reservation.customer_phone,
-                buildCobroMsg(reservation, payments)
-              )}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-            >
-              <MessageCircle className="w-3.5 h-3.5" /> Enviar
-            </a>
-          ) : (
-            <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
-          )}
-        </div>
+        ))}
       </div>
 
       {/* Billing documents (cuentas de cobro) — admin only */}
