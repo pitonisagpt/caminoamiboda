@@ -103,11 +103,11 @@ export function VehicleCard({
           <div className="space-y-1.5">
             <ScoreTotalBar total={vehicle.score_total} size="lg" />
             <div className="flex justify-between pt-1">
-              {SCORE_CATEGORIES.map(({ field, label }) => (
+              {SCORE_CATEGORIES.map(({ field, label, short }) => (
                 <ScoreDotsRow
                   key={field}
-                  label={label}
-                  truncateLabel={5}
+                  label={short}
+                  tooltip={label}
                   value={vehicle[field as keyof typeof vehicle] as number | null}
                 />
               ))}

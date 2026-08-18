@@ -238,12 +238,12 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
               <div>
                 <ScoreTotalBar total={vehicle.score_total} size="lg" />
                 <div className="grid grid-cols-5 gap-1 mt-3">
-                  {SCORE_CATEGORIES.map(({ field, label, icon }) => (
+                  {SCORE_CATEGORIES.map(({ field, label, short, icon }) => (
                     <ScoreDotsRow
                       key={field}
-                      label={label}
+                      label={short}
+                      tooltip={label}
                       icon={icon}
-                      truncateLabel={6}
                       value={vehicle[field as keyof typeof vehicle] as number | null}
                     />
                   ))}

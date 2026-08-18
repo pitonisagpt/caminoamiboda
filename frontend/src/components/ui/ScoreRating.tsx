@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Armchair, Camera, Gem, Heart, Sparkles, type LucideIcon } from "lucide-react";
 
-export const SCORE_CATEGORIES: { field: string; label: string; icon: LucideIcon }[] = [
-  { field: "score_elegance", label: "Elegancia y Estilo", icon: Sparkles },
-  { field: "score_exclusivity", label: "Exclusividad y Rareza", icon: Gem },
-  { field: "score_photogeny", label: "Fotogenia", icon: Camera },
-  { field: "score_comfort", label: "Comodidad y Espacio", icon: Armchair },
-  { field: "score_romance", label: "Romanticismo y Encanto", icon: Heart },
+export const SCORE_CATEGORIES: { field: string; label: string; short: string; icon: LucideIcon }[] = [
+  { field: "score_elegance", label: "Elegancia y Estilo", short: "Estilo", icon: Sparkles },
+  { field: "score_exclusivity", label: "Exclusividad y Rareza", short: "Rareza", icon: Gem },
+  { field: "score_photogeny", label: "Fotogenia", short: "Fotos", icon: Camera },
+  { field: "score_comfort", label: "Comodidad y Espacio", short: "Confort", icon: Armchair },
+  { field: "score_romance", label: "Romanticismo y Encanto", short: "Romance", icon: Heart },
 ];
 
 export function ScoreTotalBar({ total, size = "lg" }: { total: number | null; size?: "sm" | "lg" }) {
@@ -46,18 +46,17 @@ export function ScoreTotalBar({ total, size = "lg" }: { total: number | null; si
 export function ScoreDotsRow({
   value,
   label,
+  tooltip,
   icon: Icon,
-  truncateLabel,
 }: {
   value: number | null;
   label: string;
+  tooltip?: string;
   icon?: LucideIcon;
-  truncateLabel?: number;
 }) {
   const filled = value ?? 0;
-  const displayLabel = truncateLabel ? label.slice(0, truncateLabel) : label;
   return (
-    <div className="flex flex-col items-center gap-1" title={`${label}: ${value ?? "—"}/5`}>
+    <div className="flex flex-col items-center gap-1" title={`${tooltip ?? label}: ${value ?? "—"}/5`}>
       {Icon && <Icon size={15} className="text-brand-400" />}
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -69,7 +68,7 @@ export function ScoreDotsRow({
           />
         ))}
       </div>
-      <span className="text-[9px] text-gray-400 leading-none text-center">{displayLabel}</span>
+      <span className="text-[9px] text-gray-400 leading-none text-center">{label}</span>
     </div>
   );
 }
