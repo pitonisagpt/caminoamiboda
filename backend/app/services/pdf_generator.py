@@ -1,6 +1,7 @@
 import io
 from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -61,8 +62,8 @@ def generate_pdf(doc: BillingDocument, settings) -> str:
     context = {
         "doc": doc,
         "document_number": doc.document_number,
-        "formatted_date": _format_date_es(datetime.now().date()),
-        "formatted_today": _format_date_es(datetime.now().date()),
+        "formatted_date": _format_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
+        "formatted_today": _format_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
         "formatted_service_date": _format_date_range_es(doc.service_date, doc.service_date_end or doc.service_date),
         "formatted_amount": _format_cop(doc.total_amount),
         "amount_in_words": _amount_in_words(float(doc.total_amount)),

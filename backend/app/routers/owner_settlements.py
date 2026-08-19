@@ -3,6 +3,7 @@ import os
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -166,7 +167,7 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         activities=activities,
         payments=s.payments,
         reservation_payments=reservation_payments,
-        formatted_date=_format_date_es(datetime.now().date()),
+        formatted_date=_format_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
         formatted_event_date=_format_date_es(r.event_date) if r else "",
         formatted_value=_format_cop(s.reservation_value),
         formatted_owner_amount=_format_cop(s.owner_amount),
