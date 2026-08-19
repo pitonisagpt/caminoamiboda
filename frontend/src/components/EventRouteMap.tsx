@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { ExternalLink } from 'lucide-react';
 import type { EventLocation, TimelineActivity, LocationType } from '../types/timeline';
@@ -19,7 +19,14 @@ const ROUTE_COLOR = '#0d9488';
 
 // ─── Leaflet custom numbered icon ───────────────────────────────────────────────
 
-function makeIcon(color: string, label: string): L.DivIcon {
+/** `offsetX` shifts the rendered icon sideways by a fixed number of *screen
+ * pixels* (via iconAnchor, not the geographic position) — a geo-space nudge
+ * would need to survive whatever zoom `fitBounds` lands on, which is set by
+ * the full route's span (often kilometers, since venues are far apart), so a
+ * meters-scale nudge becomes sub-pixel and invisible. A pixel offset stays
+ * visible at any zoom, at the cost of the icon's tip no longer sitting
+ * exactly on the true coordinate for offset pins. */
+function makeIcon(color: string, label: string, offsetX = 0): L.DivIcon {
   const w = 28, h = 36;
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">
     <filter id="s" x="-30%" y="-10%" width="160%" height="140%">
@@ -31,7 +38,8 @@ function makeIcon(color: string, label: string): L.DivIcon {
     <text x="15" y="18" font-size="11" font-weight="700" text-anchor="middle" fill="${color}" font-family="sans-serif">${label}</text>
   </svg>`;
   return L.divIcon({
-    className: '', html: svg, iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h],
+    className: '', html: svg, iconSize: [w, h],
+    iconAnchor: [w / 2 - offsetX, h], popupAnchor: [offsetX, -h],
   });
 }
 
@@ -57,6 +65,7 @@ function MapFitter({ points }: { points: [number, number][] }) {
 interface Stop {
   key: string;
   position: [number, number];
+  pixelOffsetX: number;
   locations: EventLocation[];
   order: number;
   time: string | null;
@@ -109,23 +118,64 @@ function buildOrderedWaypoints(locations: EventLocation[], activities: TimelineA
   return [...waypoints, ...leftovers];
 }
 
-/** Groups same-coordinate waypoints into one marker each (numbered by first
- * visit) so revisited venues don't stack overlapping pins. */
+// Screen-pixel nudge applied to a revisited coordinate's pin so it doesn't
+// render exactly on top of the earlier visit — cycles if a spot is visited
+// more than twice. The first visit at any coordinate stays unshifted (0).
+const PIXEL_OFFSETS = [0, 16, -16, 32, -32];
+
+/** One marker per real visit — a venue visited twice (e.g. pickup, then
+ * reception at the same place) gets two separate numbered pins, nudged apart
+ * so neither hides the other, instead of collapsing into a single pin. */
 function buildStops(waypoints: { loc: EventLocation; time: string | null }[]): Stop[] {
-  const stops: Stop[] = [];
-  const indexByKey = new Map<string, number>();
-  waypoints.forEach(({ loc, time }) => {
+  const visitCountByKey = new Map<string, number>();
+  return waypoints.map(({ loc, time }, i) => {
     const key = `${loc.lat!.toFixed(5)},${loc.lng!.toFixed(5)}`;
-    const idx = indexByKey.get(key);
-    if (idx == null) {
-      indexByKey.set(key, stops.length);
-      stops.push({ key, position: [loc.lat!, loc.lng!], locations: [loc], order: stops.length + 1, time });
-    } else {
-      if (!stops[idx].locations.some(l => l.id === loc.id)) stops[idx].locations.push(loc);
-      if (time && (!stops[idx].time || time < stops[idx].time!)) stops[idx].time = time;
-    }
+    const visitIndex = visitCountByKey.get(key) ?? 0;
+    visitCountByKey.set(key, visitIndex + 1);
+    return {
+      key: `${loc.id}-${i}`,
+      position: [loc.lat!, loc.lng!],
+      pixelOffsetX: PIXEL_OFFSETS[visitIndex % PIXEL_OFFSETS.length],
+      locations: [loc],
+      order: i + 1,
+      time,
+    };
   });
-  return stops;
+}
+
+// ─── Repeated-leg detection (round trips) ───────────────────────────────────────
+
+const LEG_OFFSET_DEG = 0.00008;
+
+/** Indices (into the leg list, i.e. waypoints[i] -> waypoints[i+1]) of any leg
+ * whose two endpoints — regardless of direction — already appeared as an
+ * earlier leg. The outbound leg is left alone; only the retrace is flagged,
+ * since that's the one that visually overlaps an existing line. */
+function findRepeatedLegs(waypointPositions: [number, number][]): number[] {
+  const seen = new Set<string>();
+  const repeated: number[] = [];
+  const keyOf = (p: [number, number]) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`;
+  for (let i = 0; i < waypointPositions.length - 1; i++) {
+    const pairKey = [keyOf(waypointPositions[i]), keyOf(waypointPositions[i + 1])].sort().join('|');
+    if (seen.has(pairKey)) {
+      repeated.push(i);
+    } else {
+      seen.add(pairKey);
+    }
+  }
+  return repeated;
+}
+
+/** Nudges a straight line between two points sideways by a small amount, so
+ * an overlay drawn for a repeated leg doesn't sit exactly on top of the
+ * original route line. */
+function offsetLegLine(a: [number, number], b: [number, number]): [number, number][] {
+  const dLat = b[0] - a[0];
+  const dLng = b[1] - a[1];
+  const len = Math.sqrt(dLat * dLat + dLng * dLng) || 1;
+  const offLat = (-dLng / len) * LEG_OFFSET_DEG;
+  const offLng = (dLat / len) * LEG_OFFSET_DEG;
+  return [[a[0] + offLat, a[1] + offLng], [b[0] + offLat, b[1] + offLng]];
 }
 
 // ─── OSRM route fetch (falls back to straight line on failure) ─────────────────
@@ -214,6 +264,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
   const stops = useMemo(() => buildStops(waypoints), [waypoints]);
   const waypointPositions = useMemo<[number, number][]>(() => waypoints.map(w => [w.loc.lat!, w.loc.lng!]), [waypoints]);
   const { line: routeLine, totalKm, legKm, isApprox } = useRoute(waypointPositions);
+  const repeatedLegs = useMemo(() => findRepeatedLegs(waypointPositions), [waypointPositions]);
   const fmtKm = (km: number) => km.toLocaleString('es-CO', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const unlocated = locations.filter(l => l.lat == null || l.lng == null);
   const points = stops.map(s => s.position);
@@ -255,18 +306,29 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
           <MapFitter points={points} />
 
           {routeLine ? (
-            <Polyline positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
+            <Polyline key="route-real" positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
           ) : waypointPositions.length >= 2 && (
             <Polyline
+              key="route-approx"
               positions={waypointPositions}
               pathOptions={{ color: ROUTE_COLOR, weight: 3, opacity: 0.6, dashArray: '6 8' }}
             />
           )}
 
+          {repeatedLegs.map(i => (
+            <Polyline
+              key={`repeat-${i}`}
+              positions={offsetLegLine(waypointPositions[i], waypointPositions[i + 1])}
+              pathOptions={{ color: '#f59e0b', weight: 3, opacity: 0.9, dashArray: '2 8' }}
+            >
+              <Tooltip sticky>Tramo repetido (ida y vuelta)</Tooltip>
+            </Polyline>
+          ))}
+
           {stops.map(stop => {
             const primaryType = stop.locations[0].location_type;
             return (
-              <Marker key={stop.key} position={stop.position} icon={makeIcon(TYPE_HEX[primaryType], String(stop.order))}>
+              <Marker key={stop.key} position={stop.position} icon={makeIcon(TYPE_HEX[primaryType], String(stop.order), stop.pixelOffsetX)}>
                 <Popup minWidth={200} maxWidth={280}>
                   <div>
                     <div style={{ background: TYPE_HEX[primaryType], padding: '10px 14px 8px' }}>
