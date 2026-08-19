@@ -134,6 +134,7 @@ function buildFullMsg(t: EventTimeline): string {
     : `*Conductor:* Pendiente de asignar`);
   if (t.special_instructions) {
     lines.push('');
+    lines.push(`*Instrucciones especiales*`);
     lines.push(t.special_instructions);
   }
 
