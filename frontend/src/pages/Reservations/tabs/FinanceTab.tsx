@@ -77,6 +77,51 @@ function formatDate(d: string) {
   });
 }
 
+function buildOwnerMsg(
+  reservation: Reservation,
+  payments: ReservationPayment[],
+  settlement: OwnerSettlement | null,
+  ownerFirstName: string,
+): string {
+  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
+
+  const ownerPct = settlement ? settlement.owner_percentage : (reservation.vehicle_is_company_owned ? 0 : 70);
+  const ownerAmount = settlement ? settlement.owner_amount : Number(reservation.total_amount) * (ownerPct / 100);
+
+  const lines: string[] = [
+    `Hola ${ownerFirstName}, aquí está el resumen de la reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
+    '',
+    `*Valor total (cliente):* ${formatCOP(reservation.total_amount)}`,
+    `*Tu parte (${ownerPct}%):* ${formatCOP(ownerAmount)}`,
+    '',
+  ];
+
+  if (payments.length > 0) {
+    lines.push('*Abonos del cliente:*');
+    payments.forEach(p => {
+      const note = p.notes ? ` (${p.notes})` : '';
+      lines.push(`  - ${formatDate(p.paid_at)}: ${formatCOP(Number(p.amount))}${note}`);
+    });
+    lines.push('');
+  }
+
+  if (remaining > 0) {
+    lines.push(`*Saldo pendiente del cliente:* ${formatCOP(remaining)}`);
+    lines.push('');
+  }
+
+  if (reservation.event_date) {
+    lines.push(`*Fecha del evento:* ${new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+    lines.push('');
+  }
+
+  lines.push('Camino a mi Boda');
+  lines.push('https://www.instagram.com/caminoamiboda');
+
+  return lines.join('\n');
+}
+
 export default function FinanceTab({
   reservation,
   onReservationChange,
@@ -567,6 +612,38 @@ export default function FinanceTab({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* WhatsApp liquidación al propietario — admin only, same privacy boundary as the settlement section below */}
+      {isAdmin && reservation.owner_name && !reservation.vehicle_is_company_owned && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-green-600" />
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Enviar liquidación al propietario por WhatsApp</h2>
+          </div>
+          <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-700">Propietario</span>
+              <span className="text-sm text-gray-500 ml-2">{reservation.owner_name}</span>
+              {reservation.owner_whatsapp && <span className="text-xs text-gray-400 ml-2">· {reservation.owner_whatsapp}</span>}
+            </div>
+            {reservation.owner_whatsapp ? (
+              <a
+                href={buildWaUrl(
+                  reservation.owner_whatsapp,
+                  buildOwnerMsg(reservation, payments, settlement === 'loading' ? null : settlement, reservation.owner_name.split(' ')[0])
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> Enviar
+              </a>
+            ) : (
+              <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
+            )}
+          </div>
         </div>
       )}
 
