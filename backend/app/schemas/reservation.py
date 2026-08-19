@@ -163,6 +163,7 @@ class ReservationList(BaseModel):
     id: int
     reservation_number: str
     display_customer: str
+    display_contact: Optional[str] = None
     display_vehicle: str
     display_driver: str
     display_driver_phone: Optional[str] = None

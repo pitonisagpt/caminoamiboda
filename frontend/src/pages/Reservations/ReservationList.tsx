@@ -487,7 +487,12 @@ export default function ReservationList() {
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="px-4 py-3 font-mono text-xs text-gray-400">{r.reservation_number}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{r.display_customer}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px]">
+                    <p className="truncate">{r.display_customer}</p>
+                    {r.display_contact && (
+                      <p className="text-xs font-normal text-gray-400 truncate">{r.display_contact}</p>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 min-w-0">
                       {r.vehicle_photo_url ? (

@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import asc, desc, func, or_
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, contains_eager, selectinload
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
@@ -80,7 +80,7 @@ def list_reservations(
     q = (db.query(Reservation)
          .outerjoin(Customer, Reservation.customer_id == Customer.id)
          .outerjoin(Contact, Reservation.contact_id == Contact.id)
-         .options(selectinload(Reservation.timelines)))
+         .options(contains_eager(Reservation.contact), selectinload(Reservation.timelines)))
 
     if status:
         statuses = [ReservationStatus(s) for s in status.split(",") if s]

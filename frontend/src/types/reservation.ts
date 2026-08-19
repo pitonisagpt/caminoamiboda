@@ -52,6 +52,7 @@ export interface ReservationListItem {
   id: number;
   reservation_number: string;
   display_customer: string;
+  display_contact: string | null;
   display_vehicle: string;
   display_driver: string;
   display_driver_phone: string | null;
@@ -82,7 +83,6 @@ export interface Reservation extends ReservationListItem {
   owner_driver_id: number | null;
   owner_driver_name: string | null;
   owner_driver_phone: string | null;
-  display_contact: string | null;
   contact_phone: string | null;
   contact_type: string | null;
   special_instructions: string | null;
