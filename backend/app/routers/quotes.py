@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from io import StringIO
 from pathlib import Path
@@ -14,7 +15,6 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.core.dependencies import get_current_user
 from app.core.files import safe_pdf_path
-from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.quote import LocationZone, Quote, QuoteStatus
 from app.models.reservation import Reservation, ReservationStatus
@@ -155,7 +155,9 @@ def delete_quote(quote_id: int, db: Session = Depends(get_db)):
 def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
     quote = _get_quote(quote_id, db)
 
-    # Load vehicle photo URL if available
+    # Load vehicle photo if available — a direct filesystem path, not
+    # build_upload_url's /api/uploads/... route: WeasyPrint renders
+    # server-side and can't resolve that relative path to a real file.
     vehicle_photo_url = None
     if quote.vehicle_id:
         from app.models.vehicle_photo import VehiclePhoto
@@ -164,7 +166,7 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
             VehiclePhoto.is_visible,
         ).order_by(VehiclePhoto.display_order).first()
         if photo:
-            vehicle_photo_url = build_upload_url(f"/api/uploads/vehicles/{photo.file_name}")
+            vehicle_photo_url = f"/app/uploads/vehicles/{photo.file_name}"
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("quote.html")
@@ -172,7 +174,7 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         quote=quote,
         display_customer=quote.display_customer,
         display_vehicle=quote.display_vehicle,
-        formatted_date=_format_date_es(datetime.now().date()),
+        formatted_date=_format_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
         formatted_event_date=_format_date_es(quote.event_date),
         formatted_price=_format_cop(quote.total_price),
         formatted_deposit=_format_cop(quote.deposit_amount) if quote.deposit_amount else None,

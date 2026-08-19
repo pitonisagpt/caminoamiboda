@@ -2,6 +2,7 @@ import io
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -441,6 +442,21 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
     driver = reservation.driver if reservation else None
     planner = reservation.contact if reservation else None
 
+    # Same vehicle-photo lookup as the quote PDF (quotes.py) — first visible
+    # photo by display_order, i.e. the one featured first in the catalog.
+    # Used as a direct filesystem path (not build_upload_url's /api/uploads/...
+    # route) since WeasyPrint renders server-side and can't resolve that
+    # relative path to a real file — it needs an actual path on disk.
+    vehicle_photo_path = None
+    if reservation and reservation.vehicle_id:
+        from app.models.vehicle_photo import VehiclePhoto
+        photo = db.query(VehiclePhoto).filter(
+            VehiclePhoto.vehicle_id == reservation.vehicle_id,
+            VehiclePhoto.is_visible,
+        ).order_by(VehiclePhoto.display_order).first()
+        if photo:
+            vehicle_photo_path = f"/app/uploads/vehicles/{photo.file_name}"
+
     day_labels = {
         n: f"Día {n} — {_fmt_date_es(timeline.event_date + timedelta(days=n - 1))}"
         for n in sorted({a.day_number for a in acts})
@@ -457,7 +473,8 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
         customer=customer,
         driver=driver,
         planner=planner,
-        formatted_date=_fmt_date_es(datetime.now().date()),
+        vehicle_photo_path=vehicle_photo_path,
+        formatted_date=_fmt_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
         formatted_event_date=_fmt_date_es(timeline.event_date),
         day_labels=day_labels,
         company_name=settings.company_name,
