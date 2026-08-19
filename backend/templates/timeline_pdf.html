@@ -76,9 +76,9 @@
       border-radius: 8px;
       padding: 14px 18px;
     }
-    .contacts-row { display: flex; gap: 0; flex-wrap: wrap; }
-    .contact-item { flex: 1; min-width: 160px; padding: 6px 12px; border-right: 1px solid #e2e8f0; }
-    .contact-item:last-child { border-right: none; }
+    .contacts-row { display: flex; gap: 4px; flex-wrap: wrap; }
+    .contact-item { flex: 1; min-width: 160px; padding: 6px 12px; border-left: 1px solid #e2e8f0; }
+    .contact-item:first-child { border-left: none; }
     .contact-role { font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
     .contact-name { font-size: 10pt; font-weight: 700; color: #1a1a1a; }
     .contact-phone { font-size: 9pt; color: #166f73; margin-top: 1px; }
@@ -177,6 +177,16 @@
   <!-- Title -->
   <div class="doc-title">Minuto a Minuto del Evento</div>
 
+  <!-- Vehicle photo -->
+  {% if vehicle_photo_path %}
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 16px;">
+    <img src="{{ vehicle_photo_path }}" style="width:120px; height:88px; object-fit:cover; border-radius:6px; flex-shrink:0;" alt="Vehículo" />
+    {% if timeline.assigned_vehicle %}
+    <div style="font-family:'Montserrat',Arial,sans-serif; font-weight:700; font-size:12pt; color:#0f4245;">{{ timeline.assigned_vehicle }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- Event info + Reservation info -->
   <div class="two-col">
     <div class="col">
@@ -226,8 +236,8 @@
         <span class="info-label">Estado:</span>
         <span class="info-value">
           {% set status_labels = {
-            'lead': 'Lead', 'quoted': 'Cotizada', 'deposit_received': 'Depósito',
-            'reserved': 'Reservada', 'confirmed': 'Confirmada',
+            'lead': 'Lead', 'quoted': 'Cotizada', 'pre_reserved': 'Pre-reserva',
+            'deposit_received': 'Depósito', 'reserved': 'Reservada', 'confirmed': 'Confirmada',
             'completed': 'Completada', 'cancelled': 'Cancelada'
           } %}
           <span class="status-badge">{{ status_labels.get(reservation.status, reservation.status) }}</span>
@@ -255,8 +265,13 @@
         {% if timeline.assigned_driver %}
         <div class="contact-item">
           <div class="contact-role">Conductor</div>
-          <div class="contact-name">{{ timeline.assigned_driver }}</div>
+          <div class="contact-name">{{ timeline.assigned_driver.split(' ')[0] }}</div>
           {% if timeline.assigned_driver_phone %}<div class="contact-phone">{{ timeline.assigned_driver_phone }}</div>{% endif %}
+        </div>
+        <div class="contact-item">
+          <div class="contact-role">Logística</div>
+          <div class="contact-name">{{ company_name }}</div>
+          {% if company_phone %}<div class="contact-phone">{{ company_phone }}</div>{% endif %}
         </div>
         {% endif %}
         {% if driver and driver.phone %}
