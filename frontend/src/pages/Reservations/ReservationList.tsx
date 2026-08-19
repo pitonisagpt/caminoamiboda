@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -472,9 +472,17 @@ export default function ReservationList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {reservations.map(r => (
+              {reservations.map((r, i) => {
+                const prev = i > 0 ? reservations[i - 1] : null;
+                const showDayDivider = sortBy === 'event_date' && !!prev && prev.event_date !== r.event_date;
+                return (
+                <Fragment key={r.id}>
+                  {showDayDivider && (
+                    <tr>
+                      <td colSpan={8} className="p-0"><div className="h-[3px] bg-gray-300" /></td>
+                    </tr>
+                  )}
                 <tr
-                  key={r.id}
                   onClick={() => navigate(`/reservas/${r.id}`)}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
@@ -558,7 +566,9 @@ export default function ReservationList() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                </Fragment>
+                );
+              })}
             </tbody>
           </table>
 
