@@ -79,15 +79,13 @@ function formatDate(d: string) {
 
 function buildOwnerMsg(
   reservation: Reservation,
-  payments: ReservationPayment[],
   settlement: OwnerSettlement | null,
+  settlementPayments: OwnerSettlementPayment[],
   ownerFirstName: string,
 ): string {
-  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
-  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
-
   const ownerPct = settlement ? settlement.owner_percentage : (reservation.vehicle_is_company_owned ? 0 : 70);
   const ownerAmount = settlement ? settlement.owner_amount : Number(reservation.total_amount) * (ownerPct / 100);
+  const remainingToOwner = settlement ? settlement.remaining_to_owner : ownerAmount;
 
   const lines: string[] = [
     `Hola ${ownerFirstName}, aquí está el resumen de la reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
@@ -97,17 +95,17 @@ function buildOwnerMsg(
     '',
   ];
 
-  if (payments.length > 0) {
-    lines.push('*Abonos del cliente:*');
-    payments.forEach(p => {
+  if (settlementPayments.length > 0) {
+    lines.push('*Abonos recibidos:*');
+    settlementPayments.forEach(p => {
       const note = p.notes ? ` (${p.notes})` : '';
       lines.push(`  - ${formatDate(p.paid_at)}: ${formatCOP(Number(p.amount))}${note}`);
     });
     lines.push('');
   }
 
-  if (remaining > 0) {
-    lines.push(`*Saldo pendiente del cliente:* ${formatCOP(remaining)}`);
+  if (remainingToOwner > 0) {
+    lines.push(`*Saldo pendiente para ti:* ${formatCOP(remainingToOwner)}`);
     lines.push('');
   }
 
@@ -632,7 +630,7 @@ export default function FinanceTab({
               <a
                 href={buildWaUrl(
                   reservation.owner_whatsapp,
-                  buildOwnerMsg(reservation, payments, settlement === 'loading' ? null : settlement, reservation.owner_name.split(' ')[0])
+                  buildOwnerMsg(reservation, settlement === 'loading' ? null : settlement, settlementPayments, reservation.owner_name.split(' ')[0])
                 )}
                 target="_blank"
                 rel="noreferrer"
