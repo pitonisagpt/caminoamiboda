@@ -14,8 +14,10 @@ if config.config_file_name is not None:
 if os.environ.get("DATABASE_URL"):
     config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
 
-from app.database import Base
-from app.models import billing_document  # noqa: F401 — registers model
+from app.database import Base  # noqa: E402
+from app.models import billing_document  # noqa: E402,F401 — registers model
+from app.models import florist_settings  # noqa: E402,F401 — registers model
+from app.models import florist_photo  # noqa: E402,F401 — registers model
 
 target_metadata = Base.metadata
 

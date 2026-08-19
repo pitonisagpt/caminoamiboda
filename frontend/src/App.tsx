@@ -46,6 +46,7 @@ import BlogListPage from "./pages/Blog/BlogListPage";
 import BlogPostPage from "./pages/Blog/BlogPostPage";
 import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
 import ReviewsPage from "./pages/Admin/ReviewsPage";
+import FloristPage from "./pages/Admin/FloristPage";
 import { timelinesApi } from "./api/timelines";
 
 // The Dashboard is finance-heavy and fully admin-only on the backend — a
@@ -217,6 +218,14 @@ export default function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <ReviewsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/floristeria"
+              element={
+                <ProtectedRoute adminOnly>
+                  <FloristPage />
                 </ProtectedRoute>
               }
             />
