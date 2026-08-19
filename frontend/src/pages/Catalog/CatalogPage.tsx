@@ -8,6 +8,7 @@ import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
+import { FloristAllySection } from "./FloristAllySection";
 import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import type { VehicleCategory, PublicVehicleListItem } from "../../types/vehicle";
@@ -713,6 +714,11 @@ export function CatalogPage() {
       {/* Instagram grid */}
       <div className="mt-16">
         <InstagramGrid />
+      </div>
+
+      {/* Floristería aliada */}
+      <div className="mt-16">
+        <FloristAllySection />
       </div>
     </>
   );

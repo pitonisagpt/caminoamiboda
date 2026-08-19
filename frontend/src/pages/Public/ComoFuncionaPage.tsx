@@ -1,6 +1,8 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { Search, MessageCircle, CalendarCheck, FileSignature, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Search, MessageCircle, CalendarCheck, FileSignature, Sparkles, CheckCircle2, XCircle, Instagram } from "lucide-react";
+import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { FLORIST_WA_URL, FLORIST_INSTAGRAM } from "../Catalog/FloristAllySection";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -37,10 +39,6 @@ const INCLUDES = [
   "4 horas de servicio con conductor",
   "El vehículo listo y en perfecto estado el día del evento",
   "Coordinación por minuto a minuto de recogida, ceremonia y recepción",
-];
-
-const NOT_INCLUDES = [
-  "Arreglo floral para el vehículo (te ponemos en contacto con nuestros aliados floristas)",
 ];
 
 const FAQS = [
@@ -125,12 +123,28 @@ export default function ComoFuncionaPage() {
             ))}
           </div>
           <div className="space-y-2.5">
-            {NOT_INCLUDES.map(item => (
-              <div key={item} className="flex items-start gap-2 text-sm text-gray-500">
-                <XCircle size={16} className="text-gray-300 shrink-0 mt-0.5" />
-                <span>{item}</span>
-              </div>
-            ))}
+            <div className="flex items-start gap-2 text-sm text-gray-500">
+              <XCircle size={16} className="text-gray-300 shrink-0 mt-0.5" />
+              <span className="flex items-center flex-wrap gap-x-1.5">
+                Arreglo floral para el vehículo (opcional — te ponemos en contacto con nuestra floristería aliada, Lluvia de Rosas:
+                <a
+                  href={FLORIST_WA_URL}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-green-600 hover:underline font-medium"
+                >
+                  <WhatsAppIcon className="w-3 h-3" /> WhatsApp
+                </a>
+                ·
+                <a
+                  href={FLORIST_INSTAGRAM}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-brand-600 hover:underline font-medium"
+                >
+                  <Instagram size={12} /> Instagram
+                </a>
+                )
+              </span>
+            </div>
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-5">
