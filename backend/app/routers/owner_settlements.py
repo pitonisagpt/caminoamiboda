@@ -78,7 +78,10 @@ def create_settlement(body: OwnerSettlementCreate, db: Session = Depends(get_db)
 
     value = reservation.total_amount
     pct = body.owner_percentage
-    owner_amount = (value * Decimal(pct) / Decimal(100)).quantize(Decimal("0.01"))
+    if body.owner_amount_override is not None:
+        owner_amount = body.owner_amount_override.quantize(Decimal("0.01"))
+    else:
+        owner_amount = (value * Decimal(pct) / Decimal(100)).quantize(Decimal("0.01"))
     company_amount = (value - owner_amount).quantize(Decimal("0.01"))
 
     vehicle_id = body.vehicle_id or reservation.vehicle_id
@@ -174,7 +177,9 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         formatted_company_amount=_format_cop(s.company_amount),
         formatted_amount_paid=_format_cop(s.amount_paid),
         formatted_remaining=_format_cop(s.remaining_to_owner),
-        formatted_total_paid_by_customer=_format_cop(sum(p.amount for p in reservation_payments)),
+        formatted_total_paid_by_customer=_format_cop(sum(p.amount for p in reservation_payments if p.payment_type == "cash")),
+        formatted_total_withheld=_format_cop(sum(p.amount for p in reservation_payments if p.payment_type == "withholding")),
+        has_withholding=any(p.payment_type == "withholding" for p in reservation_payments),
         display_vehicle=r.display_vehicle if r else "—",
         vehicle_plate=v.license_plate if v else None,
         vehicle_year=v.year if v else None,

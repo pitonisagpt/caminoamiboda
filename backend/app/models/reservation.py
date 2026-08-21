@@ -67,8 +67,15 @@ class Reservation(Base):
     payments = relationship("ReservationPayment", back_populates="reservation", lazy="select", order_by="ReservationPayment.paid_at")
 
     @property
+    def retention_total(self) -> Decimal:
+        """Sum of payments the client withheld as retención en la fuente —
+        never cash the company received, but the client's obligation for
+        that amount is still discharged (see remaining_balance)."""
+        return sum((p.amount for p in self.payments if p.payment_type == "withholding"), Decimal("0"))
+
+    @property
     def remaining_balance(self) -> Decimal:
-        return max(Decimal("0"), self.total_amount - self.deposit_paid)
+        return max(Decimal("0"), self.total_amount - self.deposit_paid - self.retention_total)
 
     @property
     def display_customer(self) -> str:

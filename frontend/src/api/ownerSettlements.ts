@@ -36,7 +36,7 @@ export const ownerSettlementsApi = {
 
   get: (id: number) => api.get<OwnerSettlement>(`/owner-settlements/${id}`),
 
-  create: (data: { reservation_id: number; vehicle_id?: number; owner_id?: number; owner_percentage?: number; notes?: string }) =>
+  create: (data: { reservation_id: number; vehicle_id?: number; owner_id?: number; owner_percentage?: number; notes?: string; owner_amount_override?: number }) =>
     api.post<OwnerSettlement>('/owner-settlements', data),
 
   markPaid: (id: number) => api.patch<OwnerSettlement>(`/owner-settlements/${id}/mark-paid`),

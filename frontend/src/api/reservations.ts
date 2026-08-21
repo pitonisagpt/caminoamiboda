@@ -3,12 +3,16 @@ import type { Reservation, ReservationPage, ReservationStatus } from '../types/r
 
 const base = '/reservations';
 
+export type PaymentType = 'cash' | 'withholding';
+
 export interface ReservationPayment {
   id: number;
   reservation_id: number;
   amount: number;
   paid_at: string;
   notes: string | null;
+  payment_type: PaymentType;
+  withholding_percentage: number | null;
   created_at: string;
 }
 
@@ -50,7 +54,7 @@ export const reservationsApi = {
   listPayments: (id: number) =>
     api.get<ReservationPayment[]>(`${base}/${id}/payments`),
 
-  addPayment: (id: number, data: { amount: number; paid_at: string; notes?: string }) =>
+  addPayment: (id: number, data: { amount: number; paid_at: string; notes?: string; payment_type?: PaymentType; withholding_percentage?: number | null }) =>
     api.post<ReservationPayment>(`${base}/${id}/payments`, data),
 
   deletePayment: (reservationId: number, paymentId: number) =>

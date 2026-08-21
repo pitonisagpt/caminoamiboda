@@ -48,7 +48,10 @@ function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[],
     payments.forEach(p => {
       const date = new Date(p.paid_at + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
       const note = p.notes ? ` (${p.notes})` : '';
-      lines.push(`  - ${date}: ${formatCOP(Number(p.amount))}${note}`);
+      const withholding = p.payment_type === 'withholding'
+        ? ` [Retención en la fuente${p.withholding_percentage ? ` ${p.withholding_percentage}%` : ''}]`
+        : '';
+      lines.push(`  - ${date}: ${formatCOP(Number(p.amount))}${note}${withholding}`);
     });
     lines.push('');
   }
@@ -144,11 +147,15 @@ export default function FinanceTab({
   const [newAmount, setNewAmount] = useState('');
   const [newDate, setNewDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
   const [newNotes, setNewNotes] = useState('');
+  const [newPaymentType, setNewPaymentType] = useState<'cash' | 'withholding'>('cash');
+  const [newWithholdingPct, setNewWithholdingPct] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [settlement, setSettlement] = useState<OwnerSettlement | null | 'loading'>('loading');
   const [creating, setCreating] = useState(false);
+  const [showSettlementAdjust, setShowSettlementAdjust] = useState(false);
+  const [ownerAmountOverride, setOwnerAmountOverride] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const [settlementPayments, setSettlementPayments] = useState<OwnerSettlementPayment[]>([]);
@@ -159,10 +166,14 @@ export default function FinanceTab({
   const [savingSp, setSavingSp] = useState(false);
   const [deletingSpId, setDeletingSpId] = useState<number | null>(null);
 
-  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
-  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
+  // "Depósitos" is cash-only — a retención en la fuente is never money that
+  // reached the company, so it must never be counted as if it were a cash
+  // deposit (mirrors the backend's deposit_paid, which excludes it too).
+  const totalDeposit = payments.filter(p => p.payment_type === 'cash').reduce((s, p) => s + Number(p.amount), 0);
+  const retentionTotal = payments.filter(p => p.payment_type === 'withholding').reduce((s, p) => s + Number(p.amount), 0);
+  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit - retentionTotal);
   const pct = reservation.total_amount > 0
-    ? Math.round((totalDeposit / Number(reservation.total_amount)) * 100)
+    ? Math.round(((totalDeposit + retentionTotal) / Number(reservation.total_amount)) * 100)
     : 0;
 
   useEffect(() => {
@@ -229,10 +240,14 @@ export default function FinanceTab({
         amount: Number(newAmount),
         paid_at: newDate,
         notes: newNotes || undefined,
+        payment_type: newPaymentType,
+        withholding_percentage: newPaymentType === 'withholding' && newWithholdingPct ? Number(newWithholdingPct) : null,
       });
       setPayments(prev => [...prev, res.data].sort((a, b) => a.paid_at.localeCompare(b.paid_at)));
       setNewAmount('');
       setNewNotes('');
+      setNewPaymentType('cash');
+      setNewWithholdingPct('');
       setAddingPayment(false);
       onReservationChange?.();
     } finally {
@@ -258,9 +273,12 @@ export default function FinanceTab({
         reservation_id: reservation.id,
         vehicle_id: reservation.vehicle_id ?? undefined,
         owner_percentage: 70,
+        ...(ownerAmountOverride ? { owner_amount_override: Number(ownerAmountOverride) } : {}),
       });
       setSettlement(res.data);
       setSettlementPayments([]);
+      setShowSettlementAdjust(false);
+      setOwnerAmountOverride('');
     } finally {
       setCreating(false);
     }
@@ -356,6 +374,13 @@ export default function FinanceTab({
           </div>
         </div>
 
+        {retentionTotal > 0 && (
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 text-sm">
+            <span className="text-amber-800">Retenido en la fuente (no es efectivo recibido)</span>
+            <span className="font-semibold text-amber-800">{formatCOP(retentionTotal)}</span>
+          </div>
+        )}
+
         {/* Progress bar */}
         <div>
           <div className="flex justify-between text-xs text-gray-400 mb-1">
@@ -421,7 +446,14 @@ export default function FinanceTab({
             {payments.map(p => (
               <div key={p.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(p.amount))}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(p.amount))}</p>
+                    {p.payment_type === 'withholding' && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 shrink-0">
+                        Retención{p.withholding_percentage ? ` ${p.withholding_percentage}%` : ''}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400">{formatDate(p.paid_at)}{p.notes ? ` · ${p.notes}` : ''}</p>
                 </div>
                 <button
@@ -439,6 +471,48 @@ export default function FinanceTab({
         {/* Add payment form */}
         {addingPayment && (
           <div className="border border-brand-100 rounded-xl p-4 space-y-3 bg-brand-50/30">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setNewPaymentType('cash'); setNewWithholdingPct(''); }}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                    newPaymentType === 'cash' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  Abono
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewPaymentType('withholding')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                    newPaymentType === 'withholding' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  Retención en la fuente
+                </button>
+              </div>
+            </div>
+            {newPaymentType === 'withholding' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">% retenido (opcional)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newWithholdingPct}
+                  onChange={e => {
+                    const pct = e.target.value;
+                    setNewWithholdingPct(pct);
+                    if (pct) setNewAmount(String(Math.round(Number(reservation.total_amount) * (Number(pct) / 100))));
+                  }}
+                  placeholder="Ej: 4"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                <p className="text-xs text-gray-400 mt-1">Calcula el monto sobre el valor total — ajústalo abajo si la base es distinta.</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Monto (COP) *</label>
@@ -476,7 +550,7 @@ export default function FinanceTab({
             <div className="flex gap-2 justify-end">
               <button
                 type="button"
-                onClick={() => { setAddingPayment(false); setNewAmount(''); setNewNotes(''); }}
+                onClick={() => { setAddingPayment(false); setNewAmount(''); setNewNotes(''); setNewPaymentType('cash'); setNewWithholdingPct(''); }}
                 className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
               >
                 Cancelar
@@ -665,7 +739,7 @@ export default function FinanceTab({
             </div>
           )}
 
-          {settlement === null && (
+          {settlement === null && retentionTotal === 0 && (
             <div className="space-y-2">
               <p className="text-sm text-gray-500">No se ha generado una liquidación para esta reserva.</p>
               <button
@@ -676,6 +750,62 @@ export default function FinanceTab({
                 {creating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                 Generar Liquidación
               </button>
+            </div>
+          )}
+
+          {settlement === null && retentionTotal > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-500">No se ha generado una liquidación para esta reserva.</p>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-sm text-amber-800">
+                Esta reserva tiene <strong>{formatCOP(retentionTotal)}</strong> retenido en la fuente — esa
+                plata nunca llegó como efectivo. Decide si el propietario recibe su parte sobre ese monto o no.
+              </div>
+              {!showSettlementAdjust ? (
+                <button
+                  onClick={() => {
+                    setOwnerAmountOverride(String(Math.round(Number(reservation.total_amount) * 0.7)));
+                    setShowSettlementAdjust(true);
+                  }}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                >
+                  <FileText size={14} /> Generar Liquidación
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-600">Monto para el propietario (COP)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={ownerAmountOverride}
+                    onChange={e => setOwnerAmountOverride(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Precargado con el 70% del total ({formatCOP(Number(reservation.total_amount) * 0.7)}). Bájalo a{' '}
+                    {formatCOP(Number(reservation.total_amount) * 0.7 - retentionTotal * 0.7)} si no le vas a pagar
+                    su parte de lo retenido, o déjalo así si sí se la vas a pagar.
+                  </p>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => { setShowSettlementAdjust(false); setOwnerAmountOverride(''); }}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateSettlement}
+                      disabled={creating || !ownerAmountOverride}
+                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      {creating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                      Generar Liquidación
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

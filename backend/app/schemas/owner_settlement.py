@@ -11,6 +11,11 @@ class OwnerSettlementCreate(BaseModel):
     owner_id: Optional[int] = None
     owner_percentage: int = 70
     notes: Optional[str] = None
+    # Manual override for owner_amount — used when the reservation has a
+    # retención en la fuente and the owner's cut needs to be adjusted by
+    # hand (case-by-case decision, not an automatic rule). When omitted,
+    # owner_amount is computed from owner_percentage as before.
+    owner_amount_override: Optional[Decimal] = None
 
 
 class OwnerSettlementRead(BaseModel):

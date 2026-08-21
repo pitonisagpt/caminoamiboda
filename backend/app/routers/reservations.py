@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -310,6 +310,8 @@ class PaymentCreate(BaseModel):
     amount: Decimal
     paid_at: date
     notes: Optional[str] = None
+    payment_type: Literal["cash", "withholding"] = "cash"
+    withholding_percentage: Optional[Decimal] = None
 
 
 class PaymentRead(BaseModel):
@@ -318,13 +320,19 @@ class PaymentRead(BaseModel):
     amount: Decimal
     paid_at: date
     notes: Optional[str]
+    payment_type: str
+    withholding_percentage: Optional[Decimal]
     created_at: datetime
 
     model_config = {"from_attributes": True}
 
 
 def _sync_deposit(reservation: Reservation, db: Session) -> None:
-    total = sum(p.amount for p in reservation.payments)
+    # Only "cash" payments count as deposit_paid — deposit_paid feeds the
+    # finance dashboard's cash metrics, so a withholding entry (money that
+    # never reached the company) must never inflate it. remaining_balance
+    # separately accounts for withholding via Reservation.retention_total.
+    total = sum(p.amount for p in reservation.payments if p.payment_type == "cash")
     reservation.deposit_paid = total
     db.commit()
 
@@ -347,6 +355,8 @@ def add_payment(reservation_id: int, body: PaymentCreate, db: Session = Depends(
         amount=body.amount,
         paid_at=body.paid_at,
         notes=body.notes,
+        payment_type=body.payment_type,
+        withholding_percentage=body.withholding_percentage,
     )
     db.add(payment)
     db.flush()

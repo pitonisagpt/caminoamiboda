@@ -293,14 +293,23 @@
         {% for p in reservation_payments %}
         <tr>
           <td>{{ p.paid_at.strftime('%d/%m/%Y') }}</td>
-          <td>{{ p.notes or '—' }}</td>
+          <td>
+            {{ p.notes or '—' }}
+            {% if p.payment_type == 'withholding' %}<em>(Retención en la fuente{% if p.withholding_percentage %} {{ p.withholding_percentage }}%{% endif %})</em>{% endif %}
+          </td>
           <td class="amount">COP ${{ "{:,.0f}".format(p.amount).replace(",", ".") }}</td>
         </tr>
         {% endfor %}
         <tr class="row-total">
-          <td colspan="2"><strong>Total recibido del cliente</strong></td>
+          <td colspan="2"><strong>Total recibido en efectivo</strong></td>
           <td class="amount"><strong>{{ formatted_total_paid_by_customer }}</strong></td>
         </tr>
+        {% if has_withholding %}
+        <tr>
+          <td colspan="2">Retenido en la fuente</td>
+          <td class="amount">{{ formatted_total_withheld }}</td>
+        </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
