@@ -95,7 +95,10 @@ def calendar_category_for(reservation) -> str:
     # reserved, deposit_received, confirmed, completed → depends on how much was paid
     total = float(reservation.total_amount or 0)
     paid = float(reservation.deposit_paid or 0)
-    fully_paid = total > 0 and paid >= total
+    # remaining_balance (not a raw paid >= total check) so a retención en la
+    # fuente that covers the rest of the total also counts as fully paid —
+    # it discharges the client's obligation even though it's not cash.
+    fully_paid = total > 0 and reservation.remaining_balance <= 0
 
     if status == "reserved":
         if paid <= 0:
@@ -192,7 +195,10 @@ def _build_description(
     if reservation:
         total = reservation.total_amount
         paid = reservation.deposit_paid
-        remaining = max(0, total - paid) if total else 0
+        # Not total - paid: that ignores retención en la fuente, which also
+        # discharges the client's obligation without being cash received —
+        # remaining_balance already accounts for it (see Reservation model).
+        remaining = reservation.remaining_balance
         lines.append("")
         lines.append("— Financiero —")
         lines.append(f"Total: {_fmt_cop(total)}")
