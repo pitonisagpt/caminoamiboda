@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    {% include '_brand.html' %}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; background: #fff; }
+
+    .page { padding: 36px 44px; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #21b2b8;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .brand-tagline { font-family: 'Montserrat', Arial, sans-serif; font-weight: 600; font-size: 8pt; color: #166f73; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #0f4245; }
+
+    .doc-title {
+      font-family: 'Montserrat', Arial, sans-serif;
+      text-align: center;
+      font-size: 13pt;
+      font-weight: 700;
+      color: #0f4245;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 10px 0;
+      border-top: 1px solid #d0f4f5;
+      border-bottom: 1px solid #d0f4f5;
+      margin-bottom: 10px;
+    }
+    .draft-notice {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #92400e;
+      background: #fef9c3;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 20px;
+    }
+
+    .section { margin-bottom: 16px; }
+    .section-title {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: 700;
+      color: #166f73;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      border-bottom: 1px solid #f0fbfb;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+
+    .two-col { display: flex; gap: 24px; margin-bottom: 16px; }
+    .two-col .col { flex: 1; }
+
+    .info-row { display: flex; margin-bottom: 4px; font-size: 10pt; }
+    .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+    .blank-line { color: #bbb; }
+
+    .clause { margin-bottom: 10px; }
+    .clause-title { font-size: 9.5pt; font-weight: 700; color: #0f4245; margin-bottom: 3px; }
+    .clause-body { font-size: 9.5pt; color: #334155; line-height: 1.55; text-align: justify; }
+    .clause-body strong { color: #1a1a1a; }
+
+    .split-box {
+      background: #f0fbfb;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 8px;
+      font-size: 9.5pt;
+      color: #0f4245;
+    }
+    .split-box strong { font-size: 11pt; }
+
+    .signatures { display: flex; gap: 32px; margin-top: 36px; }
+    .sig-box { flex: 1; text-align: center; }
+    .sig-line { border-top: 1px solid #333; margin-top: 44px; padding-top: 6px; font-size: 9pt; }
+    .sig-role { font-size: 8.5pt; color: #666; }
+
+    .footer {
+      margin-top: 28px;
+      border-top: 1px solid #d0f4f5;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: #888;
+    }
+    .footer .brand { font-weight: 700; color: #166f73; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      {% include '_logo_badge.html' %}
+      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
+    </div>
+    <div class="header-meta">
+      <div class="doc-num">{{ contract.contract_number }}</div>
+      <div>Fecha: {{ formatted_date }}</div>
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <div class="doc-title">Contrato Marco de Vinculación de Vehículo</div>
+  <div class="draft-notice">Plantilla inicial de trabajo — pendiente de revisión por un abogado antes de su uso formal.</div>
+
+  <!-- Comparecientes -->
+  <div class="section">
+    <div class="section-title">Comparecientes</div>
+    <div class="two-col">
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">LA EMPRESA</p>
+        <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
+        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}{% if company_cc_city %} de {{ company_cc_city }}{% endif %}</span></div>
+        <div class="info-row"><span class="info-label">Nombre comercial:</span><span class="info-value">{{ company_name }}</span></div>
+        <div class="info-row"><span class="info-label">Domicilio:</span><span class="info-value">{{ company_address or '—' }}</span></div>
+        {% if company_email %}<div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ company_email }}</span></div>{% endif %}
+      </div>
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL PROPIETARIO</p>
+        <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ owner.full_name }}</span></div>
+        {% if owner.company_name %}<div class="info-row"><span class="info-label">Empresa:</span><span class="info-value">{{ owner.company_name }}</span></div>{% endif %}
+        <div class="info-row"><span class="info-label">C.C./NIT:</span><span class="info-value">{{ owner.identification_number or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Domicilio:</span><span class="info-value blank-line">_______________________</span></div>
+        {% if owner.phone or owner.whatsapp %}<div class="info-row"><span class="info-label">Teléfono:</span><span class="info-value">{{ owner.whatsapp or owner.phone }}</span></div>{% endif %}
+        {% if owner.email %}<div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ owner.email }}</span></div>{% endif %}
+      </div>
+    </div>
+    <p class="clause-body">LA EMPRESA es una persona natural que opera comercialmente bajo el nombre "{{ company_name }}"; a la fecha de este contrato dicho nombre no corresponde a una persona jurídica constituida. Las partes anteriormente identificadas, en adelante <strong>LA EMPRESA</strong> y <strong>EL PROPIETARIO</strong> respectivamente, acuerdan celebrar el presente contrato marco, el cual se regirá por las siguientes cláusulas:</p>
+  </div>
+
+  <!-- Cláusulas -->
+  <div class="section">
+    <div class="clause">
+      <div class="clause-title">Primera. Objeto</div>
+      <div class="clause-body">EL PROPIETARIO vincula uno o varios vehículos a la operación de LA EMPRESA —sean de su propiedad o que gestione bajo otra modalidad, conforme a lo previsto en la cláusula segunda— para la prestación del servicio de transporte en eventos, principalmente bodas y celebraciones afines, bajo el nombre comercial <strong>{{ company_name }}</strong>.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Segunda. Vehículos vinculados</div>
+      <div class="clause-body">EL PROPIETARIO podrá vincular a la operación de LA EMPRESA uno o varios vehículos, sean de su propiedad, subcontratados a un tercero, o de su propiedad sin que aún se haya realizado el traspaso de papeles a su nombre. La identificación de cada vehículo vinculado (marca, línea, año, placa) se lleva en el sistema de gestión de LA EMPRESA, sin necesidad de listarlos en este contrato marco. La vinculación de vehículos adicionales, o el retiro de alguno de los ya vinculados, no requiere modificar este contrato y se entiende cobijada por los mismos términos, salvo que las partes pacten condiciones distintas por escrito para un vehículo en particular.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Tercera. Distribución de ingresos</div>
+      <div class="clause-body">El valor de cada reserva se distribuye entre las partes según el porcentaje que se acuerde para cada vehículo, liquidado mediante el documento de liquidación de propietario generado por el sistema de LA EMPRESA tras la finalización de cada evento. Salvo que se pacte un porcentaje distinto por escrito para un vehículo en particular, aplica el siguiente reparto por defecto:</div>
+      <div class="split-box"><strong>70%</strong> para EL PROPIETARIO · <strong>30%</strong> para LA EMPRESA, sobre el valor total de cada reserva.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Cuarta. Retención en la fuente</div>
+      <div class="clause-body">Cuando el cliente de una reserva practique retención en la fuente sobre el pago, la parte que corresponda a EL PROPIETARIO sobre el valor retenido se definirá de mutuo acuerdo entre las partes caso a caso, sin que ello modifique el porcentaje de distribución pactado en la cláusula tercera.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Quinta. Obligaciones de EL PROPIETARIO</div>
+      <div class="clause-body">Mantener el vehículo en óptimas condiciones mecánicas, eléctricas y estéticas; contar con SOAT y demás documentos de tránsito vigentes; garantizar la disponibilidad del vehículo para las reservas confirmadas; e informar a LA EMPRESA con la mayor anticipación posible cualquier eventualidad que afecte dicha disponibilidad (daño, mantenimiento, indisponibilidad). Cuando el vehículo vinculado no esté registrado a su nombre —por ser subcontratado o por no haberse realizado aún el traspaso de papeles—, EL PROPIETARIO garantiza contar con la autorización de quien figure como titular para vincularlo a la operación de LA EMPRESA, y responde frente a LA EMPRESA por cualquier reclamación derivada de la falta de dicha autorización.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Sexta. Obligaciones de LA EMPRESA</div>
+      <div class="clause-body">Gestionar las reservas y coordinar la logística de cada evento; realizar el pago de la liquidación correspondiente a EL PROPIETARIO dentro de los plazos que se acuerden tras cada evento; y promocionar el vehículo dentro de su catálogo y canales de venta.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Séptima. Conductores</div>
+      <div class="clause-body">El servicio podrá ser prestado por un conductor designado por LA EMPRESA o por EL PROPIETARIO, según se acuerde para cada evento. En cualquier caso, el conductor asignado deberá cumplir los requisitos legales vigentes para la conducción del vehículo, incluyendo licencia de conducción vigente y acorde a la categoría del vehículo.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Octava. Seguros y responsabilidad</div>
+      <div class="clause-body">El vehículo debe contar con SOAT vigente durante toda la vinculación y, de ser posible, póliza de responsabilidad civil extracontractual. EL PROPIETARIO responde por el buen estado mecánico del vehículo. LA EMPRESA no asume responsabilidad por daños derivados de fallas mecánicas no informadas previamente por EL PROPIETARIO.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Novena. Uso de imagen</div>
+      <div class="clause-body">EL PROPIETARIO autoriza a LA EMPRESA a usar fotografías y videos del vehículo, tomados en el marco de los eventos y servicios prestados, en sus canales de promoción (redes sociales, catálogo web y material publicitario), sin que ello genere contraprestación adicional a favor de EL PROPIETARIO.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima. Duración y terminación</div>
+      <div class="clause-body">Este contrato tiene vigencia indefinida a partir de su firma. Cualquiera de las partes podrá terminarlo unilateralmente mediante aviso previo por escrito con al menos <span class="blank-line">____</span> días de anticipación, sin perjuicio de los compromisos ya adquiridos sobre eventos previamente confirmados. LA EMPRESA podrá terminarlo de forma inmediata en caso de incumplimiento grave por parte de EL PROPIETARIO.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima primera. Confidencialidad</div>
+      <div class="clause-body">Las partes se obligan a mantener reserva sobre la información comercial y financiera a la que tengan acceso en desarrollo del presente contrato, y a no divulgarla a terceros sin autorización previa de la otra parte.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima segunda. Solución de controversias</div>
+      <div class="clause-body">Las partes procurarán resolver cualquier diferencia derivada de este contrato de manera directa y de buena fe. De no lograrse un acuerdo, se someterán a la jurisdicción ordinaria de {{ city }}.</div>
+    </div>
+  </div>
+
+  <!-- Firmas -->
+  <div class="signatures">
+    <div class="sig-box">
+      <div class="sig-line">{{ company_owner }}</div>
+      <div class="sig-role">LA EMPRESA — {{ company_name }}</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-line">{{ owner.full_name }}</div>
+      <div class="sig-role">EL PROPIETARIO</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div><span class="brand">{{ company_name }}</span> · CC {{ company_cc }}</div>
+    <div>{{ company_phone }}</div>
+    <div>Generado el {{ formatted_date }}</div>
+  </div>
+
+</div>
+</body>
+</html>
