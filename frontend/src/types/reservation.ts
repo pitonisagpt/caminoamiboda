@@ -61,6 +61,7 @@ export interface ReservationListItem {
   owner_whatsapp: string | null;
   event_date: string;
   event_end_date: string;
+  is_in_progress: boolean;
   total_amount: number;
   deposit_paid: number;
   remaining_balance: number;

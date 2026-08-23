@@ -531,6 +531,12 @@ export default function ReservationList() {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status]}`}>
                         {RESERVATION_STATUS_LABEL[r.status]}
                       </span>
+                      {r.is_in_progress && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          En progreso
+                        </span>
+                      )}
                       {r.event_category !== 'standard' && (
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${EVENT_CATEGORY_COLOR[r.event_category]}`}>
                           {EVENT_CATEGORY_LABEL[r.event_category]}

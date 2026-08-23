@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from app.core.urls import build_upload_url
 from app.models.reservation import ReservationStatus
 from app.models.timeline_activity import TimelineActivity
-from app.services.event_span import effective_end_date
+from app.services.event_span import effective_end_date, is_in_progress
 
 _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
@@ -54,6 +54,7 @@ def _build(r, db) -> dict:
     # calendar.py): query TimelineActivity directly.
     activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all() if tls else []
     d["event_end_date"] = effective_end_date(r.event_date, activities)
+    d["is_in_progress"] = is_in_progress(r.event_date, d["event_end_date"], r.status)
     return d
 
 
@@ -114,6 +115,8 @@ class ReservationRead(BaseModel):
     driver_id: Optional[int] = None
     owner_driver_id: Optional[int] = None
     event_date: date
+    event_end_date: date
+    is_in_progress: bool = False
     total_amount: Decimal
     deposit_paid: Decimal
     remaining_balance: Decimal
@@ -172,6 +175,7 @@ class ReservationList(BaseModel):
     owner_whatsapp: Optional[str] = None
     event_date: date
     event_end_date: date
+    is_in_progress: bool = False
     total_amount: Decimal
     deposit_paid: Decimal
     remaining_balance: Decimal

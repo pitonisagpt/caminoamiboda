@@ -113,6 +113,12 @@ export default function ReservationDetail() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[reservation.status]}`}>
                 {RESERVATION_STATUS_LABEL[reservation.status]}
               </span>
+              {reservation.is_in_progress && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  En progreso
+                </span>
+              )}
               {reservation.event_category !== 'standard' && (
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${EVENT_CATEGORY_COLOR[reservation.event_category]}`}>
                   {EVENT_CATEGORY_LABEL[reservation.event_category]}
