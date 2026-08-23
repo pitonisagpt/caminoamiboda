@@ -12,14 +12,10 @@ from app.models.event_timeline import EventTimeline
 from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle_photo import VehiclePhoto
 from app.services.conflicts import find_conflicts
-from app.services.event_span import effective_end_date
+from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
 
 router = APIRouter(tags=["calendar"], redirect_slashes=False)
 
-# Multi-day events are rare (mostly ad/production shoots) and typically short —
-# this lookback is generous enough to catch one that started before the visible
-# range but still spans into it, without scanning the whole table.
-MULTI_DAY_LOOKBACK_DAYS = 14
 
 def _activities_by_timeline(db: Session, timeline_ids: list[int]) -> dict[int, list]:
     # EventTimeline.activities (the ORM relationship) doesn't reliably behave

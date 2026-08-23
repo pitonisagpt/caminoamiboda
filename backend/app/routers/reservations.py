@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import List, Literal, Optional
 
@@ -17,9 +17,11 @@ from app.models.event_timeline import EventTimeline
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_payment import ReservationPayment
 from app.models.quote import Quote
+from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle import Vehicle, VehicleCategory
 from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
 from app.services.conflicts import find_conflicts
+from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
 
 router = APIRouter(tags=["reservations"], redirect_slashes=False)
 
@@ -109,7 +111,11 @@ def list_reservations(
         else:
             q = q.filter(Reservation.id.is_(None))  # no such location → empty result
     if date_from:
-        q = q.filter(Reservation.event_date >= date_from)
+        # Widened, not an exact >= date_from: a multi-day event can start
+        # before date_from and still be ongoing during it — the precise
+        # overlap check (via effective_end_date) happens after fetching,
+        # once each reservation's timeline activities are available.
+        q = q.filter(Reservation.event_date >= date_from - timedelta(days=MULTI_DAY_LOOKBACK_DAYS))
     if date_to:
         q = q.filter(Reservation.event_date <= date_to)
     if search:
@@ -128,8 +134,30 @@ def list_reservations(
     col = _SORT_COLS.get(sort_by, Reservation.event_date)
     q = q.order_by(desc(col) if sort_dir == "desc" else asc(col))
 
-    total = q.count()
-    items = q.offset((page - 1) * page_size).limit(page_size).all()
+    if date_from:
+        # The SQL filter above only widened the lower bound — apply the exact
+        # overlap check here, then paginate the already-filtered list (can't
+        # paginate at the SQL level before this, or the count/offset would be
+        # wrong relative to the precise, non-widened result).
+        all_items = q.all()
+        timeline_ids = [tl.id for r in all_items for tl in (r.timelines or [])]
+        activities_by_timeline: dict[int, list] = {}
+        if timeline_ids:
+            for a in db.query(TimelineActivity).filter(TimelineActivity.timeline_id.in_(timeline_ids)).all():
+                activities_by_timeline.setdefault(a.timeline_id, []).append(a)
+
+        def _overlaps_range(r: Reservation) -> bool:
+            tls = r.timelines or []
+            activities = activities_by_timeline.get(tls[0].id, []) if tls else []
+            return effective_end_date(r.event_date, activities) >= date_from
+
+        filtered = [r for r in all_items if _overlaps_range(r)]
+        total = len(filtered)
+        start = (page - 1) * page_size
+        items = filtered[start:start + page_size]
+    else:
+        total = q.count()
+        items = q.offset((page - 1) * page_size).limit(page_size).all()
 
     return ReservationPage(
         items=[ReservationList.build(r, db) for r in items],

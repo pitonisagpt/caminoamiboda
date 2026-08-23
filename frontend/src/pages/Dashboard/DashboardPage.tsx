@@ -188,6 +188,11 @@ export default function DashboardPage() {
                       if (diff === 1) return <p className="text-[10px] font-semibold text-amber-500 leading-tight mt-0.5">mañana</p>;
                       return <p className="text-[10px] text-gray-500 leading-tight mt-0.5">en {diff}d</p>;
                     })()}
+                    {r.end_date && r.end_date !== r.date && (
+                      <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
+                        → {new Date(r.end_date + 'T12:00:00').getDate()} {new Date(r.end_date + 'T12:00:00').toLocaleDateString('es-CO', { month: 'short' })}
+                      </p>
+                    )}
                   </div>
                   <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
                     {r.vehicle_photo_url
@@ -216,6 +221,12 @@ export default function DashboardPage() {
                     <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full ${RESERVATION_STATUS_COLOR[r.status as ReservationStatus] ?? 'bg-gray-100 text-gray-600'}`}>
                       {RESERVATION_STATUS_LABEL[r.status as ReservationStatus] ?? r.status}
                     </span>
+                    {r.is_in_progress && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        En progreso
+                      </span>
+                    )}
                     {r.remaining_balance > 0 && (
                       <p className="text-xs text-red-500 font-medium">{formatCOP(r.remaining_balance)} pendiente</p>
                     )}

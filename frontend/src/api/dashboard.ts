@@ -5,6 +5,8 @@ export interface UpcomingReservation {
   reservation_number: string;
   title: string;
   date: string;
+  end_date: string;
+  is_in_progress: boolean;
   status: string;
   vehicle: string;
   driver: string;

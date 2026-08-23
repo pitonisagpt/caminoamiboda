@@ -1,6 +1,14 @@
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+# How many days before a query's start date to widen a SQL prefilter, so a
+# multi-day event that started earlier but is still ongoing isn't missed by
+# a naive event_date >= start comparison. The precise overlap check still
+# happens afterwards via effective_end_date — this is just how far back the
+# SQL query looks before that precise filter runs. Shared by conflicts.py,
+# calendar.py, and anything else that range-filters Reservation.event_date.
+MULTI_DAY_LOOKBACK_DAYS = 14
+
 
 def max_day_number(activities) -> int:
     """Highest day_number across a timeline's activities (1 if none/absent)."""

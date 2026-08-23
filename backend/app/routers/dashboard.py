@@ -4,14 +4,16 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import extract, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.dependencies import require_admin
 from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.owner_settlement import OwnerSettlement
 from app.models.reservation import Reservation, ReservationStatus
+from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle import Vehicle
+from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date, is_in_progress
 
 router = APIRouter(tags=["dashboard"], redirect_slashes=False)
 
@@ -51,18 +53,33 @@ def get_summary(
     # --- Upcoming reservations (always next 30 days — operational, not date-range-filtered) ---
     next_30 = today + timedelta(days=30)
     upcoming_filters = [
-        Reservation.event_date >= today,
+        # Widened, not an exact >= today: a multi-day event can have started
+        # before today and still be ongoing — the precise check (via
+        # effective_end_date) happens below, once activities are fetched.
+        Reservation.event_date >= today - timedelta(days=MULTI_DAY_LOOKBACK_DAYS),
         Reservation.event_date <= next_30,
         Reservation.status.in_([s.value for s in DASHBOARD_VISIBLE_STATUSES]),
     ]
 
-    upcoming_qs = (
+    upcoming_candidates = (
         db.query(Reservation)
         .filter(*upcoming_filters)
+        .options(selectinload(Reservation.timelines))
         .order_by(Reservation.event_date)
-        .limit(10)
         .all()
     )
+    _timeline_ids = [tl.id for r in upcoming_candidates for tl in (r.timelines or [])]
+    _activities_by_timeline: dict[int, list] = {}
+    if _timeline_ids:
+        for a in db.query(TimelineActivity).filter(TimelineActivity.timeline_id.in_(_timeline_ids)).all():
+            _activities_by_timeline.setdefault(a.timeline_id, []).append(a)
+
+    def _reservation_end_date(r: Reservation) -> date:
+        tls = r.timelines or []
+        activities = _activities_by_timeline.get(tls[0].id, []) if tls else []
+        return effective_end_date(r.event_date, activities)
+
+    upcoming_qs = [r for r in upcoming_candidates if _reservation_end_date(r) >= today][:10]
 
     def _vehicle_photo_url(reservation) -> str | None:
         v = reservation.vehicle
@@ -74,11 +91,14 @@ def get_summary(
 
     upcoming = []
     for r in upcoming_qs:
+        r_end_date = _reservation_end_date(r)
         upcoming.append({
             "id": r.id,
             "reservation_number": r.reservation_number,
             "title": r.display_customer,
             "date": r.event_date.isoformat(),
+            "end_date": r_end_date.isoformat(),
+            "is_in_progress": is_in_progress(r.event_date, r_end_date, r.status),
             "status": r.status,
             "vehicle": r.display_vehicle,
             "driver": r.display_driver,

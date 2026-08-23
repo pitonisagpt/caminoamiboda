@@ -51,6 +51,15 @@ function formatDate(d: string) {
   });
 }
 
+// Multi-day events (event_end_date past event_date) show the full span, so
+// it's clear why a reservation appears in a filter starting after its own
+// event_date — it's still ongoing.
+function formatDateOrRange(from: string, to: string) {
+  if (!to || to === from) return formatDate(from);
+  const fromShort = new Date(from + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+  return `${fromShort} - ${formatDate(to)}`;
+}
+
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
 }
@@ -513,7 +522,7 @@ export default function ReservationList() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                    {formatDate(r.event_date)}
+                    {formatDateOrRange(r.event_date, r.event_end_date)}
                     {r.is_tentative && (
                       <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-yellow-100 text-yellow-700 align-middle">~ tentativa</span>
                     )}
