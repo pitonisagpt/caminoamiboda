@@ -321,7 +321,8 @@
           <td>
             {% if loc.address %}<div>{{ loc.address }}</div>{% endif %}
             {% if loc.google_maps_link %}<div class="maps-link">{{ loc.google_maps_link }}</div>{% endif %}
-            {% if not loc.address and not loc.google_maps_link %}—{% endif %}
+            {% if loc.effective_waze_link %}<div class="maps-link">Waze: {{ loc.effective_waze_link }}</div>{% endif %}
+            {% if not loc.address and not loc.google_maps_link and not loc.effective_waze_link %}—{% endif %}
           </td>
           {% if has_contact %}
           <td>

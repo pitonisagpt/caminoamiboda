@@ -19,6 +19,7 @@ export interface EventLocation {
   location_type: LocationType;
   address: string | null;
   google_maps_link: string | null;
+  waze_link: string | null;
   contact_person: string | null;
   contact_phone: string | null;
   notes: string | null;
@@ -26,6 +27,7 @@ export interface EventLocation {
   display_order: number;
   lat: number | null;
   lng: number | null;
+  effective_waze_link: string | null;
   gcal_synced: boolean | null;
 }
 
@@ -145,6 +147,7 @@ export interface LocationFormData {
   location_type: LocationType;
   address: string;
   google_maps_link: string;
+  waze_link: string;
   contact_person: string;
   contact_phone: string;
   notes: string;

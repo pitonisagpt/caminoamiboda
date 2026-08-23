@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route } from 'lucide-react';
+import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route, Compass } from 'lucide-react';
 import EventRouteMap from '../../components/EventRouteMap';
 import { timelinesApi } from '../../api/timelines';
 import type { TimelinePublic, EventLocation, LocationType } from '../../types/timeline';
@@ -73,6 +73,17 @@ function LocationCard({ loc }: { loc: EventLocation }) {
           >
             <Navigation className="w-4 h-4 text-blue-600" />
             Maps
+          </a>
+        )}
+        {loc.effective_waze_link && (
+          <a
+            href={loc.effective_waze_link}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium shrink-0 shadow-sm"
+          >
+            <Compass className="w-4 h-4 text-sky-600" />
+            Waze
           </a>
         )}
       </div>
@@ -300,11 +311,18 @@ export default function EventoPage() {
                                 <span className="text-xs text-gray-500 flex items-center gap-1">
                                   <MapPin className="w-3 h-3" /> {loc.location_name}
                                 </span>
-                                {loc.google_maps_link && (
-                                  <a href={loc.google_maps_link} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-0.5 font-medium">
-                                    <Navigation className="w-3 h-3" /> Abrir
-                                  </a>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {loc.google_maps_link && (
+                                    <a href={loc.google_maps_link} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-0.5 font-medium">
+                                      <Navigation className="w-3 h-3" /> Abrir
+                                    </a>
+                                  )}
+                                  {loc.effective_waze_link && (
+                                    <a href={loc.effective_waze_link} target="_blank" rel="noreferrer" className="text-xs text-sky-600 flex items-center gap-0.5 font-medium">
+                                      <Compass className="w-3 h-3" /> Waze
+                                    </a>
+                                  )}
+                                </div>
                               </div>
                             )}
                             {act.notes && <p className="text-xs text-gray-400 italic">{act.notes}</p>}

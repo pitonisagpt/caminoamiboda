@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Plus, GripVertical, Edit, Trash2, MapPin, Clock, Info,
   Copy, Check, ExternalLink, RefreshCw, MessageCircle, FileText, Eye,
-  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route, Mail, Users,
+  User, UserPlus, Car, Phone, ChevronDown, ChevronUp, CalendarDays, Loader2, Route, Mail, Users, Navigation,
 } from 'lucide-react';
 import EventRouteMap from '../../../components/EventRouteMap';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
@@ -146,6 +146,7 @@ function buildFullMsg(t: EventTimeline): string {
       const label = LOCATION_TYPE_WA_LABELS[loc.location_type];
       lines.push(`- *${label}:* ${loc.location_name}${loc.address ? ` – ${loc.address}` : ''}`);
       if (loc.google_maps_link) lines.push(`  ${loc.google_maps_link}`);
+      if (loc.effective_waze_link) lines.push(`  Waze: ${loc.effective_waze_link}`);
     });
   }
 
@@ -226,6 +227,7 @@ function LocationModal({ initial, saving, onSave, onClose }: {
   const [form, setForm] = useState<LocationFormData>({
     location_name: initial?.location_name || '', location_type: initial?.location_type || 'other',
     address: initial?.address || '', google_maps_link: initial?.google_maps_link || '',
+    waze_link: initial?.waze_link || '',
     contact_person: initial?.contact_person || '', contact_phone: initial?.contact_phone || '',
     notes: initial?.notes || '', road_access_notes: initial?.road_access_notes || '',
   });
@@ -253,6 +255,7 @@ function LocationModal({ initial, saving, onSave, onClose }: {
         location_type: (found.location_type as LocationType),
         address: found.address || '',
         google_maps_link: found.google_maps_link || '',
+        waze_link: found.waze_link || '',
         contact_person: found.contact_person || '',
         contact_phone: found.contact_phone || '',
         notes: found.notes || '',
@@ -303,6 +306,11 @@ function LocationModal({ initial, saving, onSave, onClose }: {
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
             <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
+            <input value={form.waze_link} onChange={f('waze_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://waze.com/ul/..." />
+            <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se genera automático desde las coordenadas.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -526,7 +534,7 @@ export default function EventoTab({
     if (!timelineId) return;
     setSavingLocation(true);
     try {
-      const payload = { ...data, address: data.address || null, google_maps_link: data.google_maps_link || null, contact_person: data.contact_person || null, contact_phone: data.contact_phone || null, notes: data.notes || null };
+      const payload = { ...data, address: data.address || null, google_maps_link: data.google_maps_link || null, waze_link: data.waze_link || null, contact_person: data.contact_person || null, contact_phone: data.contact_phone || null, notes: data.notes || null };
       const res = locModal.editing
         ? await timelinesApi.updateLocation(timelineId, locModal.editing.id, payload)
         : await timelinesApi.createLocation(timelineId, payload);
@@ -1035,8 +1043,13 @@ export default function EventoTab({
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     {loc.google_maps_link && (
-                      <a href={loc.google_maps_link} target="_blank" rel="noreferrer" className="p-1 text-gray-400 hover:text-blue-600">
+                      <a href={loc.google_maps_link} target="_blank" rel="noreferrer" title="Abrir en Google Maps" className="p-1 text-gray-400 hover:text-blue-600">
                         <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    {loc.effective_waze_link && (
+                      <a href={loc.effective_waze_link} target="_blank" rel="noreferrer" title="Abrir en Waze" className="p-1 text-gray-400 hover:text-blue-600">
+                        <Navigation className="w-3.5 h-3.5" />
                       </a>
                     )}
                     <button onClick={() => setLocModal({ open: true, editing: loc })} className="p-1 text-gray-400 hover:text-blue-600 cursor-pointer"><Edit className="w-3.5 h-3.5" /></button>

@@ -6,6 +6,7 @@ export interface CatalogLocation {
   location_type: LocationType;
   address?: string;
   google_maps_link?: string;
+  waze_link?: string;
   contact_person?: string;
   contact_phone?: string;
   notes?: string;
@@ -21,6 +22,7 @@ export interface CatalogLocationFormData {
   location_type: LocationType;
   address: string;
   google_maps_link: string;
+  waze_link: string;
   contact_person: string;
   contact_phone: string;
   notes: string;

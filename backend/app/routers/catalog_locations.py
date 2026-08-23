@@ -158,7 +158,7 @@ def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Sessio
 
     # Propagate corrections to already-created EventLocation rows matched by the OLD name
     # (case-insensitive, so a rename is still found) — same name-matching convention sync_to_catalog uses.
-    propagate_keys = {"name", "address", "google_maps_link", "lat", "lng"}
+    propagate_keys = {"name", "address", "google_maps_link", "waze_link", "lat", "lng"}
     if propagate_keys & update_fields.keys():
         event_updates: dict = {}
         if "name" in update_fields:
@@ -167,6 +167,8 @@ def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Sessio
             event_updates["address"] = loc.address
         if "google_maps_link" in update_fields:
             event_updates["google_maps_link"] = loc.google_maps_link
+        if "waze_link" in update_fields:
+            event_updates["waze_link"] = loc.waze_link
         if "lat" in update_fields:
             event_updates["lat"] = loc.lat
         if "lng" in update_fields:
@@ -200,6 +202,7 @@ def sync_to_catalog(db: Session, event_location: "EventLocation") -> CatalogLoca
             location_type=event_location.location_type,
             address=event_location.address,
             google_maps_link=event_location.google_maps_link,
+            waze_link=event_location.waze_link,
             contact_person=event_location.contact_person,
             contact_phone=event_location.contact_phone,
             notes=event_location.notes,

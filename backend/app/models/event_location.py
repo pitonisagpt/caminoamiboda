@@ -31,3 +31,20 @@ class EventLocation(Base):
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     lat: Mapped[Optional[float]] = mapped_column(Double, nullable=True)
     lng: Mapped[Optional[float]] = mapped_column(Double, nullable=True)
+    # Manually pasted Waze link — only set when the auto-generated one (from
+    # lat/lng, see effective_waze_link) is wrong for this specific spot.
+    waze_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    @property
+    def effective_waze_link(self) -> Optional[str]:
+        if self.waze_link:
+            return self.waze_link
+        if self.lat is not None and self.lng is not None:
+            # %2C, not a raw comma: WhatsApp's link auto-detection treats an
+            # unescaped comma inside ll=lat,lng as sentence punctuation and
+            # truncates the clickable link right before the longitude —
+            # confirmed by reproducing it (the truncated link falls back to
+            # Waze's default view, landing in a different part of the same
+            # city). The comma still round-trips fine when clicked directly.
+            return f"https://waze.com/ul?ll={self.lat}%2C{self.lng}&navigate=yes"
+        return None

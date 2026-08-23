@@ -184,6 +184,8 @@ def _build_description(
             lines.append(loc_line)
             if loc.google_maps_link:
                 lines.append(f"   {loc.google_maps_link}")
+            if loc.effective_waze_link:
+                lines.append(f"   Waze: {loc.effective_waze_link}")
 
     if activities:
         sorted_acts = sorted(activities, key=lambda a: a.display_order)
@@ -363,6 +365,8 @@ def _build_client_description(timeline, locations: list, activities: list | None
             lines.append(loc_line)
             if loc.google_maps_link:
                 lines.append(f"   {loc.google_maps_link}")
+            if loc.effective_waze_link:
+                lines.append(f"   Waze: {loc.effective_waze_link}")
 
     if activities:
         sorted_acts = sorted(activities, key=lambda a: a.display_order)
@@ -522,6 +526,8 @@ def _build_team_description(timeline, locations: list, activities: list | None =
             lines.append(loc_line)
             if loc.google_maps_link:
                 lines.append(f"   {loc.google_maps_link}")
+            if loc.effective_waze_link:
+                lines.append(f"   Waze: {loc.effective_waze_link}")
             if loc.road_access_notes:
                 lines.append(f"   🚧 Acceso: {loc.road_access_notes}")
 

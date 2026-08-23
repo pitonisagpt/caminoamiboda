@@ -11,6 +11,7 @@ class CatalogLocationCreate(BaseModel):
     location_type: LocationType = LocationType.other
     address: Optional[str] = None
     google_maps_link: Optional[str] = None
+    waze_link: Optional[str] = None
     contact_person: Optional[str] = None
     contact_phone: Optional[str] = None
     notes: Optional[str] = None
@@ -23,6 +24,7 @@ class CatalogLocationUpdate(BaseModel):
     location_type: Optional[LocationType] = None
     address: Optional[str] = None
     google_maps_link: Optional[str] = None
+    waze_link: Optional[str] = None
     contact_person: Optional[str] = None
     contact_phone: Optional[str] = None
     notes: Optional[str] = None
@@ -38,6 +40,7 @@ class CatalogLocationRead(BaseModel):
     location_type: LocationType
     address: Optional[str] = None
     google_maps_link: Optional[str] = None
+    waze_link: Optional[str] = None
     contact_person: Optional[str] = None
     contact_phone: Optional[str] = None
     notes: Optional[str] = None

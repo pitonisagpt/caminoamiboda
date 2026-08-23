@@ -18,6 +18,7 @@ class CatalogLocation(Base):
     )
     address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     google_maps_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    waze_link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     contact_person: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     contact_phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

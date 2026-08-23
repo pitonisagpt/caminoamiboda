@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, Navigation, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import type { CatalogLocation, CatalogLocationFormData, LocationType } from '../../types/catalogLocation';
 
@@ -34,7 +34,7 @@ const TYPE_HEX: Record<LocationType, string> = {
 
 const EMPTY_FORM: CatalogLocationFormData = {
   name: '', location_type: 'other', address: '',
-  google_maps_link: '', contact_person: '', contact_phone: '', notes: '',
+  google_maps_link: '', waze_link: '', contact_person: '', contact_phone: '', notes: '',
 };
 
 // ─── Leaflet custom icon ────────────────────────────────────────────────────────
@@ -111,6 +111,7 @@ function LocationModal({
       ? {
           name: initial.name, location_type: initial.location_type,
           address: initial.address || '', google_maps_link: initial.google_maps_link || '',
+          waze_link: initial.waze_link || '',
           contact_person: initial.contact_person || '', contact_phone: initial.contact_phone || '',
           notes: initial.notes || '',
         }
@@ -156,6 +157,11 @@ function LocationModal({
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
             <input value={form.google_maps_link} onChange={f('google_maps_link')} className={inputCls} placeholder="https://maps.app.goo.gl/..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
+            <input value={form.waze_link} onChange={f('waze_link')} className={inputCls} placeholder="https://waze.com/ul/..." />
+            <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se genera automático desde las coordenadas.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -452,6 +458,12 @@ export default function LocationCatalogPage() {
                                 <ExternalLink size={14} />
                               </a>
                             )}
+                            {loc.waze_link && (
+                              <a href={loc.waze_link} target="_blank" rel="noopener noreferrer"
+                                className="p-1.5 text-gray-400 hover:text-blue-600 cursor-pointer" title="Abrir en Waze">
+                                <Navigation size={14} />
+                              </a>
+                            )}
                             <button onClick={() => setModal({ open: true, editing: loc })} className="p-1.5 text-gray-400 hover:text-blue-600 cursor-pointer"><Edit size={14} /></button>
                             <button onClick={() => handleDelete(loc)} className="p-1.5 text-gray-400 hover:text-red-600 cursor-pointer"><Trash2 size={14} /></button>
                           </div>
@@ -561,6 +573,12 @@ export default function LocationCatalogPage() {
                           <a href={loc.google_maps_link} target="_blank" rel="noopener noreferrer"
                             style={{ fontSize: '12px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', textDecoration: 'none', fontWeight: 500 }}>
                             <ExternalLink size={11} /> Abrir en Google Maps
+                          </a>
+                        )}
+                        {loc.waze_link && (
+                          <a href={loc.waze_link} target="_blank" rel="noopener noreferrer"
+                            style={{ fontSize: '12px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', textDecoration: 'none', fontWeight: 500 }}>
+                            <Navigation size={11} /> Abrir en Waze
                           </a>
                         )}
                       </div>

@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Navigation } from 'lucide-react';
 import type { EventLocation, TimelineActivity, LocationType } from '../types/timeline';
 
 const TYPE_LABELS: Record<LocationType, string> = {
@@ -347,6 +347,12 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                             <a href={loc.google_maps_link} target="_blank" rel="noopener noreferrer"
                               style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
                               <ExternalLink size={10} /> Abrir en Google Maps
+                            </a>
+                          )}
+                          {loc.effective_waze_link && (
+                            <a href={loc.effective_waze_link} target="_blank" rel="noopener noreferrer"
+                              style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
+                              <Navigation size={10} /> Abrir en Waze
                             </a>
                           )}
                         </div>
