@@ -85,18 +85,28 @@ function buildOwnerMsg(
   settlement: OwnerSettlement | null,
   settlementPayments: OwnerSettlementPayment[],
   ownerFirstName: string,
+  retentionTotal: number,
 ): string {
   const ownerPct = settlement ? settlement.owner_percentage : (reservation.vehicle_is_company_owned ? 0 : 70);
   const ownerAmount = settlement ? settlement.owner_amount : Number(reservation.total_amount) * (ownerPct / 100);
   const remainingToOwner = settlement ? settlement.remaining_to_owner : ownerAmount;
+  // Full share had there been no retention — only used to detect whether
+  // ownerAmount was actually reduced for it, so the note below only appears
+  // when a discount really happened (not every time there's a retention).
+  const fullShareWithoutRetention = Number(reservation.total_amount) * (ownerPct / 100);
+  const wasDiscountedForRetention = retentionTotal > 0 && ownerAmount < fullShareWithoutRetention - 1;
 
   const lines: string[] = [
     `Hola ${ownerFirstName}, aquí está el resumen de la reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
     '',
     `*Valor total (cliente):* ${formatCOP(reservation.total_amount)}`,
     `*Tu parte (${ownerPct}%):* ${formatCOP(ownerAmount)}`,
-    '',
   ];
+
+  if (retentionTotal > 0) {
+    lines.push(`_El cliente retuvo ${formatCOP(retentionTotal)} en la fuente en esta reserva${wasDiscountedForRetention ? ' — tu parte de arriba ya descuenta lo que te correspondería de eso' : ''}._`);
+  }
+  lines.push('');
 
   if (settlementPayments.length > 0) {
     lines.push('*Abonos recibidos:*');
@@ -704,7 +714,7 @@ export default function FinanceTab({
               <a
                 href={buildWaUrl(
                   reservation.owner_whatsapp,
-                  buildOwnerMsg(reservation, settlement === 'loading' ? null : settlement, settlementPayments, reservation.owner_name.split(' ')[0])
+                  buildOwnerMsg(reservation, settlement === 'loading' ? null : settlement, settlementPayments, reservation.owner_name.split(' ')[0], retentionTotal)
                 )}
                 target="_blank"
                 rel="noreferrer"
