@@ -1,0 +1,87 @@
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+
+
+class ServiceOrderCreate(BaseModel):
+    reservation_id: int
+    vehicle_id: Optional[int] = None
+    owner_id: Optional[int] = None
+    owner_percentage: int = 70
+    notes: Optional[str] = None
+
+
+class ServiceOrderRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    order_number: str
+    reservation_id: int
+    vehicle_id: Optional[int]
+    owner_id: Optional[int]
+    owner_percentage: int
+    status: str
+    notes: Optional[str]
+    pdf_path: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    # Denormalized for display
+    display_reservation: Optional[str] = None
+    display_vehicle: Optional[str] = None
+    display_owner: Optional[str] = None
+
+    @classmethod
+    def build(cls, s) -> "ServiceOrderRead":
+        r = s.reservation
+        v = s.vehicle
+        o = s.owner
+        return cls(
+            id=s.id,
+            order_number=s.order_number,
+            reservation_id=s.reservation_id,
+            vehicle_id=s.vehicle_id,
+            owner_id=s.owner_id,
+            owner_percentage=s.owner_percentage,
+            status=s.status,
+            notes=s.notes,
+            pdf_path=s.pdf_path,
+            created_at=s.created_at,
+            updated_at=s.updated_at,
+            display_reservation=r.reservation_number if r else None,
+            display_vehicle=(
+                f"{v.brand} {v.model_line or ''} {v.color or ''}".strip() if v else None
+            ),
+            display_owner=o.full_name if o else None,
+        )
+
+
+class ServiceOrderList(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    order_number: str
+    reservation_id: int
+    owner_percentage: int
+    status: str
+    pdf_path: Optional[str]
+    created_at: datetime
+    display_reservation: Optional[str] = None
+    display_owner: Optional[str] = None
+
+    @classmethod
+    def build(cls, s) -> "ServiceOrderList":
+        r = s.reservation
+        o = s.owner
+        return cls(
+            id=s.id,
+            order_number=s.order_number,
+            reservation_id=s.reservation_id,
+            owner_percentage=s.owner_percentage,
+            status=s.status,
+            pdf_path=s.pdf_path,
+            created_at=s.created_at,
+            display_reservation=r.reservation_number if r else None,
+            display_owner=o.full_name if o else None,
+        )
