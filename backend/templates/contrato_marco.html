@@ -122,10 +122,10 @@
     <div class="section-title">Comparecientes</div>
     <div class="two-col">
       <div class="col">
-        <p class="info-row" style="font-weight:700; margin-bottom:6px;">LA EMPRESA</p>
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL OPERADOR</p>
         <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
         <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}{% if company_cc_city %} de {{ company_cc_city }}{% endif %}</span></div>
-        <div class="info-row"><span class="info-label">Nombre comercial:</span><span class="info-value">{{ company_name }}</span></div>
+        <div class="info-row"><span class="info-label">Nombre comercial:</span><span class="info-value">{{ company_name }} <span class="blank-line" style="font-weight:400;">(sin registro en Cámara de Comercio)</span></span></div>
         <div class="info-row"><span class="info-label">Domicilio:</span><span class="info-value">{{ company_address or '—' }}</span></div>
         {% if company_email %}<div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ company_email }}</span></div>{% endif %}
       </div>
@@ -139,25 +139,25 @@
         {% if owner.email %}<div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ owner.email }}</span></div>{% endif %}
       </div>
     </div>
-    <p class="clause-body">LA EMPRESA es una persona natural que opera comercialmente bajo el nombre "{{ company_name }}"; a la fecha de este contrato dicho nombre no corresponde a una persona jurídica constituida. Las partes anteriormente identificadas, en adelante <strong>LA EMPRESA</strong> y <strong>EL PROPIETARIO</strong> respectivamente, acuerdan celebrar el presente contrato marco, el cual se regirá por las siguientes cláusulas:</p>
+    <p class="clause-body">EL OPERADOR es una persona natural registrada ante la DIAN mediante Registro Único Tributario (RUT), el cual incluye el código CIIU correspondiente a esta actividad económica{% if company_ciiu %} ({{ company_ciiu }}){% endif %}. "{{ company_name }}" es el nombre comercial bajo el cual presta el servicio; a la fecha de este contrato dicho nombre no está registrado como establecimiento de comercio ante la Cámara de Comercio ni corresponde a una persona jurídica constituida. Las partes anteriormente identificadas, en adelante <strong>EL OPERADOR</strong> y <strong>EL PROPIETARIO</strong> respectivamente, acuerdan celebrar el presente contrato marco, el cual se regirá por las siguientes cláusulas:</p>
   </div>
 
   <!-- Cláusulas -->
   <div class="section">
     <div class="clause">
       <div class="clause-title">Primera. Objeto</div>
-      <div class="clause-body">EL PROPIETARIO vincula uno o varios vehículos a la operación de LA EMPRESA —sean de su propiedad o que gestione bajo otra modalidad, conforme a lo previsto en la cláusula segunda— para la prestación del servicio de transporte en eventos, principalmente bodas y celebraciones afines, bajo el nombre comercial <strong>{{ company_name }}</strong>.</div>
+      <div class="clause-body">EL PROPIETARIO vincula uno o varios vehículos a la operación de EL OPERADOR —sean de su propiedad o que gestione bajo otra modalidad, conforme a lo previsto en la cláusula segunda— para la prestación del servicio de transporte en eventos, principalmente bodas y celebraciones afines, bajo el nombre comercial <strong>{{ company_name }}</strong>. Este contrato es de naturaleza puramente comercial: no genera relación laboral, de subordinación, ni sociedad, participación societaria o representación legal entre las partes.</div>
     </div>
 
     <div class="clause">
       <div class="clause-title">Segunda. Vehículos vinculados</div>
-      <div class="clause-body">EL PROPIETARIO podrá vincular a la operación de LA EMPRESA uno o varios vehículos, sean de su propiedad, subcontratados a un tercero, o de su propiedad sin que aún se haya realizado el traspaso de papeles a su nombre. La identificación de cada vehículo vinculado (marca, línea, año, placa) se lleva en el sistema de gestión de LA EMPRESA, sin necesidad de listarlos en este contrato marco. La vinculación de vehículos adicionales, o el retiro de alguno de los ya vinculados, no requiere modificar este contrato y se entiende cobijada por los mismos términos, salvo que las partes pacten condiciones distintas por escrito para un vehículo en particular.</div>
+      <div class="clause-body">EL PROPIETARIO podrá vincular a la operación de EL OPERADOR uno o varios vehículos, sean de su propiedad, subcontratados a un tercero, o de su propiedad sin que aún se haya realizado el traspaso de papeles a su nombre. La identificación de cada vehículo vinculado (marca, línea, año, placa) se lleva en el sistema de gestión de EL OPERADOR, sin necesidad de listarlos en este contrato marco. La vinculación de vehículos adicionales, o el retiro de alguno de los ya vinculados, no requiere modificar este contrato y se entiende cobijada por los mismos términos, salvo que las partes pacten condiciones distintas por escrito para un vehículo en particular.</div>
     </div>
 
     <div class="clause">
       <div class="clause-title">Tercera. Distribución de ingresos</div>
-      <div class="clause-body">El valor de cada reserva se distribuye entre las partes según el porcentaje que se acuerde para cada vehículo, liquidado mediante el documento de liquidación de propietario generado por el sistema de LA EMPRESA tras la finalización de cada evento. Salvo que se pacte un porcentaje distinto por escrito para un vehículo en particular, aplica el siguiente reparto por defecto:</div>
-      <div class="split-box"><strong>70%</strong> para EL PROPIETARIO · <strong>30%</strong> para LA EMPRESA, sobre el valor total de cada reserva.</div>
+      <div class="clause-body">El valor de cada reserva se distribuye entre las partes según el porcentaje que se acuerde para cada vehículo, liquidado mediante el documento de liquidación de propietario generado por el sistema de EL OPERADOR tras la finalización de cada evento. Salvo que se pacte un porcentaje distinto por escrito para un vehículo en particular, aplica el siguiente reparto por defecto:</div>
+      <div class="split-box"><strong>70%</strong> para EL PROPIETARIO · <strong>30%</strong> para EL OPERADOR, sobre el valor total de cada reserva.</div>
     </div>
 
     <div class="clause">
@@ -167,41 +167,46 @@
 
     <div class="clause">
       <div class="clause-title">Quinta. Obligaciones de EL PROPIETARIO</div>
-      <div class="clause-body">Mantener el vehículo en óptimas condiciones mecánicas, eléctricas y estéticas; contar con SOAT y demás documentos de tránsito vigentes; garantizar la disponibilidad del vehículo para las reservas confirmadas; e informar a LA EMPRESA con la mayor anticipación posible cualquier eventualidad que afecte dicha disponibilidad (daño, mantenimiento, indisponibilidad). Cuando el vehículo vinculado no esté registrado a su nombre —por ser subcontratado o por no haberse realizado aún el traspaso de papeles—, EL PROPIETARIO garantiza contar con la autorización de quien figure como titular para vincularlo a la operación de LA EMPRESA, y responde frente a LA EMPRESA por cualquier reclamación derivada de la falta de dicha autorización.</div>
+      <div class="clause-body">Mantener el vehículo en óptimas condiciones mecánicas, eléctricas y estéticas; contar con SOAT, revisión técnico-mecánica vigente (cuando aplique según el modelo y año del vehículo) y demás documentos de tránsito vigentes; garantizar la disponibilidad del vehículo para las reservas confirmadas; e informar a EL OPERADOR con la mayor anticipación posible cualquier eventualidad que afecte dicha disponibilidad (daño, mantenimiento, indisponibilidad). Cuando el vehículo vinculado no esté registrado a su nombre —por ser subcontratado o por no haberse realizado aún el traspaso de papeles—, EL PROPIETARIO garantiza contar con autorización escrita, y de ser posible autenticada ante notario, de quien figure como titular en la licencia de tránsito, para vincularlo a la operación de EL OPERADOR. En ese caso, EL PROPIETARIO exonera a EL OPERADOR de cualquier reclamación por hurto, abuso de confianza o disputa sobre la propiedad del vehículo, y responde íntegramente frente a EL OPERADOR y frente al titular por la falta de dicha autorización.</div>
     </div>
 
     <div class="clause">
-      <div class="clause-title">Sexta. Obligaciones de LA EMPRESA</div>
+      <div class="clause-title">Sexta. Obligaciones de EL OPERADOR</div>
       <div class="clause-body">Gestionar las reservas y coordinar la logística de cada evento; realizar el pago de la liquidación correspondiente a EL PROPIETARIO dentro de los plazos que se acuerden tras cada evento; y promocionar el vehículo dentro de su catálogo y canales de venta.</div>
     </div>
 
     <div class="clause">
       <div class="clause-title">Séptima. Conductores</div>
-      <div class="clause-body">El servicio podrá ser prestado por un conductor designado por LA EMPRESA o por EL PROPIETARIO, según se acuerde para cada evento. En cualquier caso, el conductor asignado deberá cumplir los requisitos legales vigentes para la conducción del vehículo, incluyendo licencia de conducción vigente y acorde a la categoría del vehículo.</div>
+      <div class="clause-body">El servicio podrá ser prestado por un conductor designado por EL OPERADOR o por EL PROPIETARIO, según se acuerde para cada evento. En cualquier caso, el conductor asignado deberá cumplir los requisitos legales vigentes para la conducción del vehículo, incluyendo licencia de conducción vigente y acorde a la categoría del vehículo, y actuar como contratista independiente por cuenta de quien lo designe, sin que se genere relación laboral con EL OPERADOR. Quien conduzca debe contar con afiliación activa al Sistema de Seguridad Social Integral (EPS, ARL y pensión) como independiente durante la prestación del servicio.</div>
     </div>
 
     <div class="clause">
       <div class="clause-title">Octava. Seguros y responsabilidad</div>
-      <div class="clause-body">El vehículo debe contar con SOAT vigente durante toda la vinculación y, de ser posible, póliza de responsabilidad civil extracontractual. EL PROPIETARIO responde por el buen estado mecánico del vehículo. LA EMPRESA no asume responsabilidad por daños derivados de fallas mecánicas no informadas previamente por EL PROPIETARIO.</div>
+      <div class="clause-body">El vehículo debe contar con SOAT y revisión técnico-mecánica vigentes durante toda la vinculación y, de ser posible, póliza de responsabilidad civil extracontractual (RCE). EL PROPIETARIO responde por el buen estado mecánico del vehículo. En caso de accidente de tránsito, colisión, daños a terceros, avería mecánica u otra contingencia ocurrida durante la prestación del servicio, EL PROPIETARIO y/o el conductor asumen la totalidad de la responsabilidad civil, penal y contable derivada del hecho, sin que EL OPERADOR sea solidariamente responsable. EL OPERADOR no asume responsabilidad por daños derivados de fallas mecánicas no informadas previamente por EL PROPIETARIO.</div>
     </div>
 
     <div class="clause">
       <div class="clause-title">Novena. Uso de imagen</div>
-      <div class="clause-body">EL PROPIETARIO autoriza a LA EMPRESA a usar fotografías y videos del vehículo, tomados en el marco de los eventos y servicios prestados, en sus canales de promoción (redes sociales, catálogo web y material publicitario), sin que ello genere contraprestación adicional a favor de EL PROPIETARIO.</div>
+      <div class="clause-body">EL PROPIETARIO autoriza a EL OPERADOR a usar fotografías y videos del vehículo, tomados en el marco de los eventos y servicios prestados, de forma indefinida y gratuita, en cualquier canal de promoción (redes sociales, sitio web, catálogo o material impreso) de {{ company_name }}, incluso después de finalizado este contrato, sin que ello genere contraprestación adicional a favor de EL PROPIETARIO.</div>
     </div>
 
     <div class="clause">
-      <div class="clause-title">Décima. Duración y terminación</div>
-      <div class="clause-body">Este contrato tiene vigencia indefinida a partir de su firma. Cualquiera de las partes podrá terminarlo unilateralmente mediante aviso previo por escrito con al menos <span class="blank-line">____</span> días de anticipación, sin perjuicio de los compromisos ya adquiridos sobre eventos previamente confirmados. LA EMPRESA podrá terminarlo de forma inmediata en caso de incumplimiento grave por parte de EL PROPIETARIO.</div>
+      <div class="clause-title">Décima. Penalidades por incumplimiento en eventos</div>
+      <div class="clause-body">Si por causas imputables a EL PROPIETARIO el vehículo no se presenta a un evento previamente confirmado, EL PROPIETARIO deberá indemnizar a EL OPERADOR por el valor total de la reserva afectada, además de los costos adicionales, penalidades frente al cliente y perjuicios reputacionales que dicho incumplimiento genere.</div>
     </div>
 
     <div class="clause">
-      <div class="clause-title">Décima primera. Confidencialidad</div>
+      <div class="clause-title">Décima primera. Duración y terminación</div>
+      <div class="clause-body">Este contrato tiene vigencia indefinida a partir de su firma. Cualquiera de las partes podrá terminarlo unilateralmente mediante aviso previo por escrito con al menos 30 días de anticipación, sin perjuicio de los compromisos ya adquiridos sobre eventos previamente confirmados. EL OPERADOR podrá terminarlo de forma inmediata en caso de incumplimiento grave por parte de EL PROPIETARIO.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima segunda. Confidencialidad</div>
       <div class="clause-body">Las partes se obligan a mantener reserva sobre la información comercial y financiera a la que tengan acceso en desarrollo del presente contrato, y a no divulgarla a terceros sin autorización previa de la otra parte.</div>
     </div>
 
     <div class="clause">
-      <div class="clause-title">Décima segunda. Solución de controversias</div>
+      <div class="clause-title">Décima tercera. Solución de controversias</div>
       <div class="clause-body">Las partes procurarán resolver cualquier diferencia derivada de este contrato de manera directa y de buena fe. De no lograrse un acuerdo, se someterán a la jurisdicción ordinaria de {{ city }}.</div>
     </div>
   </div>
@@ -210,7 +215,7 @@
   <div class="signatures">
     <div class="sig-box">
       <div class="sig-line">{{ company_owner }}</div>
-      <div class="sig-role">LA EMPRESA — {{ company_name }}</div>
+      <div class="sig-role">EL OPERADOR — {{ company_name }}</div>
     </div>
     <div class="sig-box">
       <div class="sig-line">{{ owner.full_name }}</div>

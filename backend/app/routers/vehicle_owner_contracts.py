@@ -94,6 +94,7 @@ def generate_contract_pdf(owner_id: int, db: Session = Depends(get_db)):
         company_phone=settings.company_phone,
         company_cc=settings.company_cc,
         company_cc_city=settings.company_cc_city,
+        company_ciiu=settings.company_ciiu,
         company_address=settings.company_address,
         company_email=settings.company_email,
         city=settings.city,

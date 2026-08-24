@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     company_phone: str = "+(57) 314 737 2030"
     company_cc: str = ""
     company_cc_city: str = "Medellín"
+    company_ciiu: str = ""
     company_address: str = ""
     company_email: str = ""
     bank_name: str = "Bancolombia"
