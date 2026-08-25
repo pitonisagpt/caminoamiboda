@@ -109,3 +109,7 @@ class Vehicle(Base):
         if self.owner:
             return self.owner.whatsapp or self.owner.phone
         return self.owner_contact_raw
+
+    @property
+    def owner_whatsapp_username(self) -> Optional[str]:
+        return self.owner.whatsapp_username if self.owner else None

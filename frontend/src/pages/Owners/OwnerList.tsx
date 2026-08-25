@@ -185,7 +185,7 @@ export function OwnerList() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        {(o.whatsapp || o.phone) && (
+                        {(o.whatsapp || o.phone) ? (
                           <a
                             href={toWhatsAppUrl(o.whatsapp ?? o.phone, o.full_name)}
                             target="_blank"
@@ -195,7 +195,9 @@ export function OwnerList() {
                           >
                             <MessageCircle size={15} />
                           </a>
-                        )}
+                        ) : o.whatsapp_username ? (
+                          <span className="text-xs text-gray-400 px-2" title="Sin teléfono — buscar este usuario en WhatsApp">@{o.whatsapp_username}</span>
+                        ) : null}
                         <button
                           onClick={() => navigate(`/propietarios/editar/${o.id}`)}
                           className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"

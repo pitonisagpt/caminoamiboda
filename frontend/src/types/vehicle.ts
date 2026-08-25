@@ -41,6 +41,7 @@ export interface VehicleListItem {
   owner_id: number | null;
   owner_name: string | null;
   owner_contact: string | null;
+  owner_whatsapp_username: string | null;
   is_company_owned: boolean;
   is_featured: boolean;
   allowed_locations: string[] | null;

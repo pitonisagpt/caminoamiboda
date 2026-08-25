@@ -56,9 +56,11 @@ export interface ReservationListItem {
   display_vehicle: string;
   display_driver: string;
   display_driver_phone: string | null;
+  display_driver_whatsapp_username: string | null;
   vehicle_license_plate: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
+  owner_whatsapp_username: string | null;
   event_date: string;
   event_end_date: string;
   is_in_progress: boolean;
@@ -85,11 +87,13 @@ export interface Reservation extends ReservationListItem {
   owner_driver_name: string | null;
   owner_driver_phone: string | null;
   contact_phone: string | null;
+  contact_whatsapp_username: string | null;
   contact_type: string | null;
   special_instructions: string | null;
   notes: string | null;
   customer_phone: string | null;
   customer_whatsapp: string | null;
+  customer_whatsapp_username: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
   event_location: string | null;

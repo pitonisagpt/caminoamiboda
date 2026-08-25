@@ -633,11 +633,11 @@ export default function FinanceTab({
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Enviar cobro por WhatsApp</h2>
         </div>
         {[
-          { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, recipientFirstName: undefined as string | undefined },
+          { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username, recipientFirstName: undefined as string | undefined },
           ...(reservation.display_contact
-            ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, recipientFirstName: reservation.display_contact.split(' ')[0] }]
+            ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, recipientFirstName: reservation.display_contact.split(' ')[0] }]
             : []),
-        ].map(({ label, name, phone, recipientFirstName }) => (
+        ].map(({ label, name, phone, username, recipientFirstName }) => (
           <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
             <div className="min-w-0">
               <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -653,6 +653,8 @@ export default function FinanceTab({
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
               </a>
+            ) : username ? (
+              <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
             ) : (
               <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
             )}
@@ -769,6 +771,8 @@ export default function FinanceTab({
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
               </a>
+            ) : reservation.owner_whatsapp_username ? (
+              <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{reservation.owner_whatsapp_username} · buscar en WhatsApp</span>
             ) : (
               <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
             )}

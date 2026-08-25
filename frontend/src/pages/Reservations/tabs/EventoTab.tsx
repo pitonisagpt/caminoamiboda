@@ -802,11 +802,13 @@ export default function EventoTab({
                 <User className="w-4 h-4 text-gray-400 shrink-0" />
                 <span>{reservation.display_contact} <span className="text-gray-400 text-xs">(planeador)</span></span>
               </div>
-              {reservation.contact_phone && (
+              {reservation.contact_phone ? (
                 <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
                   <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                 </a>
-              )}
+              ) : reservation.contact_whatsapp_username ? (
+                <span className="text-xs text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">@{reservation.contact_whatsapp_username}</span>
+              ) : null}
             </div>
           )}
           {timeline.special_instructions && (
@@ -828,12 +830,12 @@ export default function EventoTab({
         </div>
         <div className="space-y-2">
           {[
-            { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, name: timeline.assigned_driver },
-            { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, name: reservation.owner_name },
-            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, name: timeline.main_contact_name },
-            ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, name: reservation.display_contact }] : []),
-            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, name: null },
-          ].map(({ label, token, phone, name }) => {
+            { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, username: null as string | null, name: timeline.assigned_driver },
+            { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username, name: reservation.owner_name },
+            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, username: null as string | null, name: timeline.main_contact_name },
+            ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, name: reservation.display_contact }] : []),
+            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, username: null as string | null, name: null },
+          ].map(({ label, token, phone, username, name }) => {
             const link = `${window.location.origin}/evento/${token}`;
             const waMsg = `Hola${name ? ` ${name.split(' ')[0]}` : ''}, aquí está el enlace del evento:\n${link}`;
             return (
@@ -844,7 +846,7 @@ export default function EventoTab({
                   <code className="block text-xs text-gray-500 truncate mt-0.5">/evento/{token}</code>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  {phone && (
+                  {phone ? (
                     <a
                       href={buildWaUrl(phone, waMsg)}
                       target="_blank" rel="noreferrer"
@@ -853,7 +855,9 @@ export default function EventoTab({
                     >
                       <MessageCircle className="w-4 h-4" />
                     </a>
-                  )}
+                  ) : username ? (
+                    <span className="text-xs text-gray-400 self-center" title="Sin teléfono — buscar este usuario en WhatsApp">@{username}</span>
+                  ) : null}
                   <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-brand-500 cursor-pointer" title="Copiar enlace">
                     {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                   </button>
@@ -983,12 +987,12 @@ export default function EventoTab({
         </div>
         <div className="space-y-2">
           {[
-            { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone },
-            { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp },
-            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone },
-            ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone }] : []),
-            { label: 'Operaciones', name: null, phone: OPS_PHONE },
-          ].map(({ label, name, phone }) => (
+            { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone, username: null as string | null },
+            { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username },
+            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone, username: null as string | null },
+            ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username }] : []),
+            { label: 'Operaciones', name: null, phone: OPS_PHONE, username: null as string | null },
+          ].map(({ label, name, phone, username }) => (
             <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
               <div className="min-w-0">
                 <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -1000,6 +1004,8 @@ export default function EventoTab({
                   className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0">
                   <MessageCircle className="w-3.5 h-3.5" /> Enviar
                 </a>
+              ) : username ? (
+                <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
               ) : (
                 <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
               )}

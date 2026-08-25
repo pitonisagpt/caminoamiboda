@@ -193,11 +193,11 @@ export default function InfoTab({
           </div>
           <div className="space-y-2">
             {[
-              { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone },
+              { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username },
               ...(reservation.display_contact
-                ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone }]
+                ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username }]
                 : []),
-            ].map(({ label, name, phone }) => (
+            ].map(({ label, name, phone, username }) => (
               <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
                 <div className="min-w-0">
                   <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -213,6 +213,8 @@ export default function InfoTab({
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> Enviar
                   </a>
+                ) : username ? (
+                  <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
                 ) : (
                   <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
                 )}

@@ -164,7 +164,7 @@ export default function ReservationForm() {
     };
 
     let savedId: number;
-    let gcalSynced: boolean | null = null;
+    let gcalSynced: boolean | null;
     if (isEdit) {
       const res = await reservationsApi.update(Number(id), payload);
       savedId = Number(id);
@@ -488,6 +488,7 @@ export default function ReservationForm() {
               bride_name: form.bride_name || null,
               groom_name: form.groom_name || null,
               phone: form.phone || null,
+              whatsapp_username: form.whatsapp_username || null,
             };
             if (customerQuickCreate.editing) {
               const res = await customersApi.update(customerQuickCreate.editing.id, payload);
@@ -564,6 +565,7 @@ export default function ReservationForm() {
               full_name: form.full_name,
               contact_type: form.contact_type,
               phone: form.phone || null,
+              whatsapp_username: form.whatsapp_username || null,
             };
             if (contactQuickCreate.editing) {
               const res = await contactsApi.update(contactQuickCreate.editing.id, payload);
@@ -589,6 +591,7 @@ interface CustomerQuickCreateForm {
   groom_name: string;
   main_contact_name: string;
   phone: string;
+  whatsapp_username: string;
 }
 
 function CustomerQuickCreateModal({
@@ -618,6 +621,7 @@ function CustomerQuickCreateModal({
     groom_name: initial?.groom_name ?? '',
     main_contact_name: initial?.main_contact_name ?? initialName,
     phone: initial?.phone ?? '',
+    whatsapp_username: initial?.whatsapp_username ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -671,6 +675,10 @@ function CustomerQuickCreateModal({
           <div>
             <label className={labelCls}>Teléfono / WhatsApp</label>
             <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
+          </div>
+          <div>
+            <label className={labelCls}>Usuario de WhatsApp</label>
+            <input value={form.whatsapp_username} onChange={f('whatsapp_username')} className={inputCls} placeholder="usuario.whatsapp" />
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <p className="text-xs text-gray-400">
@@ -921,6 +929,7 @@ interface ContactQuickCreateForm {
   full_name: string;
   contact_type: string;
   phone: string;
+  whatsapp_username: string;
 }
 
 function ContactQuickCreateModal({
@@ -938,6 +947,7 @@ function ContactQuickCreateModal({
     full_name: initial?.full_name ?? initialName,
     contact_type: initial?.contact_type ?? 'planner',
     phone: initial?.phone ?? '',
+    whatsapp_username: initial?.whatsapp_username ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -1000,6 +1010,15 @@ function ContactQuickCreateModal({
                 placeholder="312 345 6789"
               />
             </div>
+          </div>
+          <div>
+            <label className={labelCls}>Usuario de WhatsApp</label>
+            <input
+              value={form.whatsapp_username}
+              onChange={(e) => setForm(prev => ({ ...prev, whatsapp_username: e.target.value }))}
+              className={inputCls}
+              placeholder="usuario.whatsapp"
+            />
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <p className="text-xs text-gray-400">Podrás completar email, Instagram y más datos luego desde Contactos.</p>

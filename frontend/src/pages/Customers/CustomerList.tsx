@@ -267,7 +267,7 @@ export function CustomerList() {
                             {sendingId === c.id ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                           </button>
                         )}
-                        {(c.whatsapp || c.phone) && (
+                        {(c.whatsapp || c.phone) ? (
                           <a
                             href={toWhatsAppUrl(c.whatsapp ?? c.phone, c.main_contact_name)}
                             target="_blank"
@@ -277,7 +277,9 @@ export function CustomerList() {
                           >
                             <MessageCircle size={15} />
                           </a>
-                        )}
+                        ) : c.whatsapp_username ? (
+                          <span className="text-xs text-gray-400 px-2" title="Sin teléfono — buscar este usuario en WhatsApp">@{c.whatsapp_username}</span>
+                        ) : null}
                         <button
                           onClick={() => navigate(`/clientes/editar/${c.id}`)}
                           className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"

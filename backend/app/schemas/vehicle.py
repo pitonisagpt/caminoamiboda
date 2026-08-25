@@ -117,6 +117,7 @@ class VehicleRead(VehicleBase):
     owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
+    owner_whatsapp_username: Optional[str] = None
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
@@ -132,7 +133,7 @@ class VehicleRead(VehicleBase):
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleRead":
-        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "is_company_owned", "is_featured", "allowed_locations", "created_at", "updated_at"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations", "created_at", "updated_at"])
         return cls.model_validate(d)
 
 
@@ -164,6 +165,7 @@ class VehicleList(BaseModel):
     owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_contact: Optional[str] = None
+    owner_whatsapp_username: Optional[str] = None
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
@@ -172,7 +174,7 @@ class VehicleList(BaseModel):
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
-        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "is_company_owned", "is_featured", "allowed_locations"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations"])
         return cls.model_validate(d)
 
 

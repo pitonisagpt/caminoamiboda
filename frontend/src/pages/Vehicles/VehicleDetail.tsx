@@ -161,7 +161,7 @@ export default function VehicleDetail() {
           <p className="text-sm text-brand-800">
             Un cliente preguntó por este vehículo para el <span className="font-semibold capitalize">{formatDateLong(fecha)}</span>.
           </p>
-          {vehicle.owner_contact && (
+          {vehicle.owner_contact ? (
             <a
               href={buildWaUrl(vehicle.owner_contact, buildAvailabilityCheckMsg(vehicle, fecha))}
               target="_blank"
@@ -171,7 +171,9 @@ export default function VehicleDetail() {
               <PhoneCall size={13} />
               Consultar disponibilidad con el propietario
             </a>
-          )}
+          ) : vehicle.owner_whatsapp_username ? (
+            <span className="text-xs text-brand-700 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{vehicle.owner_whatsapp_username} · buscar en WhatsApp</span>
+          ) : null}
         </div>
       )}
 
@@ -309,7 +311,7 @@ export default function VehicleDetail() {
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Eventos agendados</h2>
-            {vehicle.owner_contact && bookings.length > 0 && (
+            {bookings.length > 0 && (vehicle.owner_contact ? (
               <a
                 href={buildWaUrl(vehicle.owner_contact, buildBookingsMsg(vehicle, bookings))}
                 target="_blank"
@@ -319,7 +321,9 @@ export default function VehicleDetail() {
                 <MessageCircle size={13} />
                 Enviar por WhatsApp al propietario
               </a>
-            )}
+            ) : vehicle.owner_whatsapp_username ? (
+              <span className="text-xs text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">@{vehicle.owner_whatsapp_username} · buscar en WhatsApp</span>
+            ) : null)}
           </div>
         </CardHeader>
         <CardBody>
