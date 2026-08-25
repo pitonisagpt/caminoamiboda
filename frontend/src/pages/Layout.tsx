@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Heart, LayoutDashboard, LogOut, MapPin, Menu, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
+import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LucideIcon } from "lucide-react";
@@ -153,6 +153,7 @@ export function Layout() {
           <NavItem to="/reservas"     icon={ClipboardList} label="Reservas"     onClick={closeSidebar} collapsed={c} />
           <NavItem to="/ubicaciones"  icon={MapPin}        label="Ubicaciones"  onClick={closeSidebar} collapsed={c} />
           <NavItem to="/cotizaciones" icon={FileText}      label="Cotizaciones" onClick={closeSidebar} collapsed={c} />
+          <NavItem to="/seguimientos" icon={MessageCircle}  label="Seguimientos" onClick={closeSidebar} collapsed={c} />
 
           <SidebarSection label="Clientes & Flota" collapsed={c} />
           <NavItem to="/clientes"    icon={Heart}    label="Clientes"    onClick={closeSidebar} collapsed={c} />

@@ -33,6 +33,7 @@ import NotFoundPage from "./pages/Public/NotFoundPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
 import QuoteDetail from "./pages/Quotes/QuoteDetail";
+import FollowUpsPage from "./pages/FollowUps/FollowUpsPage";
 import ContactList from "./pages/Contacts/ContactList";
 import ContactForm from "./pages/Contacts/ContactForm";
 import ContactStatsPage from "./pages/Contacts/ContactStatsPage";
@@ -135,6 +136,7 @@ export default function App() {
             <Route path="cotizaciones/nuevo" element={<QuoteForm />} />
             <Route path="cotizaciones/:id" element={<QuoteDetail />} />
             <Route path="cotizaciones/:id/editar" element={<QuoteForm />} />
+            <Route path="seguimientos" element={<FollowUpsPage />} />
 
             {/* Legacy timeline URLs — redirect to reservation?tab=evento */}
             <Route path="eventos/:id" element={<TimelineRedirect />} />
