@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, Loader2, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Loader2, MessageCircle, Search } from 'lucide-react';
 import { followUpMessagesApi } from '../../api/followUpMessages';
 import type { FollowUpPanelEntry, WindowStatus } from '../../types/followUpMessage';
 
@@ -14,11 +14,25 @@ function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function urgencyBadge(days: number): { label: string; className: string } {
-  if (days < 0) return { label: 'Fecha pasada', className: 'bg-gray-100 text-gray-500' };
-  if (days < 15) return { label: `${days} días para el evento`, className: 'bg-red-100 text-red-700' };
-  if (days < 45) return { label: `${days} días para el evento`, className: 'bg-yellow-100 text-yellow-700' };
-  return { label: `${days} días para el evento`, className: 'bg-green-100 text-green-700' };
+function formatDateTime(d: string) {
+  return new Date(d).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+type UrgencyLevel = 'urgent' | 'medium' | 'comfortable';
+
+const URGENCY_FILTERS: { value: 'all' | UrgencyLevel; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'urgent', label: 'Urgente' },
+  { value: 'medium', label: 'Medio' },
+  { value: 'comfortable', label: 'Cómodo' },
+];
+
+function urgencyBadge(days: number): { level: UrgencyLevel; label: string; className: string } {
+  // The panel endpoint already excludes past-dated events, but fold any
+  // stray negative value into "urgent" defensively rather than mis-sort it.
+  if (days < 15) return { level: 'urgent', label: `${days} días para el evento`, className: 'bg-red-100 text-red-700' };
+  if (days < 45) return { level: 'medium', label: `${days} días para el evento`, className: 'bg-yellow-100 text-yellow-700' };
+  return { level: 'comfortable', label: `${days} días para el evento`, className: 'bg-green-100 text-green-700' };
 }
 
 const WINDOW_STATUS_LABEL: Record<WindowStatus, string> = {
@@ -36,6 +50,8 @@ export default function FollowUpsPage() {
   const [entries, setEntries] = useState<FollowUpPanelEntry[] | 'loading'>('loading');
   const [viewedKeys, setViewedKeys] = useState<Record<number, string>>({});
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [urgencyFilter, setUrgencyFilter] = useState<'all' | UrgencyLevel>('all');
 
   useEffect(() => {
     followUpMessagesApi.panel().then(r => {
@@ -88,6 +104,15 @@ export default function FollowUpsPage() {
     }
   };
 
+  const filteredEntries = entries === 'loading' ? [] : entries.filter(e => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q
+      || e.display_customer.toLowerCase().includes(q)
+      || e.display_vehicle.toLowerCase().includes(q);
+    const matchesUrgency = urgencyFilter === 'all' || urgencyBadge(e.days_to_event).level === urgencyFilter;
+    return matchesSearch && matchesUrgency;
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -97,15 +122,46 @@ export default function FollowUpsPage() {
         </p>
       </div>
 
+      {entries !== 'loading' && entries.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px] max-w-sm">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por cliente o vehículo…"
+              className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div className="flex gap-1.5">
+            {URGENCY_FILTERS.map(f => (
+              <button
+                key={f.value}
+                onClick={() => setUrgencyFilter(f.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                  urgencyFilter === f.value ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {entries === 'loading' ? (
         <div className="flex justify-center py-16 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>
       ) : entries.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-400">
           No hay eventos en estado "Cotizado" para hacer seguimiento por ahora.
         </div>
+      ) : filteredEntries.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-400">
+          Ningún evento coincide con la búsqueda o el filtro.
+        </div>
       ) : (
         <div className="space-y-4">
-          {entries.map(entry => {
+          {filteredEntries.map(entry => {
             const viewedKey = viewedKeys[entry.reservation_id] ?? entry.templates[0].key;
             const idx = entry.templates.findIndex(t => t.key === viewedKey);
             const tpl = entry.templates[idx] ?? entry.templates[0];
@@ -128,6 +184,9 @@ export default function FollowUpsPage() {
                         <span key={t.key} className={`w-2 h-2 rounded-full ${t.sent_at ? 'bg-brand-500' : 'bg-gray-200'}`} />
                       ))}
                     </div>
+                    <span className="text-xs text-gray-400">
+                      {entry.last_sent_at ? `Último enviado: ${formatDateTime(entry.last_sent_at)}` : 'Sin seguimientos enviados'}
+                    </span>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge.className}`}>{badge.label}</span>
                     <a
                       href={buildWaUrl(entry.phone)}

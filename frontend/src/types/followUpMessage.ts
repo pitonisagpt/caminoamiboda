@@ -18,5 +18,6 @@ export interface FollowUpPanelEntry {
   days_to_event: number;
   phone: string | null;
   current_key: string | null;
+  last_sent_at: string | null;
   templates: FollowUpTemplateEntry[];
 }

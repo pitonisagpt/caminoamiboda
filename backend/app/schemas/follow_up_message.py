@@ -22,6 +22,7 @@ class FollowUpPanelEntry(BaseModel):
     days_to_event: int
     phone: Optional[str] = None
     current_key: Optional[str] = None
+    last_sent_at: Optional[datetime] = None
     templates: List[FollowUpTemplateEntry]
 
 

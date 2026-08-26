@@ -43,6 +43,9 @@ def _build_panel_entry(r: Reservation, sent_by_key: dict[str, datetime]) -> Foll
         if current_key is None and sent_at is None:
             current_key = t.key
 
+    sent_dates = [t.sent_at for t in templates if t.sent_at is not None]
+    last_sent_at = max(sent_dates) if sent_dates else None
+
     return FollowUpPanelEntry(
         reservation_id=r.id,
         reservation_number=r.reservation_number,
@@ -52,6 +55,7 @@ def _build_panel_entry(r: Reservation, sent_by_key: dict[str, datetime]) -> Foll
         days_to_event=days_to_event,
         phone=_phone_for(r),
         current_key=current_key,
+        last_sent_at=last_sent_at,
         templates=templates,
     )
 
