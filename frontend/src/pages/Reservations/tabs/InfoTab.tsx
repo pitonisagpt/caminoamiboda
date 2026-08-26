@@ -60,7 +60,8 @@ export default function InfoTab({
   const [uploading, setUploading] = useState(false);
   const [deletingAttId, setDeletingAttId] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState('');
-  const [previewAttachment, setPreviewAttachment] = useState<ReservationAttachment | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const previewAttachment = previewIndex !== null ? attachments[previewIndex] ?? null : null;
 
   useEffect(() => {
     setAttachmentsLoading(true);
@@ -246,11 +247,11 @@ export default function InfoTab({
           <p className="text-sm text-gray-400">Sin adjuntos todavía — contratos, comprobantes o fotos de referencia (PDF, JPG, PNG, WEBP).</p>
         ) : (
           <div className="space-y-2">
-            {attachments.map(a => (
+            {attachments.map((a, i) => (
               <div key={a.id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
                 <div
                   className="flex items-center gap-2.5 min-w-0 cursor-pointer"
-                  onClick={() => setPreviewAttachment(a)}
+                  onClick={() => setPreviewIndex(i)}
                 >
                   {a.content_type.startsWith('image/')
                     ? <img src={a.url} alt={a.original_name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
@@ -314,12 +315,17 @@ export default function InfoTab({
         </div>
       )}
 
-      {previewAttachment && (
+      {previewAttachment && previewIndex !== null && (
         <FilePreviewModal
           src={previewAttachment.url}
           contentType={previewAttachment.content_type}
           fileName={previewAttachment.original_name}
-          onClose={() => setPreviewAttachment(null)}
+          onClose={() => setPreviewIndex(null)}
+          hasPrev={previewIndex > 0}
+          hasNext={previewIndex < attachments.length - 1}
+          onPrev={() => setPreviewIndex(i => (i !== null ? i - 1 : i))}
+          onNext={() => setPreviewIndex(i => (i !== null ? i + 1 : i))}
+          position={{ current: previewIndex + 1, total: attachments.length }}
         />
       )}
     </div>
