@@ -331,9 +331,13 @@ export default function ReservationForm() {
                         type="button"
                         onClick={() => removeVehicleAssignment(idx)}
                         aria-label="Quitar vehículo"
-                        className="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                        // Floats outside the card corner (not just top-2/right-2
+                        // inside it) so it never crowds the "Conductor" label in
+                        // the column right below it; sized/colored to match this
+                        // app's other close ("X") buttons (text-gray-400, size 18).
+                        className="absolute -top-2.5 -right-2.5 z-10 w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-red-500 hover:border-red-200 transition-colors cursor-pointer"
                       >
-                        <X size={16} />
+                        <X size={14} />
                       </button>
                     )}
                     <Combobox

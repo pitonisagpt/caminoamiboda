@@ -881,9 +881,14 @@ export default function FinanceTab({
                     step="1000"
                     value={ownerAmountOverride}
                     onChange={e => setOwnerAmountOverride(e.target.value)}
-                    placeholder={`Por defecto: 70% = ${formatCOP(Number(reservation.total_amount) * 0.7)}`}
+                    placeholder="0"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
+                  {/* Persistent, not just a placeholder — stays visible once
+                      the user starts typing a different amount. */}
+                  <p className="text-xs text-gray-400 mt-1">
+                    Déjalo vacío para usar el 70% por defecto ({formatCOP(Number(reservation.total_amount) * 0.7)}).
+                  </p>
                 </div>
                 <div className="flex justify-end">
                   <button
