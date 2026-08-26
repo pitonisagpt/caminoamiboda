@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -26,6 +26,11 @@ class OwnerSettlement(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     pdf_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # True when owner_amount came from a manual owner_amount_override at
+    # creation time rather than being derived from owner_percentage — guards
+    # generate_settlement_pdf()'s resync-to-current-total_amount block from
+    # silently overwriting a manually-set amount.
+    is_manual_amount: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

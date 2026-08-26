@@ -8,11 +8,13 @@ from app.core.dependencies import get_current_user
 from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.reservation import Reservation
+from app.models.reservation_vehicle import ReservationVehicle
 from app.models.event_timeline import EventTimeline
 from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle_photo import VehiclePhoto
 from app.services.conflicts import find_conflicts
 from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
+from app.services.reservation_vehicles import rv_display_driver, rv_display_driver_phone, vehicle_display_name
 
 router = APIRouter(tags=["calendar"], redirect_slashes=False)
 
@@ -66,8 +68,24 @@ def calendar_events(
         r for r in reservations
         if effective_end_date(r.event_date, res_activities.get(r.timelines[0].id, []) if r.timelines else []) >= start
     ]
+    # Bulk-fetch every vehicle+driver assignment per reservation — one extra
+    # query for the whole visible range, not one per reservation. Mirrors the
+    # photo_map pattern just below.
+    reservation_ids = [r.id for r in reservations]
+    vehicles_by_reservation: dict[int, list[ReservationVehicle]] = {}
+    if reservation_ids:
+        for rv in (
+            db.query(ReservationVehicle)
+            .filter(ReservationVehicle.reservation_id.in_(reservation_ids))
+            .order_by(ReservationVehicle.display_order)
+            .all()
+        ):
+            vehicles_by_reservation.setdefault(rv.reservation_id, []).append(rv)
+
     # Pre-fetch first visible photo per vehicle
-    vehicle_ids = [r.vehicle_id for r in reservations if r.vehicle_id]
+    vehicle_ids = list({
+        rv.vehicle_id for rvs in vehicles_by_reservation.values() for rv in rvs if rv.vehicle_id
+    })
     photo_map: dict[int, str] = {}
     if vehicle_ids:
         photos = (
@@ -89,6 +107,26 @@ def calendar_events(
             title_parts.append(vehicle)
         has_timeline = bool(r.timelines)
         end_date = effective_end_date(r.event_date, res_activities.get(r.timelines[0].id, []) if has_timeline else [])
+        # Structured multi-vehicle array — additive alongside the singular
+        # vehicle_id/vehicle_photo_url/etc. fields below, which stay synced to
+        # the primary (first) vehicle so existing consumers keep working.
+        vehicles = []
+        for rv in vehicles_by_reservation.get(r.id, []):
+            v = rv.vehicle
+            if not v:
+                continue
+            vehicles.append({
+                "id": v.id,
+                "display_name": vehicle_display_name(v),
+                "license_plate": v.license_plate,
+                "photo_url": photo_map.get(v.id),
+                "owner_name": v.owner_name,
+                "owner_whatsapp": v.owner_contact,
+                "driver_id": rv.driver_id,
+                "owner_driver_id": rv.owner_driver_id,
+                "display_driver": rv_display_driver(rv),
+                "display_driver_phone": rv_display_driver_phone(rv),
+            })
         events.append({
             "id": f"res-{r.id}",
             "type": "reservation",
@@ -109,6 +147,7 @@ def calendar_events(
             "owner_name": r.vehicle.owner_name if r.vehicle else None,
             "owner_whatsapp": r.vehicle.owner_contact if r.vehicle else None,
             "driver_phone": r.display_driver_phone,
+            "vehicles": vehicles,
         })
 
     # Timelines — only standalone ones (linked timelines are already shown via their reservation)
@@ -134,24 +173,36 @@ def calendar_events(
             "color": "#FB923C",
             "vehicle_id": None,
             "driver_id": None,
+            "vehicles": [],
         })
 
     return events
 
 
+def _parse_id_list(raw: Optional[str]) -> list[int]:
+    """Comma-separated ids from a query param — not FastAPI's native
+    `List[int] = Query([])`, since axios (no custom paramsSerializer here)
+    serializes arrays as `vehicle_ids[]=1&vehicle_ids[]=2`, which FastAPI
+    doesn't parse the same as repeated keys. A plain comma-separated string
+    sidesteps the mismatch entirely."""
+    return [int(x) for x in raw.split(",") if x.strip()] if raw else []
+
+
 @router.get("/api/calendar/conflicts", dependencies=[Depends(get_current_user)])
 def check_conflicts(
     event_date: date = Query(...),
-    vehicle_id: Optional[int] = Query(None),
-    driver_id: Optional[int] = Query(None),
+    vehicle_ids: Optional[str] = Query(None),
+    driver_ids: Optional[str] = Query(None),
+    owner_driver_ids: Optional[str] = Query(None),
     exclude_reservation_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
     conflicts = find_conflicts(
         db,
         event_date=event_date,
-        vehicle_id=vehicle_id,
-        driver_id=driver_id,
+        vehicle_ids=_parse_id_list(vehicle_ids),
+        driver_ids=_parse_id_list(driver_ids),
+        owner_driver_ids=_parse_id_list(owner_driver_ids),
         exclude_id=exclude_reservation_id,
     )
     return {"conflicts": conflicts, "has_conflicts": len(conflicts) > 0}

@@ -35,6 +35,10 @@ class OwnerSettlementRead(BaseModel):
     pdf_path: Optional[str]
     created_at: datetime
     updated_at: datetime
+    # True when owner_amount came from owner_amount_override at creation
+    # rather than being derived from owner_percentage — regenerating the PDF
+    # leaves a manual amount untouched instead of resyncing it.
+    is_manual_amount: bool = False
 
     # Denormalized for display
     display_reservation: Optional[str] = None
@@ -63,6 +67,7 @@ class OwnerSettlementRead(BaseModel):
             pdf_path=s.pdf_path,
             created_at=s.created_at,
             updated_at=s.updated_at,
+            is_manual_amount=s.is_manual_amount,
             display_reservation=r.reservation_number if r else None,
             display_vehicle=(
                 f"{v.brand} {v.model_line or ''} {v.color or ''}".strip() if v else None
@@ -79,6 +84,7 @@ class OwnerSettlementList(BaseModel):
     id: int
     settlement_number: str
     reservation_id: int
+    vehicle_id: Optional[int] = None
     reservation_value: Decimal
     owner_percentage: int
     owner_amount: Decimal
@@ -86,6 +92,10 @@ class OwnerSettlementList(BaseModel):
     status: str
     pdf_path: Optional[str]
     created_at: datetime
+    # Needed by the frontend to match a settlement to its vehicle when a
+    # reservation has several (FinanceTab.tsx fetches this list, not
+    # OwnerSettlementRead, to know which vehicles are already settled).
+    is_manual_amount: bool = False
     display_reservation: Optional[str] = None
     display_owner: Optional[str] = None
 
@@ -97,11 +107,13 @@ class OwnerSettlementList(BaseModel):
             id=s.id,
             settlement_number=s.settlement_number,
             reservation_id=s.reservation_id,
+            vehicle_id=s.vehicle_id,
             reservation_value=s.reservation_value,
             owner_percentage=s.owner_percentage,
             owner_amount=s.owner_amount,
             company_amount=s.company_amount,
             status=s.status,
+            is_manual_amount=s.is_manual_amount,
             pdf_path=s.pdf_path,
             created_at=s.created_at,
             display_reservation=r.reservation_number if r else None,

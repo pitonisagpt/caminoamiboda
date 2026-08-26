@@ -21,6 +21,7 @@ from app.models.owner_settlement_payment import OwnerSettlementPayment
 from app.models.reservation import Reservation
 from app.models.vehicle import Vehicle
 from app.schemas.owner_settlement import OwnerSettlementCreate, OwnerSettlementList, OwnerSettlementRead
+from app.services.reservation_vehicles import vehicle_display_name
 
 router = APIRouter(prefix="/api/owner-settlements", tags=["owner-settlements"], redirect_slashes=False)
 
@@ -104,6 +105,7 @@ def create_settlement(body: OwnerSettlementCreate, db: Session = Depends(get_db)
         company_amount=company_amount,
         notes=body.notes,
         status="pending",
+        is_manual_amount=body.owner_amount_override is not None,
     )
     db.add(settlement)
     db.commit()
@@ -132,7 +134,9 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     # Regenerating should reflect the reservation's current value — the amounts
     # are frozen on the settlement at creation time and otherwise never sync
     # if the reservation's total_amount changes afterwards (e.g. more days added).
-    if s.reservation and s.reservation.total_amount != s.reservation_value:
+    # Skipped when the amount was set manually (owner_amount_override at
+    # creation) — otherwise this silently overwrites it on every regeneration.
+    if not s.is_manual_amount and s.reservation and s.reservation.total_amount != s.reservation_value:
         s.reservation_value = s.reservation.total_amount
         s.owner_amount = (s.reservation_value * Decimal(s.owner_percentage) / Decimal(100)).quantize(Decimal("0.01"))
         s.company_amount = (s.reservation_value - s.owner_amount).quantize(Decimal("0.01"))
@@ -180,7 +184,10 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
         formatted_total_paid_by_customer=_format_cop(sum(p.amount for p in reservation_payments if p.payment_type == "cash")),
         formatted_total_withheld=_format_cop(sum(p.amount for p in reservation_payments if p.payment_type == "withholding")),
         has_withholding=any(p.payment_type == "withholding" for p in reservation_payments),
-        display_vehicle=r.display_vehicle if r else "—",
+        # The settlement's own vehicle (s.vehicle_id), not the reservation's
+        # primary vehicle — matters once a reservation has several vehicles,
+        # each settled separately.
+        display_vehicle=vehicle_display_name(v) if v else (r.display_vehicle if r else "—"),
         vehicle_plate=v.license_plate if v else None,
         vehicle_year=v.year if v else None,
         company_name=settings.company_name,

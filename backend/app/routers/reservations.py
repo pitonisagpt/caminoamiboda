@@ -16,12 +16,64 @@ from app.models.event_location import EventLocation
 from app.models.event_timeline import EventTimeline
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_payment import ReservationPayment
+from app.models.reservation_vehicle import ReservationVehicle
 from app.models.quote import Quote
 from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle import Vehicle, VehicleCategory
 from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
 from app.services.conflicts import find_conflicts
 from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
+from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles
+
+_UNSET = object()
+
+
+def _resolve_vehicle_assignments(vehicles, vehicle_id, driver_id, owner_driver_id) -> list[dict]:
+    """`vehicles` (the new list input) takes priority when present; otherwise
+    fall back to the legacy singular fields as a single assignment."""
+    if vehicles is not None:
+        return [
+            {"vehicle_id": v["vehicle_id"] if isinstance(v, dict) else v.vehicle_id,
+             "driver_id": v.get("driver_id") if isinstance(v, dict) else v.driver_id,
+             "owner_driver_id": v.get("owner_driver_id") if isinstance(v, dict) else v.owner_driver_id}
+            for v in vehicles
+        ]
+    if vehicle_id:
+        return [{"vehicle_id": vehicle_id, "driver_id": driver_id, "owner_driver_id": owner_driver_id}]
+    return []
+
+
+def _set_reservation_vehicles(r: Reservation, assignments: list[dict], db: Session) -> None:
+    """Replace r's ReservationVehicle rows with `assignments` (deduped by
+    vehicle_id, order preserved), and resync the legacy singular
+    vehicle_id/driver_id/owner_driver_id pointers to the first one — the
+    "primary" vehicle, same idiom _sync_deposit() uses for deposit_paid."""
+    seen: set[int] = set()
+    deduped = []
+    for a in assignments:
+        vid = a.get("vehicle_id")
+        if not vid or vid in seen:
+            continue
+        seen.add(vid)
+        deduped.append(a)
+
+    db.query(ReservationVehicle).filter(ReservationVehicle.reservation_id == r.id).delete()
+    for i, a in enumerate(deduped):
+        db.add(ReservationVehicle(
+            reservation_id=r.id,
+            vehicle_id=a.get("vehicle_id"),
+            driver_id=a.get("driver_id"),
+            owner_driver_id=a.get("owner_driver_id"),
+            display_order=i,
+        ))
+    first = deduped[0] if deduped else None
+    r.vehicle_id = first.get("vehicle_id") if first else None
+    r.driver_id = first.get("driver_id") if first else None
+    r.owner_driver_id = first.get("owner_driver_id") if first else None
+    # This session has autoflush=False (app/database.py) — flush explicitly so
+    # a get_reservation_vehicles() call later in the same request (timeline
+    # auto-create/sync) sees these rows instead of the pre-update state.
+    db.flush()
 
 router = APIRouter(tags=["reservations"], redirect_slashes=False)
 
@@ -94,11 +146,20 @@ def list_reservations(
     if event_category:
         q = q.filter(Reservation.event_category.in_(event_category.split(",")))
     if vehicle_category:
+        # Matches ANY vehicle on the reservation, not just the primary one —
+        # same reasoning as the vehicle_id filter below.
         categories = [VehicleCategory(c) for c in vehicle_category.split(",") if c]
-        q = (q.join(Vehicle, Reservation.vehicle_id == Vehicle.id)
-              .filter(Vehicle.category.in_(categories)))
+        q = q.filter(Reservation.id.in_(
+            db.query(ReservationVehicle.reservation_id)
+            .join(Vehicle, ReservationVehicle.vehicle_id == Vehicle.id)
+            .filter(Vehicle.category.in_(categories))
+        ))
     if vehicle_id:
-        q = q.filter(Reservation.vehicle_id == vehicle_id)
+        # Matches ANY vehicle on the reservation, not just the primary one —
+        # a reservation with a second vehicle should still show up here.
+        q = q.filter(Reservation.id.in_(
+            db.query(ReservationVehicle.reservation_id).filter(ReservationVehicle.vehicle_id == vehicle_id)
+        ))
     if contact_id:
         q = q.filter(Reservation.contact_id == contact_id)
     if location_id:
@@ -170,18 +231,40 @@ def list_reservations(
 
 @router.post("/api/reservations", response_model=ReservationRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_reservation(body: ReservationCreate, db: Session = Depends(get_db)):
+    assignments = _resolve_vehicle_assignments(
+        [v.model_dump() for v in body.vehicles] if body.vehicles is not None else None,
+        body.vehicle_id, body.driver_id, body.owner_driver_id,
+    )
+    vehicle_ids = [a["vehicle_id"] for a in assignments if a.get("vehicle_id")]
+    driver_ids = [a["driver_id"] for a in assignments if a.get("driver_id")]
+    owner_driver_ids = [a["owner_driver_id"] for a in assignments if a.get("owner_driver_id")]
     blocking = [c for c in find_conflicts(
-        db, body.event_date, body.vehicle_id, body.driver_id,
+        db, body.event_date, vehicle_ids, driver_ids, owner_driver_ids,
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
-    r = Reservation(**body.model_dump(), reservation_number=_next_number(db))
+    r = Reservation(**body.model_dump(exclude={"vehicles"}), reservation_number=_next_number(db))
     db.add(r)
     db.flush()
+    _set_reservation_vehicles(r, assignments, db)
     gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)
     return ReservationRead.build(r, db, gcal_synced=gcal_synced)
+
+
+def _timeline_vehicle_str(r: Reservation, db: Session) -> Optional[str]:
+    """What to write into EventTimeline.assigned_vehicle. Single-vehicle
+    reservations keep the exact old behavior (just the vehicle name — the
+    driver already has its own assigned_driver field, pairing them here too
+    would just duplicate it). Multi-vehicle reservations get the richer
+    vehicle↔driver-paired string, since a single assigned_driver can no
+    longer represent all of them."""
+    rvs = get_reservation_vehicles(r.id, db)
+    if len(rvs) > 1:
+        s = display_vehicle_str(rvs)
+        return s if s != "—" else None
+    return r.display_vehicle if r.display_vehicle != "—" else None
 
 
 def _auto_create_timeline(r: Reservation, db: Session) -> Optional[bool]:
@@ -204,7 +287,7 @@ def _auto_create_timeline(r: Reservation, db: Session) -> Optional[bool]:
         event_date=r.event_date,
         main_contact_name=customer.main_contact_name if customer else None,
         main_contact_phone=customer.phone if customer else None,
-        assigned_vehicle=r.display_vehicle if r.display_vehicle != "—" else None,
+        assigned_vehicle=_timeline_vehicle_str(r, db),
         assigned_driver=driver.full_name if driver else None,
         assigned_driver_phone=driver.phone if driver else None,
         special_instructions=r.special_instructions,
@@ -228,19 +311,46 @@ def get_reservation(reservation_id: int, db: Session = Depends(get_db)):
 def update_reservation(reservation_id: int, body: ReservationUpdate, db: Session = Depends(get_db)):
     r = _get(reservation_id, db)
     changed = body.model_dump(exclude_unset=True)
-    # Resolve final values for conflict check (prefer incoming, fall back to current)
-    chk_date     = changed.get("event_date", r.event_date)
-    chk_vehicle  = changed.get("vehicle_id", r.vehicle_id)
-    chk_driver   = changed.get("driver_id", r.driver_id)
+    new_vehicles_raw = changed.pop("vehicles", _UNSET)
+    vehicles_touched = new_vehicles_raw is not _UNSET or bool(
+        {"vehicle_id", "driver_id", "owner_driver_id"} & set(changed.keys())
+    )
+
+    # Resolve final assignments for the conflict check (prefer incoming,
+    # fall back to current — a reservation always has ReservationVehicle
+    # rows once it has any vehicle, thanks to the backfill migration).
+    if new_vehicles_raw is not _UNSET:
+        assignments = _resolve_vehicle_assignments(new_vehicles_raw, None, None, None)
+    elif vehicles_touched:
+        assignments = _resolve_vehicle_assignments(
+            None,
+            changed.get("vehicle_id", r.vehicle_id),
+            changed.get("driver_id", r.driver_id),
+            changed.get("owner_driver_id", r.owner_driver_id),
+        )
+    else:
+        assignments = [
+            {"vehicle_id": rv.vehicle_id, "driver_id": rv.driver_id, "owner_driver_id": rv.owner_driver_id}
+            for rv in get_reservation_vehicles(reservation_id, db)
+        ]
+
+    chk_date = changed.get("event_date", r.event_date)
+    vehicle_ids = [a["vehicle_id"] for a in assignments if a.get("vehicle_id")]
+    driver_ids = [a["driver_id"] for a in assignments if a.get("driver_id")]
+    owner_driver_ids = [a["owner_driver_id"] for a in assignments if a.get("owner_driver_id")]
     blocking = [c for c in find_conflicts(
-        db, chk_date, chk_vehicle, chk_driver, exclude_id=reservation_id,
+        db, chk_date, vehicle_ids, driver_ids, owner_driver_ids, exclude_id=reservation_id,
     ) if c["severity"] == "blocking"]
     if blocking:
         raise HTTPException(status_code=409, detail={"conflicts": blocking})
     operational_fields = {"event_date", "vehicle_id", "driver_id", "owner_driver_id", "customer_id", "status", "event_category", "special_instructions"}
-    needs_timeline_sync = bool(operational_fields & set(changed.keys()))
+    needs_timeline_sync = bool(operational_fields & set(changed.keys())) or vehicles_touched
     for field, value in changed.items():
         setattr(r, field, value)
+
+    if vehicles_touched:
+        _set_reservation_vehicles(r, assignments, db)
+
     db.commit()
     db.refresh(r)
 
@@ -266,8 +376,8 @@ def _sync_linked_timelines(reservation, db) -> Optional[bool]:
     for tl in linked:
         tl.calendar_category = new_category
         tl.event_date = reservation.event_date
-        display_v = reservation.display_vehicle
-        if display_v and display_v != "—":
+        display_v = _timeline_vehicle_str(reservation, db)
+        if display_v:
             tl.assigned_vehicle = display_v
         display_name = reservation.display_customer
         if display_name and display_name != "—":
@@ -326,6 +436,7 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     db.add(r)
     quote.status = "accepted"
     db.flush()
+    _set_reservation_vehicles(r, _resolve_vehicle_assignments(None, quote.vehicle_id, None, None), db)
     gcal_synced = _auto_create_timeline(r, db)
     db.commit()
     db.refresh(r)

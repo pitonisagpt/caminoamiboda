@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
+from app.models.reservation_vehicle import ReservationVehicle
 from app.models.vehicle import Vehicle, VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle import ReorderItem, VehicleCreate, VehicleList, VehiclePublicList, VehicleRead, VehicleUpdate
 
@@ -157,7 +158,12 @@ def vehicle_stats(
     today = date.today()
 
     def _df(filters=None):
-        f = [Reservation.vehicle_id == vehicle_id] + (filters or [])
+        # Match this vehicle on ANY of a reservation's vehicles, not just the
+        # primary one — a reservation where it's a secondary vehicle should
+        # still count in its stats.
+        f = [Reservation.id.in_(
+            db.query(ReservationVehicle.reservation_id).filter(ReservationVehicle.vehicle_id == vehicle_id)
+        )] + (filters or [])
         if date_from:
             f.append(Reservation.event_date >= date_from)
         if date_to:

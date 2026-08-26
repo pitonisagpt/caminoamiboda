@@ -578,23 +578,27 @@ def invite_team(timeline, db: Session) -> dict:
     from app.models.event_location import EventLocation
     from app.models.timeline_activity import TimelineActivity
     from app.models.reservation import Reservation
+    from app.services.reservation_vehicles import get_reservation_vehicles
 
     reservation = (
         db.query(Reservation).filter(Reservation.id == timeline.reservation_id).first()
         if timeline.reservation_id else None
     )
 
+    # Loop over every vehicle on the reservation (not just the primary one) —
+    # each can have its own owner and its own driver.
     raw_emails = []
     if reservation:
-        vehicle = reservation.vehicle
-        if vehicle and vehicle.owner and vehicle.owner.email:
-            raw_emails.append(vehicle.owner.email)
-        if reservation.owner_driver_id and reservation.owner_driver:
-            if reservation.owner_driver.email:
-                raw_emails.append(reservation.owner_driver.email)
-        elif reservation.driver_id and reservation.driver:
-            if reservation.driver.email:
-                raw_emails.append(reservation.driver.email)
+        for rv in get_reservation_vehicles(reservation.id, db):
+            vehicle = rv.vehicle
+            if vehicle and vehicle.owner and vehicle.owner.email:
+                raw_emails.append(vehicle.owner.email)
+            if rv.owner_driver_id and rv.owner_driver:
+                if rv.owner_driver.email:
+                    raw_emails.append(rv.owner_driver.email)
+            elif rv.driver_id and rv.driver:
+                if rv.driver.email:
+                    raw_emails.append(rv.driver.email)
 
     emails = list(dict.fromkeys(e for e in raw_emails if e))
     if not emails:

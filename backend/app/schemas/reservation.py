@@ -8,6 +8,33 @@ from app.core.urls import build_upload_url
 from app.models.reservation import ReservationStatus
 from app.models.timeline_activity import TimelineActivity
 from app.services.event_span import effective_end_date, is_in_progress
+from app.services.reservation_vehicles import (
+    get_reservation_vehicles,
+    rv_display_driver,
+    rv_display_driver_phone,
+    vehicle_display_name,
+)
+
+
+class VehicleBrief(BaseModel):
+    id: int
+    display_name: str
+    license_plate: Optional[str] = None
+    is_company_owned: bool = False
+    owner_name: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
+    owner_whatsapp_username: Optional[str] = None
+    photo_url: Optional[str] = None
+    driver_id: Optional[int] = None
+    owner_driver_id: Optional[int] = None
+    display_driver: Optional[str] = None
+    display_driver_phone: Optional[str] = None
+
+
+class VehicleAssignmentIn(BaseModel):
+    vehicle_id: int
+    driver_id: Optional[int] = None
+    owner_driver_id: Optional[int] = None
 
 _SCALARS = [
     "id", "reservation_number", "customer_id", "contact_id", "quote_id", "vehicle_id", "driver_id",
@@ -59,6 +86,33 @@ def _build(r, db) -> dict:
     activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all() if tls else []
     d["event_end_date"] = effective_end_date(r.event_date, activities)
     d["is_in_progress"] = is_in_progress(r.event_date, d["event_end_date"], r.status)
+
+    # Structured multi-vehicle field — additive. All the scalar vehicle/driver
+    # fields above keep working unchanged, since Reservation.vehicle_id/
+    # driver_id/owner_driver_id stay synced to the first (primary) vehicle
+    # here (see reservation_vehicle.py / _set_reservation_vehicles).
+    vehicles = []
+    for rv in get_reservation_vehicles(r.id, db):
+        v = rv.vehicle
+        if not v:
+            continue
+        photos = v.photos if isinstance(v.photos, list) else ([v.photos] if v.photos else [])
+        first_photo = next((p for p in photos if p.is_visible), None)
+        vehicles.append(VehicleBrief(
+            id=v.id,
+            display_name=vehicle_display_name(v),
+            license_plate=v.license_plate,
+            is_company_owned=v.is_company_owned,
+            owner_name=v.owner_name,
+            owner_whatsapp=v.owner_contact,
+            owner_whatsapp_username=v.owner.whatsapp_username if v.owner else None,
+            photo_url=build_upload_url(f"/api/uploads/vehicles/{first_photo.file_name}") if first_photo else None,
+            driver_id=rv.driver_id,
+            owner_driver_id=rv.owner_driver_id,
+            display_driver=rv_display_driver(rv),
+            display_driver_phone=rv_display_driver_phone(rv),
+        ))
+    d["vehicles"] = vehicles
     return d
 
 
@@ -83,6 +137,11 @@ class ReservationCreate(BaseModel):
     extra_hours: int = 0
     addon_package_ids: Optional[list] = None
     addons_total: Decimal = Decimal("0")
+    # New multi-vehicle input — optional so existing callers that still only
+    # send vehicle_id/driver_id/owner_driver_id keep working (a single
+    # ReservationVehicle row gets created from those instead). When present,
+    # this takes priority over the singular fields above.
+    vehicles: Optional[List[VehicleAssignmentIn]] = None
 
 
 class ReservationUpdate(BaseModel):
@@ -106,6 +165,9 @@ class ReservationUpdate(BaseModel):
     extra_hours: Optional[int] = None
     addon_package_ids: Optional[list] = None
     addons_total: Optional[Decimal] = None
+    # None/omitted = don't touch the vehicle list; [] = clear it (same
+    # exclude_unset convention as every other optional field here).
+    vehicles: Optional[List[VehicleAssignmentIn]] = None
 
 
 class ReservationRead(BaseModel):
@@ -158,6 +220,7 @@ class ReservationRead(BaseModel):
     extra_hours: int = 0
     addon_package_ids: Optional[list] = None
     addons_total: Decimal = Decimal("0")
+    vehicles: List[VehicleBrief] = []
     created_at: datetime
     updated_at: datetime
     gcal_synced: Optional[bool] = None
@@ -195,6 +258,7 @@ class ReservationList(BaseModel):
     event_date_notes: Optional[str] = None
     vehicle_is_company_owned: bool = False
     vehicle_photo_url: Optional[str] = None
+    vehicles: List[VehicleBrief] = []
     timeline_id: Optional[int] = None
     created_at: datetime
 

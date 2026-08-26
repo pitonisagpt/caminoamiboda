@@ -65,6 +65,12 @@ class Reservation(Base):
     owner_driver = relationship("VehicleOwner", foreign_keys=[owner_driver_id], lazy="select")
     timelines = relationship("EventTimeline", back_populates="reservation", lazy="select")
     payments = relationship("ReservationPayment", back_populates="reservation", lazy="select", order_by="ReservationPayment.paid_at")
+    # Present for ORM completeness — query ReservationVehicle directly for
+    # anything that needs to be correct (see reservation_vehicle.py docstring).
+    vehicles = relationship(
+        "ReservationVehicle", cascade="all, delete-orphan",
+        order_by="ReservationVehicle.display_order", lazy="select",
+    )
 
     @property
     def retention_total(self) -> Decimal:
