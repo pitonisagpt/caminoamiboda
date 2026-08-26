@@ -1,4 +1,4 @@
-import { Loader2, MessageCircle, Pencil, Plus, Truck, Trash2 } from "lucide-react";
+import { Loader2, MessageCircle, Pencil, Plus, Search, Truck, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { driversApi } from "../../api/drivers";
@@ -35,6 +35,8 @@ export function DriverList() {
   const [loading, setLoading] = useState(true);
   const filter = (searchParams.get('status') ?? 'active') as "all" | "active" | "inactive";
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const q = searchParams.get('q') ?? '';
+  const [inputSearch, setInputSearch] = useState(q);
 
   function setFilter(value: "all" | "active" | "inactive") {
     setSearchParams(prev => {
@@ -44,6 +46,26 @@ export function DriverList() {
       return next;
     }, { replace: true });
   }
+
+  useEffect(() => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (inputSearch) next.set('q', inputSearch); else next.delete('q');
+      return next;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputSearch]);
+
+  const filteredDrivers = drivers.filter(d => {
+    if (!q) return true;
+    const needle = q.toLowerCase();
+    return (
+      d.full_name.toLowerCase().includes(needle) ||
+      (d.phone ?? '').toLowerCase().includes(needle) ||
+      (d.whatsapp ?? '').toLowerCase().includes(needle) ||
+      (d.identification_number ?? '').toLowerCase().includes(needle)
+    );
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -68,11 +90,25 @@ export function DriverList() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-brand-800">Conductores</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{drivers.length} conductor{drivers.length !== 1 ? "es" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {q ? `${filteredDrivers.length} de ${drivers.length}` : drivers.length} conductor{drivers.length !== 1 ? "es" : ""}
+          </p>
         </div>
         <Button onClick={() => navigate("/conductores/nuevo")} className="flex items-center gap-2 w-fit">
           <Plus size={16} /> Nuevo conductor
         </Button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={inputSearch}
+          onChange={(e) => setInputSearch(e.target.value)}
+          placeholder="Buscar por nombre, teléfono o cédula..."
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
       </div>
 
       {/* Filter tabs */}
@@ -97,6 +133,11 @@ export function DriverList() {
           <Truck size={40} className="mx-auto mb-3 text-brand-200" />
           <p>No hay conductores.</p>
         </div>
+      ) : filteredDrivers.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <Search size={40} className="mx-auto mb-3 text-brand-200" />
+          <p>Ningún conductor coincide con la búsqueda.</p>
+        </div>
       ) : (
         <div className="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -113,7 +154,7 @@ export function DriverList() {
                 </tr>
               </thead>
               <tbody>
-                {drivers.map((d) => {
+                {filteredDrivers.map((d) => {
                   const expiredSoon = licenseExpiredSoon(d.license_expiration_date);
                   return (
                     <tr key={d.id} className="border-b border-gray-50 hover:bg-brand-50/30 transition-colors">

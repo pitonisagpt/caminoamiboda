@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Download, FileText, Loader2, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Download, FileText, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
 import type { QuoteListItem, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL } from '../../types/quote';
@@ -41,11 +41,32 @@ export default function QuoteList() {
   const [generatingPdf, setGeneratingPdf] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [waLoading, setWaLoading] = useState<number | null>(null);
+  const searchQuery = searchParams.get('q') ?? '';
+  const [inputSearch, setInputSearch] = useState(searchQuery);
 
   const load = (status?: QuoteStatus) =>
     quotesApi.list(status).then(r => setQuotes(r.data)).finally(() => setLoading(false));
 
   useEffect(() => { load(statusFilter === 'all' ? undefined : statusFilter); }, [statusFilter]);
+
+  useEffect(() => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (inputSearch) next.set('q', inputSearch); else next.delete('q');
+      return next;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputSearch]);
+
+  const filteredQuotes = quotes.filter(item => {
+    if (!searchQuery) return true;
+    const needle = searchQuery.toLowerCase();
+    return (
+      item.display_customer.toLowerCase().includes(needle) ||
+      item.display_vehicle.toLowerCase().includes(needle) ||
+      item.quote_number.toLowerCase().includes(needle)
+    );
+  });
 
   const handleGeneratePdf = async (q: QuoteListItem) => {
     setGeneratingPdf(q.id);
@@ -97,7 +118,9 @@ export default function QuoteList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Cotizaciones</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{quotes.length} cotización{quotes.length !== 1 ? 'es' : ''}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {searchQuery ? `${filteredQuotes.length} de ${quotes.length}` : quotes.length} cotización{quotes.length !== 1 ? 'es' : ''}
+          </p>
         </div>
         <button
           onClick={() => navigate('/cotizaciones/nuevo')}
@@ -105,6 +128,18 @@ export default function QuoteList() {
         >
           <Plus size={16} /> Nueva cotización
         </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={inputSearch}
+          onChange={(e) => setInputSearch(e.target.value)}
+          placeholder="Buscar por cliente, vehículo o número..."
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
       </div>
 
       {/* Status filter */}
@@ -137,7 +172,14 @@ export default function QuoteList() {
         </div>
       )}
 
-      {!loading && quotes.length > 0 && (
+      {!loading && quotes.length > 0 && filteredQuotes.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <Search size={40} className="mx-auto mb-3 opacity-30" />
+          <p>Ninguna cotización coincide con la búsqueda.</p>
+        </div>
+      )}
+
+      {!loading && filteredQuotes.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -152,7 +194,7 @@ export default function QuoteList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {quotes.map(q => (
+              {filteredQuotes.map(q => (
                 <tr key={q.id} className="hover:bg-brand-50/40 transition-colors cursor-pointer" onClick={() => navigate(`/cotizaciones/${q.id}`)}>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{q.quote_number}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{q.display_customer}</td>
