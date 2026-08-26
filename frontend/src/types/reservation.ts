@@ -48,6 +48,21 @@ export const EVENT_CATEGORY_COLOR: Record<EventCategory, string> = {
   publicidad: 'bg-purple-100 text-purple-700',
 };
 
+export interface VehicleBrief {
+  id: number;
+  display_name: string;
+  license_plate: string | null;
+  is_company_owned: boolean;
+  owner_name: string | null;
+  owner_whatsapp: string | null;
+  owner_whatsapp_username: string | null;
+  photo_url: string | null;
+  driver_id: number | null;
+  owner_driver_id: number | null;
+  display_driver: string | null;
+  display_driver_phone: string | null;
+}
+
 export interface ReservationListItem {
   id: number;
   reservation_number: string;
@@ -73,6 +88,10 @@ export interface ReservationListItem {
   event_date_notes: string | null;
   vehicle_is_company_owned: boolean;
   vehicle_photo_url: string | null;
+  // One entry per vehicle on the reservation, each with its own driver — the
+  // singular display_vehicle/display_driver/etc. fields above stay synced to
+  // the primary (first) one for anything not yet updated to use this.
+  vehicles: VehicleBrief[];
   timeline_id: number | null;
   created_at: string;
 }
@@ -115,8 +134,8 @@ export interface ReservationFormData {
   customer_id: string;
   contact_id: string;
   quote_id: string;
-  vehicle_id: string;
-  driver_combined: string;
+  // Vehicle+driver assignments live in separate component state
+  // (vehicleAssignments), not here — a reservation can have several.
   event_date: string;
   total_amount: string;
   deposit_paid: string;

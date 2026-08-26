@@ -152,30 +152,62 @@ export default function InfoTab({
             )}
           </div>
         </div>
-        {reservation.display_vehicle !== '—' && (
-          <div className="flex items-center gap-2 text-sm">
-            {reservation.vehicle_photo_url ? (
-              <VehiclePhotoTooltip
-                photoUrl={reservation.vehicle_photo_url}
-                className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
-                vehicleName={reservation.display_vehicle}
-                licensePlate={reservation.vehicle_license_plate}
-                driverName={reservation.display_driver !== '—' ? reservation.display_driver : null}
-                driverPhone={reservation.display_driver_phone}
-                ownerName={reservation.owner_name}
-                ownerPhone={reservation.owner_whatsapp}
-              />
-            ) : (
-              <Car size={16} className="text-brand-400 shrink-0" />
+        {reservation.vehicles.length > 0 ? (
+          reservation.vehicles.map(v => (
+            <div key={v.id} className="space-y-1">
+              <div className="flex items-center gap-2 text-sm">
+                {v.photo_url ? (
+                  <VehiclePhotoTooltip
+                    photoUrl={v.photo_url}
+                    className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                    vehicleName={v.display_name}
+                    licensePlate={v.license_plate}
+                    driverName={v.display_driver}
+                    driverPhone={v.display_driver_phone}
+                    ownerName={v.owner_name}
+                    ownerPhone={v.owner_whatsapp}
+                  />
+                ) : (
+                  <Car size={16} className="text-brand-400 shrink-0" />
+                )}
+                <span className="text-gray-700">{v.display_name}</span>
+              </div>
+              {v.display_driver && (
+                <div className="flex items-center gap-2 text-sm pl-8">
+                  <User size={14} className="text-brand-400 shrink-0" />
+                  <span className="text-gray-700">{v.display_driver}</span>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <>
+            {reservation.display_vehicle !== '—' && (
+              <div className="flex items-center gap-2 text-sm">
+                {reservation.vehicle_photo_url ? (
+                  <VehiclePhotoTooltip
+                    photoUrl={reservation.vehicle_photo_url}
+                    className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                    vehicleName={reservation.display_vehicle}
+                    licensePlate={reservation.vehicle_license_plate}
+                    driverName={reservation.display_driver !== '—' ? reservation.display_driver : null}
+                    driverPhone={reservation.display_driver_phone}
+                    ownerName={reservation.owner_name}
+                    ownerPhone={reservation.owner_whatsapp}
+                  />
+                ) : (
+                  <Car size={16} className="text-brand-400 shrink-0" />
+                )}
+                <span className="text-gray-700">{reservation.display_vehicle}</span>
+              </div>
             )}
-            <span className="text-gray-700">{reservation.display_vehicle}</span>
-          </div>
-        )}
-        {reservation.display_driver !== '—' && (
-          <div className="flex items-center gap-2 text-sm">
-            <User size={16} className="text-brand-400 shrink-0" />
-            <span className="text-gray-700">{reservation.display_driver}</span>
-          </div>
+            {reservation.display_driver !== '—' && (
+              <div className="flex items-center gap-2 text-sm">
+                <User size={16} className="text-brand-400 shrink-0" />
+                <span className="text-gray-700">{reservation.display_driver}</span>
+              </div>
+            )}
+          </>
         )}
         {reservation.display_contact && (
           <div className="flex items-center gap-2 text-sm">

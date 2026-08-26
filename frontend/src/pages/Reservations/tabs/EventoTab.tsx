@@ -764,37 +764,71 @@ export default function EventoTab({
               )}
             </div>
           )}
-          {timeline.assigned_vehicle && (
-            <div className="flex items-center gap-2 text-gray-700">
-              {reservation.vehicle_photo_url ? (
-                <VehiclePhotoTooltip
-                  photoUrl={reservation.vehicle_photo_url}
-                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
-                  vehicleName={timeline.assigned_vehicle}
-                  licensePlate={reservation.vehicle_license_plate}
-                  driverName={timeline.assigned_driver}
-                  driverPhone={timeline.assigned_driver_phone}
-                  ownerName={reservation.owner_name}
-                  ownerPhone={reservation.owner_whatsapp}
-                />
-              ) : (
-                <Car className="w-4 h-4 text-gray-400 shrink-0" />
-              )}
-              <span>{timeline.assigned_vehicle}</span>
-            </div>
-          )}
-          {timeline.assigned_driver && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-gray-700">
-                <User className="w-4 h-4 text-gray-400 shrink-0" />
-                <span>{timeline.assigned_driver} (conductor)</span>
+          {reservation.vehicles.length > 0 ? (
+            reservation.vehicles.map(v => (
+              <div key={v.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-700 min-w-0">
+                  {v.photo_url ? (
+                    <VehiclePhotoTooltip
+                      photoUrl={v.photo_url}
+                      className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                      vehicleName={v.display_name}
+                      licensePlate={v.license_plate}
+                      driverName={v.display_driver}
+                      driverPhone={v.display_driver_phone}
+                      ownerName={v.owner_name}
+                      ownerPhone={v.owner_whatsapp}
+                    />
+                  ) : (
+                    <Car className="w-4 h-4 text-gray-400 shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {v.display_name}
+                    {v.display_driver && <span className="text-gray-400"> · {v.display_driver}</span>}
+                  </span>
+                </div>
+                {v.display_driver_phone && (
+                  <a href={`https://wa.me/${v.display_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="shrink-0">
+                    <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
+                  </a>
+                )}
               </div>
-              {timeline.assigned_driver_phone && (
-                <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
-                  <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
-                </a>
+            ))
+          ) : (
+            <>
+              {timeline.assigned_vehicle && (
+                <div className="flex items-center gap-2 text-gray-700">
+                  {reservation.vehicle_photo_url ? (
+                    <VehiclePhotoTooltip
+                      photoUrl={reservation.vehicle_photo_url}
+                      className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+                      vehicleName={timeline.assigned_vehicle}
+                      licensePlate={reservation.vehicle_license_plate}
+                      driverName={timeline.assigned_driver}
+                      driverPhone={timeline.assigned_driver_phone}
+                      ownerName={reservation.owner_name}
+                      ownerPhone={reservation.owner_whatsapp}
+                    />
+                  ) : (
+                    <Car className="w-4 h-4 text-gray-400 shrink-0" />
+                  )}
+                  <span>{timeline.assigned_vehicle}</span>
+                </div>
               )}
-            </div>
+              {timeline.assigned_driver && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <User className="w-4 h-4 text-gray-400 shrink-0" />
+                    <span>{timeline.assigned_driver} (conductor)</span>
+                  </div>
+                  {timeline.assigned_driver_phone && (
+                    <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
+                      <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
+                    </a>
+                  )}
+                </div>
+              )}
+            </>
           )}
           {reservation.display_contact && (
             <div className="flex items-center justify-between">

@@ -313,7 +313,23 @@ export default function CalendarPage() {
                       className="flex items-start gap-2.5 p-2.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ background: e.color }} />
-                      {e.vehicle_photo_url && (
+                      {e.vehicles && e.vehicles.length > 0 ? (
+                        <div className="flex -space-x-1.5 shrink-0">
+                          {e.vehicles.map(v => v.photo_url && (
+                            <VehiclePhotoTooltip
+                              key={v.id}
+                              photoUrl={v.photo_url}
+                              className="w-5 h-5 rounded-full object-cover border border-white shrink-0"
+                              vehicleName={v.display_name}
+                              licensePlate={v.license_plate}
+                              driverName={v.display_driver}
+                              driverPhone={v.display_driver_phone}
+                              ownerName={v.owner_name}
+                              ownerPhone={v.owner_whatsapp}
+                            />
+                          ))}
+                        </div>
+                      ) : e.vehicle_photo_url && (
                         <VehiclePhotoTooltip
                           photoUrl={e.vehicle_photo_url}
                           className="w-5 h-5 rounded-full object-cover shrink-0 border border-gray-200"

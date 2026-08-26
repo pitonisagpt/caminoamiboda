@@ -504,21 +504,30 @@ export default function ReservationList() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      {r.vehicle_photo_url ? (
-                        <VehiclePhotoTooltip
-                          photoUrl={r.vehicle_photo_url}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
-                          vehicleName={r.display_vehicle}
-                          licensePlate={r.vehicle_license_plate}
-                          driverName={r.display_driver !== '—' ? r.display_driver : null}
-                          driverPhone={r.display_driver_phone}
-                          ownerName={r.owner_name}
-                          ownerPhone={r.owner_whatsapp}
-                        />
+                      {r.vehicles.length > 0 ? (
+                        <div className="flex -space-x-2 flex-shrink-0">
+                          {r.vehicles.map(v => v.photo_url ? (
+                            <VehiclePhotoTooltip
+                              key={v.id}
+                              photoUrl={v.photo_url}
+                              className="w-10 h-10 rounded-lg object-cover border-2 border-white shadow-sm"
+                              vehicleName={v.display_name}
+                              licensePlate={v.license_plate}
+                              driverName={v.display_driver}
+                              driverPhone={v.display_driver_phone}
+                              ownerName={v.owner_name}
+                              ownerPhone={v.owner_whatsapp}
+                            />
+                          ) : (
+                            <div key={v.id} className="w-10 h-10 rounded-lg bg-gray-100 border-2 border-white" />
+                          ))}
+                        </div>
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
                       )}
-                      <span className="text-gray-500 text-sm truncate max-w-[120px]">{r.display_vehicle}</span>
+                      <span className="text-gray-500 text-sm truncate max-w-[120px]">
+                        {r.vehicles.length > 1 ? r.vehicles.map(v => v.display_name).join(' + ') : r.display_vehicle}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">

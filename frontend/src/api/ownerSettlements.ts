@@ -17,6 +17,9 @@ export interface OwnerSettlement {
   pdf_path: string | null;
   created_at: string;
   updated_at: string;
+  // True when owner_amount came from owner_amount_override at creation
+  // rather than being derived from owner_percentage.
+  is_manual_amount: boolean;
   display_reservation: string | null;
   display_vehicle: string | null;
   display_owner: string | null;

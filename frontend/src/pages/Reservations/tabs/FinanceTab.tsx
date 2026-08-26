@@ -10,6 +10,7 @@ import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment 
 import { serviceOrdersApi } from '../../../api/serviceOrders';
 import type { ServiceOrder } from '../../../types/serviceOrder';
 import { useAuth } from '../../../context/AuthContext';
+import SettlementCard from './SettlementCard';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: 'Borrador',
@@ -164,23 +165,16 @@ export default function FinanceTab({
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [settlement, setSettlement] = useState<OwnerSettlement | null | 'loading'>('loading');
+  // A reservation can have several vehicles, each settled separately.
+  const [settlements, setSettlements] = useState<OwnerSettlement[] | 'loading'>('loading');
+  const [settlementPaymentsMap, setSettlementPaymentsMap] = useState<Record<number, OwnerSettlementPayment[]>>({});
   const [creating, setCreating] = useState(false);
-  const [showSettlementAdjust, setShowSettlementAdjust] = useState(false);
   const [ownerAmountOverride, setOwnerAmountOverride] = useState('');
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [newSettlementVehicleId, setNewSettlementVehicleId] = useState('');
 
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder | null | 'loading'>('loading');
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [orderPdfLoading, setOrderPdfLoading] = useState(false);
-
-  const [settlementPayments, setSettlementPayments] = useState<OwnerSettlementPayment[]>([]);
-  const [addingSettlementPayment, setAddingSettlementPayment] = useState(false);
-  const [newSpAmount, setNewSpAmount] = useState('');
-  const [newSpDate, setNewSpDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
-  const [newSpNotes, setNewSpNotes] = useState('');
-  const [savingSp, setSavingSp] = useState(false);
-  const [deletingSpId, setDeletingSpId] = useState<number | null>(null);
 
   // "Depósitos" is cash-only — a retención en la fuente is never money that
   // reached the company, so it must never be counted as if it were a cash
@@ -234,18 +228,18 @@ export default function FinanceTab({
   };
 
   useEffect(() => {
-    if (!isAdmin) { setSettlement(null); return; }
+    if (!isAdmin) { setSettlements([]); return; }
     ownerSettlementsApi.list()
       .then(r => {
-        const found = r.data.find(s => s.reservation_id === reservation.id) ?? null;
-        setSettlement(found);
-        if (found) {
-          ownerSettlementsApi.listPayments(found.id)
-            .then(pr => setSettlementPayments(pr.data))
+        const found = r.data.filter(s => s.reservation_id === reservation.id);
+        setSettlements(found);
+        found.forEach(s => {
+          ownerSettlementsApi.listPayments(s.id)
+            .then(pr => setSettlementPaymentsMap(prev => ({ ...prev, [s.id]: pr.data })))
             .catch(() => {});
-        }
+        });
       })
-      .catch(() => setSettlement(null));
+      .catch(() => setSettlements([]));
   }, [reservation.id, isAdmin]);
 
   useEffect(() => {
@@ -323,87 +317,71 @@ export default function FinanceTab({
     }
   };
 
-  const handleCreateSettlement = async () => {
+  const handleCreateSettlement = async (vehicleId?: number) => {
     setCreating(true);
     try {
       const res = await ownerSettlementsApi.create({
         reservation_id: reservation.id,
-        vehicle_id: reservation.vehicle_id ?? undefined,
+        vehicle_id: vehicleId ?? reservation.vehicle_id ?? undefined,
         owner_percentage: 70,
         ...(ownerAmountOverride ? { owner_amount_override: Number(ownerAmountOverride) } : {}),
       });
-      setSettlement(res.data);
-      setSettlementPayments([]);
-      setShowSettlementAdjust(false);
+      setSettlements(prev => prev === 'loading' ? [res.data] : [...prev, res.data]);
+      setSettlementPaymentsMap(prev => ({ ...prev, [res.data.id]: [] }));
       setOwnerAmountOverride('');
+      setNewSettlementVehicleId('');
     } finally {
       setCreating(false);
     }
   };
 
-  const handleAddSettlementPayment = async () => {
-    if (!settlement || settlement === 'loading' || !newSpAmount || Number(newSpAmount) <= 0) return;
-    setSavingSp(true);
-    try {
-      await ownerSettlementsApi.addPayment(settlement.id, {
-        amount: Number(newSpAmount),
-        paid_at: newSpDate,
-        notes: newSpNotes || undefined,
-      });
-      const [paymentsRes, settlementRes] = await Promise.all([
-        ownerSettlementsApi.listPayments(settlement.id),
-        ownerSettlementsApi.get(settlement.id),
-      ]);
-      setSettlementPayments(paymentsRes.data);
-      setSettlement(settlementRes.data);
-      setNewSpAmount('');
-      setNewSpNotes('');
-      setAddingSettlementPayment(false);
-    } finally {
-      setSavingSp(false);
-    }
+  const handleAddSettlementPayment = async (settlementId: number, amount: number, paidAt: string, notes: string) => {
+    await ownerSettlementsApi.addPayment(settlementId, { amount, paid_at: paidAt, notes: notes || undefined });
+    const [paymentsRes, settlementRes] = await Promise.all([
+      ownerSettlementsApi.listPayments(settlementId),
+      ownerSettlementsApi.get(settlementId),
+    ]);
+    setSettlementPaymentsMap(prev => ({ ...prev, [settlementId]: paymentsRes.data }));
+    setSettlements(prev => prev === 'loading' ? prev : prev.map(s => s.id === settlementId ? settlementRes.data : s));
   };
 
-  const handleDeleteSettlementPayment = async (paymentId: number) => {
-    if (!settlement || settlement === 'loading') return;
-    setDeletingSpId(paymentId);
-    try {
-      await ownerSettlementsApi.deletePayment(settlement.id, paymentId);
-      const [paymentsRes, settlementRes] = await Promise.all([
-        ownerSettlementsApi.listPayments(settlement.id),
-        ownerSettlementsApi.get(settlement.id),
-      ]);
-      setSettlementPayments(paymentsRes.data);
-      setSettlement(settlementRes.data);
-    } finally {
-      setDeletingSpId(null);
-    }
+  const handleDeleteSettlementPayment = async (settlementId: number, paymentId: number) => {
+    await ownerSettlementsApi.deletePayment(settlementId, paymentId);
+    const [paymentsRes, settlementRes] = await Promise.all([
+      ownerSettlementsApi.listPayments(settlementId),
+      ownerSettlementsApi.get(settlementId),
+    ]);
+    setSettlementPaymentsMap(prev => ({ ...prev, [settlementId]: paymentsRes.data }));
+    setSettlements(prev => prev === 'loading' ? prev : prev.map(s => s.id === settlementId ? settlementRes.data : s));
   };
 
-  const handleGeneratePdf = async () => {
-    if (!settlement || settlement === 'loading') return;
-    setPdfLoading(true);
-    try {
-      const updated = await ownerSettlementsApi.generatePdf(settlement.id);
-      setSettlement(updated.data);
-      await ownerSettlementsApi.downloadPdf(settlement.id, settlement.settlement_number);
-    } finally {
-      setPdfLoading(false);
-    }
+  const handleGeneratePdf = async (settlementId: number) => {
+    const updated = await ownerSettlementsApi.generatePdf(settlementId);
+    setSettlements(prev => prev === 'loading' ? prev : prev.map(s => s.id === settlementId ? updated.data : s));
+    await ownerSettlementsApi.downloadPdf(settlementId, updated.data.settlement_number);
   };
 
-  const handleDownloadPdf = async () => {
-    if (!settlement || settlement === 'loading') return;
-    setPdfLoading(true);
-    try {
-      await ownerSettlementsApi.downloadPdf(settlement.id, settlement.settlement_number);
-    } finally {
-      setPdfLoading(false);
-    }
+  const handleDownloadPdf = async (settlementId: number, settlementNumber: string) => {
+    await ownerSettlementsApi.downloadPdf(settlementId, settlementNumber);
   };
 
   const companyPct = reservation.vehicle_is_company_owned ? 1 : 0.3;
   const ownerPct   = reservation.vehicle_is_company_owned ? 0 : 0.7;
+
+  // The WhatsApp message below and the "reservation-level" vehicle_is_company_owned
+  // check above are scoped to the primary vehicle/owner (reservation.owner_name) —
+  // matches this section's out-of-scope status for multi-vehicle (see the settlement
+  // cards below for the per-vehicle breakdown instead).
+  const hasVehicles = reservation.vehicles.length > 0;
+  const unsettledVehicles = hasVehicles
+    ? reservation.vehicles.filter(v => settlements === 'loading' || !settlements.some(s => s.vehicle_id === v.id))
+    : [];
+  const unsettledCompanyOwned = unsettledVehicles.filter(v => v.is_company_owned);
+  const unsettledPayable = unsettledVehicles.filter(v => !v.is_company_owned);
+  const selectedNewVehicleId = newSettlementVehicleId || String(unsettledPayable[0]?.id ?? '');
+
+  const primarySettlement = settlements === 'loading' ? null : (settlements.find(s => s.vehicle_id === reservation.vehicle_id) ?? settlements[0] ?? null);
+  const primarySettlementPayments = primarySettlement ? (settlementPaymentsMap[primarySettlement.id] ?? []) : [];
 
   return (
     <div className="space-y-4">
@@ -763,7 +741,7 @@ export default function FinanceTab({
               <a
                 href={buildWaUrl(
                   reservation.owner_whatsapp,
-                  buildOwnerMsg(reservation, settlement === 'loading' ? null : settlement, settlementPayments, reservation.owner_name.split(' ')[0], retentionTotal)
+                  buildOwnerMsg(reservation, primarySettlement, primarySettlementPayments, reservation.owner_name.split(' ')[0], retentionTotal)
                 )}
                 target="_blank"
                 rel="noreferrer"
@@ -833,12 +811,14 @@ export default function FinanceTab({
         </div>
       )}
 
-      {/* Owner Settlement — admin only */}
+      {/* Owner Settlement — admin only. A reservation can have several
+          vehicles, so this can render several settlement cards — one per
+          vehicle that isn't company-owned. */}
       {isAdmin && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Liquidación de propietario</h2>
 
-          {reservation.vehicle_is_company_owned ? (
+          {!hasVehicles && reservation.vehicle_is_company_owned ? (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               <p className="text-sm font-semibold text-green-800">Vehículo propiedad de Camino a mi Boda</p>
               <p className="text-sm text-green-700 mt-0.5">
@@ -847,246 +827,95 @@ export default function FinanceTab({
             </div>
           ) : (
             <>
-          {settlement === 'loading' && (
+          {settlements === 'loading' && (
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <Loader2 size={14} className="animate-spin" /> Cargando...
             </div>
           )}
 
-          {settlement === null && retentionTotal === 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500">No se ha generado una liquidación para esta reserva.</p>
-              <button
-                onClick={handleCreateSettlement}
-                disabled={creating}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-              >
-                {creating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-                Generar Liquidación
-              </button>
+          {settlements !== 'loading' && unsettledCompanyOwned.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <p className="text-sm font-semibold text-green-800">
+                {unsettledCompanyOwned.length > 1 ? 'Vehículos propiedad de Camino a mi Boda' : 'Vehículo propiedad de Camino a mi Boda'}
+              </p>
+              <p className="text-sm text-green-700 mt-0.5">
+                {unsettledCompanyOwned.map(v => v.display_name).join(', ')} — el 100% de su ingreso queda en la empresa. No se genera liquidación de propietario.
+              </p>
             </div>
           )}
 
-          {settlement === null && retentionTotal > 0 && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-500">No se ha generado una liquidación para esta reserva.</p>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-sm text-amber-800">
-                Esta reserva tiene <strong>{formatCOP(retentionTotal)}</strong> retenido en la fuente — esa
-                plata nunca llegó como efectivo. Decide si el propietario recibe su parte sobre ese monto o no.
-              </div>
-              {!showSettlementAdjust ? (
-                <button
-                  onClick={() => {
-                    setOwnerAmountOverride(String(Math.round(Number(reservation.total_amount) * 0.7)));
-                    setShowSettlementAdjust(true);
-                  }}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer"
-                >
-                  <FileText size={14} /> Generar Liquidación
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600">Monto para el propietario (COP)</label>
+          {settlements !== 'loading' && unsettledPayable.length > 0 && (
+            <div className="space-y-2">
+              {settlements.length === 0 && unsettledCompanyOwned.length === 0 && (
+                <p className="text-sm text-gray-500">No se ha generado una liquidación para esta reserva.</p>
+              )}
+              {retentionTotal > 0 && (
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-sm text-amber-800">
+                  Esta reserva tiene <strong>{formatCOP(retentionTotal)}</strong> retenido en la fuente — esa
+                  plata nunca llegó como efectivo. Decide si el propietario recibe su parte sobre ese monto o no
+                  usando el monto manual de abajo.
+                </div>
+              )}
+              <div className="border border-gray-100 rounded-xl p-3 space-y-2">
+                {unsettledPayable.length > 1 && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Vehículo</label>
+                    <select
+                      value={selectedNewVehicleId}
+                      onChange={e => setNewSettlementVehicleId(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    >
+                      {unsettledPayable.map(v => (
+                        <option key={v.id} value={String(v.id)}>
+                          {v.display_name}{v.license_plate ? ` (${v.license_plate})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Monto manual para el propietario (COP, opcional)</label>
                   <input
                     type="number"
                     min="0"
                     step="1000"
                     value={ownerAmountOverride}
                     onChange={e => setOwnerAmountOverride(e.target.value)}
+                    placeholder={`Por defecto: 70% = ${formatCOP(Number(reservation.total_amount) * 0.7)}`}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
-                  <p className="text-xs text-gray-400">
-                    Precargado con el 70% del total ({formatCOP(Number(reservation.total_amount) * 0.7)}). Bájalo a{' '}
-                    {formatCOP(Number(reservation.total_amount) * 0.7 - retentionTotal * 0.7)} si no le vas a pagar
-                    su parte de lo retenido, o déjalo así si sí se la vas a pagar.
-                  </p>
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      type="button"
-                      onClick={() => { setShowSettlementAdjust(false); setOwnerAmountOverride(''); }}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCreateSettlement}
-                      disabled={creating || !ownerAmountOverride}
-                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                    >
-                      {creating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-                      Generar Liquidación
-                    </button>
-                  </div>
                 </div>
-              )}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleCreateSettlement(selectedNewVehicleId ? Number(selectedNewVehicleId) : undefined)}
+                    disabled={creating}
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    {creating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                    Generar Liquidación
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
-          {settlement && settlement !== 'loading' && (() => {
-            const spPaid = settlementPayments.reduce((s, p) => s + Number(p.amount), 0);
-            const spRemaining = Math.max(0, Number(settlement.owner_amount) - spPaid);
-            const spPct = settlement.owner_amount > 0
-              ? Math.round((spPaid / Number(settlement.owner_amount)) * 100)
-              : 0;
-            return (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500 font-mono">{settlement.settlement_number}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    settlement.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {settlement.status === 'paid' ? 'Pagada' : 'Pendiente'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-purple-50 rounded-xl p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-0.5">Propietario ({settlement.owner_percentage}%)</p>
-                    <p className="text-base font-bold text-purple-700">{formatCOP(settlement.owner_amount)}</p>
-                  </div>
-                  <div className="bg-brand-50 rounded-xl p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-0.5">Empresa ({100 - settlement.owner_percentage}%)</p>
-                    <p className="text-base font-bold text-brand-600">{formatCOP(settlement.company_amount)}</p>
-                  </div>
-                </div>
-
-                {/* Abonos al propietario */}
-                <div className="border-t border-gray-100 pt-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Abonos al propietario</p>
-                    {!addingSettlementPayment && (
-                      <button
-                        onClick={() => setAddingSettlementPayment(true)}
-                        className="flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-700 cursor-pointer"
-                      >
-                        <Plus size={12} /> Agregar abono
-                      </button>
-                    )}
-                  </div>
-
-                  {settlementPayments.length === 0 && !addingSettlementPayment ? (
-                    <p className="text-xs text-gray-400">Sin abonos registrados.</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {settlementPayments.map(p => (
-                        <div key={p.id} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(p.amount))}</p>
-                            <p className="text-xs text-gray-400">{formatDate(p.paid_at)}{p.notes ? ` · ${p.notes}` : ''}</p>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteSettlementPayment(p.id)}
-                            disabled={deletingSpId === p.id}
-                            className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
-                          >
-                            {deletingSpId === p.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {addingSettlementPayment && (
-                    <div className="border border-purple-100 rounded-xl p-3 space-y-2 bg-purple-50/30">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Monto (COP) *</label>
-                          <input
-                            type="number"
-                            min="1"
-                            step="1000"
-                            value={newSpAmount}
-                            onChange={e => setNewSpAmount(e.target.value)}
-                            placeholder="0"
-                            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                            autoFocus
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Fecha *</label>
-                          <input
-                            type="date"
-                            value={newSpDate}
-                            onChange={e => setNewSpDate(e.target.value)}
-                            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
-                        <input
-                          type="text"
-                          value={newSpNotes}
-                          onChange={e => setNewSpNotes(e.target.value)}
-                          placeholder="Ej: transferencia, efectivo…"
-                          className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                        />
-                      </div>
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => { setAddingSettlementPayment(false); setNewSpAmount(''); setNewSpNotes(''); }}
-                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleAddSettlementPayment}
-                          disabled={savingSp || !newSpAmount}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
-                        >
-                          {savingSp ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-                          Guardar
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Progress bar */}
-                  {settlement.owner_amount > 0 && (
-                    <div className="pt-1">
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>{formatCOP(spPaid)} pagado</span>
-                        <span>{spPct}%</span>
-                      </div>
-                      <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-purple-400 rounded-full transition-all"
-                          style={{ width: `${Math.min(spPct, 100)}%` }}
-                        />
-                      </div>
-                      {spRemaining > 0 && (
-                        <p className="text-xs text-gray-400 mt-1">Saldo pendiente: <span className="font-semibold text-gray-700">{formatCOP(spRemaining)}</span></p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={handleGeneratePdf}
-                    disabled={pdfLoading}
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                  >
-                    {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
-                    {settlement.pdf_path ? 'Regenerar PDF' : 'Generar PDF'}
-                  </button>
-                  {settlement.pdf_path && (
-                    <button
-                      onClick={handleDownloadPdf}
-                      disabled={pdfLoading}
-                      className="flex items-center gap-2 border border-purple-200 text-purple-700 hover:bg-purple-50 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                    >
-                      {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                      Descargar PDF
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+          {settlements !== 'loading' && settlements.length > 0 && (
+            <div className="space-y-3">
+              {settlements.map(s => (
+                <SettlementCard
+                  key={s.id}
+                  settlement={s}
+                  vehicleLabel={reservation.vehicles.length > 1 ? reservation.vehicles.find(v => v.id === s.vehicle_id)?.display_name : null}
+                  payments={settlementPaymentsMap[s.id] ?? []}
+                  onAddPayment={(amount, paidAt, notes) => handleAddSettlementPayment(s.id, amount, paidAt, notes)}
+                  onDeletePayment={(paymentId) => handleDeleteSettlementPayment(s.id, paymentId)}
+                  onGeneratePdf={() => handleGeneratePdf(s.id)}
+                  onDownloadPdf={() => handleDownloadPdf(s.id, s.settlement_number)}
+                />
+              ))}
+            </div>
+          )}
             </>
           )}
         </div>

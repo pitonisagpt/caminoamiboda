@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useWatch, Controller } from 'react-hook-form';
-import { AlertTriangle, ArrowLeft, Save, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Plus, Save, X } from 'lucide-react';
 import Combobox from '../../components/ui/Combobox';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
@@ -23,6 +23,22 @@ import { useAuth } from '../../context/AuthContext';
 const CANCELLATION_REASONS = ['Consiguió otro carro', 'No contestó', 'Muy caro', 'Cambio de fecha'];
 const OTHER_REASON = 'Otro';
 
+// A reservation can have several vehicles, each with its own optional
+// driver — lives in its own component state rather than react-hook-form,
+// since it's a variable-length list. `driver_combined` follows the same
+// 'driver:<id>' / 'owner:<id>' convention as the old single-driver field.
+interface VehicleAssignment {
+  vehicle_id: string;
+  driver_combined: string;
+}
+const EMPTY_ASSIGNMENT: VehicleAssignment = { vehicle_id: '', driver_combined: '' };
+
+function parseDriverCombined(val: string): { driver_id: number | null; owner_driver_id: number | null } {
+  if (val.startsWith('owner:')) return { driver_id: null, owner_driver_id: parseInt(val.split(':')[1]) };
+  if (val.startsWith('driver:')) return { driver_id: parseInt(val.split(':')[1]), owner_driver_id: null };
+  return { driver_id: null, owner_driver_id: null };
+}
+
 export default function ReservationForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -35,11 +51,18 @@ export default function ReservationForm() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [owners, setOwners] = useState<VehicleOwnerBasic[]>([]);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
+  const [vehicleAssignments, setVehicleAssignments] = useState<VehicleAssignment[]>([{ ...EMPTY_ASSIGNMENT }]);
   const [customerQuickCreate, setCustomerQuickCreate] = useState<{ open: boolean; name: string; editing: Customer | null }>({ open: false, name: '', editing: null });
-  const [vehicleQuickCreate, setVehicleQuickCreate] = useState<{ open: boolean; name: string; editing: VehicleListItem | null }>({ open: false, name: '', editing: null });
-  const [driverQuickCreate, setDriverQuickCreate] = useState<{ open: boolean; name: string; editing: Driver | null }>({ open: false, name: '', editing: null });
+  const [vehicleQuickCreate, setVehicleQuickCreate] = useState<{ open: boolean; name: string; editing: VehicleListItem | null; targetIndex: number }>({ open: false, name: '', editing: null, targetIndex: 0 });
+  const [driverQuickCreate, setDriverQuickCreate] = useState<{ open: boolean; name: string; editing: Driver | null; targetIndex: number }>({ open: false, name: '', editing: null, targetIndex: 0 });
   const [contactQuickCreate, setContactQuickCreate] = useState<{ open: boolean; name: string; editing: Contact | null }>({ open: false, name: '', editing: null });
   const [reasonPreset, setReasonPreset] = useState('');
+
+  const updateVehicleAssignment = (index: number, patch: Partial<VehicleAssignment>) =>
+    setVehicleAssignments(prev => prev.map((va, i) => i === index ? { ...va, ...patch } : va));
+  const addVehicleAssignment = () => setVehicleAssignments(prev => [...prev, { ...EMPTY_ASSIGNMENT }]);
+  const removeVehicleAssignment = (index: number) =>
+    setVehicleAssignments(prev => prev.filter((_, i) => i !== index));
 
   const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting, isDirty } } =
     useForm<ReservationFormData>({
@@ -49,7 +72,6 @@ export default function ReservationForm() {
         event_category: 'standard',
         total_amount: '0',
         deposit_paid: '0',
-        driver_combined: '',
         event_location: '',
         is_tentative: false,
         event_date_notes: '',
@@ -68,17 +90,22 @@ export default function ReservationForm() {
     if (isEdit) {
       reservationsApi.get(Number(id)).then(r => {
         const v = r.data;
-        const driverCombined = v.owner_driver_id
-          ? `owner:${v.owner_driver_id}`
-          : v.driver_id
-          ? `driver:${v.driver_id}`
-          : '';
+        setVehicleAssignments(
+          v.vehicles.length > 0
+            ? v.vehicles.map(vb => ({
+                vehicle_id: String(vb.id),
+                driver_combined: vb.owner_driver_id
+                  ? `owner:${vb.owner_driver_id}`
+                  : vb.driver_id
+                  ? `driver:${vb.driver_id}`
+                  : '',
+              }))
+            : [{ ...EMPTY_ASSIGNMENT }]
+        );
         reset({
           customer_id: v.customer_id?.toString() ?? '',
           contact_id: v.contact_id?.toString() ?? '',
           quote_id: v.quote_id?.toString() ?? '',
-          vehicle_id: v.vehicle_id?.toString() ?? '',
-          driver_combined: driverCombined,
           event_date: v.event_date,
           total_amount: v.total_amount.toString(),
           deposit_paid: v.deposit_paid.toString(),
@@ -100,8 +127,6 @@ export default function ReservationForm() {
 
   const watchedDate      = useWatch({ control, name: 'event_date' });
   const watchedTentative = useWatch({ control, name: 'is_tentative' });
-  const watchedVehicle = useWatch({ control, name: 'vehicle_id' });
-  const watchedDriverCombined = useWatch({ control, name: 'driver_combined' });
   const watchedStatus = useWatch({ control, name: 'status' });
   const watchedZone    = useWatch({ control, name: 'event_location' });
 
@@ -112,44 +137,37 @@ export default function ReservationForm() {
     v.allowed_locations?.length && !v.allowed_locations.includes(watchedZone)
   ) : [];
 
-  // Extract driver_id for conflict checking (only applies to registered drivers, not owners)
-  const watchedDriverId = watchedDriverCombined?.startsWith('driver:')
-    ? Number(watchedDriverCombined.split(':')[1])
-    : null;
-
   const checkConflicts = useCallback(async () => {
     if (!watchedDate) { setConflicts([]); return; }
+    const vehicleIds = vehicleAssignments.map(va => va.vehicle_id ? Number(va.vehicle_id) : null).filter((v): v is number => v !== null);
+    const parsed = vehicleAssignments.map(va => parseDriverCombined(va.driver_combined));
+    const driverIds = parsed.map(p => p.driver_id).filter((v): v is number => v !== null);
+    const ownerDriverIds = parsed.map(p => p.owner_driver_id).filter((v): v is number => v !== null);
     try {
       const res = await calendarApi.conflicts({
         event_date: watchedDate,
-        vehicle_id: watchedVehicle ? Number(watchedVehicle) : null,
-        driver_id: watchedDriverId,
+        vehicle_ids: vehicleIds,
+        driver_ids: driverIds,
+        owner_driver_ids: ownerDriverIds,
         exclude_reservation_id: isEdit ? Number(id) : null,
       });
       setConflicts(res.data.conflicts);
     } catch { setConflicts([]); }
-  }, [watchedDate, watchedVehicle, watchedDriverId, id, isEdit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedDate, JSON.stringify(vehicleAssignments), id, isEdit]);
 
   useEffect(() => { checkConflicts(); }, [checkConflicts]);
 
   const onSubmit = async (data: ReservationFormData) => {
-    const val = data.driver_combined || '';
-    const driverPayload: { driver_id: number | null; owner_driver_id: number | null } = {
-      driver_id: null,
-      owner_driver_id: null,
-    };
-    if (val.startsWith('owner:')) {
-      driverPayload.owner_driver_id = parseInt(val.split(':')[1]);
-    } else if (val.startsWith('driver:')) {
-      driverPayload.driver_id = parseInt(val.split(':')[1]);
-    }
+    const vehiclesPayload = vehicleAssignments
+      .filter(va => va.vehicle_id)
+      .map(va => ({ vehicle_id: Number(va.vehicle_id), ...parseDriverCombined(va.driver_combined) }));
 
     const payload = {
       customer_id: data.customer_id ? Number(data.customer_id) : null,
       contact_id: data.contact_id ? Number(data.contact_id) : null,
       quote_id: data.quote_id ? Number(data.quote_id) : null,
-      vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : null,
-      ...driverPayload,
+      vehicles: vehiclesPayload,
       event_date: data.event_date,
       total_amount: data.total_amount,
       deposit_paid: data.deposit_paid,
@@ -279,68 +297,94 @@ export default function ReservationForm() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Controller
-              name="vehicle_id"
-              control={control}
-              render={({ field }) => (
-                <Combobox
-                  label="Vehículo"
-                  options={[
-                    ...compatibleVehicles.map((v: any) => ({
+          <div>
+            <label className={labelCls}>Vehículos</label>
+            <div className="space-y-3">
+              {vehicleAssignments.map((va, idx) => {
+                // Computed against the original (unfiltered) indices — a
+                // vehicle_id.filter(Boolean) done first would collapse empty
+                // slots and misalign indices with idx.
+                const otherSelected = vehicleAssignments
+                  .filter((_, i) => i !== idx)
+                  .map(other => other.vehicle_id)
+                  .filter(Boolean);
+                const vehicleOptions = [
+                  ...compatibleVehicles
+                    .filter((v: any) => !otherSelected.includes(String(v.id)))
+                    .map((v: any) => ({
                       value: String(v.id),
                       label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
                       group: watchedZone ? 'Compatible con la zona' : undefined,
                     })),
-                    ...outOfZoneVehicles.map((v: any) => ({
+                  ...outOfZoneVehicles
+                    .filter((v: any) => !otherSelected.includes(String(v.id)))
+                    .map((v: any) => ({
                       value: String(v.id),
                       label: [v.brand, v.model_line, v.color].filter(Boolean).join(' · ') + (v.owner_name ? ` (${v.owner_name})` : ''),
                       group: 'Fuera de zona',
                     })),
-                  ]}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Buscar vehículo..."
-                  onCreateNew={isAdmin ? (name) => setVehicleQuickCreate({ open: true, name, editing: null }) : undefined}
-                  createLabel="Crear vehículo"
-                  onEdit={isAdmin && field.value ? () => {
-                    const v = vehicles.find(x => String(x.id) === field.value);
-                    if (v) setVehicleQuickCreate({ open: true, name: '', editing: v });
-                  } : undefined}
-                />
-              )}
-            />
-            <Controller
-              name="driver_combined"
-              control={control}
-              render={({ field }) => (
-                <Combobox
-                  label="Conductor"
-                  options={[
-                    ...drivers.map(d => ({
-                      value: `driver:${d.id}`,
-                      label: d.full_name,
-                      group: 'Conductores',
-                    })),
-                    ...owners.map(o => ({
-                      value: `owner:${o.id}`,
-                      label: `${o.full_name} (propietario)`,
-                      group: 'Propietarios',
-                    })),
-                  ]}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Buscar conductor..."
-                  onCreateNew={(name) => setDriverQuickCreate({ open: true, name, editing: null })}
-                  createLabel="Crear conductor"
-                  onEdit={field.value?.startsWith('driver:') ? () => {
-                    const driverId = Number(field.value.split(':')[1]);
-                    const d = drivers.find(x => x.id === driverId);
-                    if (d) setDriverQuickCreate({ open: true, name: '', editing: d });
-                  } : undefined}
-                />
-              )}
-            />
+                ];
+                return (
+                  <div key={idx} className="relative border border-gray-200 rounded-xl p-3 grid grid-cols-2 gap-4">
+                    {vehicleAssignments.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeVehicleAssignment(idx)}
+                        aria-label="Quitar vehículo"
+                        className="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                    <Combobox
+                      label={vehicleAssignments.length > 1 ? `Vehículo ${idx + 1}` : 'Vehículo'}
+                      options={vehicleOptions}
+                      value={va.vehicle_id}
+                      onChange={(val) => updateVehicleAssignment(idx, { vehicle_id: val })}
+                      placeholder="Buscar vehículo..."
+                      onCreateNew={isAdmin ? (name) => setVehicleQuickCreate({ open: true, name, editing: null, targetIndex: idx }) : undefined}
+                      createLabel="Crear vehículo"
+                      onEdit={isAdmin && va.vehicle_id ? () => {
+                        const v = vehicles.find(x => String(x.id) === va.vehicle_id);
+                        if (v) setVehicleQuickCreate({ open: true, name: '', editing: v, targetIndex: idx });
+                      } : undefined}
+                    />
+                    <Combobox
+                      label="Conductor"
+                      options={[
+                        ...drivers.map(d => ({
+                          value: `driver:${d.id}`,
+                          label: d.full_name,
+                          group: 'Conductores',
+                        })),
+                        ...owners.map(o => ({
+                          value: `owner:${o.id}`,
+                          label: `${o.full_name} (propietario)`,
+                          group: 'Propietarios',
+                        })),
+                      ]}
+                      value={va.driver_combined}
+                      onChange={(val) => updateVehicleAssignment(idx, { driver_combined: val })}
+                      placeholder="Buscar conductor..."
+                      onCreateNew={(name) => setDriverQuickCreate({ open: true, name, editing: null, targetIndex: idx })}
+                      createLabel="Crear conductor"
+                      onEdit={va.driver_combined?.startsWith('driver:') ? () => {
+                        const driverId = Number(va.driver_combined.split(':')[1]);
+                        const d = drivers.find(x => x.id === driverId);
+                        if (d) setDriverQuickCreate({ open: true, name: '', editing: d, targetIndex: idx });
+                      } : undefined}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={addVehicleAssignment}
+              className="flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-medium mt-2 cursor-pointer"
+            >
+              <Plus size={14} /> Agregar otro vehículo
+            </button>
           </div>
         </div>
 
@@ -519,15 +563,15 @@ export default function ReservationForm() {
             if (vehicleQuickCreate.editing) {
               const res = await vehiclesApi.update(vehicleQuickCreate.editing.id, payload);
               setVehicles(prev => prev.map(v => v.id === res.data.id ? res.data : v));
-              setValue('vehicle_id', String(res.data.id));
+              updateVehicleAssignment(vehicleQuickCreate.targetIndex, { vehicle_id: String(res.data.id) });
             } else {
               const res = await vehiclesApi.create(payload);
               setVehicles(prev => [...prev, res.data]);
-              setValue('vehicle_id', String(res.data.id));
+              updateVehicleAssignment(vehicleQuickCreate.targetIndex, { vehicle_id: String(res.data.id) });
             }
-            setVehicleQuickCreate({ open: false, name: '', editing: null });
+            setVehicleQuickCreate({ open: false, name: '', editing: null, targetIndex: 0 });
           }}
-          onClose={() => setVehicleQuickCreate({ open: false, name: '', editing: null })}
+          onClose={() => setVehicleQuickCreate({ open: false, name: '', editing: null, targetIndex: 0 })}
         />
       )}
 
@@ -544,15 +588,15 @@ export default function ReservationForm() {
             if (driverQuickCreate.editing) {
               const res = await driversApi.update(driverQuickCreate.editing.id, payload);
               setDrivers(prev => prev.map(d => d.id === res.data.id ? res.data : d));
-              setValue('driver_combined', `driver:${res.data.id}`);
+              updateVehicleAssignment(driverQuickCreate.targetIndex, { driver_combined: `driver:${res.data.id}` });
             } else {
               const res = await driversApi.create(payload);
               setDrivers(prev => [...prev, res.data]);
-              setValue('driver_combined', `driver:${res.data.id}`);
+              updateVehicleAssignment(driverQuickCreate.targetIndex, { driver_combined: `driver:${res.data.id}` });
             }
-            setDriverQuickCreate({ open: false, name: '', editing: null });
+            setDriverQuickCreate({ open: false, name: '', editing: null, targetIndex: 0 });
           }}
-          onClose={() => setDriverQuickCreate({ open: false, name: '', editing: null })}
+          onClose={() => setDriverQuickCreate({ open: false, name: '', editing: null, targetIndex: 0 })}
         />
       )}
 
