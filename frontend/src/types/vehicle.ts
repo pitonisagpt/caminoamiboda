@@ -2,6 +2,7 @@ export type VehicleType = "car" | "motorcycle";
 export type VehicleStatus = "active" | "inactive" | "pending";
 export type VehicleLocation = "medellin" | "rionegro" | "carmen_de_viboral";
 export type VehicleCategory = "clasico" | "vintage" | "moderno";
+export type VehicleUseCase = "wedding" | "audiovisual_production" | "brand_activation" | "tourism";
 
 export interface VehiclePhoto {
   id: number;
@@ -45,6 +46,7 @@ export interface VehicleListItem {
   is_company_owned: boolean;
   is_featured: boolean;
   allowed_locations: string[] | null;
+  available_for: VehicleUseCase[] | null;
   bride_description: string | null;
   photos: VehiclePhoto[];
 }
@@ -79,6 +81,7 @@ export interface PublicVehicleListItem {
   is_company_owned: boolean;
   is_featured: boolean;
   allowed_locations: string[] | null;
+  available_for: VehicleUseCase[] | null;
   bride_description: string | null;
   photos: VehiclePhoto[];
 }

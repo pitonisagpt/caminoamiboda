@@ -43,6 +43,17 @@ const DAY_COLOR: Record<string, string> = {
   Viernes: "bg-green-100 text-green-700",
 };
 
+// Matches the backend's backfill default (see 0070_add_available_for_to_vehicles.py)
+// — a brand-new vehicle starts available for the three use cases actually
+// offered today; tourism/retro-travel isn't offered yet, so it starts unchecked.
+const DEFAULT_AVAILABLE_FOR = ["wedding", "audiovisual_production", "brand_activation"];
+const USE_CASE_OPTIONS = [
+  { value: "wedding", label: "Bodas" },
+  { value: "audiovisual_production", label: "Producción audiovisual" },
+  { value: "brand_activation", label: "Activación de marca" },
+  { value: "tourism", label: "Turismo / experiencias retro" },
+];
+
 export function VehicleForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -54,6 +65,7 @@ export function VehicleForm() {
   const [sku, setSku] = useState<string | null>(null);
   const [legacyOwnerName, setLegacyOwnerName] = useState<string | null>(null);
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
+  const [availableFor, setAvailableFor] = useState<string[]>(DEFAULT_AVAILABLE_FOR);
 
   useEffect(() => {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
@@ -101,6 +113,7 @@ export function VehicleForm() {
       setSku(v.sku);
       setLegacyOwnerName(!v.owner_id && v.owner_name ? v.owner_name : null);
       setAllowedLocations(v.allowed_locations ?? []);
+      setAvailableFor(v.available_for ?? DEFAULT_AVAILABLE_FOR);
       reset({
         license_plate: v.license_plate,
         brand: v.brand,
@@ -152,6 +165,7 @@ export function VehicleForm() {
         is_company_owned: data.is_company_owned,
         is_featured: data.is_featured,
         allowed_locations: allowedLocations.length > 0 ? allowedLocations : null,
+        available_for: availableFor.length > 0 ? availableFor : null,
         price_medellin: data.price_medellin ? parseFloat(data.price_medellin) : null,
         price_rionegro: data.price_rionegro ? parseFloat(data.price_rionegro) : null,
         score_elegance: data.score_elegance ?? null,
@@ -308,6 +322,28 @@ export function VehicleForm() {
                     }}
                   />
                   <span className="text-sm text-gray-700">{zone.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="sm:col-span-2 space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Disponible para</label>
+            <div className="flex flex-wrap gap-4">
+              {USE_CASE_OPTIONS.map(uc => (
+                <label key={uc.value} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+                    checked={availableFor.includes(uc.value)}
+                    onChange={e => {
+                      setAvailableFor(prev =>
+                        e.target.checked
+                          ? [...prev, uc.value]
+                          : prev.filter(v => v !== uc.value)
+                      );
+                    }}
+                  />
+                  <span className="text-sm text-gray-700">{uc.label}</span>
                 </label>
               ))}
             </div>

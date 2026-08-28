@@ -29,11 +29,13 @@ export function VehicleCard({
   onClick,
   unlock,
   onRequestUnlock,
+  hidePricing,
 }: {
   vehicle: PublicVehicleListItem;
   onClick?: () => void;
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
+  hidePricing?: boolean;
 }) {
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
@@ -115,8 +117,10 @@ export function VehicleCard({
           </div>
         )}
 
-        {/* Price */}
-        {vehicle.price_medellin == null && vehicle.price_rionegro == null ? (
+        {/* Price — omitted entirely for a use-case-scoped catalog (productions/
+            activations are quoted separately, by the hour); the WhatsApp CTA
+            right below already covers "contact us" for that case. */}
+        {hidePricing ? null : vehicle.price_medellin == null && vehicle.price_rionegro == null ? (
           <p className="text-sm text-gray-400">Precio a consultar</p>
         ) : !unlock ? (
           <button

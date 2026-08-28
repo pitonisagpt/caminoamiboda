@@ -36,9 +36,10 @@ interface Props {
   onClose: () => void;
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
+  hidePricing?: boolean;
 }
 
-export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Props) {
+export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePricing }: Props) {
   const photos = (vehicle.photos ?? []).filter((p) => p.is_visible);
   const [current, setCurrent] = useState(0);
   const [searchParams] = useSearchParams();
@@ -200,7 +201,11 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
                 <MapPin size={12} />
                 <span>{LOCATION_LABEL[vehicle.location] ?? vehicle.location}</span>
               </div>
-              {(vehicle.price_medellin || vehicle.price_rionegro) && !unlock && (
+              {/* Price — omitted entirely for a use-case-scoped catalog
+                  (productions/activations are quoted separately, by the
+                  hour); the WhatsApp CTA below already covers "contact us"
+                  for that case. Location above still shows either way. */}
+              {!hidePricing && (vehicle.price_medellin || vehicle.price_rionegro) && !unlock && (
                 <button
                   onClick={() => onRequestUnlock?.()}
                   className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
@@ -209,7 +214,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
                   Ver precio
                 </button>
               )}
-              {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
+              {!hidePricing && (vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Medellín*</span>
                   <span className={`font-semibold ${vehicle.price_medellin != null ? "text-gray-900" : "text-gray-400"}`}>
@@ -217,7 +222,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
                   </span>
                 </div>
               )}
-              {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
+              {!hidePricing && (vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Llanogrande*</span>
                   <span className={`font-semibold ${vehicle.price_rionegro != null ? "text-gray-900" : "text-gray-400"}`}>
@@ -225,10 +230,10 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock }: Prop
                   </span>
                 </div>
               )}
-              {(vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
+              {!hidePricing && (vehicle.price_medellin || vehicle.price_rionegro) && unlock && (
                 <p className="text-[11px] text-gray-400">*Precio para Medellín/Llanogrande y alrededores — puede variar según zona o distancia. ¿Otro pueblo (Guatapé, Santa Fe de Antioquia, etc.)? Pregúntanos.</p>
               )}
-              {!vehicle.price_medellin && !vehicle.price_rionegro && (
+              {!hidePricing && !vehicle.price_medellin && !vehicle.price_rionegro && (
                 <p className="text-sm text-gray-400">Precio a consultar</p>
               )}
             </div>

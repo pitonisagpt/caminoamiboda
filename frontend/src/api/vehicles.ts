@@ -31,6 +31,7 @@ interface ListParams {
   status?: VehicleStatus;
   location?: VehicleLocation;
   vehicle_type?: VehicleType;
+  use_case?: string;
 }
 
 export const vehiclesApi = {

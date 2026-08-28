@@ -64,10 +64,12 @@ function FilterPanel({
   filters,
   setFilters,
   availableBrands,
+  noPricing,
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
   availableBrands: string[];
+  noPricing?: boolean;
 }) {
   const set = (patch: Partial<Filters>) => setFilters({ ...filters, ...patch });
 
@@ -182,27 +184,30 @@ function FilterPanel({
         </div>
       </FilterSection>
 
-      {/* Precio */}
-      <FilterSection title="Precio (COP)" active={!!filters.priceMin || !!filters.priceMax}>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            placeholder="Desde"
-            value={filters.priceMin}
-            onChange={e => set({ priceMin: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-          <span className="text-gray-300 text-xs shrink-0">–</span>
-          <input
-            type="number"
-            placeholder="Hasta"
-            value={filters.priceMax}
-            onChange={e => set({ priceMax: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-        </div>
-        <p className="text-[11px] text-gray-400 mt-1.5">$690.000 – $1.570.000</p>
-      </FilterSection>
+      {/* Precio — sin sentido en el catálogo de producciones/activaciones,
+          que se cotiza aparte por hora */}
+      {!noPricing && (
+        <FilterSection title="Precio (COP)" active={!!filters.priceMin || !!filters.priceMax}>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              placeholder="Desde"
+              value={filters.priceMin}
+              onChange={e => set({ priceMin: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+            <span className="text-gray-300 text-xs shrink-0">–</span>
+            <input
+              type="number"
+              placeholder="Hasta"
+              value={filters.priceMax}
+              onChange={e => set({ priceMax: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <p className="text-[11px] text-gray-400 mt-1.5">$690.000 – $1.570.000</p>
+        </FilterSection>
+      )}
     </div>
   );
 }
@@ -252,6 +257,13 @@ export function CatalogPage() {
   };
   const sort = (searchParams.get("sort") ?? "default") as SortKey;
 
+  // Presence of this param switches the whole page into a use-case-scoped
+  // mode (e.g. producciones audiovisuales / activaciones de marca) that
+  // filters vehicles server-side and never shows pricing — that's quoted
+  // separately by the hour for those use cases, not per-vehicle like weddings.
+  const useCaseParam = searchParams.get("use_case");
+  const noPricing = Boolean(useCaseParam);
+
   function setFilters(f: Filters) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
@@ -285,11 +297,15 @@ export function CatalogPage() {
   }
 
   useEffect(() => {
+    setLoading(true);
     vehiclesApi
-      .list()
+      .list(useCaseParam ? { use_case: useCaseParam } : undefined)
       .then(res => setVehicles(res.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }, [useCaseParam]);
+
+  useEffect(() => {
     reviewsApi.listPublic().then((r: { data: Review[] }) => setReviews(r.data)).catch(() => {});
   }, []);
 
@@ -369,6 +385,10 @@ export function CatalogPage() {
         return filters.locations.includes(v.location);
       })
       .filter(v => {
+        // No pricing at all in this mode (server already nulled it out) — a
+        // stale priceMin/priceMax left over in the URL from a previous
+        // wedding-catalog visit must never zero out the whole grid here.
+        if (noPricing) return true;
         if (priceMin === null && priceMax === null) return true;
         const p = effectivePrice(v, filters.locations);
         if (p === null) return false;
@@ -389,7 +409,7 @@ export function CatalogPage() {
         const pb = effectivePrice(b, filters.locations) ?? 0;
         return sort === "price_asc" ? pa - pb : pb - pa;
       });
-  }, [vehicles, filters, sort, unlock]);
+  }, [vehicles, filters, sort, unlock, noPricing]);
 
   const activeFilterCount = useMemo(() => {
     let n = 0;
@@ -413,25 +433,43 @@ export function CatalogPage() {
       filters={filters}
       setFilters={setFilters}
       availableBrands={availableBrands}
+      noPricing={noPricing}
     />
   );
 
   return (
     <>
       <Helmet>
-        <title>Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda</title>
-        <meta name="description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
-        <meta property="og:title" content="Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda" />
-        <meta property="og:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño." />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="/favicon.png" />
+        {noPricing ? (
+          <>
+            <title>Vehículos para Producciones Audiovisuales y Activaciones de Marca | Camino a mi Boda</title>
+            <meta name="description" content="Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño. Cotización por hora." />
+            <meta property="og:title" content="Vehículos para Producciones Audiovisuales y Activaciones de Marca | Camino a mi Boda" />
+            <meta property="og:description" content="Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca." />
+            <meta property="og:type" content="website" />
+            <meta property="og:image" content="/favicon.png" />
+          </>
+        ) : (
+          <>
+            <title>Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda</title>
+            <meta name="description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
+            <meta property="og:title" content="Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda" />
+            <meta property="og:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño." />
+            <meta property="og:type" content="website" />
+            <meta property="og:image" content="/favicon.png" />
+          </>
+        )}
       </Helmet>
       <div className="space-y-8">
         {/* Hero */}
         <div className="text-center py-8">
-          <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">Nuestra Flota</h1>
+          <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">
+            {noPricing ? "Producciones y Activaciones" : "Nuestra Flota"}
+          </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-            Vehículos clásicos y especiales para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño.
+            {noPricing
+              ? "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño — cotización por hora."
+              : "Vehículos clásicos y especiales para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño."}
           </p>
           <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
             <div className="text-center">
@@ -446,7 +484,7 @@ export function CatalogPage() {
           </div>
         </div>
 
-        {!unlock && !loading && !error && minPrice !== null && (
+        {!noPricing && !unlock && !loading && !error && minPrice !== null && (
           <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
               <p className="text-sm font-semibold text-gray-900">Carros desde {formatCOP(minPrice)}</p>
@@ -461,7 +499,7 @@ export function CatalogPage() {
           </div>
         )}
 
-        {unlock && !loading && !error && (
+        {!noPricing && unlock && !loading && !error && (
           <div className="flex items-center justify-between gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-2.5 text-sm">
             <div>
               <span className="text-gray-700 font-medium">
@@ -561,8 +599,8 @@ export function CatalogPage() {
                 >
                   <option value="default">Predeterminado</option>
                   <option value="year">Más antiguo primero</option>
-                  <option value="price_asc">Precio: menor a mayor</option>
-                  <option value="price_desc">Precio: mayor a menor</option>
+                  {!noPricing && <option value="price_asc">Precio: menor a mayor</option>}
+                  {!noPricing && <option value="price_desc">Precio: mayor a menor</option>}
                 </select>
               </div>
 
@@ -586,6 +624,7 @@ export function CatalogPage() {
                       onClick={() => setSelected(v)}
                       unlock={unlock}
                       onRequestUnlock={() => setGateOpen(true)}
+                      hidePricing={noPricing}
                     />
                   ))}
                 </div>
@@ -663,6 +702,7 @@ export function CatalogPage() {
           onClose={() => setSelected(null)}
           unlock={unlock}
           onRequestUnlock={() => setGateOpen(true)}
+          hidePricing={noPricing}
         />
       )}
 

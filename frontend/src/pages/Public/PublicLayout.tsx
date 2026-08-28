@@ -8,6 +8,7 @@ const WHATSAPP_NUMBER = "573147372030";
 
 const NAV_LINKS = [
   { to: "/catalogo", label: "Catálogo" },
+  { to: "/catalogo?use_case=audiovisual_production,brand_activation", label: "Producciones y Activaciones" },
   { to: "/como-funciona", label: "Cómo funciona" },
   { to: "/catalogo#opiniones", label: "Opiniones" },
   { to: "/blog", label: "Blog" },
