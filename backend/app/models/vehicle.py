@@ -61,6 +61,11 @@ class Vehicle(Base):
     is_company_owned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     allowed_locations: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    # Which use cases this vehicle is offered for (wedding/audiovisual_production/
+    # brand_activation/tourism). Unlike allowed_locations, NULL here must never be
+    # read as "available for everything" (that would silently include tourism,
+    # which isn't offered yet) — see _vehicle_available_for() in routers/vehicles.py.
+    available_for: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     price_medellin: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     price_rionegro: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)

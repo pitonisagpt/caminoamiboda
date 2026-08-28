@@ -28,6 +28,24 @@ def _next_sku(db: Session) -> str:
     return f"CAB-{seq:03d}"
 
 
+DEFAULT_AVAILABLE_FOR = ["wedding", "audiovisual_production", "brand_activation"]
+
+
+def _vehicle_available_for(vehicle: Vehicle) -> list:
+    """Defensive fallback for a vehicle with no available_for set — must
+    never default to "everything" (that would silently include tourism,
+    which isn't offered yet), so it mirrors exactly what the backfill
+    migration assigns to real rows."""
+    return vehicle.available_for or DEFAULT_AVAILABLE_FOR
+
+
+def _parse_use_cases(raw: Optional[str]) -> list:
+    """Comma-separated use_case values from a query param — same axios-array
+    gotcha workaround as calendar.py's _parse_id_list (arrays serialize as
+    use_case[]=a&use_case[]=b, which FastAPI doesn't read as repeated keys)."""
+    return [x.strip() for x in raw.split(",") if x.strip()] if raw else []
+
+
 def _normalize_display_order(db: Session) -> None:
     """Keep active vehicles ordered before inactive/pending ones, preserving
     relative order within each group — lets the default (Activo-only) admin
@@ -48,6 +66,7 @@ def list_vehicles(
     status: Optional[VehicleStatus] = Query(None),
     location: Optional[VehicleLocation] = Query(None),
     vehicle_type: Optional[VehicleType] = Query(None),
+    use_case: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(Vehicle).options(joinedload(Vehicle.owner)).order_by(Vehicle.display_order)
@@ -60,7 +79,21 @@ def list_vehicles(
         query = query.filter(Vehicle.location == location)
     if vehicle_type:
         query = query.filter(Vehicle.vehicle_type == vehicle_type)
-    return _serialize_public_list(query.all())
+
+    vehicles = query.all()
+    use_cases = set(_parse_use_cases(use_case))
+    if use_cases:
+        vehicles = [v for v in vehicles if use_cases & set(_vehicle_available_for(v))]
+
+    items = _serialize_public_list(vehicles)
+    if use_cases:
+        # Never let a price leak into a response explicitly scoped to a
+        # non-wedding use case (productions/activations are quoted by the
+        # hour separately, not by this per-vehicle fixed price).
+        for item in items:
+            item.price_medellin = None
+            item.price_rionegro = None
+    return items
 
 
 @router.get("/all", response_model=List[VehicleList], dependencies=[Depends(get_current_user)])

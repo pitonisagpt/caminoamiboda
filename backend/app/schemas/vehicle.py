@@ -1,11 +1,18 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
 from app.models.vehicle import VehicleCategory, VehicleLocation, VehicleStatus, VehicleType
 from app.schemas.vehicle_photo import VehiclePhotoRead
 from app.services.pico_y_placa import PICO_HOURS, get_effective_pyp
+
+# Unlike allowed_locations (a loose list of strings — a typo there just means
+# "runs everywhere," a harmless fallback), a typo here silently drops a
+# vehicle out of a use-case-filtered catalog, so it's worth validating on
+# create/update. Still a plain JSON column, not a native Postgres enum —
+# adding a 5th value later needs no migration, just extending this tuple.
+VehicleUseCase = Literal["wedding", "audiovisual_production", "brand_activation", "tourism"]
 
 
 class VehicleBase(BaseModel):
@@ -36,6 +43,7 @@ class VehicleCreate(VehicleBase):
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
+    available_for: Optional[List[VehicleUseCase]] = None
     pyp_day_override: Optional[str] = None
     pyp_valid_from: Optional[date] = None
     pyp_valid_to: Optional[date] = None
@@ -57,6 +65,7 @@ class VehicleUpdate(BaseModel):
     is_company_owned: Optional[bool] = None
     is_featured: Optional[bool] = None
     allowed_locations: Optional[List[str]] = None
+    available_for: Optional[List[VehicleUseCase]] = None
     price_medellin: Optional[float] = None
     price_rionegro: Optional[float] = None
     score_elegance: Optional[int] = None
@@ -121,6 +130,7 @@ class VehicleRead(VehicleBase):
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
+    available_for: Optional[List[VehicleUseCase]] = None
     score_total: Optional[int] = None
     pico_y_placa_day: Optional[str] = None
     pico_y_placa_hours: Optional[str] = None
@@ -133,7 +143,7 @@ class VehicleRead(VehicleBase):
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleRead":
-        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations", "created_at", "updated_at"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations", "available_for", "created_at", "updated_at"])
         return cls.model_validate(d)
 
 
@@ -169,12 +179,13 @@ class VehicleList(BaseModel):
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
+    available_for: Optional[List[VehicleUseCase]] = None
     bride_description: Optional[str] = None
     photos: List[VehiclePhotoRead] = []
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":
-        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations"])
+        d = _build_dict(vehicle, ["owner_id", "owner_name", "owner_contact", "owner_whatsapp_username", "is_company_owned", "is_featured", "allowed_locations", "available_for"])
         return cls.model_validate(d)
 
 
@@ -206,10 +217,11 @@ class VehiclePublicList(BaseModel):
     is_company_owned: bool = False
     is_featured: bool = False
     allowed_locations: Optional[List[str]] = None
+    available_for: Optional[List[VehicleUseCase]] = None
     bride_description: Optional[str] = None
     photos: List[VehiclePhotoRead] = []
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehiclePublicList":
-        d = _build_dict(vehicle, ["is_company_owned", "is_featured", "allowed_locations"])
+        d = _build_dict(vehicle, ["is_company_owned", "is_featured", "allowed_locations", "available_for"])
         return cls.model_validate(d)
