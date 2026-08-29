@@ -23,8 +23,11 @@ export interface BlogPostForm {
 }
 
 export const blogApi = {
-  list: (publishedOnly = false) =>
-    api.get<BlogPost[]>('/blog', { params: { published_only: publishedOnly } }),
+  // Public — published posts only.
+  list: () => api.get<BlogPost[]>('/blog'),
+
+  // Admin — every post, drafts included.
+  listAll: () => api.get<BlogPost[]>('/blog/all'),
 
   getBySlug: (slug: string) =>
     api.get<BlogPost>(`/blog/${slug}`),

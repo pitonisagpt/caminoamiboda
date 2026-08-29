@@ -10,7 +10,7 @@ export default function BlogListPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    blogApi.list(true).then(r => setPosts(r.data)).finally(() => setLoading(false));
+    blogApi.list().then(r => setPosts(r.data)).finally(() => setLoading(false));
   }, []);
 
   return (

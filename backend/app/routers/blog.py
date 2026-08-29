@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -34,21 +34,28 @@ def _get_or_404(post_id: int, db: Session) -> BlogPost:
 
 
 @router.get("", response_model=List[BlogPostRead])
-def list_posts(
-    published_only: bool = Query(False),
-    db: Session = Depends(get_db),
-):
-    q = db.query(BlogPost)
-    if published_only:
-        q = q.filter(BlogPost.published == True).order_by(BlogPost.published_at.desc())  # noqa: E712
-    else:
-        q = q.order_by(BlogPost.created_at.desc())
-    return q.all()
+def list_posts(db: Session = Depends(get_db)):
+    """Public list — published posts only. See list_all_posts for the admin
+    view (drafts included)."""
+    return (
+        db.query(BlogPost)
+        .filter(BlogPost.published == True)  # noqa: E712
+        .order_by(BlogPost.published_at.desc())
+        .all()
+    )
+
+
+# Must be declared before /{slug} — otherwise FastAPI would match
+# GET /api/blog/all as get_post(slug="all").
+@router.get("/all", response_model=List[BlogPostRead], dependencies=[Depends(get_current_user)])
+def list_all_posts(db: Session = Depends(get_db)):
+    """Admin list — every post, drafts included."""
+    return db.query(BlogPost).order_by(BlogPost.created_at.desc()).all()
 
 
 @router.get("/{slug}", response_model=BlogPostRead)
 def get_post(slug: str, db: Session = Depends(get_db)):
-    post = db.query(BlogPost).filter(BlogPost.slug == slug).first()
+    post = db.query(BlogPost).filter(BlogPost.slug == slug, BlogPost.published == True).first()  # noqa: E712
     if not post:
         raise HTTPException(404, "Artículo no encontrado")
     return post

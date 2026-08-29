@@ -27,7 +27,7 @@ export default function BlogAdminPage() {
 
   const load = async () => {
     setLoading(true);
-    try { setPosts((await blogApi.list()).data); } finally { setLoading(false); }
+    try { setPosts((await blogApi.listAll()).data); } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
