@@ -18,9 +18,29 @@ from app.schemas.catalog_location import CatalogLocationCreate, CatalogLocationR
 
 _UA = "CaminoAMiBoda/1.0 (reservations system; contact@caminoamiboda.com)"
 
+_ALLOWED_MAPS_HOSTS = {
+    "maps.google.com", "www.google.com", "google.com",
+    "goo.gl", "maps.app.goo.gl",
+}
+
+
+def _is_allowed_maps_url(url: str) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except Exception:
+        return False
+    return parsed.scheme == "https" and parsed.hostname in _ALLOWED_MAPS_HOSTS
+
 
 def _follow_maps_link(url: str) -> tuple[float, float] | None:
-    """Follow a Google Maps short/full link and extract @lat,lng from the final URL."""
+    """Follow a Google Maps short/full link and extract @lat,lng from the final URL.
+    `url` comes from google_maps_link, a plain unvalidated string field — without
+    the allowlist check this would be a full SSRF (arbitrary host/scheme,
+    including file:// and internal/cloud-metadata IPs), since this function is
+    reachable via any authenticated user editing a timeline location, not just
+    an explicit "geocode" action."""
+    if not _is_allowed_maps_url(url):
+        return None
     try:
         req = urllib.request.Request(url, headers={"User-Agent": _UA})
         with urllib.request.urlopen(req, timeout=8) as resp:
