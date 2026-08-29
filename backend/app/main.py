@@ -121,10 +121,17 @@ app.include_router(integrations.router)
 app.include_router(ai_assistant.router)
 app.include_router(seo.router)
 
-# Serve uploaded photos
-_uploads_dir = Path("/app/uploads/vehicles")
-_uploads_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/api/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
+# Serve uploaded photos — only the genuinely public subfolders. Reservation
+# attachments (contracts/receipts) and vehicle-owner documents (cédula, RUT)
+# are NOT mounted here — a plain static mount can't check the session
+# cookie, so they're served through authenticated routes instead (see
+# reservation_attachments.py / vehicle_owner_attachments.py).
+_vehicles_uploads_dir = Path("/app/uploads/vehicles")
+_vehicles_uploads_dir.mkdir(parents=True, exist_ok=True)
+_florist_uploads_dir = Path("/app/uploads/florist")
+_florist_uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/api/uploads/vehicles", StaticFiles(directory=str(_vehicles_uploads_dir)), name="uploads-vehicles")
+app.mount("/api/uploads/florist", StaticFiles(directory=str(_florist_uploads_dir)), name="uploads-florist")
 
 
 @app.get("/health")

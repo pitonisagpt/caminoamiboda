@@ -24,5 +24,8 @@ class VehicleOwnerAttachmentRead(BaseModel):
 
     @model_validator(mode="after")
     def set_url(self) -> "VehicleOwnerAttachmentRead":
-        self.url = build_upload_url(f"/api/uploads/vehicle_owners/{self.file_name}")
+        # Served through an authenticated (admin-only) route, not the
+        # /api/uploads/... static mount — these documents (cédula, RUT,
+        # contract) must not be reachable by anyone who merely has the URL.
+        self.url = build_upload_url(f"/api/vehicle-owners/{self.owner_id}/attachments/{self.id}/file")
         return self

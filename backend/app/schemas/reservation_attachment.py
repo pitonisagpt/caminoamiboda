@@ -24,5 +24,8 @@ class ReservationAttachmentRead(BaseModel):
 
     @model_validator(mode="after")
     def set_url(self) -> "ReservationAttachmentRead":
-        self.url = build_upload_url(f"/api/uploads/reservations/{self.file_name}")
+        # Served through an authenticated route, not the /api/uploads/...
+        # static mount — reservation attachments (contracts, payment
+        # receipts) must not be reachable by anyone who merely has the URL.
+        self.url = build_upload_url(f"/api/reservations/{self.reservation_id}/attachments/{self.id}/file")
         return self

@@ -4,6 +4,7 @@ from typing import List
 
 import filetype
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
@@ -95,6 +96,23 @@ async def upload_attachments(
     for a in created:
         db.refresh(a)
     return [VehicleOwnerAttachmentRead.model_validate(a) for a in created]
+
+
+@router.get("/{owner_id}/attachments/{attachment_id}/file")
+def download_attachment(owner_id: int, attachment_id: int, db: Session = Depends(get_db)):
+    attachment = (
+        db.query(VehicleOwnerAttachment)
+        .filter(VehicleOwnerAttachment.id == attachment_id, VehicleOwnerAttachment.owner_id == owner_id)
+        .first()
+    )
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Adjunto no encontrado")
+    path = UPLOAD_DIR / attachment.file_name
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    # No filename= — that would force Content-Disposition: attachment and
+    # break inline preview, same reasoning as reservation_attachments.py.
+    return FileResponse(path=str(path), media_type=attachment.content_type)
 
 
 @router.patch("/{owner_id}/attachments/{attachment_id}", response_model=VehicleOwnerAttachmentRead)
