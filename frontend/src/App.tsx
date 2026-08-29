@@ -116,7 +116,7 @@ export default function App() {
             <Route path="vehiculos" element={<VehicleList />} />
             <Route path="vehiculos/nuevo" element={<VehicleForm />} />
             <Route path="vehiculos/editar/:id" element={<VehicleForm />} />
-            <Route path="vehiculos/:id/estadisticas" element={<VehicleStatsPage />} />
+            <Route path="vehiculos/:id/estadisticas" element={<ProtectedRoute adminOnly><VehicleStatsPage /></ProtectedRoute>} />
             <Route path="vehiculos/:id" element={<VehicleDetail />} />
 
             {/* Calendar */}

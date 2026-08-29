@@ -177,7 +177,7 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
     _normalize_display_order(db)
 
 
-@router.get("/{vehicle_id}/stats", dependencies=[Depends(get_current_user)])
+@router.get("/{vehicle_id}/stats", dependencies=[Depends(require_admin)])
 def vehicle_stats(
     vehicle_id: int,
     date_from: Optional[date] = Query(None),
