@@ -23,7 +23,13 @@ def _validate_phone(v: Optional[str]) -> Optional[str]:
     return normalized
 
 
-class CustomerBase(BaseModel):
+class CustomerFields(BaseModel):
+    """Shared field declarations, with no validation — used as the base for
+    CustomerRead so a malformed legacy value already sitting in the database
+    (saved before this validator existed, or through a path that didn't
+    apply it) never breaks reading the record back. A single bad row must
+    never crash the whole list for every other customer. Validation only
+    applies on writes, in CustomerBase/CustomerUpdate below."""
     bride_name: Optional[str] = None
     groom_name: Optional[str] = None
     main_contact_name: str
@@ -31,11 +37,6 @@ class CustomerBase(BaseModel):
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
     whatsapp_username: Optional[str] = None
-
-    @field_validator("phone", "whatsapp", mode="before")
-    @classmethod
-    def validate_phone(cls, v):
-        return _validate_phone(v)
     email: Optional[str] = None
     bride_email: Optional[str] = None
     groom_email: Optional[str] = None
@@ -46,6 +47,13 @@ class CustomerBase(BaseModel):
     lead_status: str = 'activo'
     lead_temperature: Optional[str] = None
     aplica_hora_regalo: bool = False
+
+
+class CustomerBase(CustomerFields):
+    @field_validator("phone", "whatsapp", mode="before")
+    @classmethod
+    def validate_phone(cls, v):
+        return _validate_phone(v)
 
 
 class CustomerCreate(CustomerBase):
@@ -71,8 +79,18 @@ class CustomerUpdate(BaseModel):
     lead_temperature: Optional[str] = None
     aplica_hora_regalo: Optional[bool] = None
 
+    # Was previously missing entirely on this schema — meaning an update
+    # could silently save something that isn't a phone number at all (this
+    # is how a value like a WhatsApp username ended up saved in the `phone`
+    # column of an existing customer, which in turn broke every read of the
+    # customer list until CustomerRead stopped inheriting the validator).
+    @field_validator("phone", "whatsapp", mode="before")
+    @classmethod
+    def validate_phone(cls, v):
+        return _validate_phone(v)
 
-class CustomerRead(CustomerBase):
+
+class CustomerRead(CustomerFields):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
