@@ -368,33 +368,40 @@ def _sync_linked_timelines(reservation, db) -> Optional[bool]:
     customer = reservation.customer
     driver = reservation.owner_driver if reservation.owner_driver_id else reservation.driver
 
+    # NOT filtering out gcal_imported timelines here anymore — contact info
+    # (below) is pure lookup data that's never pushed back to Google
+    # Calendar, so it's safe to always keep in sync with the customer, even
+    # for an imported timeline. Only the calendar-descriptive fields further
+    # down stay frozen for imported timelines, same as before, so this app
+    # never fights with a human-edited calendar event.
     linked = db.query(EventTimeline).filter(
         EventTimeline.reservation_id == reservation.id,
-        EventTimeline.gcal_imported.is_(False),
     ).all()
     results: list = []
     for tl in linked:
-        tl.calendar_category = new_category
-        tl.event_date = reservation.event_date
-        display_v = _timeline_vehicle_str(reservation, db)
-        if display_v:
-            tl.assigned_vehicle = display_v
-        display_name = reservation.display_customer
-        if display_name and display_name != "—":
-            tl.event_name = display_name
-        if driver:
-            tl.assigned_driver = driver.full_name
-            tl.assigned_driver_phone = driver.phone or getattr(driver, 'whatsapp', None) or None
-        elif reservation.driver_id is None and reservation.owner_driver_id is None:
-            tl.assigned_driver = None
-            tl.assigned_driver_phone = None
         if customer:
             bride = getattr(customer, 'bride_name', None)
             groom = getattr(customer, 'groom_name', None)
             tl.main_contact_name = f"{bride} & {groom}" if bride and groom else (customer.main_contact_name or bride or groom)
             tl.main_contact_phone = customer.phone
-        if reservation.special_instructions:
-            tl.special_instructions = reservation.special_instructions
+
+        if not tl.gcal_imported:
+            tl.calendar_category = new_category
+            tl.event_date = reservation.event_date
+            display_v = _timeline_vehicle_str(reservation, db)
+            if display_v:
+                tl.assigned_vehicle = display_v
+            display_name = reservation.display_customer
+            if display_name and display_name != "—":
+                tl.event_name = display_name
+            if driver:
+                tl.assigned_driver = driver.full_name
+                tl.assigned_driver_phone = driver.phone or getattr(driver, 'whatsapp', None) or None
+            elif reservation.driver_id is None and reservation.owner_driver_id is None:
+                tl.assigned_driver = None
+                tl.assigned_driver_phone = None
+            if reservation.special_instructions:
+                tl.special_instructions = reservation.special_instructions
         db.commit()
         results.append(_gcal_sync(tl, db, "on reservation change"))
 

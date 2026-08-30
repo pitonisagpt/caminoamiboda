@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.customer import Customer
+from app.models.reservation import Reservation
 from app.schemas.customer import CustomerCreate, CustomerRead, CustomerUpdate, WhatsappTextResponse
 from app.services.lead_messaging import build_lead_whatsapp_message
 
@@ -61,6 +62,15 @@ def update_customer(customer_id: int, body: CustomerUpdate, db: Session = Depend
         setattr(customer, field, value)
     db.commit()
     db.refresh(customer)
+    # Every reservation's EventTimeline caches this customer's name/phone as
+    # main_contact_name/main_contact_phone (so the Evento tab and Google
+    # Calendar sync don't need a live join) — but that cache was only ever
+    # refreshed from reservations.py's own update endpoint, never from here.
+    # A phone/name fixed on the customer directly (the natural place to do
+    # it) would silently never reach an already-created timeline otherwise.
+    from app.routers.reservations import _sync_linked_timelines
+    for r in db.query(Reservation).filter(Reservation.customer_id == customer_id).all():
+        _sync_linked_timelines(r, db)
     return customer
 
 
