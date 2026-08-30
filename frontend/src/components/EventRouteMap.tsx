@@ -300,8 +300,8 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
         `}</style>
         <MapContainer center={defaultCenter} zoom={13} style={{ height: '340px', width: '100%' }} scrollWheelZoom={false}>
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           <MapFitter points={points} />
 
