@@ -21,6 +21,7 @@ from app.models.owner_settlement_payment import OwnerSettlementPayment
 from app.models.reservation import Reservation
 from app.models.vehicle import Vehicle
 from app.schemas.owner_settlement import OwnerSettlementCreate, OwnerSettlementList, OwnerSettlementRead
+from app.services.reservation_addons import reservation_addons_total
 from app.services.reservation_vehicles import vehicle_display_name
 
 router = APIRouter(prefix="/api/owner-settlements", tags=["owner-settlements"], redirect_slashes=False)
@@ -77,7 +78,11 @@ def create_settlement(body: OwnerSettlementCreate, db: Session = Depends(get_db)
     if not reservation:
         raise HTTPException(404, "Reserva no encontrada")
 
-    value = reservation.total_amount
+    # Exclude third-party addon services (florist, etc.) from the base — they
+    # don't belong to the vehicle owner, so the owner's % must never be
+    # computed over them (see ReservationAddon).
+    addons_total = reservation_addons_total(reservation.id, db)
+    value = reservation.total_amount - addons_total
     pct = body.owner_percentage
     if body.owner_amount_override is not None:
         owner_amount = body.owner_amount_override.quantize(Decimal("0.01"))
@@ -136,13 +141,17 @@ def generate_settlement_pdf(settlement_id: int, db: Session = Depends(get_db)):
     # if the reservation's total_amount changes afterwards (e.g. more days added).
     # Skipped when the amount was set manually (owner_amount_override at
     # creation) — otherwise this silently overwrites it on every regeneration.
-    if not s.is_manual_amount and s.reservation and s.reservation.total_amount != s.reservation_value:
-        s.reservation_value = s.reservation.total_amount
-        s.owner_amount = (s.reservation_value * Decimal(s.owner_percentage) / Decimal(100)).quantize(Decimal("0.01"))
-        s.company_amount = (s.reservation_value - s.owner_amount).quantize(Decimal("0.01"))
-        db.commit()
-        db.refresh(s)
-        _sync_settlement_status(s, db)
+    # Addon totals (florist, etc.) are excluded here too — same reasoning as
+    # create_settlement() above.
+    if s.reservation:
+        current_value = s.reservation.total_amount - reservation_addons_total(s.reservation_id, db)
+        if not s.is_manual_amount and current_value != s.reservation_value:
+            s.reservation_value = current_value
+            s.owner_amount = (s.reservation_value * Decimal(s.owner_percentage) / Decimal(100)).quantize(Decimal("0.01"))
+            s.company_amount = (s.reservation_value - s.owner_amount).quantize(Decimal("0.01"))
+            db.commit()
+            db.refresh(s)
+            _sync_settlement_status(s, db)
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("settlement.html")
