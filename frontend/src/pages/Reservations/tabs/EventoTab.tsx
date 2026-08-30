@@ -881,7 +881,7 @@ export default function EventoTab({
           {[
             { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, username: null as string | null, name: timeline.assigned_driver },
             { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username, name: reservation.owner_name },
-            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, username: null as string | null, name: timeline.main_contact_name },
+            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username, name: timeline.main_contact_name },
             ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, name: reservation.display_contact }] : []),
             { label: 'Operaciones', token: timeline.share_token_ops, phone: null, username: null as string | null, name: null },
           ].map(({ label, token, phone, username, name }) => {
@@ -1038,7 +1038,7 @@ export default function EventoTab({
           {[
             { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone, username: null as string | null },
             { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username },
-            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone, username: null as string | null },
+            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username },
             ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username }] : []),
             { label: 'Operaciones', name: null, phone: OPS_PHONE, username: null as string | null },
           ].map(({ label, name, phone, username }) => (
