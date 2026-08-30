@@ -42,7 +42,7 @@ services:
       - key: COMPANY_CIIU
         value: "7710"
       - key: COMPANY_ADDRESS
-        value: "Cra 35 #19-620, Edificio Tierrs Grata Palmas, Int 2303"
+        value: "Cra 35 #19-620, Edificio Tierra Grata Palmas, Int 2303"
       - key: COMPANY_EMAIL
         value: "juan.yepes.correa@gmail.com"
       - key: BANK_NAME
