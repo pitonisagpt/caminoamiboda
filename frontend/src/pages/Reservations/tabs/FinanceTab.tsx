@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, Download, FileText, Link2, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
+import { DollarSign, Download, FileText, Gift, Link2, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
 import type { BillingDocumentListItem, DocumentStatus } from '../../../types';
+import type { ReservationAddon, ReservationAddonForm } from '../../../types/reservationAddon';
 import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
 import { billingDocumentsApi } from '../../../api/billingDocuments';
 import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment } from '../../../api/ownerSettlements';
 import { serviceOrdersApi } from '../../../api/serviceOrders';
 import type { ServiceOrder } from '../../../types/serviceOrder';
+import { reservationAddonsApi } from '../../../api/reservationAddons';
+import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
 
@@ -33,18 +36,32 @@ function buildWaUrl(phone: string | null | undefined, message: string): string {
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
-function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], recipientFirstName?: string): string {
+function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], addons: ReservationAddon[], recipientFirstName?: string): string {
   const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
   const reservaRef = recipientFirstName ? `la reserva de ${reservation.display_customer}` : 'tu reserva';
   const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
   const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
+  const hasVehicle = !!reservation.display_vehicle && reservation.display_vehicle !== '—';
+  const vehicleValue = Number(reservation.total_amount) - addons.reduce((s, a) => s + Number(a.price), 0);
 
   const lines: string[] = [
-    `Hola ${greetName}, aquí está el resumen de pagos de ${reservaRef} con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
-    '',
-    `*Valor total:* ${formatCOP(reservation.total_amount)}`,
+    // When there are addons, the vehicle+services breakdown below already
+    // names the vehicle, so it isn't repeated in the greeting too.
+    `Hola ${greetName}, aquí está el resumen de pagos de ${reservaRef} con Camino a mi Boda${addons.length === 0 && hasVehicle ? ` — ${reservation.display_vehicle}` : ''}:`,
     '',
   ];
+
+  if (addons.length > 0) {
+    lines.push('*Detalle:*');
+    if (hasVehicle) lines.push(`  - ${reservation.display_vehicle}: ${formatCOP(vehicleValue)}`);
+    addons.forEach(a => {
+      const provider = a.provider_name ? ` (${a.provider_name})` : '';
+      lines.push(`  - ${a.name}${provider}: ${formatCOP(Number(a.price))}`);
+    });
+    lines.push('');
+  }
+
+  lines.push(`*Valor total:* ${formatCOP(reservation.total_amount)}`, '');
 
   if (payments.length > 0) {
     lines.push('*Abonos realizados:*');
@@ -77,6 +94,41 @@ function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[],
   return lines.join('\n');
 }
 
+// Just the itemized breakdown + total — no payment/deposit history, unlike
+// buildCobroMsg above. For quoting a client or wedding planner what's
+// included and what it costs, independent of where payments stand.
+function buildDetalleMsg(reservation: Reservation, addons: ReservationAddon[], recipientFirstName?: string): string {
+  const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
+  const reservaRef = recipientFirstName ? `la reserva de ${reservation.display_customer}` : 'tu reserva';
+  const hasVehicle = !!reservation.display_vehicle && reservation.display_vehicle !== '—';
+  const vehicleValue = Number(reservation.total_amount) - addons.reduce((s, a) => s + Number(a.price), 0);
+
+  const lines: string[] = [
+    `Hola ${greetName}, aquí está el detalle de ${reservaRef} con Camino a mi Boda:`,
+    '',
+  ];
+
+  if (hasVehicle) lines.push(`- ${reservation.display_vehicle}: ${formatCOP(vehicleValue)}`);
+  addons.forEach(a => {
+    const provider = a.provider_name ? ` (${a.provider_name})` : '';
+    lines.push(`- ${a.name}${provider}: ${formatCOP(Number(a.price))}`);
+  });
+  lines.push('');
+  lines.push(`*Valor total:* ${formatCOP(reservation.total_amount)}`);
+
+  if (reservation.event_date) {
+    const evDate = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+    lines.push('');
+    lines.push(`*Fecha del evento:* ${evDate}`);
+  }
+
+  lines.push('');
+  lines.push('Camino a mi Boda');
+  lines.push('https://www.instagram.com/caminoamiboda');
+
+  return lines.join('\n');
+}
+
 function formatDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -89,20 +141,25 @@ function buildOwnerMsg(
   settlementPayments: OwnerSettlementPayment[],
   ownerFirstName: string,
   retentionTotal: number,
+  vehicleValue: number,
 ): string {
   const ownerPct = settlement ? settlement.owner_percentage : (reservation.vehicle_is_company_owned ? 0 : 70);
-  const ownerAmount = settlement ? settlement.owner_amount : Number(reservation.total_amount) * (ownerPct / 100);
+  // vehicleValue is total_amount minus any third-party addon services (ramo,
+  // letrero, etc.) — the owner's % must only ever apply to their vehicle's
+  // share, never to a service that isn't theirs. Once a settlement exists,
+  // its owner_amount is already computed server-side against that same base.
+  const ownerAmount = settlement ? settlement.owner_amount : vehicleValue * (ownerPct / 100);
   const remainingToOwner = settlement ? settlement.remaining_to_owner : ownerAmount;
   // Full share had there been no retention — only used to detect whether
   // ownerAmount was actually reduced for it, so the note below only appears
   // when a discount really happened (not every time there's a retention).
-  const fullShareWithoutRetention = Number(reservation.total_amount) * (ownerPct / 100);
+  const fullShareWithoutRetention = vehicleValue * (ownerPct / 100);
   const wasDiscountedForRetention = retentionTotal > 0 && ownerAmount < fullShareWithoutRetention - 1;
 
   const lines: string[] = [
     `Hola ${ownerFirstName}, aquí está el resumen de la reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
     '',
-    `*Valor total (cliente):* ${formatCOP(reservation.total_amount)}`,
+    `*Valor del vehículo:* ${formatCOP(vehicleValue)}`,
     `*Tu parte (${ownerPct}%):* ${formatCOP(ownerAmount)}`,
   ];
 
@@ -176,6 +233,17 @@ export default function FinanceTab({
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [orderPdfLoading, setOrderPdfLoading] = useState(false);
 
+  const [addons, setAddons] = useState<ReservationAddon[] | 'loading'>('loading');
+  const [addonPackages, setAddonPackages] = useState<AddonPackage[]>([]);
+  const [addingAddon, setAddingAddon] = useState(false);
+  const [savingAddon, setSavingAddon] = useState(false);
+  const [deletingAddonId, setDeletingAddonId] = useState<number | null>(null);
+  const emptyAddonForm: ReservationAddonForm = {
+    name: '', description: '', provider_name: '', price: 0,
+    company_percentage: 0, company_collects_payment: true,
+  };
+  const [addonForm, setAddonForm] = useState<ReservationAddonForm>(emptyAddonForm);
+
   // "Depósitos" is cash-only — a retención en la fuente is never money that
   // reached the company, so it must never be counted as if it were a cash
   // deposit (mirrors the backend's deposit_paid, which excludes it too).
@@ -248,6 +316,68 @@ export default function FinanceTab({
       .then(r => setServiceOrder(r.data.find(o => o.reservation_id === reservation.id) ?? null))
       .catch(() => setServiceOrder(null));
   }, [reservation.id, isAdmin]);
+
+  // The addon list itself (name/price/provider/description) is plain
+  // reservation-itemization info, not owner/company revenue split — so
+  // unlike settlements it's loaded for every authenticated role, not just
+  // admin, so operations can also see and quote it to clients. Only the
+  // split-specific bits (% and the CRUD form) stay behind isAdmin below.
+  useEffect(() => {
+    reservationAddonsApi.list(reservation.id)
+      .then(r => setAddons(r.data))
+      .catch(() => setAddons([]));
+  }, [reservation.id]);
+
+  useEffect(() => {
+    if (!isAdmin) { setAddonPackages([]); return; }
+    addonPackagesApi.list()
+      .then(r => setAddonPackages(r.data.filter(p => p.is_active)))
+      .catch(() => setAddonPackages([]));
+  }, [isAdmin]);
+
+  const handlePickAddonPackage = (packageId: string) => {
+    const pkg = addonPackages.find(p => p.id === Number(packageId));
+    if (!pkg) { setAddonForm(f => ({ ...f, addon_package_id: null })); return; }
+    setAddonForm(f => ({
+      ...f,
+      addon_package_id: pkg.id,
+      name: pkg.name,
+      description: pkg.description ?? '',
+      price: Number(pkg.price),
+    }));
+  };
+
+  const handleAddAddon = async () => {
+    if (!addonForm.name.trim() || addonForm.price <= 0) return;
+    setSavingAddon(true);
+    try {
+      const res = await reservationAddonsApi.create(reservation.id, addonForm);
+      setAddons(prev => prev === 'loading' ? [res.data] : [...prev, res.data]);
+      setAddonForm(emptyAddonForm);
+      setAddingAddon(false);
+    } finally {
+      setSavingAddon(false);
+    }
+  };
+
+  const handleDeleteAddon = async (id: number) => {
+    setDeletingAddonId(id);
+    try {
+      await reservationAddonsApi.delete(reservation.id, id);
+      setAddons(prev => prev === 'loading' ? prev : prev.filter(a => a.id !== id));
+    } finally {
+      setDeletingAddonId(null);
+    }
+  };
+
+  const addonsTotal = addons === 'loading' ? 0 : addons.reduce((s, a) => s + Number(a.price), 0);
+  const addonsCompanyTotal = addons === 'loading' ? 0 : addons.reduce((s, a) => s + Number(a.company_amount), 0);
+  const addonsProviderTotal = addons === 'loading' ? 0 : addons.reduce((s, a) => s + Number(a.provider_amount), 0);
+  // What the vehicle-owner settlement is actually based on — total minus
+  // third-party addon services (ramo, letrero, etc.), matching the backend's
+  // owner_settlements.py calculation exactly. Shown wherever the settlement
+  // amount is previewed so it's never a silent server-side-only number.
+  const settlementBaseValue = Math.max(0, Number(reservation.total_amount) - addonsTotal);
 
   const handleCreateServiceOrder = async () => {
     setCreatingOrder(true);
@@ -367,6 +497,21 @@ export default function FinanceTab({
 
   const companyPct = reservation.vehicle_is_company_owned ? 1 : 0.3;
   const ownerPct   = reservation.vehicle_is_company_owned ? 0 : 0.7;
+  // Vehicle-only split, applied to settlementBaseValue (total minus addons)
+  // rather than the full total — same base owner_settlements.py uses.
+  const vehicleOwnerAmount = settlementBaseValue * ownerPct;
+  const vehicleCompanyAmount = settlementBaseValue * companyPct;
+  // What the company actually keeps across the WHOLE reservation: its cut of
+  // the vehicle plus its cut of every addon (each addon has its own %,
+  // usually 0 for a pass-through service like the florist).
+  const totalCompanyAmount = vehicleCompanyAmount + addonsCompanyTotal;
+  // Blended percentage so the "empresa" hints on Depósitos/Saldo below stay
+  // roughly accurate now that addons can carry a different split than the
+  // vehicle's 70/30 — falls back to the vehicle-only companyPct when there's
+  // no total yet to avoid a 0/0.
+  const blendedCompanyPct = Number(reservation.total_amount) > 0
+    ? totalCompanyAmount / Number(reservation.total_amount)
+    : companyPct;
 
   // The WhatsApp message below and the "reservation-level" vehicle_is_company_owned
   // check above are scoped to the primary vehicle/owner (reservation.owner_name) —
@@ -385,6 +530,24 @@ export default function FinanceTab({
 
   return (
     <div className="space-y-4">
+      {/* Valor del vehículo — the number to actually communicate to the
+          vehicle owner, distinct from the client-facing total once there are
+          third-party addon services (florist, etc.) mixed into it. Only
+          shown when it actually differs from the total, admin-only (same
+          privacy boundary as the split below). */}
+      {isAdmin && addonsTotal > 0 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold text-purple-500 uppercase tracking-wide mb-1">Valor del vehículo — para comunicarle al propietario</p>
+            <p className="text-2xl font-bold text-purple-900">{formatCOP(settlementBaseValue)}</p>
+            <p className="text-xs text-purple-600 mt-1">
+              Total {formatCOP(Number(reservation.total_amount))} − Servicios adicionales {formatCOP(addonsTotal)}
+            </p>
+          </div>
+          <DollarSign size={32} className="text-purple-300 shrink-0" />
+        </div>
+      )}
+
       {/* Financial summary */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Resumen financiero</h2>
@@ -393,19 +556,19 @@ export default function FinanceTab({
           <div className="bg-gray-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Total</p>
             <p className="text-lg font-bold text-gray-900">{formatCOP(reservation.total_amount)}</p>
-            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(reservation.total_amount * companyPct)}</p>}
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalCompanyAmount)}</p>}
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-400 mb-1">Depósitos</p>
             <p className="text-lg font-bold text-green-700">{formatCOP(totalDeposit)}</p>
-            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalDeposit * companyPct)}</p>}
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(totalDeposit * blendedCompanyPct)}</p>}
           </div>
           <div className={`rounded-xl p-4 text-center ${remaining > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
             <p className="text-xs text-gray-400 mb-1">Saldo</p>
             <p className={`text-lg font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-700'}`}>
               {formatCOP(remaining)}
             </p>
-            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(remaining * companyPct)}</p>}
+            {isAdmin && <p className="text-xs text-brand-700 mt-0.5">empresa {formatCOP(remaining * blendedCompanyPct)}</p>}
           </div>
         </div>
 
@@ -434,7 +597,8 @@ export default function FinanceTab({
         {isAdmin && reservation.total_amount > 0 && (
           <div className="border-t border-gray-100 pt-4 space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              {reservation.vehicle_is_company_owned ? 'Distribución (100% empresa)' : 'Distribución (70/30)'}
+              {reservation.vehicle_is_company_owned ? 'Distribución del vehículo (100% empresa)' : 'Distribución del vehículo (70/30)'}
+              {addonsTotal > 0 && <span className="normal-case font-normal text-gray-400"> — sobre {formatCOP(settlementBaseValue)}, sin servicios adicionales</span>}
             </p>
             {!reservation.vehicle_is_company_owned && (
               <div className="flex justify-between text-sm">
@@ -442,7 +606,7 @@ export default function FinanceTab({
                   <DollarSign size={14} className="text-purple-400" />
                   <span className="text-gray-600">Propietario ({Math.round(ownerPct * 100)}%)</span>
                 </div>
-                <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * ownerPct)}</span>
+                <span className="font-semibold text-gray-900">{formatCOP(vehicleOwnerAmount)}</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
@@ -450,11 +614,86 @@ export default function FinanceTab({
                 <DollarSign size={14} className="text-brand-400" />
                 <span className="text-gray-600">Empresa ({Math.round(companyPct * 100)}%)</span>
               </div>
-              <span className="font-semibold text-gray-900">{formatCOP(reservation.total_amount * companyPct)}</span>
+              <span className="font-semibold text-gray-900">{formatCOP(vehicleCompanyAmount)}</span>
             </div>
+            {addonsTotal > 0 && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Gift size={14} className="text-pink-400" />
+                    <span className="text-gray-600">Empresa (servicios adicionales)</span>
+                  </div>
+                  <span className="font-semibold text-gray-900">{formatCOP(addonsCompanyTotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm pt-2 border-t border-gray-50">
+                  <span className="text-gray-700 font-medium">Total empresa (vehículo + servicios)</span>
+                  <span className="font-bold text-gray-900">{formatCOP(totalCompanyAmount)}</span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {/* Detalle de la reserva — plain itemized breakdown (vehicle + each
+          addon service, with its provider/description), for quoting the
+          client. No split/percentage info here — visible to every role,
+          same boundary as the plain Total above, not just admin. */}
+      {addons !== 'loading' && addons.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-2">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Detalle de la reserva</h2>
+          <div className="space-y-0">
+            {reservation.display_vehicle && reservation.display_vehicle !== '—' && (
+              <div className="flex items-start justify-between gap-3 py-2 border-b border-gray-50">
+                <p className="text-sm font-medium text-gray-900">{reservation.display_vehicle}</p>
+                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatCOP(settlementBaseValue)}</span>
+              </div>
+            )}
+            {addons.map(a => (
+              <div key={a.id} className="flex items-start justify-between gap-3 py-2 border-b border-gray-50 last:border-0">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {a.name}{a.provider_name ? ` (${a.provider_name})` : ''}
+                  </p>
+                  {a.description && <p className="text-xs text-gray-400 mt-0.5">{a.description}</p>}
+                </div>
+                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatCOP(Number(a.price))}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between pt-2 border-t border-gray-100">
+            <span className="text-sm font-semibold text-gray-700">Total</span>
+            <span className="text-sm font-bold text-gray-900">{formatCOP(Number(reservation.total_amount))}</span>
+          </div>
+
+          <div className="pt-2 border-t border-gray-100 space-y-2">
+            {[
+              { label: 'Cliente', phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username, recipientFirstName: undefined as string | undefined },
+              ...(reservation.display_contact
+                ? [{ label: 'Planeador', phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, recipientFirstName: reservation.display_contact.split(' ')[0] }]
+                : []),
+            ].map(({ label, phone, username, recipientFirstName }) => (
+              <div key={label} className="flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-500">{label}</span>
+                {phone ? (
+                  <a
+                    href={buildWaUrl(phone, buildDetalleMsg(reservation, addons, recipientFirstName))}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" /> Enviar por WhatsApp
+                  </a>
+                ) : username ? (
+                  <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
+                ) : (
+                  <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Payments list */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
@@ -624,7 +863,7 @@ export default function FinanceTab({
             </div>
             {phone ? (
               <a
-                href={buildWaUrl(phone, buildCobroMsg(reservation, payments, recipientFirstName))}
+                href={buildWaUrl(phone, buildCobroMsg(reservation, payments, addons === 'loading' ? [] : addons, recipientFirstName))}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
@@ -741,7 +980,7 @@ export default function FinanceTab({
               <a
                 href={buildWaUrl(
                   reservation.owner_whatsapp,
-                  buildOwnerMsg(reservation, primarySettlement, primarySettlementPayments, reservation.owner_name.split(' ')[0], retentionTotal)
+                  buildOwnerMsg(reservation, primarySettlement, primarySettlementPayments, reservation.owner_name.split(' ')[0], retentionTotal, settlementBaseValue)
                 )}
                 target="_blank"
                 rel="noreferrer"
@@ -857,6 +1096,12 @@ export default function FinanceTab({
                 </div>
               )}
               <div className="border border-gray-100 rounded-xl p-3 space-y-2">
+                {addonsTotal > 0 && (
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-800">
+                    Esta reserva tiene {formatCOP(addonsTotal)} en servicios adicionales (ver abajo) — la liquidación
+                    se calcula sobre <strong>{formatCOP(settlementBaseValue)}</strong> ({formatCOP(Number(reservation.total_amount))} − {formatCOP(addonsTotal)}), no sobre el total completo.
+                  </div>
+                )}
                 {unsettledPayable.length > 1 && (
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Vehículo</label>
@@ -887,7 +1132,7 @@ export default function FinanceTab({
                   {/* Persistent, not just a placeholder — stays visible once
                       the user starts typing a different amount. */}
                   <p className="text-xs text-gray-400 mt-1">
-                    Déjalo vacío para usar el 70% por defecto ({formatCOP(Number(reservation.total_amount) * 0.7)}).
+                    Déjalo vacío para usar el 70% por defecto ({formatCOP(settlementBaseValue * 0.7)}).
                   </p>
                 </div>
                 <div className="flex justify-end">
@@ -922,6 +1167,192 @@ export default function FinanceTab({
             </div>
           )}
             </>
+          )}
+        </div>
+      )}
+
+      {/* Servicios adicionales — third-party services (florist, decoración,
+          etc.) sold alongside this reservation, with their own % split and
+          "¿lo cobra Camino a mi Boda?" flag, independent of the vehicle's
+          70/30 split above. Admin-only, same privacy boundary as the split
+          and the owner settlement. */}
+      {isAdmin && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-pink-500" />
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Servicios adicionales</h2>
+            </div>
+            {!addingAddon && (
+              <button
+                onClick={() => setAddingAddon(true)}
+                className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 cursor-pointer"
+              >
+                <Plus size={13} /> Agregar servicio
+              </button>
+            )}
+          </div>
+
+          {addons === 'loading' ? (
+            <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
+              <Loader2 size={14} className="animate-spin" /> Cargando…
+            </div>
+          ) : addons.length === 0 && !addingAddon ? (
+            <p className="text-sm text-gray-400">Sin servicios adicionales registrados.</p>
+          ) : (
+            <div className="space-y-2">
+              {addons.map(a => (
+                <div key={a.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-sm font-semibold text-gray-900">{a.name}</p>
+                      <span className="text-sm text-gray-500">{formatCOP(Number(a.price))}</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+                        a.company_collects_payment ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {a.company_collects_payment ? 'Camino a mi Boda recibe el pago' : 'El proveedor cobra directo'}
+                      </span>
+                    </div>
+                    {(a.provider_name || a.description) && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {a.provider_name}{a.provider_name && a.description ? ' · ' : ''}{a.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Empresa ({a.company_percentage}%): {formatCOP(Number(a.company_amount))} · Proveedor ({100 - a.company_percentage}%): {formatCOP(Number(a.provider_amount))}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteAddon(a.id)}
+                    disabled={deletingAddonId === a.id}
+                    className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    {deletingAddonId === a.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  </button>
+                </div>
+              ))}
+              {addons.length > 0 && (
+                <div className="pt-2 mt-1 border-t border-gray-50 space-y-1">
+                  {addons.length > 1 && (
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Total servicios: {formatCOP(addonsTotal)}</span>
+                      <span>Empresa: {formatCOP(addonsCompanyTotal)} · Proveedores: {formatCOP(addonsProviderTotal)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xs font-medium text-gray-700">
+                    <span>Valor del vehículo (total − servicios)</span>
+                    <span>{formatCOP(settlementBaseValue)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {addingAddon && (
+            <div className="border border-brand-100 rounded-xl p-4 space-y-3 bg-brand-50/30">
+              {addonPackages.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Cargar desde catálogo (opcional)</label>
+                  <select
+                    value={addonForm.addon_package_id ?? ''}
+                    onChange={e => handlePickAddonPackage(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="">— Servicio libre —</option>
+                    {addonPackages.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} — {formatCOP(Number(p.price))}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Nombre *</label>
+                <input
+                  type="text"
+                  value={addonForm.name}
+                  onChange={e => setAddonForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Ej: Ramo, Letrero Just Married…"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Proveedor (opcional)</label>
+                <input
+                  type="text"
+                  value={addonForm.provider_name}
+                  onChange={e => setAddonForm(f => ({ ...f, provider_name: e.target.value }))}
+                  placeholder="Ej: Lluvia de Rosas"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Descripción (opcional)</label>
+                <input
+                  type="text"
+                  value={addonForm.description}
+                  onChange={e => setAddonForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="Ej: Rosas, lirios, complementos blancos…"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Precio (COP) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1000"
+                    value={addonForm.price || ''}
+                    onChange={e => setAddonForm(f => ({ ...f, price: Number(e.target.value) }))}
+                    placeholder="0"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">% Camino a mi Boda</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={addonForm.company_percentage}
+                    onChange={e => setAddonForm(f => ({ ...f, company_percentage: Number(e.target.value) }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">
+                Proveedor recibe: {formatCOP(Number(addonForm.price || 0) * (100 - addonForm.company_percentage) / 100)}
+                {' · '}Empresa recibe: {formatCOP(Number(addonForm.price || 0) * addonForm.company_percentage / 100)}
+              </p>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addonForm.company_collects_payment}
+                  onChange={e => setAddonForm(f => ({ ...f, company_collects_payment: e.target.checked }))}
+                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                />
+                <span className="text-sm text-gray-700">Camino a mi Boda recibe el pago del cliente por este servicio</span>
+              </label>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => { setAddingAddon(false); setAddonForm(emptyAddonForm); }}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddAddon}
+                  disabled={savingAddon || !addonForm.name.trim() || addonForm.price <= 0}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  {savingAddon ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                  Guardar
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
