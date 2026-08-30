@@ -21,7 +21,11 @@ class TeamInviteResult(BaseModel):
 
 # ── Locations ──────────────────────────────────────────────────────────────────
 
-class LocationBase(BaseModel):
+# Preventive split (no validator exists on any of these fields today) — see
+# customer.py for why a Read schema must never share a base with Create
+# that could grow a raising validator later: a single already-saved value
+# that fails it would break reading every location back, not just that one.
+class LocationFields(BaseModel):
     location_name: str
     location_type: LocationType = LocationType.other
     address: Optional[str] = None
@@ -32,6 +36,10 @@ class LocationBase(BaseModel):
     notes: Optional[str] = None
     road_access_notes: Optional[str] = None
     display_order: int = 0
+
+
+class LocationBase(LocationFields):
+    pass
 
 
 class LocationCreate(LocationBase):
@@ -51,7 +59,7 @@ class LocationUpdate(BaseModel):
     display_order: Optional[int] = None
 
 
-class LocationRead(LocationBase):
+class LocationRead(LocationFields):
     model_config = ConfigDict(from_attributes=True)
     id: int
     timeline_id: int
@@ -101,11 +109,16 @@ class ActivityRead(ActivityBase):
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
 
-class TimelineContactBase(BaseModel):
+# Same preventive split as LocationFields above.
+class TimelineContactFields(BaseModel):
     name: str
     phone: Optional[str] = None
     role: Optional[str] = None
     display_order: int = 0
+
+
+class TimelineContactBase(TimelineContactFields):
+    pass
 
 
 class TimelineContactCreate(TimelineContactBase):
@@ -119,7 +132,7 @@ class TimelineContactUpdate(BaseModel):
     display_order: Optional[int] = None
 
 
-class TimelineContactRead(TimelineContactBase):
+class TimelineContactRead(TimelineContactFields):
     model_config = ConfigDict(from_attributes=True)
     id: int
     timeline_id: int
@@ -150,7 +163,12 @@ def _build_timeline_dict(timeline, locations, activities, contacts, extra_fields
 
 # ── Timeline ───────────────────────────────────────────────────────────────────
 
-class TimelineBase(BaseModel):
+# Same preventive split as LocationFields above — TimelineRead AND
+# TimelinePublic both need this. TimelinePublic in particular backs the
+# unauthenticated GET /api/public/evento/{token} route, so a future
+# validator here breaking on legacy data would be client-visible, not just
+# an internal-tool outage.
+class TimelineFields(BaseModel):
     event_name: str
     event_type: EventType = EventType.wedding
     event_date: date
@@ -161,6 +179,10 @@ class TimelineBase(BaseModel):
     assigned_driver_phone: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
+
+
+class TimelineBase(TimelineFields):
+    pass
 
 
 class TimelineCreate(TimelineBase):
@@ -180,7 +202,7 @@ class TimelineUpdate(BaseModel):
     notes: Optional[str] = None
 
 
-class TimelineRead(TimelineBase):
+class TimelineRead(TimelineFields):
     model_config = ConfigDict(from_attributes=True)
     id: int
     gcal_event_id: Optional[str] = None
@@ -235,7 +257,7 @@ class TimelineList(BaseModel):
 
 # ── Public view (no share tokens exposed) ─────────────────────────────────────
 
-class TimelinePublic(TimelineBase):
+class TimelinePublic(TimelineFields):
     model_config = ConfigDict(from_attributes=True)
     id: int
     planner_name: Optional[str] = None

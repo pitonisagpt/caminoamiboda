@@ -1,47 +1,35 @@
-import re
-import unicodedata
 from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models.driver import DriverStatus
+from app.schemas._validation import validate_phone_or_none
 
 
-def _validate_phone(v: Optional[str]) -> Optional[str]:
-    if v is None:
-        return v
-    # Strip invisible Unicode format marks (e.g. the LRM/RLM direction marks
-    # iOS/WhatsApp wrap around a phone number when you copy it as a detected
-    # link) and fold odd whitespace variants (NBSP, etc.) into regular spaces,
-    # so a pasted number isn't rejected just because of formatting noise.
-    stripped = "".join(ch for ch in v if unicodedata.category(ch) != "Cf")
-    normalized = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", stripped)).strip()
-    if normalized == "":
-        return normalized
-    digit_count = len(re.sub(r"\D", "", normalized))
-    if digit_count < 7 or digit_count > 15:
-        raise ValueError("Número de teléfono inválido")
-    return normalized
-
-
-class DriverBase(BaseModel):
+class DriverFields(BaseModel):
+    """Shared field declarations, with no validation — used as the base for
+    DriverRead so a malformed legacy value already sitting in the database
+    never breaks reading the record back. Validation only applies on
+    writes, in DriverBase/DriverUpdate below. Same pattern as customer.py."""
     full_name: str
     identification_number: Optional[str] = None
     phone: Optional[str] = None
     whatsapp: Optional[str] = None
     whatsapp_username: Optional[str] = None
-
-    @field_validator("phone", "whatsapp", mode="before")
-    @classmethod
-    def validate_phone(cls, v):
-        return _validate_phone(v)
     email: Optional[str] = None
     driver_license_number: Optional[str] = None
     license_expiration_date: Optional[date] = None
     authorized_vehicles: Optional[str] = None
     notes: Optional[str] = None
     status: DriverStatus = DriverStatus.active
+
+
+class DriverBase(DriverFields):
+    @field_validator("phone", "whatsapp", mode="before")
+    @classmethod
+    def validate_phone(cls, v):
+        return validate_phone_or_none(v)
 
 
 class DriverCreate(DriverBase):
@@ -61,8 +49,15 @@ class DriverUpdate(BaseModel):
     notes: Optional[str] = None
     status: Optional[DriverStatus] = None
 
+    # Was previously missing entirely on this schema — same gap that let a
+    # non-phone value get saved on a customer (see customer.py).
+    @field_validator("phone", "whatsapp", mode="before")
+    @classmethod
+    def validate_phone(cls, v):
+        return validate_phone_or_none(v)
 
-class DriverRead(DriverBase):
+
+class DriverRead(DriverFields):
     model_config = ConfigDict(from_attributes=True)
 
     id: int

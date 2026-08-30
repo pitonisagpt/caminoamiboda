@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, field_validator
 
-from app.schemas.customer import _validate_phone
+from app.schemas._validation import validate_phone_or_none
 
 
 class PublicLeadCreate(BaseModel):
@@ -30,7 +30,7 @@ class PublicLeadCreate(BaseModel):
     @field_validator("phone", mode="before")
     @classmethod
     def phone_required(cls, v):
-        normalized = _validate_phone(v)
+        normalized = validate_phone_or_none(v)
         if not normalized:
             raise ValueError("El teléfono es obligatorio")
         return normalized

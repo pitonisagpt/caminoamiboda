@@ -11,7 +11,12 @@ def _empty_str_to_none(v):
     return v or None
 
 
-class BillingDocumentBase(BaseModel):
+class BillingDocumentFields(BaseModel):
+    """Shared field declarations, with no validation — used as the base for
+    BillingDocumentRead so an already-saved value that wouldn't pass the
+    write-time checks below (e.g. a total_amount of 0, saved through a path
+    that didn't validate) never breaks reading the document back. Same
+    pattern as customer.py/driver.py."""
     document_type: DocumentType = DocumentType.formal
     reservation_id: Optional[int] = None
     service_date: date
@@ -37,6 +42,8 @@ class BillingDocumentBase(BaseModel):
     include_no_retencion_declaration: bool = False
     notes: Optional[str] = None
 
+
+class BillingDocumentBase(BillingDocumentFields):
     @field_validator("total_amount")
     @classmethod
     def total_amount_must_be_positive(cls, v: Decimal) -> Decimal:
@@ -65,6 +72,17 @@ class BillingDocumentUpdate(BaseModel):
     @classmethod
     def blank_service_date_end(cls, v):
         return _empty_str_to_none(v)
+
+    # Was previously missing entirely on this schema — a PUT could save
+    # total_amount=0, after which every GET of that document 500'd (same
+    # gap that let a bad customer phone in — see customer.py). Guarded for
+    # None since this field is optional here, unlike on Create.
+    @field_validator("total_amount")
+    @classmethod
+    def total_amount_must_be_positive(cls, v: Optional[Decimal]) -> Optional[Decimal]:
+        if v is not None and v <= 0:
+            raise ValueError("total_amount must be positive")
+        return v
     client_type: Optional[ClientType] = None
     client_name: Optional[str] = None
     client_legal_rep_name: Optional[str] = None
@@ -87,7 +105,7 @@ class BillingDocumentUpdate(BaseModel):
     notes: Optional[str] = None
 
 
-class BillingDocumentRead(BillingDocumentBase):
+class BillingDocumentRead(BillingDocumentFields):
     id: int
     document_number: str
     status: DocumentStatus

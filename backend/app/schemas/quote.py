@@ -7,7 +7,10 @@ from pydantic import BaseModel, ConfigDict
 from app.models.quote import LocationZone, QuoteStatus
 
 
-class QuoteBase(BaseModel):
+# Preventive split (no validator exists on any of these fields today) — see
+# customer.py for why a Read schema must never share a base with Create
+# that could grow a raising validator later.
+class QuoteFields(BaseModel):
     customer_id: Optional[int] = None
     customer_name: Optional[str] = None
     customer_phone: Optional[str] = None
@@ -26,6 +29,10 @@ class QuoteBase(BaseModel):
     extra_hours: int = 0
     addon_package_ids: Optional[list] = None
     addons_total: Decimal = Decimal("0")
+
+
+class QuoteBase(QuoteFields):
+    pass
 
 
 class QuoteCreate(QuoteBase):
@@ -72,7 +79,7 @@ def _build_quote_dict(quote) -> dict:
     return d
 
 
-class QuoteRead(QuoteBase):
+class QuoteRead(QuoteFields):
     id: int
     quote_number: str
     status: QuoteStatus
