@@ -540,9 +540,18 @@ export default function LocationCatalogPage() {
             style={{ height: '100%', width: '100%', minHeight: '480px' }}
             scrollWheelZoom={true}
           >
+            {/* ESRI's free "Light Gray Canvas" (no API key needed) — see
+                EventRouteMap.tsx for why. Two layers: base (roads + street
+                labels) + reference overlay (city/neighborhood labels,
+                transparent PNG). ArcGIS tile path order is {`{z}/{y}/{x}`}. */}
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; <a href="https://www.esri.com">Esri</a>'
+              maxNativeZoom={16}
+            />
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+              maxNativeZoom={16}
             />
             <MapFitter points={visiblePoints} />
             <MapResizer />

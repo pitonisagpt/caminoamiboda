@@ -299,9 +299,21 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
           .leaflet-popup-tip { box-shadow: none !important; }
         `}</style>
         <MapContainer center={defaultCenter} zoom={13} style={{ height: '340px', width: '100%' }} scrollWheelZoom={false}>
+          {/* ESRI's free "Light Gray Canvas" (no API key needed) — a minimal
+              gray base so the colored numbered pins and route line stand
+              out, closest to the CARTO look this map used before CARTO
+              started requiring a key. Ships as two layers: a base (roads +
+              street labels at high zoom) and a reference overlay
+              (city/neighborhood labels, transparent PNG) on top. Note the
+              ArcGIS tile path order is {`{z}/{y}/{x}`}, not {`{z}/{x}/{y}`}. */}
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com">Esri</a>'
+            maxNativeZoom={16}
+          />
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={16}
           />
           <MapFitter points={points} />
 
