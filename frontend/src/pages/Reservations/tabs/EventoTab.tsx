@@ -306,6 +306,11 @@ function LocationModal({ initial, saving, onSave, onClose }: {
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
             <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
+            <p className="text-xs text-gray-400 mt-1">
+              Para ubicar esto en el mapa se usa este link si existe, si no la dirección. Sitios pequeños o
+              privados a veces no aparecen buscando solo la dirección — si queda "Sin ubicar", pega aquí el
+              link de Google Maps del lugar.
+            </p>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
@@ -541,6 +546,16 @@ export default function EventoTab({
       setLocModal({ open: false, editing: null });
       await load();
       notifyGcalSync(res.data.gcal_synced);
+      // Geocoding (address/Maps link -> lat/lng) runs as a backend background
+      // task so this request doesn't block on it (timelines.py's
+      // _background_location_sync, up to ~45s worst case) — the location
+      // just saved above almost always still has lat/lng null in that
+      // reload. Poll a few more times so the map/"Sin ubicar" list picks up
+      // the coordinates on their own, instead of only updating after a full
+      // page refresh (which just happens to land after the task finishes).
+      if (res.data.lat == null || res.data.lng == null) {
+        [3000, 6000, 12000].forEach(delay => setTimeout(load, delay));
+      }
     } catch {
       setLocationError('No se pudo guardar la ubicación, intenta de nuevo.');
     } finally {

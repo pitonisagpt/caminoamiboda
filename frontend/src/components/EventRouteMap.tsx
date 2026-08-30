@@ -366,13 +366,17 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
         </MapContainer>
 
         {unlocated.length > 0 && (
-          <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[220px]">
+          <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[240px]">
             <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
             <ul className="space-y-0.5">
               {unlocated.map(l => (
                 <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.location_name}>• {l.location_name}</li>
               ))}
             </ul>
+            <p className="text-[10px] text-gray-400 mt-1.5 leading-snug">
+              La dirección se busca sola al guardar, pero sitios pequeños no siempre aparecen. Edita la
+              ubicación y pega su link de Google Maps para ubicarla.
+            </p>
           </div>
         )}
       </div>
