@@ -733,7 +733,7 @@ export function CatalogPage() {
                     <span className="ml-auto text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">Google</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">"{r.body}"</p>
+                <p className="text-sm text-gray-600 leading-relaxed">"{r.body.trim()}"</p>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{r.author_name}</p>
                   {r.event_date && (
