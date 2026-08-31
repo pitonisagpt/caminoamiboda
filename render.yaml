@@ -1,6 +1,6 @@
 databases:
   - name: caminoamiboda-db
-    plan: starter      # VERIFICAR slug exacto en el dashboard de Render al crear
+    plan: 0.1c-256mb      # "starter" quedó deprecado para bases nuevas (2026-08) — este es el equivalente actual, mismo tier ~256MB
     region: oregon      # VERIFICAR; debe coincidir con la región del web service
 
 services:
