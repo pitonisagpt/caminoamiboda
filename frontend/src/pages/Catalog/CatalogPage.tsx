@@ -464,7 +464,7 @@ export function CatalogPage() {
         {/* Hero */}
         <div className="text-center py-8">
           <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">
-            {noPricing ? "Producciones y Activaciones" : "Nuestra Flota"}
+            {noPricing ? "Producciones y Activaciones" : "Nuestra Colección"}
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
             {noPricing
