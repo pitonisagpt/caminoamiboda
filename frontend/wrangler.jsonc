@@ -1,0 +1,14 @@
+{
+  // Static-assets-only deploy for Cloudflare Workers (no server-side Worker
+  // script needed — this is a pure Vite/React SPA, the real backend API is
+  // a separate service on Render, not a Cloudflare Worker function).
+  // Explicit config on purpose: wrangler's auto-detection for Vite projects
+  // requires Vite 6+, and this repo is on Vite 5 — bypassing auto-detect
+  // avoids that version gate entirely.
+  "name": "caminoamiboda",
+  "compatibility_date": "2026-08-31",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
