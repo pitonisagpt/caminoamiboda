@@ -87,7 +87,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
             <p className="text-sm text-gray-500 mt-1">
               {initial
                 ? "Corrige los datos y volvemos a calcular el precio estimado de cada carro."
-                : "Déjanos tus datos y desbloquea el precio estimado de cada carro de la flota, según tu fecha."}
+                : "Déjanos tus datos y desbloquea el precio estimado de cada carro de la colección, según tu fecha."}
             </p>
           </div>
 

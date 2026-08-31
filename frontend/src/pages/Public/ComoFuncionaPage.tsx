@@ -10,7 +10,7 @@ const STEPS = [
   {
     icon: Search,
     title: "Explora el catálogo",
-    body: "Mira la flota completa — clásicos, vintage y modernos — y encuentra el carro que se sienta como ustedes.",
+    body: "Mira la colección completa — clásicos, vintage y modernos — y encuentra el carro que se sienta como ustedes.",
     cta: { label: "Ver catálogo", to: "/catalogo" },
   },
   {
