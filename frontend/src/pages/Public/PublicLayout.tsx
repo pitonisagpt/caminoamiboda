@@ -25,7 +25,7 @@ export function PublicLayout() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <Link to="/" className="shrink-0">
             <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
-            <p className="text-xs text-gray-400 mt-0.5">Vehículos clásicos y especiales para tu día</p>
+            <p className="text-xs text-gray-400 mt-0.5">Vehículos clásicos, vintage y modernos para tu día</p>
           </Link>
 
           {/* Desktop nav */}

@@ -16,12 +16,12 @@ const STEPS = [
   {
     icon: MessageCircle,
     title: "Cuéntanos tu fecha y cotiza",
-    body: "Escríbenos por WhatsApp con la fecha de tu boda y el carro que te gustó. Te confirmamos disponibilidad y el valor exacto para tu evento.",
+    body: "Escríbenos por WhatsApp con la fecha de tu boda y los vehículos que te gustaron — puede ser uno o varios, carro o moto. Te confirmamos disponibilidad y el valor exacto para tu evento.",
   },
   {
     icon: CalendarCheck,
     title: "Aparta tu fecha con un anticipo",
-    body: "Con un anticipo, tu fecha queda bloqueada en nuestra agenda — nadie más puede reservar ese carro ese día.",
+    body: "Con un anticipo razonable, tu fecha queda bloqueada en nuestra agenda — nadie más puede reservar ese carro ese día. Te contamos el monto exacto por WhatsApp.",
   },
   {
     icon: FileSignature,
@@ -37,14 +37,16 @@ const STEPS = [
 
 const INCLUDES = [
   "4 horas de servicio con conductor",
-  "El vehículo listo y en perfecto estado el día del evento",
+  "El vehículo listo y en condiciones óptimas el día del evento",
   "Coordinación por minuto a minuto de recogida, ceremonia y recepción",
+  "Peajes y gasolina del recorrido",
+  "Asesoría y recomendación de proveedores aliados para tu evento",
 ];
 
 const FAQS = [
   {
     q: "¿Con cuánta anticipación debo reservar?",
-    a: "Entre más pronto mejor — los carros más pedidos (y las fechas de temporada alta) se apartan con meses de anticipación. Pero escríbenos igual si tu boda es pronto: si el carro que quieres está libre, lo apartamos.",
+    a: "Entre más pronto mejor — los carros más pedidos (y las fechas de temporada alta) se apartan con meses de anticipación; algunas parejas incluso reservan con más de un año antes de su boda. Pero escríbenos igual si tu boda es pronto: si el carro que quieres está libre, lo apartamos.",
   },
   {
     q: "¿Qué pasa si llueve el día del evento?",
@@ -60,7 +62,7 @@ const FAQS = [
   },
   {
     q: "¿Qué zonas cubren?",
-    a: "Medellín, Llanogrande (Rionegro) y El Carmen de Viboral. Si tu evento es en otra zona del oriente antioqueño, escríbenos y lo revisamos.",
+    a: "Todo Antioquia es nuestro objetivo. Hoy cubrimos con más frecuencia Medellín y toda el área metropolitana (Envigado, Bello, Copacabana, Itagüí, Sabaneta, entre otros), el oriente antioqueño (Llanogrande/Rionegro, El Carmen de Viboral, La Ceja, El Retiro, Guarne) y municipios como Santa Fe de Antioquia, Santa Rosa de Osos y Guatapé. Si tu evento es en cualquier otro municipio de Antioquia, escríbenos y lo revisamos — queremos poder acompañarte estés donde estés.",
   },
 ];
 
@@ -128,7 +130,7 @@ export default function ComoFuncionaPage() {
             <div className="flex items-start gap-2 text-sm text-gray-500">
               <XCircle size={16} className="text-gray-300 shrink-0 mt-0.5" />
               <span className="flex items-center flex-wrap gap-x-1.5">
-                Arreglo floral para el vehículo (opcional — te ponemos en contacto con nuestra floristería aliada{florist ? `, ${florist.vendor_name}` : ''}
+                Arreglo floral para el vehículo (opcional — coordinamos directamente con nuestra floristería aliada{florist ? `, ${florist.vendor_name}` : ''} para que sea más fácil para ustedes
                 {florist && (
                   <>
                     :

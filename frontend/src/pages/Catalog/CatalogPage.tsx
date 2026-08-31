@@ -469,7 +469,7 @@ export function CatalogPage() {
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
             {noPricing
               ? "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño — cotización por hora."
-              : "Vehículos clásicos y especiales para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño."}
+              : "Vehículos clásicos, vintage y modernos para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño."}
           </p>
           <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
             <div className="text-center">
