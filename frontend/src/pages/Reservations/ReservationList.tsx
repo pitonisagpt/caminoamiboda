@@ -143,6 +143,19 @@ export default function ReservationList() {
     }, { replace: true });
   }
 
+  // Native <input type="date"> has a known quirk: typing quickly into the
+  // year segment can produce a year outside any sane range (browsers accept
+  // up to 275760, the max representable JS Date) even with min/max set on
+  // the input — the backend correctly 422s that, but we'd rather just
+  // ignore the keystroke than send a value we already know is nonsense.
+  function setDateFilter(key: 'from' | 'to', value: string) {
+    if (value) {
+      const year = Number(value.slice(0, 4));
+      if (!Number.isFinite(year) || year < 1900 || year > 2100) return;
+    }
+    setFilter(key, value);
+  }
+
   function setArrayFilter(key: string, values: string[]) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
@@ -230,6 +243,7 @@ export default function ReservationList() {
       date_to: dateTo || undefined,
     })
       .then(r => setData(r.data))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
@@ -391,15 +405,19 @@ export default function ReservationList() {
         </div>
         <input
           type="date"
+          min="1900-01-01"
+          max="2100-12-31"
           value={dateFrom}
-          onChange={e => setFilter('from', e.target.value)}
+          onChange={e => setDateFilter('from', e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
           title="Desde"
         />
         <input
           type="date"
+          min="1900-01-01"
+          max="2100-12-31"
           value={dateTo}
-          onChange={e => setFilter('to', e.target.value)}
+          onChange={e => setDateFilter('to', e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
           title="Hasta"
         />
