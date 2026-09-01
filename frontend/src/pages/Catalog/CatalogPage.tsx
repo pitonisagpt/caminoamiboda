@@ -470,20 +470,20 @@ export function CatalogPage() {
       <ParallaxHero
         title={noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
         subtitle={noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
-      />
-      <div className="space-y-8">
-        <div className="flex items-center justify-center gap-6 sm:gap-10">
+      >
+        <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustExperienceYears")}</p>
-            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-white drop-shadow">{t("comoFunciona.trustExperienceYears")}</p>
+            <p className="text-xs sm:text-sm text-white/70 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
           </div>
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="w-px h-10 bg-white/30" />
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustEventsCount")}</p>
-            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-white drop-shadow">{t("comoFunciona.trustEventsCount")}</p>
+            <p className="text-xs sm:text-sm text-white/70 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
           </div>
         </div>
-
+      </ParallaxHero>
+      <div className="space-y-8">
         {!noPricing && !unlock && !loading && !error && minPrice !== null && (
           <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
