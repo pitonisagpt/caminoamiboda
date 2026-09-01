@@ -13,6 +13,7 @@ export const es = {
   "nav.opinions": "Opiniones",
   "nav.blog": "Blog",
   "nav.contact": "Contacto",
+  "nav.goToPanel": "Ir al panel",
   "layout.tagline": "Vehículos clásicos, vintage y modernos para tu día",
   "layout.contactUs": "Contáctanos",
   "layout.mobileMenuAria": "Abrir menú",

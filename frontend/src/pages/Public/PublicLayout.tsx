@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { Menu, X, Phone, Mail, Instagram, Languages } from "lucide-react";
+import { Menu, X, Phone, Mail, Instagram, Languages, LayoutDashboard } from "lucide-react";
 import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useLang } from "../../i18n/LanguageContext";
 import { toLangPath } from "../../i18n/langPath";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { useAuth } from "../../context/AuthContext";
 
 const WHATSAPP_NUMBER = "573147372030";
 
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t, lang, setLang } = useLang();
+  const { user, loading } = useAuth();
 
   const NAV_LINKS = [
     { to: toLangPath("/catalogo", lang), label: t("nav.catalog") },
@@ -95,6 +97,16 @@ export function PublicLayout() {
                 {link.label}
               </NavLink>
             ))}
+            {!loading && user && (
+              <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-1.5 text-sm font-medium text-brand-700"
+              >
+                <LayoutDashboard size={15} />
+                {t("nav.goToPanel")}
+              </Link>
+            )}
             <div className="flex items-center justify-between gap-3">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}

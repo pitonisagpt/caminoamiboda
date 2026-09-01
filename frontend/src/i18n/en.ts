@@ -14,6 +14,7 @@ export const en: Record<keyof typeof es, string> = {
   "nav.opinions": "Reviews",
   "nav.blog": "Blog",
   "nav.contact": "Contact",
+  "nav.goToPanel": "Go to panel",
   "layout.tagline": "Classic, vintage and modern cars for your day",
   "layout.contactUs": "Contact us",
   "layout.mobileMenuAria": "Open menu",
