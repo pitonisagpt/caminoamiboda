@@ -2,7 +2,7 @@ import io
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from urllib.parse import quote
 
 import filetype
@@ -96,6 +96,7 @@ class FloristPhotoBatchUpdate(BaseModel):
 class FloristPublicRead(BaseModel):
     vendor_name: str
     description: str
+    description_en: Optional[str] = None
     instagram_url: str
     whatsapp_url: str
     photos: List[FloristPhotoRead]
@@ -105,6 +106,7 @@ class FloristAdminRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     vendor_name: str
     description: str
+    description_en: Optional[str] = None
     whatsapp_number: str
     whatsapp_message: str
     instagram_url: str
@@ -114,6 +116,7 @@ class FloristAdminRead(BaseModel):
 class FloristSettingsUpdate(BaseModel):
     vendor_name: str
     description: str
+    description_en: Optional[str] = None
     whatsapp_number: str
     whatsapp_message: str
     instagram_url: str
@@ -135,6 +138,7 @@ def get_florist_public(db: Session = Depends(get_db)):
     return FloristPublicRead(
         vendor_name=settings.vendor_name,
         description=settings.description,
+        description_en=settings.description_en,
         instagram_url=settings.instagram_url,
         whatsapp_url=_whatsapp_url(settings.whatsapp_number, settings.whatsapp_message),
         photos=[FloristPhotoRead.model_validate(p) for p in photos],

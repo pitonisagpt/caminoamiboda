@@ -5,6 +5,7 @@ export interface Review {
   author_name: string;
   rating: number;
   body: string;
+  body_en?: string | null;
   source: 'google' | 'manual';
   vehicle_id?: number | null;
   is_visible: boolean;
@@ -16,6 +17,7 @@ export interface ReviewForm {
   author_name: string;
   rating: number;
   body: string;
+  body_en?: string | null;
   source: 'google' | 'manual';
   vehicle_id?: number | null;
   is_visible: boolean;

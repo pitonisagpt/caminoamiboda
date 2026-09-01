@@ -3,109 +3,79 @@ import { Link } from "react-router-dom";
 import { Search, MessageCircle, CalendarCheck, FileSignature, Sparkles, CheckCircle2, XCircle, Instagram } from "lucide-react";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useFloristSettings } from "../../hooks/useFloristSettings";
+import { useLang } from "../../i18n/LanguageContext";
+import { HreflangTags } from "../../i18n/HreflangTags";
+import type { TranslationKey } from "../../i18n/es";
 
 const WHATSAPP_NUMBER = "573147372030";
 
-const STEPS = [
-  {
-    icon: Search,
-    title: "Explora el catálogo",
-    body: "Mira la colección completa — clásicos, vintage y modernos — y encuentra el carro que se sienta como ustedes.",
-    cta: { label: "Ver catálogo", to: "/catalogo" },
-  },
-  {
-    icon: MessageCircle,
-    title: "Cuéntanos tu fecha y cotiza",
-    body: "Escríbenos por WhatsApp con la fecha de tu boda y los vehículos que te gustaron — puede ser uno o varios, carro o moto. Te confirmamos disponibilidad y el valor exacto para tu evento.",
-  },
-  {
-    icon: CalendarCheck,
-    title: "Aparta tu fecha con un anticipo",
-    body: "Con un anticipo razonable, tu fecha queda bloqueada en nuestra agenda — nadie más puede reservar ese carro ese día. Te contamos el monto exacto por WhatsApp.",
-  },
-  {
-    icon: FileSignature,
-    title: "Firmamos y coordinamos todo",
-    body: "Firmamos el contrato y armamos el minuto a minuto: horarios, lugares, y cualquier detalle especial que quieras.",
-  },
-  {
-    icon: Sparkles,
-    title: "El gran día",
-    body: "El carro llega listo y puntual, con el conductor asignado — ustedes solo se encargan de disfrutar.",
-  },
+const STEP_ICONS = [Search, MessageCircle, CalendarCheck, FileSignature, Sparkles];
+
+const STEP_KEYS: { titleKey: TranslationKey; bodyKey: TranslationKey; ctaKey?: TranslationKey }[] = [
+  { titleKey: "comoFunciona.step1Title", bodyKey: "comoFunciona.step1Body", ctaKey: "comoFunciona.step1Cta" },
+  { titleKey: "comoFunciona.step2Title", bodyKey: "comoFunciona.step2Body" },
+  { titleKey: "comoFunciona.step3Title", bodyKey: "comoFunciona.step3Body" },
+  { titleKey: "comoFunciona.step4Title", bodyKey: "comoFunciona.step4Body" },
+  { titleKey: "comoFunciona.step5Title", bodyKey: "comoFunciona.step5Body" },
 ];
 
-const INCLUDES = [
-  "4 horas de servicio con conductor",
-  "El vehículo listo y en condiciones óptimas el día del evento",
-  "Coordinación por minuto a minuto de recogida, ceremonia y recepción",
-  "Peajes y gasolina del recorrido",
-  "Asesoría y recomendación de proveedores aliados para tu evento",
+const INCLUDE_KEYS: TranslationKey[] = [
+  "comoFunciona.include1",
+  "comoFunciona.include2",
+  "comoFunciona.include3",
+  "comoFunciona.include4",
+  "comoFunciona.include5",
 ];
 
-const FAQS = [
-  {
-    q: "¿Con cuánta anticipación debo reservar?",
-    a: "Entre más pronto mejor — los carros más pedidos (y las fechas de temporada alta) se apartan con meses de anticipación; algunas parejas incluso reservan con más de un año antes de su boda. Pero escríbenos igual si tu boda es pronto: si el carro que quieres está libre, lo apartamos.",
-  },
-  {
-    q: "¿Qué pasa si llueve el día del evento?",
-    a: "Nuestros carros están preparados para eso — no dejamos que el clima arruine las fotos ni el recorrido.",
-  },
-  {
-    q: "¿Qué pasa si el carro se avería?",
-    a: "Es muy improbable, pero si pasara te ofrecemos dos opciones: lo sustituimos por otro vehículo de características similares, o te devolvemos el valor completo del alquiler.",
-  },
-  {
-    q: "¿Puedo cambiar la fecha de mi boda después de reservar?",
-    a: "Sí. Si el cambio es dentro del mismo año, no tiene costo adicional. Si implica mover el evento a otro año, se aplica un incremento del 10% del valor por cada año — el anticipo nunca se pierde, queda como crédito hasta por tres años.",
-  },
-  {
-    q: "¿Qué zonas cubren?",
-    a: "Todo Antioquia es nuestro objetivo. Hoy cubrimos con más frecuencia Medellín y toda el área metropolitana (Envigado, Bello, Copacabana, Itagüí, Sabaneta, entre otros), el oriente antioqueño (Llanogrande/Rionegro, El Carmen de Viboral, La Ceja, El Retiro, Guarne) y municipios como Santa Fe de Antioquia, Santa Rosa de Osos y Guatapé. Si tu evento es en cualquier otro municipio de Antioquia, escríbenos y lo revisamos — queremos poder acompañarte estés donde estés.",
-  },
+const FAQ_KEYS: { qKey: TranslationKey; aKey: TranslationKey }[] = [
+  { qKey: "comoFunciona.faqQ1", aKey: "comoFunciona.faqA1" },
+  { qKey: "comoFunciona.faqQ2", aKey: "comoFunciona.faqA2" },
+  { qKey: "comoFunciona.faqQ3", aKey: "comoFunciona.faqA3" },
+  { qKey: "comoFunciona.faqQ4", aKey: "comoFunciona.faqA4" },
+  { qKey: "comoFunciona.faqQ5", aKey: "comoFunciona.faqA5" },
 ];
 
 export default function ComoFuncionaPage() {
   const { settings: florist } = useFloristSettings();
+  const { t, lang } = useLang();
+  const catalogPath = lang === "en" ? "/en/catalogo" : "/catalogo";
+  const reservationPolicyPath = lang === "en" ? "/en/politica-de-reservas" : "/politica-de-reservas";
 
   return (
     <div className="max-w-3xl mx-auto space-y-10">
       <Helmet>
-        <title>¿Cómo funciona? | Camino a mi Boda</title>
-        <meta
-          name="description"
-          content="Cómo funciona alquilar un carro clásico con conductor para tu boda: desde elegir el vehículo hasta el día del evento."
-        />
+        <title>{t("comoFunciona.helmetTitle")}</title>
+        <meta name="description" content={t("comoFunciona.helmetDescription")} />
       </Helmet>
+      <HreflangTags path="/como-funciona" />
 
       {/* Hero */}
       <div className="text-center py-4">
-        <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">¿Cómo funciona?</h1>
+        <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">{t("comoFunciona.title")}</h1>
         <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-          Alquilar el carro de tus sueños para tu boda es más sencillo de lo que crees. Así es el proceso, de principio a fin.
+          {t("comoFunciona.subtitle")}
         </p>
       </div>
 
       {/* Steps */}
       <div className="space-y-4">
-        {STEPS.map((step, i) => {
-          const Icon = step.icon;
+        {STEP_KEYS.map((step, i) => {
+          const Icon = STEP_ICONS[i];
           return (
             <div
-              key={step.title}
+              key={step.titleKey}
               className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 sm:p-6 flex gap-4 sm:gap-5 items-start"
             >
               <div className="shrink-0 w-11 h-11 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center">
                 <Icon size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-brand-400 uppercase tracking-wide mb-0.5">Paso {i + 1}</p>
-                <h2 className="text-base font-bold text-gray-900 mb-1">{step.title}</h2>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.body}</p>
-                {step.cta && (
-                  <Link to={step.cta.to} className="inline-block mt-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
-                    {step.cta.label} →
+                <p className="text-xs font-semibold text-brand-400 uppercase tracking-wide mb-0.5">{t("comoFunciona.step")} {i + 1}</p>
+                <h2 className="text-base font-bold text-gray-900 mb-1">{t(step.titleKey)}</h2>
+                <p className="text-sm text-gray-600 leading-relaxed">{t(step.bodyKey)}</p>
+                {step.ctaKey && (
+                  <Link to={catalogPath} className="inline-block mt-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
+                    {t(step.ctaKey)} →
                   </Link>
                 )}
               </div>
@@ -116,13 +86,13 @@ export default function ComoFuncionaPage() {
 
       {/* Includes / not includes */}
       <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 sm:p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Qué incluye tu reserva</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">{t("comoFunciona.includesTitle")}</h2>
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="space-y-2.5">
-            {INCLUDES.map(item => (
-              <div key={item} className="flex items-start gap-2 text-sm text-gray-700">
+            {INCLUDE_KEYS.map(key => (
+              <div key={key} className="flex items-start gap-2 text-sm text-gray-700">
                 <CheckCircle2 size={16} className="text-brand-500 shrink-0 mt-0.5" />
-                <span>{item}</span>
+                <span>{t(key)}</span>
               </div>
             ))}
           </div>
@@ -130,7 +100,7 @@ export default function ComoFuncionaPage() {
             <div className="flex items-start gap-2 text-sm text-gray-500">
               <XCircle size={16} className="text-gray-300 shrink-0 mt-0.5" />
               <span className="flex items-center flex-wrap gap-x-1.5">
-                Arreglo floral para el vehículo (opcional — coordinamos directamente con nuestra floristería aliada{florist ? `, ${florist.vendor_name}` : ''} para que sea más fácil para ustedes
+                {t("comoFunciona.floristIntro")}{florist ? `, ${florist.vendor_name}` : ''} {t("comoFunciona.floristOutro")}
                 {florist && (
                   <>
                     :
@@ -157,9 +127,9 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-5">
-          Detalle completo de nuestras políticas en{" "}
-          <Link to="/politica-de-reservas" className="text-brand-600 hover:underline font-medium">
-            Política de Reservas, Cancelaciones y Cambios
+          {t("comoFunciona.policyIntro")}{" "}
+          <Link to={reservationPolicyPath} className="text-brand-600 hover:underline font-medium">
+            {t("comoFunciona.policyLinkText")}
           </Link>
           .
         </p>
@@ -167,12 +137,12 @@ export default function ComoFuncionaPage() {
 
       {/* FAQ */}
       <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 sm:p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Preguntas frecuentes</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">{t("comoFunciona.faqTitle")}</h2>
         <div className="space-y-5">
-          {FAQS.map(faq => (
-            <div key={faq.q}>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">{faq.q}</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+          {FAQ_KEYS.map(faq => (
+            <div key={faq.qKey}>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">{t(faq.qKey)}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{t(faq.aKey)}</p>
             </div>
           ))}
         </div>
@@ -182,25 +152,25 @@ export default function ComoFuncionaPage() {
       <div className="text-center py-4">
         <div className="flex items-center justify-center gap-6 sm:gap-10 mb-6">
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-brand-600">Desde 2017</p>
-            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Experiencia</p>
+            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustExperienceYears")}</p>
+            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
           </div>
           <div className="w-px h-10 bg-gray-200" />
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-brand-600">+380</p>
-            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Bodas y eventos</p>
+            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustEventsCount")}</p>
+            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
           </div>
         </div>
-        <Link to="/catalogo#opiniones" className="text-sm font-medium text-brand-600 hover:underline">
-          Lee lo que dicen nuestras parejas →
+        <Link to={`${catalogPath}#opiniones`} className="text-sm font-medium text-brand-600 hover:underline">
+          {t("comoFunciona.trustReviewsLink")}
         </Link>
       </div>
 
       {/* Final CTA */}
       <div className="bg-brand-50 rounded-2xl p-6 sm:p-8 text-center space-y-4">
-        <h2 className="text-lg font-bold text-gray-900">¿Lista para dar el siguiente paso?</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t("comoFunciona.finalCtaTitle")}</h2>
         <p className="text-sm text-gray-600 max-w-md mx-auto">
-          Escríbenos con tu fecha y el carro que te gustó — te respondemos con disponibilidad y precio.
+          {t("comoFunciona.finalCtaBody")}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <a
@@ -209,13 +179,13 @@ export default function ComoFuncionaPage() {
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-colors cursor-pointer"
           >
-            Escríbenos por WhatsApp
+            {t("comoFunciona.finalCtaWhatsapp")}
           </a>
           <Link
-            to="/catalogo"
+            to={catalogPath}
             className="w-full sm:w-auto bg-white border border-brand-200 hover:bg-brand-50 text-brand-700 text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
           >
-            Ver catálogo
+            {t("comoFunciona.finalCtaCatalog")}
           </Link>
         </div>
       </div>

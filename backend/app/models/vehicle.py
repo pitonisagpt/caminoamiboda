@@ -84,6 +84,7 @@ class Vehicle(Base):
 
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     bride_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    bride_description_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     photo_urls: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

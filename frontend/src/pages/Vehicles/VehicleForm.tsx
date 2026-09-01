@@ -138,6 +138,7 @@ export function VehicleForm() {
         score_romance: v.score_romance ?? null,
         description: v.description ?? "",
         bride_description: v.bride_description ?? "",
+        bride_description_en: v.bride_description_en ?? "",
         photo_urls: "",
         pyp_day_override: v.pyp_day_override ?? "",
         pyp_valid_from: v.pyp_valid_from ? v.pyp_valid_from.split("T")[0] : "",
@@ -175,6 +176,7 @@ export function VehicleForm() {
         score_romance: data.score_romance ?? null,
         description: data.description || null,
         bride_description: data.bride_description || null,
+        bride_description_en: data.bride_description_en || null,
         pyp_day_override: data.pyp_day_override || null,
         pyp_valid_from: data.pyp_valid_from || null,
         pyp_valid_to: data.pyp_valid_to || null,
@@ -525,14 +527,25 @@ export function VehicleForm() {
       {/* Bride-facing description */}
       <Card>
         <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Descripción para novias</h2></CardHeader>
-        <CardBody>
-          <TextArea
-            label="Descripción inspiradora"
-            {...register("bride_description")}
-            rows={5}
-            placeholder="Lenguaje cálido y cercano: para qué tipo de novia es este carro, qué sienten al verlo, no una ficha técnica..."
-          />
-          <p className="text-xs text-gray-400 mt-1">Esto se muestra en el popup del carro en el catálogo público (/catalogo).</p>
+        <CardBody className="space-y-4">
+          <div>
+            <TextArea
+              label="Descripción inspiradora"
+              {...register("bride_description")}
+              rows={5}
+              placeholder="Lenguaje cálido y cercano: para qué tipo de novia es este carro, qué sienten al verlo, no una ficha técnica..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Esto se muestra en el popup del carro en el catálogo público (/catalogo).</p>
+          </div>
+          <div>
+            <TextArea
+              label="Descripción inspiradora (inglés, opcional)"
+              {...register("bride_description_en")}
+              rows={5}
+              placeholder="Same warm tone, in English — shown to visitors browsing the site in English."
+            />
+            <p className="text-xs text-gray-400 mt-1">Se muestra en /en/catalogo. Si se deja vacío, se usa la descripción en español.</p>
+          </div>
         </CardBody>
       </Card>
 

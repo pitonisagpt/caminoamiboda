@@ -9,6 +9,10 @@ class BlogPostCreate(BaseModel):
     slug: str
     excerpt: Optional[str] = None
     content_md: Optional[str] = None
+    title_en: Optional[str] = None
+    slug_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_md_en: Optional[str] = None
     cover_image_url: Optional[str] = None
     published: bool = False
 
@@ -18,6 +22,10 @@ class BlogPostUpdate(BaseModel):
     slug: Optional[str] = None
     excerpt: Optional[str] = None
     content_md: Optional[str] = None
+    title_en: Optional[str] = None
+    slug_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_md_en: Optional[str] = None
     cover_image_url: Optional[str] = None
     published: Optional[bool] = None
 
@@ -30,6 +38,10 @@ class BlogPostRead(BaseModel):
     slug: str
     excerpt: Optional[str] = None
     content_md: Optional[str] = None
+    title_en: Optional[str] = None
+    slug_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_md_en: Optional[str] = None
     cover_image_url: Optional[str] = None
     published: bool
     published_at: Optional[datetime] = None

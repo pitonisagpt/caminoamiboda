@@ -18,7 +18,7 @@ function StarRating({ value, onChange }: { value: number; onChange?: (v: number)
   );
 }
 
-const EMPTY: ReviewForm = { author_name: '', rating: 5, body: '', source: 'manual', vehicle_id: null, is_visible: true, event_date: null };
+const EMPTY: ReviewForm = { author_name: '', rating: 5, body: '', body_en: '', source: 'manual', vehicle_id: null, is_visible: true, event_date: null };
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -36,7 +36,7 @@ export default function ReviewsPage() {
 
   const openNew = () => { setForm(EMPTY); setEditingId(null); setShowForm(true); };
   const openEdit = (r: Review) => {
-    setForm({ author_name: r.author_name, rating: r.rating, body: r.body, source: r.source, vehicle_id: r.vehicle_id ?? null, is_visible: r.is_visible, event_date: r.event_date ?? null });
+    setForm({ author_name: r.author_name, rating: r.rating, body: r.body, body_en: r.body_en ?? '', source: r.source, vehicle_id: r.vehicle_id ?? null, is_visible: r.is_visible, event_date: r.event_date ?? null });
     setEditingId(r.id);
     setShowForm(true);
   };
@@ -123,6 +123,12 @@ export default function ReviewsPage() {
               <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} rows={3}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                 placeholder="Excelente servicio, el carro llegó puntual y fue el complemento perfecto para nuestra boda..." />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Testimonio (inglés, opcional)</label>
+              <textarea value={form.body_en ?? ''} onChange={e => setForm(f => ({ ...f, body_en: e.target.value }))} rows={3}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                placeholder="Same testimonial, in English — shown on /en/catalogo. Leave blank to fall back to the Spanish text." />
             </div>
             <div className="col-span-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">

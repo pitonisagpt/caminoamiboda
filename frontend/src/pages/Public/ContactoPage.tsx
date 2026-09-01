@@ -6,11 +6,19 @@ import { publicLeadsApi } from "../../api/publicLeads";
 import { Input } from "../../components/ui/Input";
 import { TextArea } from "../../components/ui/TextArea";
 import { Button } from "../../components/ui/Button";
+import { useLang } from "../../i18n/LanguageContext";
+import { HreflangTags } from "../../i18n/HreflangTags";
+import type { TranslationKey } from "../../i18n/es";
 
 const WA_NUMBER = "573147372030";
 
-const FOUND_VIA_OPTIONS = [
-  "Instagram", "Recomendación de amigo/familiar", "Google", "Facebook", "TikTok", "Otro",
+const FOUND_VIA_KEYS: TranslationKey[] = [
+  "contacto.foundViaInstagram",
+  "contacto.foundViaReferral",
+  "contacto.foundViaGoogle",
+  "contacto.foundViaFacebook",
+  "contacto.foundViaTiktok",
+  "contacto.foundViaOther",
 ];
 
 interface FormState {
@@ -39,6 +47,7 @@ function firstValidationMessage(err: unknown): string | null {
 }
 
 export default function ContactoPage() {
+  const { t, lang } = useLang();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -50,13 +59,16 @@ export default function ContactoPage() {
     setForm(f => ({ ...f, [key]: value }));
 
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
-    `Hola! Soy ${form.main_contact_name || ""}, acabo de llenar el formulario de contacto en la pagina. Mi fecha es ${form.wedding_date || "por confirmar"}.`
+    t("contacto.waMessage", {
+      name: form.main_contact_name || "",
+      date: form.wedding_date || t("contacto.waMessageDateFallback"),
+    })
   )}`;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.consent_accepted) {
-      setError("Debes aceptar la política de tratamiento de datos para continuar.");
+      setError(t("contacto.errorConsent"));
       return;
     }
     setSubmitting(true);
@@ -79,11 +91,11 @@ export default function ContactoPage() {
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 429) {
-        setError("Demasiados intentos. Espera un minuto e intenta de nuevo.");
+        setError(t("contacto.errorRateLimit"));
       } else if (status === 422) {
-        setError(firstValidationMessage(err) ?? "Revisa los datos del formulario e intenta de nuevo.");
+        setError(firstValidationMessage(err) ?? t("contacto.errorValidationFallback"));
       } else {
-        setError("Ocurrió un error enviando el formulario. Escríbenos directo por WhatsApp mientras lo resolvemos.");
+        setError(t("contacto.errorGeneric"));
       }
     } finally {
       setSubmitting(false);
@@ -93,18 +105,19 @@ export default function ContactoPage() {
   return (
     <div className="max-w-lg mx-auto">
       <Helmet>
-        <title>Contáctanos | Camino a mi Boda</title>
-        <meta name="description" content="Cuéntanos de tu boda o evento y te contactamos con disponibilidad y precios de nuestros vehículos clásicos y modernos en Medellín." />
-        <meta property="og:title" content="Contáctanos | Camino a mi Boda" />
+        <title>{t("contacto.helmetTitle")}</title>
+        <meta name="description" content={t("contacto.helmetDescription")} />
+        <meta property="og:title" content={t("contacto.helmetTitle")} />
         <meta property="og:type" content="website" />
       </Helmet>
+      <HreflangTags path="/contacto" />
       {submitted ? (
           <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 text-center space-y-4">
             <Heart className="w-10 h-10 text-brand-400 mx-auto" />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">¡Gracias por escribirnos!</h1>
+              <h1 className="text-lg font-bold text-gray-900">{t("contacto.successTitle")}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                Ya recibimos tus datos. Te contactaremos pronto — o si prefieres, escríbenos ya mismo por WhatsApp.
+                {t("contacto.successBody")}
               </p>
             </div>
             <a
@@ -114,83 +127,83 @@ export default function ContactoPage() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <MessageCircle size={18} />
-              Chatea con nosotros ahora
+              {t("contacto.successWhatsapp")}
             </a>
           </div>
         ) : (
           <>
             <div className="mb-5">
-              <h1 className="text-xl font-bold text-gray-900">Cuéntanos de tu evento</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t("contacto.title")}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                Déjanos tus datos y te contactamos con disponibilidad y precios.
+                {t("contacto.subtitle")}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-4">
               <Input
-                label="Nombre de contacto"
+                label={t("contacto.labelName")}
                 required
                 value={form.main_contact_name}
                 onChange={e => set("main_contact_name", e.target.value)}
-                placeholder="¿Cómo te llamas?"
+                placeholder={t("contacto.placeholderName")}
               />
               <Input
-                label="Teléfono / WhatsApp"
+                label={t("contacto.labelPhone")}
                 type="tel"
                 required
                 value={form.phone}
                 onChange={e => set("phone", e.target.value)}
-                placeholder="300 000 0000"
+                placeholder={t("contacto.placeholderPhone")}
               />
               <Input
-                label="Email"
+                label={t("contacto.labelEmail")}
                 type="email"
                 value={form.email}
                 onChange={e => set("email", e.target.value)}
-                placeholder="tu@correo.com"
+                placeholder={t("contacto.placeholderEmail")}
               />
               <Input
-                label="Fecha del evento"
+                label={t("contacto.labelDate")}
                 type="date"
                 value={form.wedding_date}
                 onChange={e => set("wedding_date", e.target.value)}
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Novia"
+                  label={t("contacto.labelBride")}
                   value={form.bride_name}
                   onChange={e => set("bride_name", e.target.value)}
-                  placeholder="Opcional"
+                  placeholder={t("contacto.placeholderOptional")}
                 />
                 <Input
-                  label="Novio"
+                  label={t("contacto.labelGroom")}
                   value={form.groom_name}
                   onChange={e => set("groom_name", e.target.value)}
-                  placeholder="Opcional"
+                  placeholder={t("contacto.placeholderOptional")}
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label htmlFor="found_via" className="text-sm font-medium text-gray-700">¿Cómo nos encontraste?</label>
+                <label htmlFor="found_via" className="text-sm font-medium text-gray-700">{t("contacto.labelFoundVia")}</label>
                 <select
                   id="found_via"
                   value={form.found_via}
                   onChange={e => set("found_via", e.target.value)}
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-400"
                 >
-                  <option value="">Seleccionar...</option>
-                  {FOUND_VIA_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  <option value="">{t("contacto.selectPlaceholder")}</option>
+                  {FOUND_VIA_KEYS.map(key => <option key={key} value={t(key)}>{t(key)}</option>)}
                 </select>
               </div>
               <TextArea
-                label="Mensaje"
+                label={t("contacto.labelMessage")}
                 value={form.message}
                 onChange={e => set("message", e.target.value)}
-                placeholder="Cuéntanos qué tienes en mente (opcional)"
+                placeholder={t("contacto.placeholderMessage")}
               />
 
               {/* Honeypot — hidden from real users, off-screen (not display:none) */}
               <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-                <label htmlFor="hp_website">Sitio web</label>
+                <label htmlFor="hp_website">{t("contacto.honeypotLabel")}</label>
                 <input
                   id="hp_website"
                   name="hp_website"
@@ -210,9 +223,9 @@ export default function ContactoPage() {
                   className="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-400"
                 />
                 <span>
-                  Acepto la{" "}
-                  <Link to="/politica-de-datos" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
-                    política de tratamiento de datos personales
+                  {t("contacto.consentText")}{" "}
+                  <Link to={lang === "en" ? "/en/politica-de-datos" : "/politica-de-datos"} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
+                    {t("contacto.consentLinkText")}
                   </Link>.
                 </span>
               </label>
@@ -220,16 +233,16 @@ export default function ContactoPage() {
               {error && (
                 <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                   {error}
-                  {error.startsWith("Ocurrió un error") && (
+                  {error === t("contacto.errorGeneric") && (
                     <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block mt-1 font-medium text-green-600 hover:underline">
-                      Escríbenos por WhatsApp →
+                      {t("contacto.errorWhatsappLink")}
                     </a>
                   )}
                 </div>
               )}
 
               <Button type="submit" size="lg" className="w-full" disabled={submitting} loading={submitting}>
-                Enviar
+                {t("contacto.submit")}
               </Button>
             </form>
           </>

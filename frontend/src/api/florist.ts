@@ -14,6 +14,7 @@ export interface FloristPhoto {
 export interface FloristPublic {
   vendor_name: string;
   description: string;
+  description_en?: string | null;
   instagram_url: string;
   whatsapp_url: string;
   photos: FloristPhoto[];
@@ -22,6 +23,7 @@ export interface FloristPublic {
 export interface FloristAdmin {
   vendor_name: string;
   description: string;
+  description_en?: string | null;
   whatsapp_number: string;
   whatsapp_message: string;
   instagram_url: string;
@@ -31,6 +33,7 @@ export interface FloristAdmin {
 export interface FloristSettingsForm {
   vendor_name: string;
   description: string;
+  description_en?: string | null;
   whatsapp_number: string;
   whatsapp_message: string;
   instagram_url: string;

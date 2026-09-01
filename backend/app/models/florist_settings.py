@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,6 +13,7 @@ class FloristSettings(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     vendor_name: Mapped[str] = mapped_column(String(120), default="Lluvia de Rosas")
     description: Mapped[str] = mapped_column(Text)
+    description_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     whatsapp_number: Mapped[str] = mapped_column(String(20))
     whatsapp_message: Mapped[str] = mapped_column(Text)
     instagram_url: Mapped[str] = mapped_column(String(255))

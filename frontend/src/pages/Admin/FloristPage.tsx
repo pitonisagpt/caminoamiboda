@@ -17,6 +17,7 @@ export default function FloristPage() {
       setForm({
         vendor_name: r.data.vendor_name,
         description: r.data.description,
+        description_en: r.data.description_en ?? '',
         whatsapp_number: r.data.whatsapp_number,
         whatsapp_message: r.data.whatsapp_message,
         instagram_url: r.data.instagram_url,
@@ -129,6 +130,12 @@ export default function FloristPage() {
             <label className="block text-xs font-medium text-gray-600 mb-1">Texto de la sección</label>
             <textarea value={form.description} onChange={e => setForm(f => f && ({ ...f, description: e.target.value }))} rows={5}
               className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Texto de la sección (inglés, opcional)</label>
+            <textarea value={form.description_en ?? ''} onChange={e => setForm(f => f && ({ ...f, description_en: e.target.value }))} rows={5}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              placeholder="Same section text, in English — shown on the English site. Leave blank to fall back to the Spanish text." />
           </div>
         </div>
         <div className="flex justify-end">

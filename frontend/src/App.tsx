@@ -49,6 +49,21 @@ import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
 import ReviewsPage from "./pages/Admin/ReviewsPage";
 import FloristPage from "./pages/Admin/FloristPage";
 import { timelinesApi } from "./api/timelines";
+import { LanguageProvider } from "./i18n/LanguageContext";
+
+// The public site's routes, listed once and mounted twice below (bare
+// Spanish paths + under /en) so a new public page only needs adding here,
+// never duplicated by hand for the English tree.
+const PUBLIC_SITE_ROUTES: { path: string; element: JSX.Element }[] = [
+  { path: "catalogo", element: <CatalogPage /> },
+  { path: "como-funciona", element: <ComoFuncionaPage /> },
+  { path: "blog", element: <BlogListPage /> },
+  { path: "blog/:slug", element: <BlogPostPage /> },
+  { path: "contacto", element: <ContactoPage /> },
+  { path: "politica-de-datos", element: <PoliticaDatosPage /> },
+  { path: "politica-de-reservas", element: <PoliticaReservasPage /> },
+  { path: "*", element: <NotFoundPage /> },
+];
 
 // The Dashboard is finance-heavy and fully admin-only on the backend — a
 // non-admin landing on "/" would just see every widget fail with a 403.
@@ -80,16 +95,18 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public site — no auth, shared header/footer */}
-          <Route element={<PublicLayout />}>
-            <Route path="catalogo" element={<CatalogPage />} />
-            <Route path="como-funciona" element={<ComoFuncionaPage />} />
-            <Route path="blog" element={<BlogListPage />} />
-            <Route path="blog/:slug" element={<BlogPostPage />} />
-            <Route path="contacto" element={<ContactoPage />} />
-            <Route path="politica-de-datos" element={<PoliticaDatosPage />} />
-            <Route path="politica-de-reservas" element={<PoliticaReservasPage />} />
-            <Route path="*" element={<NotFoundPage />} />
+          {/* Public site — no auth, shared header/footer. Spanish on the
+              unchanged bare paths, English mirrored under /en — see
+              PUBLIC_SITE_ROUTES above. */}
+          <Route element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
+            {PUBLIC_SITE_ROUTES.map(r => (
+              <Route key={`es-${r.path}`} path={r.path} element={r.element} />
+            ))}
+          </Route>
+          <Route path="en" element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
+            {PUBLIC_SITE_ROUTES.map(r => (
+              <Route key={`en-${r.path}`} path={r.path} element={r.element} />
+            ))}
           </Route>
 
           {/* Public event view — no auth, no site chrome (private per-event tool) */}

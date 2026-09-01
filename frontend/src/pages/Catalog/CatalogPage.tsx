@@ -27,6 +27,9 @@ import {
   FilterSection,
   Pill,
 } from "../../components/vehicleFilterKit";
+import { useLang } from "../../i18n/LanguageContext";
+import { HreflangTags } from "../../i18n/HreflangTags";
+import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY } from "../../i18n/catalogLabels";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 type SortKey = "default" | "year" | "price_asc" | "price_desc";
@@ -71,23 +74,24 @@ function FilterPanel({
   availableBrands: string[];
   noPricing?: boolean;
 }) {
+  const { t } = useLang();
   const set = (patch: Partial<Filters>) => setFilters({ ...filters, ...patch });
 
   return (
     <div>
       {/* Tipo */}
-      <FilterSection title="Tipo" active={filters.type !== "all"}>
+      <FilterSection title={t("catalog.filterType")} active={filters.type !== "all"}>
         <div className="flex flex-wrap gap-1.5">
-          {(["all", "car", "motorcycle"] as const).map(t => (
-            <Pill key={t} active={filters.type === t} onClick={() => set({ type: t })}>
-              {t === "all" ? "Todos" : t === "car" ? "Carros" : "Motos"}
+          {(["all", "car", "motorcycle"] as const).map(ty => (
+            <Pill key={ty} active={filters.type === ty} onClick={() => set({ type: ty })}>
+              {ty === "all" ? t("catalog.filterTypeAll") : ty === "car" ? t("catalog.filterTypeCar") : t("catalog.filterTypeMoto")}
             </Pill>
           ))}
         </div>
       </FilterSection>
 
       {/* Marca */}
-      <FilterSection title="Marca" active={filters.brands.length > 0}>
+      <FilterSection title={t("catalog.filterBrand")} active={filters.brands.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {availableBrands.map(b => (
             <Pill key={b} active={filters.brands.includes(b)} onClick={() => set({ brands: toggleItem(filters.brands, b) })}>
@@ -98,7 +102,7 @@ function FilterPanel({
       </FilterSection>
 
       {/* Color */}
-      <FilterSection title="Color" active={filters.colors.length > 0}>
+      <FilterSection title={t("catalog.filterColor")} active={filters.colors.length > 0}>
         <div className="flex flex-wrap gap-2">
           {COLOR_ORDER.map(color => {
             const selected = filters.colors.includes(color);
@@ -127,7 +131,7 @@ function FilterPanel({
       </FilterSection>
 
       {/* Décadas */}
-      <FilterSection title="Década" active={filters.decades.length > 0}>
+      <FilterSection title={t("catalog.filterDecade")} active={filters.decades.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {DECADE_OPTIONS.map(d => (
             <Pill key={d.value} active={filters.decades.includes(d.value)} onClick={() => set({ decades: toggleItem(filters.decades, d.value) })}>
@@ -138,29 +142,29 @@ function FilterPanel({
       </FilterSection>
 
       {/* Carrocería */}
-      <FilterSection title="Carrocería" active={filters.bodyTypes.length > 0}>
+      <FilterSection title={t("catalog.filterBodyType")} active={filters.bodyTypes.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {BODY_TYPE_OPTIONS.map(bt => (
             <Pill key={bt} active={filters.bodyTypes.includes(bt)} onClick={() => set({ bodyTypes: toggleItem(filters.bodyTypes, bt) })}>
-              {bt}
+              {BODY_TYPE_LABEL_KEY[bt] ? t(BODY_TYPE_LABEL_KEY[bt]) : bt}
             </Pill>
           ))}
         </div>
       </FilterSection>
 
       {/* Categoría */}
-      <FilterSection title="Categoría" active={filters.categories.length > 0}>
+      <FilterSection title={t("catalog.filterCategory")} active={filters.categories.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {CATEGORY_OPTIONS.map(c => (
             <Pill key={c.value} active={filters.categories.includes(c.value)} onClick={() => set({ categories: toggleItem(filters.categories, c.value) })}>
-              {c.label}
+              {t(CATEGORY_LABEL_KEY[c.value])}
             </Pill>
           ))}
         </div>
       </FilterSection>
 
       {/* Pasajeros */}
-      <FilterSection title="Pasajeros" active={filters.capacities.length > 0}>
+      <FilterSection title={t("catalog.filterCapacity")} active={filters.capacities.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {CAPACITY_OPTIONS.map(c => (
             <Pill key={c} active={filters.capacities.includes(c)} onClick={() => set({ capacities: toggleItem(filters.capacities, c) })}>
@@ -174,11 +178,11 @@ function FilterPanel({
       </FilterSection>
 
       {/* Ubicación */}
-      <FilterSection title="Ubicación" active={filters.locations.length > 0}>
+      <FilterSection title={t("catalog.filterLocation")} active={filters.locations.length > 0}>
         <div className="flex flex-wrap gap-1.5">
           {LOCATION_OPTIONS.map(loc => (
             <Pill key={loc.value} active={filters.locations.includes(loc.value)} onClick={() => set({ locations: toggleItem(filters.locations, loc.value) })}>
-              {loc.label}
+              {t(LOCATION_LABEL_KEY[loc.value])}
             </Pill>
           ))}
         </div>
@@ -187,11 +191,11 @@ function FilterPanel({
       {/* Precio — sin sentido en el catálogo de producciones/activaciones,
           que se cotiza aparte por hora */}
       {!noPricing && (
-        <FilterSection title="Precio (COP)" active={!!filters.priceMin || !!filters.priceMax}>
+        <FilterSection title={t("catalog.filterPrice")} active={!!filters.priceMin || !!filters.priceMax}>
           <div className="flex items-center gap-2">
             <input
               type="number"
-              placeholder="Desde"
+              placeholder={t("catalog.priceFromPlaceholder")}
               value={filters.priceMin}
               onChange={e => set({ priceMin: e.target.value })}
               className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -199,7 +203,7 @@ function FilterPanel({
             <span className="text-gray-300 text-xs shrink-0">–</span>
             <input
               type="number"
-              placeholder="Hasta"
+              placeholder={t("catalog.priceToPlaceholder")}
               value={filters.priceMax}
               onChange={e => set({ priceMax: e.target.value })}
               className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -234,6 +238,7 @@ export function CatalogPage() {
   const [unlock, setUnlockState] = useState<PriceUnlock | null>(() => getUnlock());
   const [gateOpen, setGateOpen] = useState(false);
   const location = useLocation();
+  const { t, lang, pickLocalized } = useLang();
 
   const effectivePrice = (v: PublicVehicleListItem, locations: string[]): number | null => {
     const base = vehiclePrice(v, locations);
@@ -442,44 +447,43 @@ export function CatalogPage() {
       <Helmet>
         {noPricing ? (
           <>
-            <title>Vehículos para Producciones Audiovisuales y Activaciones de Marca | Camino a mi Boda</title>
-            <meta name="description" content="Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño. Cotización por hora." />
-            <meta property="og:title" content="Vehículos para Producciones Audiovisuales y Activaciones de Marca | Camino a mi Boda" />
-            <meta property="og:description" content="Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca." />
+            <title>{t("catalog.helmetTitleProductions")}</title>
+            <meta name="description" content={t("catalog.helmetDescriptionProductions")} />
+            <meta property="og:title" content={t("catalog.helmetTitleProductions")} />
+            <meta property="og:description" content={t("catalog.helmetDescriptionProductions")} />
             <meta property="og:type" content="website" />
             <meta property="og:image" content="/favicon.png" />
           </>
         ) : (
           <>
-            <title>Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda</title>
-            <meta name="description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
-            <meta property="og:title" content="Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda" />
-            <meta property="og:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño." />
+            <title>{t("catalog.helmetTitleWeddings")}</title>
+            <meta name="description" content={t("catalog.helmetDescriptionWeddings")} />
+            <meta property="og:title" content={t("catalog.helmetTitleWeddings")} />
+            <meta property="og:description" content={t("catalog.helmetDescriptionWeddings")} />
             <meta property="og:type" content="website" />
             <meta property="og:image" content="/favicon.png" />
           </>
         )}
       </Helmet>
+      <HreflangTags path="/catalogo" />
       <div className="space-y-8">
         {/* Hero */}
         <div className="text-center py-8">
           <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">
-            {noPricing ? "Producciones y Activaciones" : "Nuestra Colección"}
+            {noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-            {noPricing
-              ? "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño — cotización por hora."
-              : "Vehículos clásicos, vintage y modernos para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño."}
+            {noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
           </p>
           <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-brand-600">Desde 2017</p>
-              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Experiencia</p>
+              <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustExperienceYears")}</p>
+              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
             </div>
             <div className="w-px h-10 bg-gray-200" />
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-brand-600">+380</p>
-              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">Bodas y eventos</p>
+              <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustEventsCount")}</p>
+              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
             </div>
           </div>
         </div>
@@ -487,14 +491,14 @@ export function CatalogPage() {
         {!noPricing && !unlock && !loading && !error && minPrice !== null && (
           <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
-              <p className="text-sm font-semibold text-gray-900">Carros desde {formatCOP(minPrice)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cuéntanos tu fecha para ver el precio estimado de cada vehículo.</p>
+              <p className="text-sm font-semibold text-gray-900">{t("catalog.priceFrom", { price: formatCOP(minPrice) })}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t("catalog.priceFromHint")}</p>
             </div>
             <button
               onClick={() => setGateOpen(true)}
               className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
             >
-              Ver precios
+              {t("catalog.seePrices")}
             </button>
           </div>
         )}
@@ -503,23 +507,23 @@ export function CatalogPage() {
           <div className="flex items-center justify-between gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-2.5 text-sm">
             <div>
               <span className="text-gray-700 font-medium">
-                Precios estimados para el{" "}
-                {new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" })}
+                {t("catalog.estimatedPricesFor")}{" "}
+                {new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString(lang === "en" ? "en-US" : "es-CO", { day: "numeric", month: "long", year: "numeric" })}
               </span>
-              <p className="text-xs text-gray-500 mt-0.5">El valor final depende del recorrido — vías largas o de difícil acceso (como Guatapé o El Carmen de Viboral) pueden tener un costo adicional. Escríbenos y te lo confirmamos en minutos. También cubrimos otras zonas — Santa Fe de Antioquia, otros pueblos del oriente y más — pregúntanos por la tuya.</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t("catalog.priceHint")}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setGateOpen(true)}
                 className="text-brand-700 hover:text-brand-800 font-semibold cursor-pointer"
               >
-                Cambiar fecha
+                {t("catalog.changeDate")}
               </button>
               <button
                 onClick={() => { clearUnlock(); setUnlockState(null); }}
                 className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer"
               >
-                Eliminar fecha
+                {t("catalog.removeDate")}
               </button>
             </div>
           </div>
@@ -533,7 +537,7 @@ export function CatalogPage() {
 
         {!loading && error && (
           <div className="text-center py-20 text-gray-500">
-            <p>No se pudo cargar el catálogo. Intenta más tarde.</p>
+            <p>{t("catalog.loadError")}</p>
           </div>
         )}
 
@@ -566,7 +570,7 @@ export function CatalogPage() {
                   type="text"
                   value={filters.search}
                   onChange={e => setFilters({ ...filters, search: e.target.value })}
-                  placeholder="Buscar por marca, modelo, color, año..."
+                  placeholder={t("catalog.searchPlaceholder")}
                   className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 {filters.search && (
@@ -582,13 +586,13 @@ export function CatalogPage() {
               {/* Top bar */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-sm text-gray-400">
-                  {filtered.length} vehículo{filtered.length !== 1 ? "s" : ""}
+                  {filtered.length} {filtered.length !== 1 ? t("catalog.vehicleCountOther") : t("catalog.vehicleCountOne")}
                   {activeFilterCount > 0 && (
                     <button
                       onClick={clearAll}
                       className="ml-2 text-brand-700 hover:text-brand-800 cursor-pointer underline text-xs hidden md:inline"
                     >
-                      Limpiar filtros
+                      {t("catalog.clearFilters")}
                     </button>
                   )}
                 </p>
@@ -597,19 +601,19 @@ export function CatalogPage() {
                   onChange={e => setSort(e.target.value as SortKey)}
                   className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
                 >
-                  <option value="default">Predeterminado</option>
-                  <option value="year">Más antiguo primero</option>
-                  {!noPricing && <option value="price_asc">Precio: menor a mayor</option>}
-                  {!noPricing && <option value="price_desc">Precio: mayor a menor</option>}
+                  <option value="default">{t("catalog.sortDefault")}</option>
+                  <option value="year">{t("catalog.sortOldest")}</option>
+                  {!noPricing && <option value="price_asc">{t("catalog.sortPriceAsc")}</option>}
+                  {!noPricing && <option value="price_desc">{t("catalog.sortPriceDesc")}</option>}
                 </select>
               </div>
 
               {/* Empty state */}
               {filtered.length === 0 && (
                 <div className="text-center py-16 text-gray-400 space-y-3">
-                  <p className="text-lg">No se encontraron vehículos con esos filtros.</p>
+                  <p className="text-lg">{t("catalog.emptyState")}</p>
                   <button onClick={clearAll} className="text-brand-700 hover:text-brand-800 text-sm underline cursor-pointer">
-                    Ver todos los vehículos
+                    {t("catalog.seeAll")}
                   </button>
                 </div>
               )}
@@ -642,7 +646,7 @@ export function CatalogPage() {
             className="flex items-center gap-2 bg-brand-500 text-white text-sm font-semibold px-5 py-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors cursor-pointer"
           >
             <SlidersHorizontal size={16} />
-            Filtros
+            {t("catalog.filters")}
             {activeFilterCount > 0 && (
               <span className="bg-white text-brand-700 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                 {activeFilterCount}
@@ -664,11 +668,11 @@ export function CatalogPage() {
           <div className="relative bg-white rounded-t-2xl max-h-[85vh] flex flex-col">
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <p className="font-semibold text-gray-900">Filtros</p>
+              <p className="font-semibold text-gray-900">{t("catalog.filters")}</p>
               <div className="flex items-center gap-3">
                 {activeFilterCount > 0 && (
                   <button onClick={clearAll} className="text-sm text-brand-700 cursor-pointer">
-                    Limpiar todo
+                    {t("catalog.clear")}
                   </button>
                 )}
                 <button
@@ -689,7 +693,7 @@ export function CatalogPage() {
                 onClick={() => setMobileDrawerOpen(false)}
                 className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer"
               >
-                Ver {filtered.length} vehículo{filtered.length !== 1 ? "s" : ""}
+                {t("catalog.seeVehicles", { count: filtered.length, plural: filtered.length !== 1 ? "s" : "" })}
               </button>
             </div>
           </div>
@@ -720,7 +724,7 @@ export function CatalogPage() {
       {/* Reviews section */}
       {reviews.length > 0 && (
         <div id="opiniones" className="mt-16 space-y-6 scroll-mt-24">
-          <h2 className="text-2xl font-brand text-brand-500 text-center">Lo que dicen nuestros clientes</h2>
+          <h2 className="text-2xl font-brand text-brand-500 text-center">{t("catalog.reviewsTitle")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map(r => (
               <div key={r.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
@@ -733,11 +737,11 @@ export function CatalogPage() {
                     <span className="ml-auto text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">Google</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">"{r.body.trim()}"</p>
+                <p className="text-sm text-gray-600 leading-relaxed">"{pickLocalized(r.body, r.body_en).trim()}"</p>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{r.author_name}</p>
                   {r.event_date && (
-                    <p className="text-xs text-gray-400">{new Date(r.event_date + 'T12:00:00').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p>
+                    <p className="text-xs text-gray-400">{new Date(r.event_date + 'T12:00:00').toLocaleDateString(lang === "en" ? "en-US" : 'es-CO', { month: 'long', year: 'numeric' })}</p>
                   )}
                 </div>
               </div>

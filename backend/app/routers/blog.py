@@ -1,8 +1,9 @@
 import re
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -34,15 +35,14 @@ def _get_or_404(post_id: int, db: Session) -> BlogPost:
 
 
 @router.get("", response_model=List[BlogPostRead])
-def list_posts(db: Session = Depends(get_db)):
+def list_posts(lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """Public list — published posts only. See list_all_posts for the admin
-    view (drafts included)."""
-    return (
-        db.query(BlogPost)
-        .filter(BlogPost.published == True)  # noqa: E712
-        .order_by(BlogPost.published_at.desc())
-        .all()
-    )
+    view (drafts included). lang="en" additionally excludes posts that have
+    no English translation yet, rather than showing a half-English card."""
+    q = db.query(BlogPost).filter(BlogPost.published == True)  # noqa: E712
+    if lang == "en":
+        q = q.filter(BlogPost.title_en.isnot(None), BlogPost.content_md_en.isnot(None))
+    return q.order_by(BlogPost.published_at.desc()).all()
 
 
 # Must be declared before /{slug} — otherwise FastAPI would match
@@ -54,8 +54,16 @@ def list_all_posts(db: Session = Depends(get_db)):
 
 
 @router.get("/{slug}", response_model=BlogPostRead)
-def get_post(slug: str, db: Session = Depends(get_db)):
-    post = db.query(BlogPost).filter(BlogPost.slug == slug, BlogPost.published == True).first()  # noqa: E712
+def get_post(slug: str, lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    q = db.query(BlogPost).filter(BlogPost.published == True)  # noqa: E712
+    if lang == "en":
+        # Accept either the English slug or a fallback hit on the Spanish
+        # slug (e.g. a shared /en/blog/:slug link for a post with no
+        # translation yet) — the frontend renders a "only in Spanish"
+        # banner in that case instead of a 404.
+        post = q.filter(or_(BlogPost.slug_en == slug, BlogPost.slug == slug)).first()
+    else:
+        post = q.filter(BlogPost.slug == slug).first()
     if not post:
         raise HTTPException(404, "Artículo no encontrado")
     return post
@@ -66,7 +74,10 @@ def create_post(data: BlogPostCreate, db: Session = Depends(get_db)):
     slug = data.slug or _slugify(data.title)
     if db.query(BlogPost).filter(BlogPost.slug == slug).first():
         raise HTTPException(400, f"Slug '{slug}' ya existe")
-    post = BlogPost(**data.model_dump(exclude={'slug'}), slug=slug)
+    slug_en = data.slug_en or (_slugify(data.title_en) if data.title_en else None)
+    if slug_en and db.query(BlogPost).filter(BlogPost.slug_en == slug_en).first():
+        raise HTTPException(400, f"Slug en inglés '{slug_en}' ya existe")
+    post = BlogPost(**data.model_dump(exclude={'slug', 'slug_en'}), slug=slug, slug_en=slug_en)
     if post.published and not post.published_at:
         post.published_at = datetime.now(timezone.utc)
     db.add(post)

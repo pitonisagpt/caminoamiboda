@@ -48,6 +48,7 @@ export interface VehicleListItem {
   allowed_locations: string[] | null;
   available_for: VehicleUseCase[] | null;
   bride_description: string | null;
+  bride_description_en: string | null;
   photos: VehiclePhoto[];
 }
 
@@ -83,6 +84,7 @@ export interface PublicVehicleListItem {
   allowed_locations: string[] | null;
   available_for: VehicleUseCase[] | null;
   bride_description: string | null;
+  bride_description_en: string | null;
   photos: VehiclePhoto[];
 }
 
@@ -120,6 +122,7 @@ export interface VehicleFormData {
   score_romance: number | null;
   description: string;
   bride_description: string;
+  bride_description_en: string;
   photo_urls: string; // kept for form register compatibility, not submitted
   pyp_day_override: string;
   pyp_valid_from: string;

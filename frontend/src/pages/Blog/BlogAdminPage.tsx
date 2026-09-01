@@ -5,7 +5,9 @@ import { Plus, Edit, Trash2, Eye, EyeOff, X, BookOpen, ExternalLink } from 'luci
 import { blogApi, type BlogPost, type BlogPostForm } from '../../api/blog';
 
 const EMPTY_FORM: BlogPostForm = {
-  title: '', slug: '', excerpt: '', content_md: '', cover_image_url: '', published: false,
+  title: '', slug: '', excerpt: '', content_md: '',
+  title_en: '', slug_en: '', excerpt_en: '', content_md_en: '',
+  cover_image_url: '', published: false,
 };
 
 function slugify(text: string): string {
@@ -37,6 +39,8 @@ export default function BlogAdminPage() {
     setForm({
       title: post.title, slug: post.slug,
       excerpt: post.excerpt ?? '', content_md: post.content_md ?? '',
+      title_en: post.title_en ?? '', slug_en: post.slug_en ?? '',
+      excerpt_en: post.excerpt_en ?? '', content_md_en: post.content_md_en ?? '',
       cover_image_url: post.cover_image_url ?? '', published: post.published,
     });
     setModal({ open: true, editing: post });
@@ -188,6 +192,38 @@ export default function BlogAdminPage() {
                   />
                 </div>
               </div>
+
+              <div className="border-t border-gray-100 pt-4 space-y-4">
+                <p className="text-xs font-semibold text-brand-600 uppercase tracking-wide">Versión en inglés (opcional — se muestra en /en/blog)</p>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Título (inglés)</label>
+                  <input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value, slug_en: slugify(e.target.value) }))}
+                    className={inputCls} placeholder="How to choose the car for your wedding in Medellín" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Slug (inglés)</label>
+                  <input value={form.slug_en} onChange={e => setForm(f => ({ ...f, slug_en: e.target.value }))}
+                    className={inputCls} placeholder="how-to-choose-wedding-car-medellin" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Extracto (inglés)</label>
+                  <input value={form.excerpt_en} onChange={e => setForm(f => ({ ...f, excerpt_en: e.target.value }))}
+                    className={inputCls} placeholder="Short description shown in the English blog list..." />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Contenido (inglés, Markdown)</label>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value={form.content_md_en}
+                      onChange={v => setForm(f => ({ ...f, content_md_en: v ?? '' }))}
+                      height={320}
+                      preview="edit"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400">Si se deja vacío, el post no aparece en el listado de /en/blog; un link directo cae de vuelta al contenido en español con un aviso.</p>
+              </div>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
                   className="rounded border-gray-300 text-brand-500 focus:ring-brand-500" />

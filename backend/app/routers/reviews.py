@@ -18,6 +18,7 @@ class ReviewRead(BaseModel):
     author_name: str
     rating: int
     body: str
+    body_en: Optional[str] = None
     source: str
     vehicle_id: Optional[int] = None
     is_visible: bool
@@ -29,6 +30,7 @@ class ReviewCreate(BaseModel):
     author_name: str
     rating: int
     body: str
+    body_en: Optional[str] = None
     source: str = "manual"
     vehicle_id: Optional[int] = None
     is_visible: bool = True
@@ -39,6 +41,7 @@ class ReviewUpdate(BaseModel):
     author_name: Optional[str] = None
     rating: Optional[int] = None
     body: Optional[str] = None
+    body_en: Optional[str] = None
     source: Optional[str] = None
     vehicle_id: Optional[int] = None
     is_visible: Optional[bool] = None

@@ -1,31 +1,45 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { Menu, X, Phone, Mail, Instagram } from "lucide-react";
+import { Menu, X, Phone, Mail, Instagram, Languages } from "lucide-react";
 import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { useLang } from "../../i18n/LanguageContext";
+import { toLangPath } from "../../i18n/langPath";
 
 const WHATSAPP_NUMBER = "573147372030";
 
-const NAV_LINKS = [
-  { to: "/catalogo", label: "Catálogo" },
-  { to: "/catalogo?use_case=audiovisual_production,brand_activation", label: "Producciones y Activaciones" },
-  { to: "/como-funciona", label: "Cómo funciona" },
-  { to: "/catalogo#opiniones", label: "Opiniones" },
-  { to: "/blog", label: "Blog" },
-  { to: "/contacto", label: "Contacto" },
-];
-
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t, lang, setLang } = useLang();
+
+  const NAV_LINKS = [
+    { to: toLangPath("/catalogo", lang), label: t("nav.catalog") },
+    { to: `${toLangPath("/catalogo", lang)}?use_case=audiovisual_production,brand_activation`, label: t("nav.productions") },
+    { to: toLangPath("/como-funciona", lang), label: t("nav.howItWorks") },
+    { to: `${toLangPath("/catalogo", lang)}#opiniones`, label: t("nav.opinions") },
+    { to: toLangPath("/blog", lang), label: t("nav.blog") },
+    { to: toLangPath("/contacto", lang), label: t("nav.contact") },
+  ];
+
+  const LanguageSwitch = ({ className = "" }: { className?: string }) => (
+    <button
+      onClick={() => setLang(lang === "es" ? "en" : "es")}
+      aria-label={t("layout.languageSwitchAria")}
+      className={`flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors cursor-pointer ${className}`}
+    >
+      <Languages size={16} />
+      {lang === "es" ? "EN" : "ES"}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-brand-100 shadow-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-          <Link to="/" className="shrink-0">
+          <Link to={toLangPath("/catalogo", lang)} className="shrink-0">
             <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
-            <p className="text-xs text-gray-400 mt-0.5">Vehículos clásicos, vintage y modernos para tu día</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t("layout.tagline")}</p>
           </Link>
 
           {/* Desktop nav */}
@@ -46,6 +60,7 @@ export function PublicLayout() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitch className="hidden sm:flex" />
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               target="_blank"
@@ -53,12 +68,12 @@ export function PublicLayout() {
               className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
             >
               <WhatsAppIcon className="w-4 h-4" />
-              Contáctanos
+              {t("layout.contactUs")}
             </a>
             <button
               onClick={() => setMenuOpen(o => !o)}
               className="md:hidden p-2 text-gray-500 hover:text-brand-600 cursor-pointer"
-              aria-label="Abrir menú"
+              aria-label={t("layout.mobileMenuAria")}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -80,15 +95,18 @@ export function PublicLayout() {
                 {link.label}
               </NavLink>
             ))}
-            <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-lg w-fit"
-            >
-              <WhatsAppIcon className="w-4 h-4" />
-              Contáctanos
-            </a>
+            <div className="flex items-center justify-between gap-3">
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-lg w-fit"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+                {t("layout.contactUs")}
+              </a>
+              <LanguageSwitch />
+            </div>
           </nav>
         )}
       </header>
@@ -109,11 +127,11 @@ export function PublicLayout() {
                   {link.label}
                 </Link>
               ))}
-              <Link to="/politica-de-datos" className="hover:text-brand-600 transition-colors">
-                Política de datos
+              <Link to={toLangPath("/politica-de-datos", lang)} className="hover:text-brand-600 transition-colors">
+                {t("layout.dataPolicy")}
               </Link>
-              <Link to="/politica-de-reservas" className="hover:text-brand-600 transition-colors">
-                Política de reservas
+              <Link to={toLangPath("/politica-de-reservas", lang)} className="hover:text-brand-600 transition-colors">
+                {t("layout.reservationPolicy")}
               </Link>
             </nav>
           </div>
@@ -142,7 +160,7 @@ export function PublicLayout() {
                 <Instagram size={14} /> @caminoamiboda
               </a>
             </div>
-            <span className="text-xs text-gray-400">Medellín, Colombia</span>
+            <span className="text-xs text-gray-400">{t("layout.city")}</span>
           </div>
         </div>
       </footer>

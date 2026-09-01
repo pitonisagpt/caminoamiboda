@@ -12,6 +12,7 @@ class Review(Base):
     author_name: Mapped[str] = mapped_column(String(150), nullable=False)
     rating: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    body_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     source: Mapped[str] = mapped_column(String(20), nullable=False, default="manual")  # 'google' | 'manual'
     vehicle_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicles.id", ondelete="SET NULL"), nullable=True)
     is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
