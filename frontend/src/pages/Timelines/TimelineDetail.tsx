@@ -32,6 +32,7 @@ import type {
   LocationType, LocationFormData, ActivityFormData,
 } from '../../types/timeline';
 import type { CatalogLocation } from '../../types/catalogLocation';
+import { buildWaUrl, whatsAppLinkProps } from '../../utils/whatsapp';
 
 const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   pickup: 'Recogida',
@@ -359,12 +360,6 @@ const LOCATION_TYPE_WA_LABELS: Record<LocationType, string> = {
   photoshoot: 'Sesión de fotos',
   other: 'Ubicación',
 };
-
-function buildWaUrl(phone: string | null | undefined, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-}
 
 function formatEventDate(d: string): string {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -719,7 +714,7 @@ export default function TimelineDetail() {
             <User className="w-4 h-4 text-gray-400 shrink-0" />
             <span>{timeline.main_contact_name}</span>
             {timeline.main_contact_phone && (
-              <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="ml-auto">
+              <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="ml-auto">
                 <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
               </a>
             )}
@@ -738,7 +733,7 @@ export default function TimelineDetail() {
               <span>{timeline.assigned_driver} (conductor)</span>
             </div>
             {timeline.assigned_driver_phone && (
-              <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
+              <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
                 <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
               </a>
             )}
@@ -808,8 +803,7 @@ export default function TimelineDetail() {
             {timeline.assigned_driver_phone ? (
               <a
                 href={buildWaUrl(timeline.assigned_driver_phone, buildDriverReminderMsg(timeline))}
-                target="_blank"
-                rel="noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Recordatorio
@@ -833,8 +827,7 @@ export default function TimelineDetail() {
             {timeline.assigned_driver_phone ? (
               <a
                 href={buildWaUrl(timeline.assigned_driver_phone, buildFullMsg(timeline))}
-                target="_blank"
-                rel="noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
@@ -858,8 +851,7 @@ export default function TimelineDetail() {
             {timeline.main_contact_phone ? (
               <a
                 href={buildWaUrl(timeline.main_contact_phone, buildFullMsg(timeline))}
-                target="_blank"
-                rel="noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
@@ -877,8 +869,7 @@ export default function TimelineDetail() {
             </div>
             <a
               href={buildWaUrl(OPS_PHONE, buildFullMsg(timeline))}
-              target="_blank"
-              rel="noreferrer"
+              {...whatsAppLinkProps()}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
             >
               <MessageCircle className="w-3.5 h-3.5" /> Enviar

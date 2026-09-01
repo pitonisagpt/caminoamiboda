@@ -2,13 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink, Loader2, MessageCircle, Search } from 'lucide-react';
 import { followUpMessagesApi } from '../../api/followUpMessages';
 import type { FollowUpPanelEntry, WindowStatus } from '../../types/followUpMessage';
-
-function buildWaUrl(phone: string | null | undefined, message?: string): string {
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  if (!message) return num ? `https://wa.me/${num}` : `https://wa.me/`;
-  const encoded = encodeURIComponent(message);
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-}
+import { buildWaUrl, whatsAppLinkProps, openWhatsApp } from '../../utils/whatsapp';
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -77,7 +71,7 @@ export default function FollowUpsPage() {
   };
 
   const handleSend = async (entry: FollowUpPanelEntry, templateKey: string, text: string) => {
-    window.open(buildWaUrl(entry.phone, text), '_blank');
+    openWhatsApp(buildWaUrl(entry.phone, text));
     setBusyId(entry.reservation_id);
     try {
       const res = await followUpMessagesApi.markSent(entry.reservation_id, templateKey);
@@ -190,8 +184,7 @@ export default function FollowUpsPage() {
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge.className}`}>{badge.label}</span>
                     <a
                       href={buildWaUrl(entry.phone)}
-                      target="_blank"
-                      rel="noreferrer"
+                      {...whatsAppLinkProps()}
                       className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-green-600 cursor-pointer"
                       title="Abrir WhatsApp sin ningún mensaje prellenado"
                     >

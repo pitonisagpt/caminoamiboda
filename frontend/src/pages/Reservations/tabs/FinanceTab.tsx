@@ -14,6 +14,7 @@ import { reservationAddonsApi } from '../../../api/reservationAddons';
 import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
+import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: 'Borrador',
@@ -28,12 +29,6 @@ const DOC_STATUS_STYLE: Record<DocumentStatus, string> = {
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
-}
-
-function buildWaUrl(phone: string | null | undefined, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
 function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], addons: ReservationAddon[], recipientFirstName?: string): string {
@@ -678,8 +673,7 @@ export default function FinanceTab({
                 {phone ? (
                   <a
                     href={buildWaUrl(phone, buildDetalleMsg(reservation, addons, recipientFirstName))}
-                    target="_blank"
-                    rel="noreferrer"
+                    {...whatsAppLinkProps()}
                     className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> Enviar por WhatsApp
@@ -864,8 +858,7 @@ export default function FinanceTab({
             {phone ? (
               <a
                 href={buildWaUrl(phone, buildCobroMsg(reservation, payments, addons === 'loading' ? [] : addons, recipientFirstName))}
-                target="_blank"
-                rel="noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
@@ -982,8 +975,7 @@ export default function FinanceTab({
                   reservation.owner_whatsapp,
                   buildOwnerMsg(reservation, primarySettlement, primarySettlementPayments, reservation.owner_name.split(' ')[0], retentionTotal, settlementBaseValue)
                 )}
-                target="_blank"
-                rel="noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar

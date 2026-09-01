@@ -39,6 +39,7 @@ import { Card } from "../../components/ui/Card";
 import type { VehicleCategory, VehicleListItem, VehicleStatus } from "../../types/vehicle";
 import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
 import { ScoreTotalBar } from "../../components/ui/ScoreRating";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -855,8 +856,7 @@ export function VehicleList() {
                     waVehicle.owner_contact,
                     `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${waVehicle.color ? `${waVehicle.color} ` : ""}${waVehicle.brand}${waVehicle.model_line ? ` ${waVehicle.model_line}` : ""} (${waVehicle.license_plate}) para el ${formatDateES(waDate)}?`
                   )}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...whatsAppLinkProps()}
                   onClick={() => setWaVehicle(null)}
                   className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors cursor-pointer"
                 >

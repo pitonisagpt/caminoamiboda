@@ -4,6 +4,7 @@ import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route, Compass }
 import EventRouteMap from '../../components/EventRouteMap';
 import { timelinesApi } from '../../api/timelines';
 import type { TimelinePublic, EventLocation, LocationType } from '../../types/timeline';
+import { whatsAppLinkProps } from '../../utils/whatsapp';
 
 const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   pickup: 'Recogida',
@@ -51,6 +52,7 @@ function LocationCard({ loc }: { loc: EventLocation }) {
             {loc.contact_phone && (
               <a
                 href={`https://wa.me/${loc.contact_phone.replace(/\D/g, '')}`}
+                {...whatsAppLinkProps()}
                 className="text-sm text-green-600 flex items-center gap-1 font-medium"
               >
                 <Phone className="w-3.5 h-3.5" /> {loc.contact_phone}
@@ -171,6 +173,7 @@ export default function EventoPage() {
               {event.main_contact_phone && (
                 <a
                   href={`https://wa.me/${event.main_contact_phone.replace(/\D/g, '')}`}
+                  {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
                 >
                   <Phone className="w-4 h-4" />
@@ -194,6 +197,7 @@ export default function EventoPage() {
               {event.assigned_driver_phone && (
                 <a
                   href={`https://wa.me/${event.assigned_driver_phone.replace(/\D/g, '')}`}
+                  {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
                 >
                   <Phone className="w-4 h-4" />
@@ -211,6 +215,7 @@ export default function EventoPage() {
               {event.planner_phone && (
                 <a
                   href={`https://wa.me/${event.planner_phone.replace(/\D/g, '')}`}
+                  {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
                 >
                   <Phone className="w-4 h-4" />
@@ -228,6 +233,7 @@ export default function EventoPage() {
               {c.phone && (
                 <a
                   href={`https://wa.me/${c.phone.replace(/\D/g, '')}`}
+                  {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
                 >
                   <Phone className="w-4 h-4" />

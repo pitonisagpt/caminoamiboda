@@ -5,14 +5,7 @@ import { vehicleOwnersApi } from "../../api/vehicleOwners";
 import { vehiclesApi } from "../../api/vehicles";
 import { Button } from "../../components/ui/Button";
 import type { VehicleOwner } from "../../types/vehicleOwner";
-
-function toWhatsAppUrl(phone: string | null, name: string): string {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  const num = digits.startsWith("57") ? digits : `57${digits}`;
-  const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda.`);
-  return `https://wa.me/${num}?text=${msg}`;
-}
+import { toWhatsAppUrl, whatsAppLinkProps } from "../../utils/whatsapp";
 
 type SortKey = "full_name" | "identification_number" | "phone" | "vehicle_count";
 
@@ -188,8 +181,7 @@ export function OwnerList() {
                         {(o.whatsapp || o.phone) ? (
                           <a
                             href={toWhatsAppUrl(o.whatsapp ?? o.phone, o.full_name)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            {...whatsAppLinkProps()}
                             className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                             title="WhatsApp"
                           >

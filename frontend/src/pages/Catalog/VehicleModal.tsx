@@ -8,6 +8,7 @@ import { AdminEditLink } from "../../components/AdminEditLink";
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "5:00 AM – 8:00 PM";
@@ -253,8 +254,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
             {/* CTA */}
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMsg}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...whatsAppLinkProps()}
               className="mt-auto w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-3 rounded-xl transition-colors cursor-pointer"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

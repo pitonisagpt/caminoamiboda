@@ -10,6 +10,7 @@ import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
+import { buildWaUrl, whatsAppLinkProps } from '../../utils/whatsapp';
 
 const LOCATION_LABEL: Record<string, string> = {
   medellin: 'Medellín',
@@ -47,12 +48,6 @@ function formatDateRange(startISO: string, endISO: string): string {
     return `${start.getDate()}–${end.getDate()} de ${monthYear}`;
   }
   return `${formatDateLong(startISO)} – ${formatDateLong(endISO)}`;
-}
-
-function buildWaUrl(phone: string | null | undefined, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
 function buildAvailabilityCheckMsg(vehicle: Vehicle, fechaISO: string): string {
@@ -164,8 +159,7 @@ export default function VehicleDetail() {
           {vehicle.owner_contact ? (
             <a
               href={buildWaUrl(vehicle.owner_contact, buildAvailabilityCheckMsg(vehicle, fecha))}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...whatsAppLinkProps()}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer shrink-0"
             >
               <PhoneCall size={13} />
@@ -314,8 +308,7 @@ export default function VehicleDetail() {
             {bookings.length > 0 && (vehicle.owner_contact ? (
               <a
                 href={buildWaUrl(vehicle.owner_contact, buildBookingsMsg(vehicle, bookings))}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer"
               >
                 <MessageCircle size={13} />

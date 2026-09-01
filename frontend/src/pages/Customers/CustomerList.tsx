@@ -4,25 +4,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
 import { Button } from "../../components/ui/Button";
 import type { Customer } from "../../types/customer";
+import { toWhatsAppUrl, buildWaUrl, whatsAppLinkProps, openWhatsApp } from "../../utils/whatsapp";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
-}
-
-function toWhatsAppUrl(phone: string | null, name: string): string {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  const num = digits.startsWith("57") ? digits : `57${digits}`;
-  const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda 🌸`);
-  return `https://wa.me/${num}?text=${msg}`;
-}
-
-function buildWaUrl(phone: string | null, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, "") : "";
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
 const TEMPERATURE_BADGE: Record<string, { label: string; className: string }> = {
@@ -108,7 +95,7 @@ export function CustomerList() {
     try {
       const res = await customersApi.whatsappText(c.id);
       const phone = c.whatsapp ?? c.phone;
-      window.open(buildWaUrl(phone, res.data.text), "_blank");
+      openWhatsApp(buildWaUrl(phone, res.data.text));
     } finally {
       setSendingId(null);
     }
@@ -270,8 +257,7 @@ export function CustomerList() {
                         {(c.whatsapp || c.phone) ? (
                           <a
                             href={toWhatsAppUrl(c.whatsapp ?? c.phone, c.main_contact_name)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            {...whatsAppLinkProps()}
                             className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                             title="WhatsApp"
                           >

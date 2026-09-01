@@ -5,6 +5,7 @@ import { publicLeadsApi } from "../../api/publicLeads";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { setUnlock } from "../../utils/priceUnlock";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WA_NUMBER = "573147372030";
 
@@ -149,8 +150,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
               {error.startsWith("Ocurrió un error") && (
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...whatsAppLinkProps()}
                   className="block mt-1 font-medium text-green-600 hover:underline"
                 >
                   Escríbenos por WhatsApp →

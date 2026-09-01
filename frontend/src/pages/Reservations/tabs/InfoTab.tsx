@@ -7,6 +7,7 @@ import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { Dropzone } from '../../../components/ui/Dropzone';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
+import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 
 const GOOGLE_REVIEW_LINK = 'https://g.page/r/CZk-2HPmACi3EBM/review';
 
@@ -27,12 +28,6 @@ function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
-}
-
-function buildWaUrl(phone: string | null | undefined, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
 function buildReviewMsg(name?: string | null): string {
@@ -240,8 +235,7 @@ export default function InfoTab({
                 {phone ? (
                   <a
                     href={buildWaUrl(phone, buildReviewMsg(name))}
-                    target="_blank"
-                    rel="noreferrer"
+                    {...whatsAppLinkProps()}
                     className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> Enviar

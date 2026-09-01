@@ -8,6 +8,7 @@ import { quotesApi } from '../../api/quotes';
 import { FilePreviewModal } from '../../components/FilePreviewModal';
 import type { Quote, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL, ZONE_LABEL } from '../../types/quote';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 const STATUS_NEXT: Partial<Record<QuoteStatus, QuoteStatus>> = {
   draft: 'sent',
@@ -101,7 +102,7 @@ export default function QuoteDetail() {
       const encoded = encodeURIComponent(res.data.text);
       const phone = quote.resolved_customer_phone?.replace(/\D/g, '') ?? '';
       const url = phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-      window.open(url, '_blank');
+      openWhatsApp(url);
     } finally {
       setWaLoading(false);
     }

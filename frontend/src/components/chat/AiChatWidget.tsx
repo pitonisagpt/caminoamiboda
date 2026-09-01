@@ -4,6 +4,7 @@ import { aiAssistantApi, type AiAssistantHistoryTurn } from "../../api/aiAssista
 import { getSessionId, getHistory, saveHistory } from "./aiChatSession";
 import { VehicleChip } from "./VehicleChip";
 import { AiLeadCaptureCard } from "./AiLeadCaptureCard";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WA_NUMBER = "573147372030";
 const VEHICLE_TAG_RE = /\[VEHICLE:(\d+)\]/g;
@@ -147,8 +148,7 @@ export function AiChatWidget() {
                 Estamos actualizando el asistente, vuelve pronto. Mientras tanto, escríbenos por WhatsApp y te ayudamos enseguida.
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...whatsAppLinkProps()}
                   className="block mt-2 font-medium text-green-700 hover:underline"
                 >
                   Escríbenos por WhatsApp →
@@ -205,8 +205,7 @@ export function AiChatWidget() {
                 Has llegado al límite de mensajes de este chat. Continúa por WhatsApp.
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...whatsAppLinkProps()}
                   className="block mt-2 font-medium text-green-700 hover:underline"
                 >
                   Escríbenos por WhatsApp →

@@ -5,6 +5,7 @@ import { driversApi } from "../../api/drivers";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import type { Driver } from "../../types/driver";
+import { toWhatsAppUrl, whatsAppLinkProps } from "../../utils/whatsapp";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -18,14 +19,6 @@ function licenseExpiredSoon(iso: string | null): boolean {
   const threshold = new Date();
   threshold.setDate(threshold.getDate() + 60);
   return exp <= threshold;
-}
-
-function toWhatsAppUrl(phone: string | null, name: string): string {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  const num = digits.startsWith("57") ? digits : `57${digits}`;
-  const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda.`);
-  return `https://wa.me/${num}?text=${msg}`;
 }
 
 export function DriverList() {
@@ -182,8 +175,7 @@ export function DriverList() {
                           {(d.whatsapp || d.phone) ? (
                             <a
                               href={toWhatsAppUrl(d.whatsapp ?? d.phone, d.full_name)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              {...whatsAppLinkProps()}
                               className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                               title="WhatsApp"
                             >

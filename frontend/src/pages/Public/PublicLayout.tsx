@@ -5,6 +5,7 @@ import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useLang } from "../../i18n/LanguageContext";
 import { toLangPath } from "../../i18n/langPath";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -63,8 +64,7 @@ export function PublicLayout() {
             <LanguageSwitch className="hidden sm:flex" />
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...whatsAppLinkProps()}
               className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
             >
               <WhatsAppIcon className="w-4 h-4" />
@@ -98,8 +98,7 @@ export function PublicLayout() {
             <div className="flex items-center justify-between gap-3">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-2 bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-lg w-fit"
               >
                 <WhatsAppIcon className="w-4 h-4" />
@@ -142,8 +141,7 @@ export function PublicLayout() {
               </a>
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 hover:text-green-600 transition-colors"
               >
                 <WhatsAppIcon className="w-3.5 h-3.5" /> WhatsApp

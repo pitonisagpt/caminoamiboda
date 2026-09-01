@@ -6,6 +6,7 @@ import { useFloristSettings } from "../../hooks/useFloristSettings";
 import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import type { TranslationKey } from "../../i18n/es";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -106,7 +107,7 @@ export default function ComoFuncionaPage() {
                     :
                     <a
                       href={florist.whatsapp_url}
-                      target="_blank" rel="noopener noreferrer"
+                      {...whatsAppLinkProps()}
                       className="inline-flex items-center gap-1 text-green-600 hover:underline font-medium"
                     >
                       <WhatsAppIcon className="w-3 h-3" /> WhatsApp
@@ -175,8 +176,7 @@ export default function ComoFuncionaPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...whatsAppLinkProps()}
             className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-colors cursor-pointer"
           >
             {t("comoFunciona.finalCtaWhatsapp")}

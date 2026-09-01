@@ -29,6 +29,7 @@ import type {
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
+import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -58,12 +59,6 @@ const EVENT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function buildWaUrl(phone: string | null | undefined, message: string): string {
-  const encoded = encodeURIComponent(message);
-  const num = phone ? phone.replace(/\D/g, '') : '';
-  return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-}
 
 function formatEventDate(d: string): string {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -773,7 +768,7 @@ export default function EventoTab({
               <User className="w-4 h-4 text-gray-400 shrink-0" />
               <span>{timeline.main_contact_name}</span>
               {timeline.main_contact_phone && (
-                <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="ml-auto">
+                <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="ml-auto">
                   <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                 </a>
               )}
@@ -803,7 +798,7 @@ export default function EventoTab({
                   </span>
                 </div>
                 {v.display_driver_phone && (
-                  <a href={`https://wa.me/${v.display_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="shrink-0">
+                  <a href={`https://wa.me/${v.display_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="shrink-0">
                     <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                   </a>
                 )}
@@ -837,7 +832,7 @@ export default function EventoTab({
                     <span>{timeline.assigned_driver} (conductor)</span>
                   </div>
                   {timeline.assigned_driver_phone && (
-                    <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
+                    <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
                       <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                     </a>
                   )}
@@ -852,7 +847,7 @@ export default function EventoTab({
                 <span>{reservation.display_contact} <span className="text-gray-400 text-xs">(planeador)</span></span>
               </div>
               {reservation.contact_phone ? (
-                <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
+                <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
                   <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                 </a>
               ) : reservation.contact_whatsapp_username ? (
@@ -898,7 +893,7 @@ export default function EventoTab({
                   {phone ? (
                     <a
                       href={buildWaUrl(phone, waMsg)}
-                      target="_blank" rel="noreferrer"
+                      {...whatsAppLinkProps()}
                       className="text-gray-400 hover:text-green-600 cursor-pointer"
                       title={`Enviar a ${label} por WhatsApp`}
                     >
@@ -1049,7 +1044,7 @@ export default function EventoTab({
                 {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
               </div>
               {phone ? (
-                <a href={buildWaUrl(phone, buildFullMsg(timeline))} target="_blank" rel="noreferrer"
+                <a href={buildWaUrl(phone, buildFullMsg(timeline))} {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0">
                   <MessageCircle className="w-3.5 h-3.5" /> Enviar
                 </a>
@@ -1142,7 +1137,7 @@ export default function EventoTab({
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                   {c.phone && (
-                    <a href={`https://wa.me/${c.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="p-1 text-gray-400 hover:text-green-600">
+                    <a href={`https://wa.me/${c.phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="p-1 text-gray-400 hover:text-green-600">
                       <Phone className="w-3.5 h-3.5" />
                     </a>
                   )}

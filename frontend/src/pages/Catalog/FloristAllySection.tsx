@@ -2,6 +2,7 @@ import { Instagram } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { useFloristSettings } from '../../hooks/useFloristSettings';
 import { useLang } from '../../i18n/LanguageContext';
+import { whatsAppLinkProps } from '../../utils/whatsapp';
 
 export function FloristAllySection() {
   const { settings, loaded } = useFloristSettings();
@@ -19,7 +20,7 @@ export function FloristAllySection() {
         <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
           <a
             href={settings.whatsapp_url}
-            target="_blank" rel="noopener noreferrer"
+            {...whatsAppLinkProps()}
             className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-700 font-medium cursor-pointer"
           >
             <WhatsAppIcon className="w-4 h-4" /> WhatsApp

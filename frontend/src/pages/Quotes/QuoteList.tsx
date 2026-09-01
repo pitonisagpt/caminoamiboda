@@ -4,6 +4,7 @@ import { Download, FileText, Loader2, MessageCircle, Pencil, Plus, Search, Trash
 import { quotesApi } from '../../api/quotes';
 import type { QuoteListItem, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL } from '../../types/quote';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 const STATUS_FILTERS: { value: QuoteStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Todas' },
@@ -95,7 +96,7 @@ export default function QuoteList() {
       const url = phone
         ? `https://wa.me/${phone}?text=${encoded}`
         : `https://wa.me/?text=${encoded}`;
-      window.open(url, '_blank');
+      openWhatsApp(url);
     } finally {
       setWaLoading(null);
     }

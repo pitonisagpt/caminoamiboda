@@ -10,6 +10,7 @@ import {
   CONTACT_STATUS_COLOR, CONTACT_STATUS_LABEL,
   CONTACT_TYPE_COLOR, CONTACT_TYPE_LABEL,
 } from '../../types/contact';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 const TYPE_FILTERS: { value: ContactType | 'all'; label: string }[] = [
   { value: 'all', label: 'Todos' },
@@ -103,7 +104,7 @@ export default function ContactList() {
     try {
       await contactsApi.markContacted(c.id);
       const phone = c.phone.replace(/\D/g, '');
-      window.open(`https://wa.me/${phone}`, '_blank');
+      openWhatsApp(`https://wa.me/${phone}`);
       setContacts(prev => prev.map(x => x.id === c.id ? { ...x, last_contacted_at: new Date().toISOString() } : x));
     } finally {
       setWaLoadingId(null);

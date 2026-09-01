@@ -7,6 +7,9 @@ import { blogApi, type BlogPost } from '../../api/blog';
 import { AdminEditLink } from '../../components/AdminEditLink';
 import { useLang } from '../../i18n/LanguageContext';
 import { HreflangTags } from '../../i18n/HreflangTags';
+import { whatsAppLinkProps } from '../../utils/whatsapp';
+
+const WHATSAPP_NUMBER = '573147372030';
 
 export default function BlogPostPage() {
   const { t, lang, pickLocalized } = useLang();
@@ -102,9 +105,8 @@ export default function BlogPostPage() {
           <h3 className="text-xl font-bold text-gray-900 mb-2">{t("blog.ctaTitle")}</h3>
           <p className="text-gray-500 text-sm mb-4">{t("blog.ctaBody")}</p>
           <a
-            href="https://wa.me/573147372030"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            {...whatsAppLinkProps()}
             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

@@ -9,6 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import type { TranslationKey } from "../../i18n/es";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WA_NUMBER = "573147372030";
 
@@ -122,8 +123,7 @@ export default function ContactoPage() {
             </div>
             <a
               href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...whatsAppLinkProps()}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <MessageCircle size={18} />
@@ -234,7 +234,7 @@ export default function ContactoPage() {
                 <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                   {error}
                   {error === t("contacto.errorGeneric") && (
-                    <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block mt-1 font-medium text-green-600 hover:underline">
+                    <a href={waUrl} {...whatsAppLinkProps()} className="block mt-1 font-medium text-green-600 hover:underline">
                       {t("contacto.errorWhatsappLink")}
                     </a>
                   )}

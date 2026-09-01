@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { publicLeadsApi } from "../../api/publicLeads";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import { whatsAppLinkProps } from "../../utils/whatsapp";
 
 const WA_NUMBER = "573147372030";
 
@@ -102,7 +103,7 @@ export function AiLeadCaptureCard({ onClose, onSaved }: Props) {
           <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
             {error}
             {error.startsWith("Ocurrió un error") && (
-              <a href={`https://wa.me/${WA_NUMBER}`} target="_blank" rel="noopener noreferrer" className="block mt-1 font-medium text-green-600 hover:underline">
+              <a href={`https://wa.me/${WA_NUMBER}`} {...whatsAppLinkProps()} className="block mt-1 font-medium text-green-600 hover:underline">
                 Escríbenos por WhatsApp →
               </a>
             )}
