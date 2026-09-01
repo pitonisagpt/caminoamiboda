@@ -10,6 +10,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import type { TranslationKey } from "../../i18n/es";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { ParallaxHero } from "../../components/ParallaxHero";
 
 const WA_NUMBER = "573147372030";
 
@@ -112,11 +113,12 @@ export default function ContactoPage() {
         <meta property="og:type" content="website" />
       </Helmet>
       <HreflangTags path="/contacto" />
+      <ParallaxHero title={t("contacto.title")} subtitle={t("contacto.subtitle")} />
       {submitted ? (
-          <div className="bg-white rounded-2xl border border-brand-100 shadow-sm p-6 text-center space-y-4">
+          <div className="mt-5 bg-white rounded-2xl border border-brand-100 shadow-sm p-6 text-center space-y-4">
             <Heart className="w-10 h-10 text-brand-400 mx-auto" />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">{t("contacto.successTitle")}</h1>
+              <h2 className="text-lg font-bold text-gray-900">{t("contacto.successTitle")}</h2>
               <p className="text-sm text-gray-500 mt-1">
                 {t("contacto.successBody")}
               </p>
@@ -132,14 +134,7 @@ export default function ContactoPage() {
           </div>
         ) : (
           <>
-            <div className="mb-5">
-              <h1 className="text-xl font-bold text-gray-900">{t("contacto.title")}</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {t("contacto.subtitle")}
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-4">
               <Input
                 label={t("contacto.labelName")}
                 required

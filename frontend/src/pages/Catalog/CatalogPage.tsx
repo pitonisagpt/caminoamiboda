@@ -8,6 +8,7 @@ import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
+import { ParallaxHero } from "../../components/ParallaxHero";
 import { FloristAllySection } from "./FloristAllySection";
 import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
@@ -466,25 +467,20 @@ export function CatalogPage() {
         )}
       </Helmet>
       <HreflangTags path="/catalogo" />
+      <ParallaxHero
+        title={noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
+        subtitle={noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
+      />
       <div className="space-y-8">
-        {/* Hero */}
-        <div className="text-center py-8">
-          <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">
-            {noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
-          </h1>
-          <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-            {noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
-          </p>
-          <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
-            <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustExperienceYears")}</p>
-              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
-            </div>
-            <div className="w-px h-10 bg-gray-200" />
-            <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustEventsCount")}</p>
-              <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
-            </div>
+        <div className="flex items-center justify-center gap-6 sm:gap-10">
+          <div className="text-center">
+            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustExperienceYears")}</p>
+            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustExperienceLabel")}</p>
+          </div>
+          <div className="w-px h-10 bg-gray-200" />
+          <div className="text-center">
+            <p className="text-2xl sm:text-3xl font-bold text-brand-600">{t("comoFunciona.trustEventsCount")}</p>
+            <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wide">{t("comoFunciona.trustEventsLabel")}</p>
           </div>
         </div>
 

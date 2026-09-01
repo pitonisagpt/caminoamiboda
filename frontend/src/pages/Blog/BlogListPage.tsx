@@ -5,6 +5,7 @@ import { blogApi, type BlogPost } from '../../api/blog';
 import { AdminEditLink } from '../../components/AdminEditLink';
 import { useLang } from '../../i18n/LanguageContext';
 import { HreflangTags } from '../../i18n/HreflangTags';
+import { ParallaxHero } from '../../components/ParallaxHero';
 
 export default function BlogListPage() {
   const { t, lang, pickLocalized } = useLang();
@@ -29,14 +30,7 @@ export default function BlogListPage() {
         <meta property="og:type" content="website" />
       </Helmet>
       <HreflangTags path="/blog" />
-      {/* Header */}
-      <div className="bg-gradient-to-br from-brand-50 to-brand-100 border-b border-brand-100">
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <p className="text-sm font-semibold text-brand-700 uppercase tracking-widest mb-3">Camino a mi Boda</p>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t("blog.heroTitle")}</h1>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">{t("blog.heroSubtitle")}</p>
-        </div>
-      </div>
+      <ParallaxHero title={t("blog.heroTitle")} subtitle={t("blog.heroSubtitle")} />
 
       {/* Posts grid */}
       <div className="max-w-4xl mx-auto px-4 py-12">

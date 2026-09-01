@@ -7,6 +7,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import type { TranslationKey } from "../../i18n/es";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { ParallaxHero } from "../../components/ParallaxHero";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -50,13 +51,7 @@ export default function ComoFuncionaPage() {
       </Helmet>
       <HreflangTags path="/como-funciona" />
 
-      {/* Hero */}
-      <div className="text-center py-4">
-        <h1 className="text-4xl sm:text-5xl font-brand text-brand-500 mb-3">{t("comoFunciona.title")}</h1>
-        <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-          {t("comoFunciona.subtitle")}
-        </p>
-      </div>
+      <ParallaxHero title={t("comoFunciona.title")} subtitle={t("comoFunciona.subtitle")} />
 
       {/* Steps */}
       <div className="space-y-4">
