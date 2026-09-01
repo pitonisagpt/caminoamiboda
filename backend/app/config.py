@@ -32,7 +32,11 @@ class Settings(BaseSettings):
     google_calendar_clientes: str = ""
     google_calendar_prereserva: str = ""
     google_calendar_team: str = ""
-    google_calendar_sync_enabled: bool = True
+    # Fail-closed on purpose: if this env var is ever missing (local dev, or
+    # a future environment that forgets to set it), sync stays OFF rather
+    # than silently writing to the real shared Google Calendar. Production
+    # (render.yaml) sets this explicitly to true.
+    google_calendar_sync_enabled: bool = False
 
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
     frontend_url: str = "http://localhost:5173"

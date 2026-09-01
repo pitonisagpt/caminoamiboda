@@ -68,6 +68,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Sanity check for the exact misconfiguration that once wrote localhost
+# links into the real, shared Google Calendar (a local dev run with sync
+# enabled but frontend_url still pointing at localhost) — see
+# backend/scripts/backfill_gcal_localhost_links.py for the story. Doesn't
+# block startup, just makes the combination loud in the logs.
+if settings.google_calendar_sync_enabled and "localhost" in settings.frontend_url:
+    print(
+        "[WARNING] GOOGLE_CALENDAR_SYNC_ENABLED is true but FRONTEND_URL still "
+        "points at localhost — any Google Calendar sync from this process will "
+        "write broken links into the real calendar. This is the exact combo "
+        "that caused the historical localhost-link bug."
+    )
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
