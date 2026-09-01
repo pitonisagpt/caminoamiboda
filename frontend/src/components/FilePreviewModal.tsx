@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X, Download, FileQuestion, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
 
 interface FilePreviewModalProps {
   src: string;
@@ -16,13 +17,20 @@ interface FilePreviewModalProps {
   hasPrev?: boolean;
   hasNext?: boolean;
   position?: { current: number; total: number };
+  // Extra controls specific to what's being previewed (e.g. delete/toggle
+  // for a vehicle photo) — rendered in the header, next to download/close.
+  // Omitted by every caller that doesn't need it, unchanged otherwise.
+  actions?: ReactNode;
 }
 
 export function FilePreviewModal({
   src, contentType, fileName, onClose, onDownload,
-  onPrev, onNext, hasPrev, hasNext, position,
+  onPrev, onNext, hasPrev, hasNext, position, actions,
 }: FilePreviewModalProps) {
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const swipeHandlers = useSwipeNavigation({
+    onNext: hasNext ? onNext : undefined,
+    onPrev: hasPrev ? onPrev : undefined,
+  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -41,24 +49,6 @@ export function FilePreviewModal({
   const isImage = contentType.startsWith("image/");
   const isPdf = contentType === "application/pdf";
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const start = touchStart.current;
-    touchStart.current = null;
-    if (!start) return;
-    const dx = e.changedTouches[0].clientX - start.x;
-    const dy = e.changedTouches[0].clientY - start.y;
-    // Require a clearly horizontal, deliberate swipe so normal vertical
-    // scrolling (e.g. a tall image or PDF page) doesn't accidentally
-    // trigger navigation.
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    if (dx < 0 && hasNext) onNext?.();
-    else if (dx > 0 && hasPrev) onPrev?.();
-  };
-
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
@@ -72,6 +62,7 @@ export function FilePreviewModal({
             )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            {actions}
             {onDownload ? (
               <button
                 onClick={onDownload}
@@ -98,8 +89,7 @@ export function FilePreviewModal({
 
         <div
           className="relative flex-1 min-h-0 overflow-auto bg-gray-900 flex items-center justify-center"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          {...swipeHandlers}
         >
           {hasPrev && (
             <button

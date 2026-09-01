@@ -1,6 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { VehiclePhoto } from "../../types/vehicle";
+import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
+import { isTouchPrimaryDevice } from "../../utils/device";
 
 interface PhotoSliderProps {
   photos: VehiclePhoto[];
@@ -10,6 +12,14 @@ interface PhotoSliderProps {
 
 export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProps) {
   const [current, setCurrent] = useState(0);
+  // Defined unconditionally (rules-of-hooks) even though they're only used
+  // once we know there are 2+ photos below.
+  const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
+  const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
+  const swipeHandlers = useSwipeNavigation({ onNext: next, onPrev: prev });
+  // Hover-reveal on desktop; on touch (no hover) show the arrows plainly,
+  // or a mobile visitor would never discover a card has more than one photo.
+  const controlsVisibility = isTouchPrimaryDevice() ? "opacity-100" : "opacity-0 group-hover:opacity-100";
 
   if (photos.length === 0) {
     return (
@@ -33,11 +43,8 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
     );
   }
 
-  const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
-  const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
-
   return (
-    <div className="relative w-full h-full group">
+    <div className="relative w-full h-full group" {...swipeHandlers}>
       <img
         src={photos[current].url}
         alt={photos[current].original_name}
@@ -48,14 +55,14 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
       {/* Arrow buttons */}
       <button
         onClick={(e) => { e.stopPropagation(); prev(); }}
-        className="absolute left-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
+        className={`absolute left-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity cursor-pointer ${controlsVisibility}`}
         aria-label="Foto anterior"
       >
         <ChevronLeft size={14} className="text-gray-700" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); next(); }}
-        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
+        className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity cursor-pointer ${controlsVisibility}`}
         aria-label="Foto siguiente"
       >
         <ChevronRight size={14} className="text-gray-700" />

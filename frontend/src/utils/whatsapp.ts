@@ -6,9 +6,7 @@
  * right call (WhatsApp Web needs its own space, without kicking the user
  * out of whatever admin/catalog page they were on).
  */
-function isTouchPrimaryDevice(): boolean {
-  return typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
-}
+import { isTouchPrimaryDevice } from "./device";
 
 /** Spread onto any WhatsApp `<a>` tag: `{...whatsAppLinkProps()}`. */
 export function whatsAppLinkProps(): { target?: "_blank"; rel: string } {

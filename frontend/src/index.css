@@ -6,6 +6,10 @@
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
     font-family: "Inter", system-ui, sans-serif;
+    /* Safety net for any full-bleed (w-screen) element — without this,
+       a single pixel of viewport-width mismatch makes the whole page
+       horizontally scrollable on mobile. */
+    overflow-x: hidden;
   }
 
   /* Brand teal focus ring for all interactive elements */

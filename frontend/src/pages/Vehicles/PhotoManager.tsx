@@ -19,6 +19,7 @@ import { vehiclesApi } from "../../api/vehicles";
 import { FilePreviewModal } from "../../components/FilePreviewModal";
 import { Dropzone } from "../../components/ui/Dropzone";
 import type { VehiclePhoto } from "../../types/vehicle";
+import { isTouchPrimaryDevice } from "../../utils/device";
 
 interface SortablePhotoProps {
   photo: VehiclePhoto;
@@ -39,6 +40,10 @@ function SortablePhoto({ photo, onToggleVisibility, onDelete, onPreview, deletin
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 50 : "auto",
   };
+
+  // Hover-reveal on desktop; on touch (no hover) the drag handle and action
+  // buttons need to be visible plainly, or there's no way to reach them.
+  const controlsVisibility = isTouchPrimaryDevice() ? "opacity-100" : "opacity-0 group-hover:opacity-100";
 
   return (
     <div
@@ -66,13 +71,13 @@ function SortablePhoto({ photo, onToggleVisibility, onDelete, onPreview, deletin
         <div
           {...attributes}
           {...listeners}
-          className="absolute top-1.5 left-1.5 p-1 rounded-lg bg-white/80 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+          className={`absolute top-1.5 left-1.5 p-1 rounded-lg bg-white/80 cursor-grab active:cursor-grabbing touch-none transition-opacity ${controlsVisibility}`}
         >
           <GripVertical size={14} className="text-gray-600" />
         </div>
 
         {/* Action buttons */}
-        <div className="absolute top-1.5 right-1.5 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className={`absolute top-1.5 right-1.5 flex flex-col gap-1 transition-opacity ${controlsVisibility}`}>
           <button
             type="button"
             onClick={() => onToggleVisibility(photo)}
@@ -118,7 +123,11 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [previewPhoto, setPreviewPhoto] = useState<VehiclePhoto | null>(null);
+  // Store just the id, not a snapshot of the photo object — deriving the
+  // current photo from `photos` on every render keeps the preview in sync
+  // when it's toggled/reordered from inside the modal, and makes it close
+  // itself automatically once the photo is deleted (id no longer found).
+  const [previewPhotoId, setPreviewPhotoId] = useState<number | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
 
   const sensors = useSensors(
@@ -205,6 +214,9 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
     }
   };
 
+  const previewIndex = previewPhotoId != null ? photos.findIndex((p) => p.id === previewPhotoId) : -1;
+  const previewPhoto = previewIndex >= 0 ? photos[previewIndex] : null;
+
   if (!isEditing) {
     return (
       <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
@@ -252,7 +264,7 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
                     photo={photo}
                     onToggleVisibility={handleToggleVisibility}
                     onDelete={handleDelete}
-                    onPreview={setPreviewPhoto}
+                    onPreview={(p) => setPreviewPhotoId(p.id)}
                     deleting={deletingId === photo.id}
                   />
                 ))}
@@ -267,7 +279,37 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
           src={previewPhoto.url}
           contentType="image/*"
           fileName={previewPhoto.original_name}
-          onClose={() => setPreviewPhoto(null)}
+          onClose={() => setPreviewPhotoId(null)}
+          onPrev={() => setPreviewPhotoId(photos[previewIndex - 1].id)}
+          onNext={() => setPreviewPhotoId(photos[previewIndex + 1].id)}
+          hasPrev={previewIndex > 0}
+          hasNext={previewIndex < photos.length - 1}
+          position={{ current: previewIndex + 1, total: photos.length }}
+          actions={
+            <>
+              <button
+                type="button"
+                onClick={() => handleToggleVisibility(previewPhoto)}
+                className="p-1.5 text-gray-400 hover:text-brand-500 cursor-pointer"
+                title={previewPhoto.is_visible ? "Ocultar del catálogo" : "Mostrar en catálogo"}
+              >
+                {previewPhoto.is_visible ? <Eye size={17} /> : <EyeOff size={17} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(previewPhoto)}
+                disabled={deletingId === previewPhoto.id}
+                className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer disabled:opacity-50"
+                title="Eliminar foto"
+              >
+                {deletingId === previewPhoto.id ? (
+                  <Loader2 size={17} className="animate-spin" />
+                ) : (
+                  <Trash2 size={17} />
+                )}
+              </button>
+            </>
+          }
         />
       )}
     </div>

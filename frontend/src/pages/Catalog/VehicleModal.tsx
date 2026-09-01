@@ -9,6 +9,8 @@ import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
+import { isTouchPrimaryDevice } from "../../utils/device";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "5:00 AM – 8:00 PM";
@@ -42,6 +44,11 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
 
   const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
+  const swipeHandlers = useSwipeNavigation({ onNext: next, onPrev: prev });
+  // Chevrons are hover-revealed on desktop (no visual clutter), but there's
+  // no hover on touch — show them plainly there instead, or a mobile
+  // visitor would never discover a vehicle has more than one photo.
+  const controlsVisibility = isTouchPrimaryDevice() ? "opacity-100" : "opacity-0 group-hover:opacity-100";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,7 +93,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
           {/* ── Photo gallery (left / top) ─────────────────────── */}
           <div className="sm:w-[58%] sm:flex-shrink-0 flex flex-col bg-black">
             {/* Main image */}
-            <div className="relative aspect-[4/3] sm:aspect-auto sm:flex-1 overflow-hidden group">
+            <div className="relative aspect-[4/3] sm:aspect-auto sm:flex-1 overflow-hidden group" {...swipeHandlers}>
               {photos.length === 0 ? (
                 <div className="w-full h-full min-h-[240px] flex flex-col items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100 gap-3">
                   <div className="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center">
@@ -105,14 +112,14 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
                     <>
                       <button
                         onClick={prev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all cursor-pointer ${controlsVisibility}`}
                         aria-label={t("vehicleModal.prevPhoto")}
                       >
                         <ChevronLeft size={20} />
                       </button>
                       <button
                         onClick={next}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all cursor-pointer ${controlsVisibility}`}
                         aria-label={t("vehicleModal.nextPhoto")}
                       >
                         <ChevronRight size={20} />

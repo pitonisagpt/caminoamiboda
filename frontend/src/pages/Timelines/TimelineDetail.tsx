@@ -80,7 +80,7 @@ function SortableActivity({
       <button
         {...attributes}
         {...listeners}
-        className="mt-0.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0"
+        className="mt-0.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
       >
         <GripVertical className="w-4 h-4" />
       </button>
@@ -533,7 +533,7 @@ export default function TimelineDetail() {
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 

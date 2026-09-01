@@ -184,7 +184,7 @@ function SortableActivity({ activity, locations, dayLabel, onEdit, onDelete }: {
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3 group">
-      <button {...attributes} {...listeners} className="mt-0.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0">
+      <button {...attributes} {...listeners} className="mt-0.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing touch-none shrink-0">
         <GripVertical className="w-4 h-4" />
       </button>
       <div className="flex-1 min-w-0">
@@ -482,7 +482,7 @@ export default function EventoTab({
   const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
