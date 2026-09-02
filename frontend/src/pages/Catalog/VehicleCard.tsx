@@ -101,8 +101,10 @@ export function VehicleCard({
           </p>
         </div>
 
-        {/* Score */}
-        {vehicle.score_total !== null && (
+        {/* Score — same idea as price below: the wedding vetting score
+            doesn't apply to a use-case-scoped catalog (productions/
+            activations quote separately, by the hour). */}
+        {!hidePricing && vehicle.score_total !== null && (
           <div className="space-y-1.5">
             <ScoreTotalBar total={vehicle.score_total} size="lg" />
             <div className="flex justify-between pt-1">

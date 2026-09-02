@@ -240,8 +240,10 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
               )}
             </div>
 
-            {/* Score breakdown */}
-            {vehicle.score_total !== null && (
+            {/* Score breakdown — same idea as price above: the wedding vetting
+                score doesn't apply to a use-case-scoped catalog
+                (productions/activations quote separately, by the hour). */}
+            {!hidePricing && vehicle.score_total !== null && (
               <div>
                 <ScoreTotalBar total={vehicle.score_total} size="lg" />
                 <div className="grid grid-cols-5 gap-1 mt-3">
