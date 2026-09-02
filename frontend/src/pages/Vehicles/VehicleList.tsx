@@ -36,6 +36,7 @@ import { vehiclesApi } from "../../api/vehicles";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { EntityLink } from "../../components/EntityLink";
 import type { VehicleCategory, VehicleListItem, VehicleStatus } from "../../types/vehicle";
 import VehiclePhotoTooltip from "../../components/VehiclePhotoTooltip";
 import { ScoreTotalBar } from "../../components/ui/ScoreRating";
@@ -247,7 +248,9 @@ function SortableVehicleRow({
             Camino a mi Boda
           </span>
         ) : (
-          v.owner_name ?? "—"
+          <EntityLink to={`/propietarios/editar/${v.owner_id}`} id={v.owner_id} requireAdmin>
+            {v.owner_name ?? "—"}
+          </EntityLink>
         )}
       </td>
       <td className="px-4 py-3">

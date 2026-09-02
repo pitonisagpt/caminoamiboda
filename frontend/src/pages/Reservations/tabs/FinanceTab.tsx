@@ -8,6 +8,7 @@ import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
 import { billingDocumentsApi } from '../../../api/billingDocuments';
 import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment } from '../../../api/ownerSettlements';
+import { EntityLink } from '../../../components/EntityLink';
 import { serviceOrdersApi } from '../../../api/serviceOrders';
 import type { ServiceOrder } from '../../../types/serviceOrder';
 import { reservationAddonsApi } from '../../../api/reservationAddons';
@@ -844,15 +845,15 @@ export default function FinanceTab({
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Enviar cobro por WhatsApp</h2>
         </div>
         {[
-          { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username, recipientFirstName: undefined as string | undefined },
+          { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username, recipientFirstName: undefined as string | undefined, to: `/clientes/editar/${reservation.customer_id}`, id: reservation.customer_id },
           ...(reservation.display_contact
-            ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, recipientFirstName: reservation.display_contact.split(' ')[0] }]
+            ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, recipientFirstName: reservation.display_contact.split(' ')[0], to: `/contactos/editar/${reservation.contact_id}`, id: reservation.contact_id }]
             : []),
-        ].map(({ label, name, phone, username, recipientFirstName }) => (
+        ].map(({ label, name, phone, username, recipientFirstName, to, id }) => (
           <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
             <div className="min-w-0">
               <span className="text-sm font-medium text-gray-700">{label}</span>
-              <span className="text-sm text-gray-500 ml-2">{name}</span>
+              <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id}>{name}</EntityLink></span>
               {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
             </div>
             {phone ? (
@@ -966,7 +967,9 @@ export default function FinanceTab({
           <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
             <div className="min-w-0">
               <span className="text-sm font-medium text-gray-700">Propietario</span>
-              <span className="text-sm text-gray-500 ml-2">{reservation.owner_name}</span>
+              <span className="text-sm text-gray-500 ml-2">
+                <EntityLink to={`/propietarios/editar/${reservation.owner_id}`} id={reservation.owner_id} requireAdmin>{reservation.owner_name}</EntityLink>
+              </span>
               {reservation.owner_whatsapp && <span className="text-xs text-gray-400 ml-2">· {reservation.owner_whatsapp}</span>}
             </div>
             {reservation.owner_whatsapp ? (
@@ -1148,6 +1151,7 @@ export default function FinanceTab({
                 <SettlementCard
                   key={s.id}
                   settlement={s}
+                  vehicleId={s.vehicle_id}
                   vehicleLabel={reservation.vehicles.length > 1 ? reservation.vehicles.find(v => v.id === s.vehicle_id)?.display_name : null}
                   payments={settlementPaymentsMap[s.id] ?? []}
                   onAddPayment={(amount, paidAt, notes) => handleAddSettlementPayment(s.id, amount, paidAt, notes)}

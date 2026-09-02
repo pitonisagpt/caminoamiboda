@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import type { OwnerSettlement, OwnerSettlementPayment } from '../../../api/ownerSettlements';
+import { EntityLink } from '../../../components/EntityLink';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
@@ -18,6 +19,7 @@ function formatDate(d: string) {
 // one shared copy for whichever settlement happens to be open.
 export default function SettlementCard({
   settlement,
+  vehicleId,
   vehicleLabel,
   payments,
   onAddPayment,
@@ -26,6 +28,7 @@ export default function SettlementCard({
   onDownloadPdf,
 }: {
   settlement: OwnerSettlement;
+  vehicleId?: number | null;
   vehicleLabel?: string | null;
   payments: OwnerSettlementPayment[];
   onAddPayment: (amount: number, paidAt: string, notes: string) => Promise<void>;
@@ -90,7 +93,11 @@ export default function SettlementCard({
       <div className="flex items-center justify-between text-sm">
         <div className="min-w-0">
           <span className="text-gray-500 font-mono">{settlement.settlement_number}</span>
-          {vehicleLabel && <span className="text-gray-400 ml-2 truncate">· {vehicleLabel}</span>}
+          {vehicleLabel && (
+            <span className="text-gray-400 ml-2 truncate">
+              · <EntityLink to={`/vehiculos/${vehicleId}`} id={vehicleId}>{vehicleLabel}</EntityLink>
+            </span>
+          )}
         </div>
         <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
           settlement.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'

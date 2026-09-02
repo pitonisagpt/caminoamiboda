@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import type { OwnerRevenueStat } from '../../../api/finance';
 
 const formatCOP = (v: number) =>
@@ -11,12 +12,15 @@ interface Props {
 }
 
 export default function OwnerRevenueChart({ owners }: Props) {
+  const navigate = useNavigate();
+
   if (!owners.length) return (
     <p className="text-sm text-gray-400 text-center py-8">Sin datos en este período.</p>
   );
 
   const height = Math.max(200, owners.length * 52);
   const data = [...owners].reverse().map(o => ({
+    owner_id: o.owner_id,
     name: o.owner_name.length > 20 ? o.owner_name.slice(0, 18) + '…' : o.owner_name,
     revenue: o.total_revenue,
     owner_amount: o.owner_amount,
@@ -36,7 +40,13 @@ export default function OwnerRevenueChart({ owners }: Props) {
             return [formatCOPFull(Number(value)), name === 'owner_amount' ? 'Propietario' : 'Empresa'];
           }}
         />
-        <Bar dataKey="revenue" fill="#db2777" radius={[0, 3, 3, 0]} />
+        <Bar
+          dataKey="revenue"
+          fill="#db2777"
+          radius={[0, 3, 3, 0]}
+          cursor="pointer"
+          onClick={(entry: any) => entry.owner_id && navigate(`/propietarios/editar/${entry.owner_id}`)}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

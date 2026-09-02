@@ -30,6 +30,7 @@ import type {
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
 import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -793,8 +794,10 @@ export default function EventoTab({
                     <Car className="w-4 h-4 text-gray-400 shrink-0" />
                   )}
                   <span className="truncate">
-                    {v.display_name}
-                    {v.display_driver && <span className="text-gray-400"> · {v.display_driver}</span>}
+                    <EntityLink to={`/vehiculos/${v.id}`} id={v.id}>{v.display_name}</EntityLink>
+                    {v.display_driver && (
+                      <span className="text-gray-400"> · <DriverLink driverId={v.driver_id} ownerDriverId={v.owner_driver_id}>{v.display_driver}</DriverLink></span>
+                    )}
                   </span>
                 </div>
                 {v.display_driver_phone && (
@@ -822,14 +825,18 @@ export default function EventoTab({
                   ) : (
                     <Car className="w-4 h-4 text-gray-400 shrink-0" />
                   )}
-                  <span>{timeline.assigned_vehicle}</span>
+                  <span>
+                    <EntityLink to={`/vehiculos/${reservation.vehicle_id}`} id={reservation.vehicle_id}>{timeline.assigned_vehicle}</EntityLink>
+                  </span>
                 </div>
               )}
               {timeline.assigned_driver && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-gray-700">
                     <User className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span>{timeline.assigned_driver} (conductor)</span>
+                    <span>
+                      <DriverLink driverId={reservation.driver_id} ownerDriverId={reservation.owner_driver_id}>{timeline.assigned_driver}</DriverLink> (conductor)
+                    </span>
                   </div>
                   {timeline.assigned_driver_phone && (
                     <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
@@ -844,7 +851,10 @@ export default function EventoTab({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-700">
                 <User className="w-4 h-4 text-gray-400 shrink-0" />
-                <span>{reservation.display_contact} <span className="text-gray-400 text-xs">(planeador)</span></span>
+                <span>
+                  <EntityLink to={`/contactos/editar/${reservation.contact_id}`} id={reservation.contact_id}>{reservation.display_contact}</EntityLink>
+                  {' '}<span className="text-gray-400 text-xs">(planeador)</span>
+                </span>
               </div>
               {reservation.contact_phone ? (
                 <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
@@ -874,19 +884,24 @@ export default function EventoTab({
         </div>
         <div className="space-y-2">
           {[
-            { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, username: null as string | null, name: timeline.assigned_driver },
-            { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username, name: reservation.owner_name },
-            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username, name: timeline.main_contact_name },
-            ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, name: reservation.display_contact }] : []),
-            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, username: null as string | null, name: null },
-          ].map(({ label, token, phone, username, name }) => {
+            { label: 'Conductor', token: timeline.share_token_driver, phone: timeline.assigned_driver_phone, username: null as string | null, name: timeline.assigned_driver,
+              to: reservation.driver_id ? `/conductores/editar/${reservation.driver_id}` : `/propietarios/editar/${reservation.owner_driver_id}`,
+              id: reservation.driver_id ?? reservation.owner_driver_id, requireAdmin: !reservation.driver_id },
+            { label: 'Propietario', token: timeline.share_token_driver, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username, name: reservation.owner_name,
+              to: `/propietarios/editar/${reservation.owner_id}`, id: reservation.owner_id, requireAdmin: true },
+            { label: 'Cliente', token: timeline.share_token_customer, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username, name: timeline.main_contact_name,
+              to: `/clientes/editar/${reservation.customer_id}`, id: reservation.customer_id, requireAdmin: false },
+            ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, name: reservation.display_contact,
+              to: `/contactos/editar/${reservation.contact_id}`, id: reservation.contact_id, requireAdmin: false }] : []),
+            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, username: null as string | null, name: null, to: '', id: null, requireAdmin: false },
+          ].map(({ label, token, phone, username, name, to, id, requireAdmin }) => {
             const link = `${window.location.origin}/evento/${token}`;
             const waMsg = `Hola${name ? ` ${name.split(' ')[0]}` : ''}, aquí está el enlace del evento:\n${link}`;
             return (
               <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-gray-600 font-medium">{label}</span>
-                  {name && <span className="text-xs text-gray-400 ml-2">{name}</span>}
+                  {name && <span className="text-xs text-gray-400 ml-2"><EntityLink to={to} id={id} requireAdmin={requireAdmin}>{name}</EntityLink></span>}
                   <code className="block text-xs text-gray-500 truncate mt-0.5">/evento/{token}</code>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
@@ -1031,16 +1046,21 @@ export default function EventoTab({
         </div>
         <div className="space-y-2">
           {[
-            { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone, username: null as string | null },
-            { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username },
-            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username },
-            ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username }] : []),
-            { label: 'Operaciones', name: null, phone: OPS_PHONE, username: null as string | null },
-          ].map(({ label, name, phone, username }) => (
+            { label: 'Conductor', name: timeline.assigned_driver, phone: timeline.assigned_driver_phone, username: null as string | null,
+              to: reservation.driver_id ? `/conductores/editar/${reservation.driver_id}` : `/propietarios/editar/${reservation.owner_driver_id}`,
+              id: reservation.driver_id ?? reservation.owner_driver_id, requireAdmin: !reservation.driver_id },
+            { label: 'Propietario', name: reservation.owner_name, phone: reservation.owner_whatsapp, username: reservation.owner_whatsapp_username,
+              to: `/propietarios/editar/${reservation.owner_id}`, id: reservation.owner_id, requireAdmin: true },
+            { label: 'Cliente', name: timeline.main_contact_name, phone: timeline.main_contact_phone, username: reservation.customer_whatsapp_username,
+              to: `/clientes/editar/${reservation.customer_id}`, id: reservation.customer_id, requireAdmin: false },
+            ...(reservation.display_contact ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username,
+              to: `/contactos/editar/${reservation.contact_id}`, id: reservation.contact_id, requireAdmin: false }] : []),
+            { label: 'Operaciones', name: null, phone: OPS_PHONE, username: null as string | null, to: '', id: null, requireAdmin: false },
+          ].map(({ label, name, phone, username, to, id, requireAdmin }) => (
             <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
               <div className="min-w-0">
                 <span className="text-sm font-medium text-gray-700">{label}</span>
-                {name && <span className="text-sm text-gray-500 ml-2">{name}</span>}
+                {name && <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id} requireAdmin={requireAdmin}>{name}</EntityLink></span>}
                 {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
               </div>
               {phone ? (

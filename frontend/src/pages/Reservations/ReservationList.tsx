@@ -18,6 +18,7 @@ import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
 import ReservationKanban from './ReservationKanban';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
+import { EntityLink } from '../../components/EntityLink';
 import { useAuth } from '../../context/AuthContext';
 import { CATEGORY_OPTIONS as VEHICLE_CATEGORY_OPTIONS, Pill, toggleItem } from '../../components/vehicleFilterKit';
 
@@ -515,9 +516,13 @@ export default function ReservationList() {
                 >
                   <td className="px-4 py-3 font-mono text-xs text-gray-400">{r.reservation_number}</td>
                   <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px]">
-                    <p className="truncate">{r.display_customer}</p>
+                    <p className="truncate">
+                      <EntityLink to={`/clientes/editar/${r.customer_id}`} id={r.customer_id}>{r.display_customer}</EntityLink>
+                    </p>
                     {r.display_contact && (
-                      <p className="text-xs font-normal text-gray-400 truncate">{r.display_contact}</p>
+                      <p className="text-xs font-normal text-gray-400 truncate">
+                        <EntityLink to={`/contactos/editar/${r.contact_id}`} id={r.contact_id}>{r.display_contact}</EntityLink>
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -544,7 +549,18 @@ export default function ReservationList() {
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
                       )}
                       <span className="text-gray-500 text-sm truncate max-w-[120px]">
-                        {r.vehicles.length > 1 ? r.vehicles.map(v => v.display_name).join(' + ') : r.display_vehicle}
+                        {r.vehicles.length > 1 ? (
+                          r.vehicles.map((v, i) => (
+                            <span key={v.id}>
+                              {i > 0 && ' + '}
+                              <EntityLink to={`/vehiculos/${v.id}`} id={v.id}>{v.display_name}</EntityLink>
+                            </span>
+                          ))
+                        ) : (
+                          <EntityLink to={`/vehiculos/${r.vehicles[0]?.id}`} id={r.vehicles[0]?.id ?? null}>
+                            {r.display_vehicle}
+                          </EntityLink>
+                        )}
                       </span>
                     </div>
                   </td>

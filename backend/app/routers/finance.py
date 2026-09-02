@@ -139,7 +139,11 @@ def owner_revenue(
             else (vehicle.owner_name if vehicle and vehicle.owner_name else "Sin propietario")
         )
         if key not in owner_map:
-            owner_map[key] = {"owner_name": owner_name, "completed_count": 0, "total_revenue": 0.0, "is_company": is_company}
+            owner_id = None if is_company else (vehicle.owner_id if vehicle else None)
+            owner_map[key] = {
+                "owner_id": owner_id, "owner_name": owner_name, "completed_count": 0,
+                "total_revenue": 0.0, "is_company": is_company,
+            }
         owner_map[key]["completed_count"] += 1
         owner_map[key]["total_revenue"] += float(reservation.total_amount)
 
@@ -148,6 +152,7 @@ def owner_revenue(
         rev = entry["total_revenue"]
         is_co = entry["is_company"]
         owners.append({
+            "owner_id": entry.get("owner_id"),
             "owner_name": entry["owner_name"],
             "completed_count": entry["completed_count"],
             "total_revenue": rev,
@@ -293,6 +298,7 @@ def _vehicle_perf(db: Session, eff_from: date, eff_to: date) -> tuple[list, int]
         rows.append({
             "vehicle_id": v.id,
             "name": name,
+            "owner_id": None if v.is_company_owned else v.owner_id,
             "owner": "Camino a mi Boda" if v.is_company_owned else (v.owner_name or "—"),
             "is_company_owned": v.is_company_owned,
             "completed_events": count,

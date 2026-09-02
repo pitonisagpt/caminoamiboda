@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ReservationListItem, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
+import { EntityLink } from '../../components/EntityLink';
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -62,7 +63,9 @@ function KanbanCard({ r, onNavigate }: { r: ReservationListItem; onNavigate: () 
           <div className="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 truncate">{r.display_customer}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">
+            <EntityLink to={`/clientes/editar/${r.customer_id}`} id={r.customer_id}>{r.display_customer}</EntityLink>
+          </p>
           <p className="text-[11px] text-gray-400 font-mono truncate">{r.reservation_number}</p>
         </div>
       </div>

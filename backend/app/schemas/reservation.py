@@ -21,6 +21,7 @@ class VehicleBrief(BaseModel):
     display_name: str
     license_plate: Optional[str] = None
     is_company_owned: bool = False
+    owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     owner_whatsapp_username: Optional[str] = None
@@ -67,6 +68,7 @@ def _build(r, db) -> dict:
     d["vehicle_license_plate"] = r.vehicle.license_plate if r.vehicle else None
     d["owner_driver_name"] = r.owner_driver.full_name if r.owner_driver else None
     d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
+    d["owner_id"] = r.vehicle.owner_id if r.vehicle else None
     d["owner_name"] = r.vehicle.owner_name if r.vehicle else None
     d["owner_whatsapp"] = r.vehicle.owner_contact if r.vehicle else None
     d["owner_whatsapp_username"] = r.vehicle.owner.whatsapp_username if r.vehicle and r.vehicle.owner else None
@@ -103,6 +105,7 @@ def _build(r, db) -> dict:
             display_name=vehicle_display_name(v),
             license_plate=v.license_plate,
             is_company_owned=v.is_company_owned,
+            owner_id=v.owner_id,
             owner_name=v.owner_name,
             owner_whatsapp=v.owner_contact,
             owner_whatsapp_username=v.owner.whatsapp_username if v.owner else None,
@@ -210,6 +213,7 @@ class ReservationRead(BaseModel):
     display_driver_whatsapp_username: Optional[str] = None
     owner_driver_name: Optional[str] = None
     owner_driver_phone: Optional[str] = None
+    owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     owner_whatsapp_username: Optional[str] = None
@@ -236,6 +240,8 @@ class ReservationList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     reservation_number: str
+    customer_id: Optional[int] = None
+    contact_id: Optional[int] = None
     display_customer: str
     display_contact: Optional[str] = None
     display_vehicle: str
@@ -243,6 +249,7 @@ class ReservationList(BaseModel):
     display_driver_phone: Optional[str] = None
     display_driver_whatsapp_username: Optional[str] = None
     vehicle_license_plate: Optional[str] = None
+    owner_id: Optional[int] = None
     owner_name: Optional[str] = None
     owner_whatsapp: Optional[str] = None
     owner_whatsapp_username: Optional[str] = None

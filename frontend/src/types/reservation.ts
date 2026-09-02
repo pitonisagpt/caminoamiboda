@@ -53,6 +53,7 @@ export interface VehicleBrief {
   display_name: string;
   license_plate: string | null;
   is_company_owned: boolean;
+  owner_id: number | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
   owner_whatsapp_username: string | null;
@@ -66,6 +67,8 @@ export interface VehicleBrief {
 export interface ReservationListItem {
   id: number;
   reservation_number: string;
+  customer_id: number | null;
+  contact_id: number | null;
   display_customer: string;
   display_contact: string | null;
   display_vehicle: string;
@@ -73,6 +76,7 @@ export interface ReservationListItem {
   display_driver_phone: string | null;
   display_driver_whatsapp_username: string | null;
   vehicle_license_plate: string | null;
+  owner_id: number | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
   owner_whatsapp_username: string | null;

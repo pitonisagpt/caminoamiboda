@@ -12,6 +12,7 @@ export interface FinanceSummary {
 }
 
 export interface OwnerRevenueStat {
+  owner_id: number | null;
   owner_name: string;
   completed_count: number;
   total_revenue: number;
@@ -40,6 +41,7 @@ export interface AgingItem {
 export interface VehicleRevenueStat {
   vehicle_id: number;
   name: string;
+  owner_id: number | null;
   owner: string;
   is_company_owned: boolean;
   completed_events: number;

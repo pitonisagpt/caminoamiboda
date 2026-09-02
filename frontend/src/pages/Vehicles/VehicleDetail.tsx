@@ -7,6 +7,7 @@ import type { Vehicle } from '../../types/vehicle';
 import type { ReservationListItem, ReservationStatus } from '../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
+import { EntityLink } from '../../components/EntityLink';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
@@ -231,7 +232,11 @@ export default function VehicleDetail() {
             </div>
           ) : (
             <>
-              <Field label="Propietario" value={vehicle.owner_name} />
+              <Field label="Propietario" value={vehicle.owner_name && (
+                <EntityLink to={`/propietarios/editar/${vehicle.owner_id}`} id={vehicle.owner_id} requireAdmin>
+                  {vehicle.owner_name}
+                </EntityLink>
+              )} />
               <Field label="Contacto" value={vehicle.owner_contact} />
             </>
           )}

@@ -10,6 +10,7 @@ import type { ReservationStatus } from '../../types/reservation';
 import DateRangeFilter, { DEFAULT_RANGE, buildPresets, type DateRange } from '../Dashboard/DateRangeFilter';
 import RevenueTrendChart from '../Dashboard/charts/RevenueTrendChart';
 import OwnerRevenueChart from './charts/OwnerRevenueChart';
+import { EntityLink } from '../../components/EntityLink';
 import DepositsChart from './charts/DepositsChart';
 
 const formatCOP = (v: number) => `$${Number(v).toLocaleString('es-CO')}`;
@@ -271,10 +272,18 @@ export default function FinancePage() {
                     'text-red-700 bg-red-50';
                   const idleLabel = v.idle_months === 0 ? 'Activo' : `${v.idle_months}`;
                   return (
-                    <tr key={v.vehicle_id} className="hover:bg-brand-50/30 transition-colors">
+                    <tr
+                      key={v.vehicle_id}
+                      onClick={() => navigate(`/vehiculos/${v.vehicle_id}`)}
+                      className="hover:bg-brand-50/30 cursor-pointer transition-colors"
+                    >
                       <td className="py-2.5 pr-4">
                         <p className="font-medium text-gray-900">{v.name}</p>
-                        <p className="text-xs text-gray-400">{v.owner}</p>
+                        <p className="text-xs text-gray-400">
+                          <EntityLink to={`/propietarios/editar/${v.owner_id}`} id={v.owner_id} requireAdmin>
+                            {v.owner}
+                          </EntityLink>
+                        </p>
                       </td>
                       <td className="py-2.5 pr-4 text-right font-medium text-gray-700">{v.completed_events}</td>
                       <td className="py-2.5 pr-4 text-right font-semibold text-gray-900">{formatCOP(v.total_revenue)}</td>

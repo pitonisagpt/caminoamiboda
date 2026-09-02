@@ -8,6 +8,7 @@ import { Dropzone } from '../../../components/ui/Dropzone';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
 const GOOGLE_REVIEW_LINK = 'https://g.page/r/CZk-2HPmACi3EBM/review';
 
@@ -165,12 +166,16 @@ export default function InfoTab({
                 ) : (
                   <Car size={16} className="text-brand-400 shrink-0" />
                 )}
-                <span className="text-gray-700">{v.display_name}</span>
+                <span className="text-gray-700">
+                  <EntityLink to={`/vehiculos/${v.id}`} id={v.id}>{v.display_name}</EntityLink>
+                </span>
               </div>
               {v.display_driver && (
                 <div className="flex items-center gap-2 text-sm pl-8">
                   <User size={14} className="text-brand-400 shrink-0" />
-                  <span className="text-gray-700">{v.display_driver}</span>
+                  <span className="text-gray-700">
+                    <DriverLink driverId={v.driver_id} ownerDriverId={v.owner_driver_id}>{v.display_driver}</DriverLink>
+                  </span>
                 </div>
               )}
             </div>
@@ -193,13 +198,17 @@ export default function InfoTab({
                 ) : (
                   <Car size={16} className="text-brand-400 shrink-0" />
                 )}
-                <span className="text-gray-700">{reservation.display_vehicle}</span>
+                <span className="text-gray-700">
+                  <EntityLink to={`/vehiculos/${reservation.vehicle_id}`} id={reservation.vehicle_id}>{reservation.display_vehicle}</EntityLink>
+                </span>
               </div>
             )}
             {reservation.display_driver !== '—' && (
               <div className="flex items-center gap-2 text-sm">
                 <User size={16} className="text-brand-400 shrink-0" />
-                <span className="text-gray-700">{reservation.display_driver}</span>
+                <span className="text-gray-700">
+                  <DriverLink driverId={reservation.driver_id} ownerDriverId={reservation.owner_driver_id}>{reservation.display_driver}</DriverLink>
+                </span>
               </div>
             )}
           </>
@@ -207,7 +216,9 @@ export default function InfoTab({
         {reservation.display_contact && (
           <div className="flex items-center gap-2 text-sm">
             <Network size={16} className="text-brand-400 shrink-0" />
-            <span className="text-gray-500">Ref: <span className="text-gray-700">{reservation.display_contact}</span></span>
+            <span className="text-gray-500">Ref: <span className="text-gray-700">
+              <EntityLink to={`/contactos/editar/${reservation.contact_id}`} id={reservation.contact_id}>{reservation.display_contact}</EntityLink>
+            </span></span>
           </div>
         )}
       </div>
@@ -221,15 +232,15 @@ export default function InfoTab({
           </div>
           <div className="space-y-2">
             {[
-              { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username },
+              { label: 'Cliente', name: reservation.display_customer, phone: reservation.customer_whatsapp || reservation.customer_phone, username: reservation.customer_whatsapp_username, to: `/clientes/editar/${reservation.customer_id}`, id: reservation.customer_id },
               ...(reservation.display_contact
-                ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username }]
+                ? [{ label: 'Planeador', name: reservation.display_contact, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, to: `/contactos/editar/${reservation.contact_id}`, id: reservation.contact_id }]
                 : []),
-            ].map(({ label, name, phone, username }) => (
+            ].map(({ label, name, phone, username, to, id }) => (
               <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
                 <div className="min-w-0">
                   <span className="text-sm font-medium text-gray-700">{label}</span>
-                  <span className="text-sm text-gray-500 ml-2">{name}</span>
+                  <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id}>{name}</EntityLink></span>
                   {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
                 </div>
                 {phone ? (
