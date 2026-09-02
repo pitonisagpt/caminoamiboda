@@ -27,7 +27,7 @@ export function FilePreviewModal({
   src, contentType, fileName, onClose, onDownload,
   onPrev, onNext, hasPrev, hasNext, position, actions,
 }: FilePreviewModalProps) {
-  const swipeHandlers = useSwipeNavigation({
+  const { ref: imgRef, ...swipeHandlers } = useSwipeNavigation({
     onNext: hasNext ? onNext : undefined,
     onPrev: hasPrev ? onPrev : undefined,
   });
@@ -88,7 +88,7 @@ export function FilePreviewModal({
         </div>
 
         <div
-          className="relative flex-1 min-h-0 overflow-auto bg-gray-900 flex items-center justify-center touch-pan-y"
+          className="relative flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-900 flex items-center justify-center touch-pan-y"
           {...swipeHandlers}
         >
           {hasPrev && (
@@ -111,7 +111,7 @@ export function FilePreviewModal({
           )}
 
           {isImage ? (
-            <img src={src} alt={fileName} className="max-w-full max-h-[85vh] object-contain" />
+            <img ref={imgRef} src={src} alt={fileName} className="max-w-full max-h-[85vh] object-contain" />
           ) : isPdf ? (
             <iframe src={src} title={fileName} className="w-full h-full min-h-[70vh] bg-white" />
           ) : (

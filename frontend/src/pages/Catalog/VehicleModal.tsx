@@ -44,7 +44,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
 
   const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
-  const swipeHandlers = useSwipeNavigation({ onNext: next, onPrev: prev });
+  const { ref: photoRef, ...swipeHandlers } = useSwipeNavigation({ onNext: next, onPrev: prev });
   // Chevrons are hover-revealed on desktop (no visual clutter), but there's
   // no hover on touch — show them plainly there instead, or a mobile
   // visitor would never discover a vehicle has more than one photo.
@@ -104,6 +104,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
               ) : (
                 <>
                   <img
+                    ref={photoRef}
                     src={photos[current].url}
                     alt={photos[current].original_name}
                     className="w-full h-full object-cover"

@@ -16,7 +16,7 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
   // once we know there are 2+ photos below.
   const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
-  const swipeHandlers = useSwipeNavigation({ onNext: next, onPrev: prev });
+  const { ref: photoRef, ...swipeHandlers } = useSwipeNavigation({ onNext: next, onPrev: prev });
   // Hover-reveal on desktop; on touch (no hover) show the arrows plainly,
   // or a mobile visitor would never discover a card has more than one photo.
   const controlsVisibility = isTouchPrimaryDevice() ? "opacity-100" : "opacity-0 group-hover:opacity-100";
@@ -46,6 +46,7 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
   return (
     <div className="relative w-full h-full group touch-pan-y" {...swipeHandlers}>
       <img
+        ref={photoRef}
         src={photos[current].url}
         alt={photos[current].original_name}
         className="w-full h-full object-cover"
