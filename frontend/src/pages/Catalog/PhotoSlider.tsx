@@ -44,7 +44,7 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
   }
 
   return (
-    <div className="relative w-full h-full group" {...swipeHandlers}>
+    <div className="relative w-full h-full group touch-pan-y" {...swipeHandlers}>
       <img
         src={photos[current].url}
         alt={photos[current].original_name}

@@ -3,6 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  /* Belt-and-suspenders with the rule on body below: overflow-x on body
+     alone is supposed to propagate to the viewport per spec when html
+     declares nothing, but relying on that propagation alone is exactly
+     the pattern that's unreliable in practice on iOS Safari with
+     full-bleed (w-screen) elements — putting it on both is the fix that
+     actually holds up there. */
+  html {
+    overflow-x: hidden;
+    /* A swipe starting right at the screen edge on iOS (Safari AND
+       Chrome — Chrome on iOS is required to use WebKit under the hood,
+       same engine, different UI shell) is a native browser-chrome
+       back/forward-navigation gesture, not page scroll — the white
+       space reported there is that gesture's own page-slide preview,
+       which overflow-x can't touch since it's above the DOM. This is
+       the actual CSS lever for it: don't let reaching a horizontal
+       scroll boundary hand off to the browser's built-in gesture.
+       Supported since Safari 16 (2022). */
+    overscroll-behavior-x: none;
+  }
+
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
     font-family: "Inter", system-ui, sans-serif;
@@ -10,6 +30,7 @@
        a single pixel of viewport-width mismatch makes the whole page
        horizontally scrollable on mobile. */
     overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 
   /* Brand teal focus ring for all interactive elements */

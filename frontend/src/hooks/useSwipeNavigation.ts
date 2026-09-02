@@ -31,5 +31,13 @@ export function useSwipeNavigation({ onNext, onPrev }: Options) {
     else onPrev?.();
   };
 
-  return { onTouchStart, onTouchEnd };
+  // A gesture the browser decides to take over mid-touch (e.g. it starts
+  // scrolling/zooming instead) fires touchcancel, not touchend — without
+  // this, `start` would stay set and the next unrelated touchend could
+  // read a stale start point.
+  const onTouchCancel = () => {
+    start.current = null;
+  };
+
+  return { onTouchStart, onTouchEnd, onTouchCancel };
 }

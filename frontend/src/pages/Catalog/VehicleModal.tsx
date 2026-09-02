@@ -93,7 +93,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
           {/* ── Photo gallery (left / top) ─────────────────────── */}
           <div className="sm:w-[58%] sm:flex-shrink-0 flex flex-col bg-black">
             {/* Main image */}
-            <div className="relative aspect-[4/3] sm:aspect-auto sm:flex-1 overflow-hidden group" {...swipeHandlers}>
+            <div className="relative aspect-[4/3] sm:aspect-auto sm:flex-1 overflow-hidden group touch-pan-y" {...swipeHandlers}>
               {photos.length === 0 ? (
                 <div className="w-full h-full min-h-[240px] flex flex-col items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100 gap-3">
                   <div className="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center">
