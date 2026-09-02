@@ -35,4 +35,16 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  // worker.ts runs in the Cloudflare Workers runtime, not the browser — it
+  // still matches the **/*.{ts,tsx} block above (same rules, same
+  // globals.browser), this just adds the one Workers-only global it uses
+  // that globals.browser doesn't know about.
+  {
+    files: ['worker.ts'],
+    languageOptions: {
+      globals: {
+        HTMLRewriter: 'readonly',
+      },
+    },
+  },
 );

@@ -5,6 +5,25 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Camino a mi Boda</title>
+
+    <!-- Static, generic Open Graph / Twitter Card tags — served as-is for
+         every page. /catalogo?vehiculo=<id> gets a MORE SPECIFIC per-vehicle
+         override of the same properties, but only for known link-preview-bot
+         User-Agents (see worker.ts, which removes these before appending its
+         own). Deliberately no og:url here: this same file is served for
+         every route, so a hardcoded URL would be wrong everywhere except
+         "/" — omitting it lets crawlers fall back to the actual request
+         URL, which is correct on every page. -->
+    <meta property="og:site_name" content="Camino a mi Boda" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Camino a mi Boda" />
+    <meta property="og:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
+    <meta property="og:image" content="https://caminoamiboda.com/favicon.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Camino a mi Boda" />
+    <meta name="twitter:description" content="Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor." />
+    <meta name="twitter:image" content="https://caminoamiboda.com/favicon.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
