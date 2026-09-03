@@ -1,8 +1,8 @@
 import enum
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, JSON, Numeric, SmallInteger, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, JSON, Numeric, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -43,6 +43,8 @@ class Vehicle(Base):
     model_line: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     color: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # Colombian mandatory insurance (SOAT) expiry date.
+    soat_expiration: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType), default=VehicleType.car)
     body_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)

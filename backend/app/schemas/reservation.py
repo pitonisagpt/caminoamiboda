@@ -45,6 +45,7 @@ _SCALARS = [
     "event_category", "event_location", "gcal_imported",
     "is_tentative", "event_date_notes",
     "special_instructions", "notes",
+    "decoration_details", "decoration_removal_date",
     "extra_hours", "addon_package_ids", "addons_total",
     "created_at", "updated_at",
 ]
@@ -137,6 +138,8 @@ class ReservationCreate(BaseModel):
     event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
+    decoration_details: Optional[str] = None
+    decoration_removal_date: Optional[date] = None
     extra_hours: int = 0
     addon_package_ids: Optional[list] = None
     addons_total: Decimal = Decimal("0")
@@ -165,6 +168,8 @@ class ReservationUpdate(BaseModel):
     event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
+    decoration_details: Optional[str] = None
+    decoration_removal_date: Optional[date] = None
     extra_hours: Optional[int] = None
     addon_package_ids: Optional[list] = None
     addons_total: Optional[Decimal] = None
@@ -198,6 +203,8 @@ class ReservationRead(BaseModel):
     event_date_notes: Optional[str] = None
     special_instructions: Optional[str] = None
     notes: Optional[str] = None
+    decoration_details: Optional[str] = None
+    decoration_removal_date: Optional[date] = None
     display_customer: str
     display_contact: Optional[str] = None
     contact_phone: Optional[str] = None

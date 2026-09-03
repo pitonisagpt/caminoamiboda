@@ -143,6 +143,7 @@ export function VehicleForm() {
         pyp_day_override: v.pyp_day_override ?? "",
         pyp_valid_from: v.pyp_valid_from ? v.pyp_valid_from.split("T")[0] : "",
         pyp_valid_to: v.pyp_valid_to ? v.pyp_valid_to.split("T")[0] : "",
+        soat_expiration: v.soat_expiration ? v.soat_expiration.split("T")[0] : "",
       });
     }).finally(() => setLoadingDoc(false));
   }, [id, isEditing, reset]);
@@ -180,6 +181,7 @@ export function VehicleForm() {
         pyp_day_override: data.pyp_day_override || null,
         pyp_valid_from: data.pyp_valid_from || null,
         pyp_valid_to: data.pyp_valid_to || null,
+        soat_expiration: data.soat_expiration || null,
       };
 
       if (isEditing && id) {
@@ -256,6 +258,7 @@ export function VehicleForm() {
           <Input label="Línea / Modelo" {...register("model_line")} placeholder="Bel Air" />
           <Input label="Color" {...register("color")} placeholder="Rosa coral" />
           <Input label="Año" {...register("year")} type="number" placeholder="1957" />
+          <Input label="Vigencia SOAT" {...register("soat_expiration")} type="date" />
           <Select
             label="Tipo de vehículo"
             {...register("vehicle_type")}

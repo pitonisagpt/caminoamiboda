@@ -93,6 +93,7 @@ export interface Vehicle extends VehicleListItem {
   pyp_day_override: string | null;
   pyp_valid_from: string | null;
   pyp_valid_to: string | null;
+  soat_expiration: string | null;
   description: string | null;
   created_at: string;
   updated_at: string;
@@ -127,4 +128,5 @@ export interface VehicleFormData {
   pyp_day_override: string;
   pyp_valid_from: string;
   pyp_valid_to: string;
+  soat_expiration: string;
 }

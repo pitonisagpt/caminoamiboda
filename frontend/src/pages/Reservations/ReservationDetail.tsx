@@ -7,6 +7,7 @@ import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, R
 import InfoTab from './tabs/InfoTab';
 import FinanceTab from './tabs/FinanceTab';
 import EventoTab from './tabs/EventoTab';
+import ContractTab from './tabs/ContractTab';
 import { Toast } from '../../components/ui/Toast';
 import { useGcalSyncToast } from '../../hooks/useGcalSyncToast';
 
@@ -22,6 +23,7 @@ const TABS = [
   { key: 'info',     label: 'Información' },
   { key: 'evento',   label: 'Evento' },
   { key: 'finanzas', label: 'Finanzas' },
+  { key: 'contrato', label: 'Contrato' },
 ] as const;
 type TabKey = typeof TABS[number]['key'];
 
@@ -182,6 +184,7 @@ export default function ReservationDetail() {
         />
       )}
       {activeTab === 'finanzas' && <FinanceTab reservation={reservation} onReservationChange={load} />}
+      {activeTab === 'contrato' && <ContractTab reservation={reservation} onReservationChange={load} />}
     </div>
   );
 }

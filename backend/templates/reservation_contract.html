@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    {% include '_brand.html' %}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; background: #fff; }
+    .page { padding: 36px 44px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #21b2b8; padding-bottom: 16px; margin-bottom: 24px; }
+    .brand-tagline { font-family: 'Montserrat', Arial, sans-serif; font-weight: 600; font-size: 8pt; color: #166f73; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #0f4245; }
+    .doc-title { font-family: 'Montserrat', Arial, sans-serif; text-align: center; font-size: 13pt; font-weight: 700; color: #0f4245; letter-spacing: 2px; text-transform: uppercase; padding: 10px 0; border-top: 1px solid #d0f4f5; border-bottom: 1px solid #d0f4f5; margin-bottom: 16px; }
+    .section { margin-bottom: 16px; }
+    .section-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 9pt; font-weight: 700; color: #166f73; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #f0fbfb; padding-bottom: 4px; margin-bottom: 8px; }
+    .two-col { display: flex; gap: 24px; margin-bottom: 16px; }
+    .two-col .col { flex: 1; }
+    .info-row { display: flex; margin-bottom: 4px; font-size: 10pt; }
+    .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+    .blank-line { color: #bbb; }
+    .clause { margin-bottom: 10px; }
+    .clause-title { font-size: 9.5pt; font-weight: 700; color: #0f4245; margin-bottom: 3px; }
+    .clause-body { font-size: 9.5pt; color: #334155; line-height: 1.55; text-align: justify; margin-bottom: 4px; }
+    .clause-body strong { color: #1a1a1a; }
+    .signatures { display: flex; gap: 32px; margin-top: 36px; }
+    .sig-box { flex: 1; text-align: center; }
+    .sig-line { border-top: 1px solid #333; margin-top: 44px; padding-top: 6px; font-size: 9pt; }
+    .sig-role { font-size: 8.5pt; color: #666; }
+    .footer { margin-top: 28px; border-top: 1px solid #d0f4f5; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 8pt; color: #888; }
+    .footer .brand { font-weight: 700; color: #166f73; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      {% include '_logo_badge.html' %}
+      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
+    </div>
+    <div class="header-meta">
+      <div class="doc-num">{{ contract.contract_number }}</div>
+      <div>Fecha: {{ formatted_date }}</div>
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <div class="doc-title">Contrato de Arrendamiento de Vehículo para Eventos y Actividades Especiales</div>
+
+  <div class="section">
+    <div class="section-title">Las Partes</div>
+    <div class="two-col">
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDADOR</p>
+        <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
+        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ company_email or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ company_phone }}</span></div>
+      </div>
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDATARIO</p>
+        <div class="info-row"><span class="info-label">{{ 'Razón social:' if contract.client_type.value == 'company' else 'Nombre:' }}</span><span class="info-value">{{ contract.client_name or '—' }}</span></div>
+        {% if contract.client_type.value == 'company' and contract.client_legal_rep_name %}
+        <div class="info-row"><span class="info-label">Representante legal:</span><span class="info-value">{{ contract.client_legal_rep_name }}{% if contract.client_legal_rep_id_number %} — C.C. {{ contract.client_legal_rep_id_number }}{% endif %}</span></div>
+        {% endif %}
+        <div class="info-row"><span class="info-label">{{ contract.client_id_type.value }}:</span><span class="info-value">{{ contract.client_id_number or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ customer_email or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ customer_contact or '—' }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="clause">
+      <div class="clause-title">Contexto de la relación contractual</div>
+      <div class="clause-body">EL ARRENDADOR dispone de vehículos que pueden ser destinados temporalmente a eventos, celebraciones, producciones audiovisuales, exhibiciones, activaciones de marca y otras actividades especiales, de acuerdo con las necesidades particulares de EL ARRENDATARIO.</div>
+      <div class="clause-body">Según las características de cada operación, el uso del vehículo podrá comprender su exhibición o permanencia en un lugar determinado, desplazamientos, recorridos, disponibilidad durante períodos específicos, incorporación temporal de elementos decorativos o publicitarios, así como otras condiciones previamente acordadas entre LAS PARTES.</div>
+      <div class="clause-body">Cada arrendamiento atenderá a las particularidades de la actividad para la cual se requiere el vehículo. Por esta razón, sus condiciones específicas, incluyendo el vehículo, finalidad, fechas, lugar, duración y demás aspectos aplicables, serán determinadas para cada operación en los términos del presente contrato.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Primera. Objeto</div>
+      <div class="clause-body">EL ARRENDADOR concede a EL ARRENDATARIO el uso y goce temporal del vehículo individualizado en el presente contrato, para su destinación en eventos, celebraciones, producciones audiovisuales, exhibiciones, activaciones de marca u otras actividades especiales, de conformidad con las condiciones particulares acordadas entre LAS PARTES.</div>
+      <div class="clause-body">El arrendamiento podrá comprender, según corresponda, la permanencia del vehículo en un lugar determinado, desplazamientos o recorridos, así como la incorporación temporal de elementos decorativos o publicitarios previamente autorizados por EL ARRENDADOR.</div>
+      <div class="clause-body">Las condiciones específicas de cada operación serán las establecidas en la cláusula siguiente.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Segunda. Condiciones particulares y uso autorizado del vehículo</div>
+      <div class="clause-body">Para la ejecución del presente contrato, LAS PARTES acuerdan las siguientes condiciones particulares:</div>
+      <div class="info-row"><span class="info-label">Uso autorizado:</span><span class="info-value{{ '' if contract.authorized_use else ' blank-line' }}">{{ contract.authorized_use or '_______________________' }}</span></div>
+      <div class="info-row"><span class="info-label">Vehículo:</span><span class="info-value">{{ vehicle.brand if vehicle else '—' }}{% if vehicle and vehicle.model_line %} {{ vehicle.model_line }}{% endif %}</span></div>
+      <div class="info-row"><span class="info-label">Placa:</span><span class="info-value">{{ vehicle.license_plate if vehicle else '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Color:</span><span class="info-value">{{ vehicle.color if vehicle and vehicle.color else '—' }}</span></div>
+      <div class="info-row"><span class="info-label">SOAT:</span><span class="info-value">{{ ('vigente hasta ' + formatted_soat) if formatted_soat else 'No registrado' }}</span></div>
+      <div class="info-row"><span class="info-label">Fecha de inicio:</span><span class="info-value">{{ formatted_event_date }}</span></div>
+      <div class="info-row"><span class="info-label">Fecha de finalización:</span><span class="info-value">{{ formatted_event_end_date or formatted_event_date }}</span></div>
+      <div class="info-row"><span class="info-label">Horario / disponibilidad:</span><span class="info-value blank-line">_______________________</span></div>
+      <div class="info-row"><span class="info-label">Lugar de utilización:</span><span class="info-value{{ '' if reservation.event_location else ' blank-line' }}">{{ reservation.event_location or '_______________________' }}</span></div>
+      <div class="info-row"><span class="info-label">Recorridos autorizados:</span><span class="info-value blank-line">_______________________</span></div>
+      <div class="info-row"><span class="info-label">Decoración / vinilo / ploteo:</span><span class="info-value{{ '' if reservation.decoration_details else ' blank-line' }}">{{ reservation.decoration_details or 'Ninguna autorizada.' }}</span></div>
+      <div class="info-row"><span class="info-label">Otras condiciones:</span><span class="info-value{{ '' if contract.special_conditions else ' blank-line' }}">{{ contract.special_conditions or '_______________________' }}</span></div>
+      <div class="clause-body" style="margin-top:8px;"><strong>Parágrafo – Uso autorizado.</strong> EL ARRENDATARIO únicamente podrá destinar el vehículo al uso y bajo las condiciones señaladas en esta cláusula. Cualquier modificación de la finalidad, fechas, horarios, lugares, recorridos o demás condiciones particulares deberá ser previamente informada y aceptada por EL ARRENDADOR.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Tercera. Conducción y operación del vehículo</div>
+      <div class="clause-body">La conducción del vehículo estará en todo momento a cargo exclusivo de EL ARRENDADOR o de la persona que este designe. En consecuencia, EL ARRENDATARIO, sus empleados, contratistas, invitados o cualquier tercero vinculado a la actividad no podrán conducir, movilizar u operar el vehículo, salvo autorización expresa de EL ARRENDADOR consignada en el uso específico autorizado del vehículo o en las condiciones especiales del arrendamiento.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Cuarta. Costos y condiciones operativas</div>
+      <div class="clause-body">Salvo que en las condiciones particulares del arrendamiento se establezca expresamente algo diferente, LAS PARTES acuerdan la siguiente distribución de costos:</div>
+      <div class="clause-body">a. Combustible. El combustible requerido para la operación ordinaria del vehículo durante el período contratado será asumido por EL ARRENDADOR.</div>
+      <div class="clause-body">b. Parqueaderos. Los costos de parqueadero únicamente estarán a cargo de EL ARRENDATARIO cuando así se establezca expresamente en las condiciones especiales del arrendamiento. En los demás casos, se entenderán comprendidos dentro de las condiciones ordinarias de ejecución pactadas.</div>
+      <div class="clause-body">c. Permisos y autorizaciones. La gestión y los costos de permisos o autorizaciones relacionados con el evento, la actividad, el estacionamiento, la ocupación de espacios o cualquier condición especial de ejecución únicamente estarán a cargo de EL ARRENDATARIO cuando así se indique expresamente en las condiciones especiales del arrendamiento.</div>
+      <div class="clause-body">d. Conductor. Los gastos ordinarios de alimentación y demás costos propios del conductor designado por EL ARRENDADOR serán asumidos por EL ARRENDADOR, salvo que por las características especiales de la operación LAS PARTES acuerden expresamente algo diferente, de lo cual deberá dejarse constancia en OTRAS CONDICIONES ESPECIALES.</div>
+      <div class="clause-body">e. Peajes y desplazamientos. Los peajes y desplazamientos requeridos para la ejecución del arrendamiento se entenderán incluidos dentro del valor pactado y no generarán cobros adicionales para EL ARRENDATARIO, salvo que en las condiciones especiales del arrendamiento se establezca expresamente lo contrario.</div>
+      <div class="clause-body">f. Restricciones de movilidad – Pico y placa. EL ARRENDADOR planeará la disponibilidad del vehículo teniendo en cuenta las restricciones de movilidad vigentes para la fecha pactada. Cuando el vehículo inicialmente identificado se encuentre sujeto a pico y placa u otra medida que impida o limite la ejecución del arrendamiento, EL ARRENDADOR podrá sustituirlo por otro vehículo de características similares que permita desarrollar la actividad, sin que dicha sustitución constituya incumplimiento contractual.</div>
+      <div class="clause-body">La sustitución no procederá cuando, por la naturaleza de la actividad, LAS PARTES hayan establecido expresamente en las condiciones especiales que el arrendamiento debe ejecutarse con un vehículo específico. En este caso, LAS PARTES coordinarán las alternativas razonablemente disponibles para procurar la ejecución en las condiciones acordadas.</div>
+      <div class="clause-body">Las modificaciones, rotaciones o nuevas restricciones de movilidad adoptadas por la autoridad competente y que no se encuentren bajo el control de EL ARRENDADOR no constituirán incumplimiento de su parte, siempre que informe oportunamente a EL ARRENDATARIO y adopte las medidas razonables a su alcance para procurar la ejecución del arrendamiento.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Quinta. Valor y forma de pago</div>
+      <div class="clause-body">El valor total del arrendamiento será de {{ formatted_total_amount }} ({{ amount_in_words }}), suma que EL ARRENDATARIO pagará a EL ARRENDADOR de la siguiente manera:</div>
+      {% if payment_schedule %}
+        {% for row in payment_schedule %}
+        <div class="clause-body">{{ 'abcdefghijklmnopqrstuvwxyz'[loop.index0] }}. {{ row.description }}. Se pagará {{ row.amount_text }}.</div>
+        {% endfor %}
+      {% else %}
+        <div class="clause-body">a. Pago inicial para reserva. Un valor equivalente al cincuenta por ciento (50%) del valor total del arrendamiento, correspondiente a {{ formatted_half_amount }}, pagadero al momento de confirmar la reserva del vehículo. Esta suma será imputada al valor total del contrato.</div>
+        <div class="clause-body">b. Saldo. El cincuenta por ciento (50%) restante, correspondiente a {{ formatted_half_amount }}, deberá ser pagado a más tardar ocho días calendario previos al evento y, en todo caso, antes del inicio del arrendamiento o de cualquier actividad previa asociada a este, como instalación de decoración, vinilo, ploteo o material publicitario, cuando corresponda.</div>
+      {% endif %}
+      <div class="clause-body">Los pagos se realizarán mediante transferencia bancaria u otro medio acordado, a la cuenta o por el medio informado por EL ARRENDADOR.</div>
+      <div class="clause-body">El pago completo y oportuno del valor pactado constituye condición para el inicio y continuidad del arrendamiento. En consecuencia, ante el incumplimiento de cualquiera de los pagos en las fechas establecidas, EL ARRENDADOR podrá abstenerse de poner el vehículo a disposición o de iniciar las actividades asociadas al arrendamiento, sin que ello constituya incumplimiento de su parte.</div>
+      <div class="clause-body"><strong>Parágrafo primero.</strong> Las condiciones aplicables al pago inicial para reserva en caso de cancelación, reprogramación o modificación de la fecha del arrendamiento serán las establecidas en la cláusula correspondiente del presente contrato.</div>
+      <div class="clause-body"><strong>Parágrafo segundo.</strong> En caso de que el arrendamiento no pueda ejecutarse por una causa imputable a EL ARRENDADOR, este devolverá a EL ARRENDATARIO las sumas efectivamente pagadas en virtud del presente contrato. Salvo dolo o culpa grave de EL ARRENDADOR, dicha devolución constituirá el límite de su responsabilidad frente a la imposibilidad de ejecución.</div>
+      <div class="clause-body">Cuando la imposibilidad obedezca a una falla mecánica del vehículo, EL ARRENDADOR podrá sustituirlo por otro de características similares, siempre que ello permita ejecutar el arrendamiento en las condiciones acordadas. La sustitución realizada en estos términos no constituirá incumplimiento de EL ARRENDADOR.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Sexta. Instalación y retiro de vinilo, ploteo, decoración o material publicitario</div>
+      {% if reservation.decoration_details %}
+      <div class="clause-body">En caso de que, conforme a las condiciones particulares del arrendamiento, se autorice la instalación de vinilo, ploteo, decoración o cualquier otro elemento publicitario sobre el vehículo, su instalación y retiro deberán ser realizados por personal especializado y mediante procedimientos que no impliquen perforaciones, cortes, modificaciones permanentes ni afectaciones a la pintura, carrocería o demás componentes del vehículo.</div>
+      <div class="clause-body">EL ARRENDATARIO será responsable por los daños que resulten atribuibles a la instalación, permanencia o retiro de dichos elementos y asumirá la totalidad de los costos necesarios para su reparación y para restablecer el vehículo al estado en que se encontraba antes de la intervención.</div>
+      <div class="clause-body">Los elementos instalados deberán ser retirados a más tardar {{ ('el ' + formatted_decoration_removal_date) if formatted_decoration_removal_date else 'al finalizar el evento' }}, momento en el cual el vehículo deberá quedar limpio, libre de residuos y en las mismas condiciones en que se encontraba antes de su instalación.</div>
+      <div class="clause-body">Si EL ARRENDATARIO no realiza el retiro dentro del plazo establecido, EL ARRENDADOR podrá efectuarlo directamente o a través de un tercero, y todos los costos asociados serán asumidos por EL ARRENDATARIO.</div>
+      <div class="clause-body">Cualquier intervención sobre el vehículo distinta de las expresamente autorizadas requerirá autorización previa de EL ARRENDADOR.</div>
+      {% else %}
+      <div class="clause-body">Para esta reserva no se autorizó la instalación de vinilo, ploteo, decoración ni elementos publicitarios sobre el vehículo. Cualquier intervención sobre el vehículo requerirá autorización previa y por escrito de EL ARRENDADOR.</div>
+      {% endif %}
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Séptima. Permisos, infracciones y medidas de tránsito</div>
+      <div class="clause-body">La responsabilidad por multas, comparendos, inmovilizaciones, retenciones, gastos de grúa, parqueaderos en patios u otras medidas impuestas por las autoridades se determinará de acuerdo con la causa que les haya dado origen.</div>
+      <div class="clause-body">Serán asumidas por EL ARRENDATARIO aquellas que se deriven de permisos o autorizaciones propios del evento o actividad, condiciones de estacionamiento definidas para su ejecución, ocupación del espacio público, instalación o exhibición de elementos publicitarios, o instrucciones impartidas por EL ARRENDATARIO que resulten contrarias a las disposiciones aplicables.</div>
+      <div class="clause-body">Serán asumidas por EL ARRENDADOR aquellas que tengan origen en la documentación, condiciones propias de circulación u operación del vehículo, o en actuaciones atribuibles a su conducción.</div>
+      <div class="clause-body">Cuando la medida o sanción tenga origen en circunstancias atribuibles conjuntamente a LAS PARTES, los costos derivados de esta serán asumidos por partes iguales.</div>
+      <div class="clause-body">En caso de inmovilización, retención o traslado del vehículo, LAS PARTES deberán prestar la colaboración que razonablemente corresponda a cada una para adelantar las gestiones necesarias ante la autoridad competente y procurar su liberación.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Octava. Reprogramación y cancelación</div>
+      <div class="clause-body">En caso de que EL ARRENDATARIO solicite la cancelación o reprogramación del arrendamiento, el pago inicial realizado para la reserva no será reembolsable. No obstante, dicho valor permanecerá como saldo a favor de EL ARRENDATARIO y podrá ser aplicado a una nueva fecha dentro de los tres (3) años siguientes a la fecha inicialmente pactada.</div>
+      <div class="clause-body">La reprogramación estará sujeta a la disponibilidad del vehículo inicialmente contratado. En caso de no encontrarse disponible, EL ARRENDADOR podrá ofrecer otro vehículo de características similares, cuya aceptación corresponderá a EL ARRENDATARIO.</div>
+      <div class="clause-body">Cuando la nueva fecha se encuentre dentro del mismo año calendario de la reserva inicial, no se generará incremento sobre el valor originalmente pactado. Si la reprogramación se realiza para un año calendario posterior, el valor total del arrendamiento se incrementará en un diez por ciento (10%) por cada año transcurrido respecto del valor inicialmente acordado. EL ARRENDATARIO deberá pagar la diferencia correspondiente antes de la nueva fecha de ejecución.</div>
+      <div class="clause-body"><strong>Parágrafo.</strong> Las anteriores condiciones también serán aplicables cuando la cancelación o reprogramación tenga origen en un evento de fuerza mayor o caso fortuito que impida la realización de la actividad en la fecha inicialmente acordada.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Novena. Falla mecánica y sustitución del vehículo</div>
+      <div class="clause-body">En caso de que el vehículo presente una falla mecánica que impida o afecte sustancialmente su utilización en las condiciones pactadas, EL ARRENDADOR podrá sustituirlo por otro vehículo de características similares, sujeto a disponibilidad. La sustitución realizada en estas condiciones no constituirá incumplimiento de EL ARRENDADOR.</div>
+      <div class="clause-body">Cuando el vehículo inicialmente arrendado cuente con vinilo, ploteo, decoración o material publicitario instalado por razón de la actividad contratada, EL ARRENDATARIO asumirá los costos correspondientes al retiro de dichos elementos del vehículo inicialmente arrendado, así como los costos de instalación y posterior retiro que sean necesarios respecto del vehículo sustituto.</div>
+      <div class="clause-body"><strong>Parágrafo.</strong> Si EL ARRENDADOR no cuenta con un vehículo sustituto que permita continuar con el arrendamiento, se aplicarán las condiciones previstas en este contrato para la imposibilidad de ejecución por parte de EL ARRENDADOR.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima. Uso de la imagen del vehículo</div>
+      <div class="clause-body">EL ARRENDADOR autoriza a EL ARRENDATARIO el uso de la imagen del vehículo en el material fotográfico o audiovisual que se produzca con ocasión del evento o actividad para la cual fue arrendado.</div>
+      <div class="clause-body">La autorización se limita a los contenidos relacionados con dicha actividad y no implica transferencia de derecho alguno sobre el vehículo ni autoriza su utilización para finalidades distintas de las aquí previstas sin autorización previa de EL ARRENDADOR.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima primera. Responsabilidad por daños, custodia y siniestros</div>
+      <div class="clause-body">Durante el período del arrendamiento, EL ARRENDATARIO deberá adoptar las medidas razonables de cuidado y protección del vehículo dentro del evento o actividad para la cual haya sido destinado.</div>
+      <div class="clause-body">EL ARRENDATARIO responderá por los daños, actos de vandalismo o afectaciones ocasionados al vehículo que sean atribuibles a él, a sus empleados, contratistas, proveedores, invitados, asistentes o a terceros cuya intervención o acceso al vehículo se produzca con ocasión de la actividad organizada o coordinada por EL ARRENDATARIO.</div>
+      <div class="clause-body">Cuando se presente un siniestro vial, la responsabilidad entre LAS PARTES se determinará atendiendo a la causa que le haya dado origen. Las consecuencias derivadas de la conducción u operación del vehículo que sean atribuibles a EL ARRENDADOR o al conductor por este designado serán asumidas por EL ARRENDADOR. Aquellas que tengan origen en actuaciones, instrucciones, condiciones o circunstancias atribuibles a EL ARRENDATARIO serán asumidas por este.</div>
+      <div class="clause-body">Cada parte mantendrá indemne a la otra frente a reclamaciones de terceros que tengan origen en hechos, acciones u omisiones que le sean jurídicamente atribuibles.</div>
+      <div class="clause-body">La responsabilidad prevista en esta cláusula se entiende sin perjuicio de las reglas especiales establecidas en el presente contrato respecto de ploteo, decoración, permisos, infracciones, inmovilizaciones y demás circunstancias expresamente reguladas.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima segunda. Independencia laboral del conductor</div>
+      <div class="clause-body">El conductor encargado de la operación del vehículo será designado, contratado o vinculado por EL ARRENDADOR bajo su exclusiva responsabilidad.</div>
+      <div class="clause-body">Entre EL ARRENDATARIO y el conductor no existirá vínculo laboral, subordinación, dependencia ni relación contractual de naturaleza laboral alguna.</div>
+      <div class="clause-body">Las indicaciones o coordinaciones que EL ARRENDATARIO pueda realizar respecto de horarios, puntos de ubicación, recorridos o demás condiciones propias del evento no implicarán subordinación laboral y deberán sujetarse, en todo caso, a las condiciones pactadas en este contrato y a las decisiones relacionadas con la conducción segura del vehículo.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima tercera. Verificación del estado del vehículo</div>
+      <div class="clause-body">LAS PARTES dejarán constancia del estado general del vehículo al inicio y al finalizar el período de arrendamiento mediante registro fotográfico, audiovisual o acta de verificación.</div>
+      <div class="clause-body">Dicho registro podrá utilizarse para establecer la existencia de daños, deterioros o afectaciones producidas durante el arrendamiento y determinar, cuando corresponda, la responsabilidad por su reparación conforme a las disposiciones del presente contrato.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima cuarta. Terminación</div>
+      <div class="clause-body">El presente contrato finalizará una vez concluya el período de arrendamiento establecido en las condiciones particulares y se encuentren cumplidas las obligaciones a cargo de LAS PARTES.</div>
+      <div class="clause-body">La terminación del período de disponibilidad del vehículo no extinguirá las obligaciones que, por su naturaleza, deban cumplirse posteriormente, especialmente aquellas relacionadas con pagos pendientes, retiro de vinilos, ploteo, decoración o material publicitario, reparación de daños y demás responsabilidades que se hayan generado durante la ejecución del contrato.</div>
+      <div class="clause-body">El incumplimiento de una obligación que impida o afecte sustancialmente la ejecución del arrendamiento facultará a la parte cumplida para dar por terminado el contrato, sin perjuicio de las consecuencias expresamente previstas para cada supuesto en el presente documento.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Décima quinta. Firma del contrato</div>
+      <div class="clause-body">El presente contrato podrá ser suscrito de manera física o electrónica por LAS PARTES. Su firma implica la aceptación integral de las condiciones particulares y de las cláusulas que lo integran.</div>
+      <div class="clause-body">Para constancia, se suscribe en {{ city }}, a los {{ signature_day }} días del mes de {{ signature_month_es }} de {{ signature_year }}.</div>
+    </div>
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <div class="sig-line">{{ company_owner }}</div>
+      <div class="sig-role">EL ARRENDADOR — C.C. {{ company_cc or '—' }}</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-line">{{ contract.client_name }}</div>
+      <div class="sig-role">
+        EL ARRENDATARIO — {{ contract.client_id_type.value }}: {{ contract.client_id_number or '—' }}
+        {% if contract.client_type.value == 'company' and contract.client_legal_rep_name %}
+          <br>Representante legal: {{ contract.client_legal_rep_name }}, C.C. {{ contract.client_legal_rep_id_number or '—' }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div><span class="brand">{{ company_name }}</span> · CC {{ company_cc }}</div>
+    <div>{{ company_phone }}</div>
+    <div>Generado el {{ formatted_date }}</div>
+  </div>
+
+</div>
+</body>
+</html>

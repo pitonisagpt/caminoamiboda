@@ -37,6 +37,7 @@ class VehicleBase(BaseModel):
     description: Optional[str] = None
     bride_description: Optional[str] = None
     bride_description_en: Optional[str] = None
+    soat_expiration: Optional[date] = None
 
 
 class VehicleCreate(VehicleBase):
@@ -80,6 +81,7 @@ class VehicleUpdate(BaseModel):
     pyp_day_override: Optional[str] = None
     pyp_valid_from: Optional[date] = None
     pyp_valid_to: Optional[date] = None
+    soat_expiration: Optional[date] = None
 
 
 _BASE_SCALARS = [
@@ -89,7 +91,7 @@ _BASE_SCALARS = [
     "price_medellin", "price_rionegro",
     "score_elegance", "score_exclusivity", "score_photogeny", "score_comfort", "score_romance",
     "description", "bride_description", "bride_description_en",
-    "pyp_day_override", "pyp_valid_from", "pyp_valid_to",
+    "pyp_day_override", "pyp_valid_from", "pyp_valid_to", "soat_expiration",
 ]
 
 

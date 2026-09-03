@@ -19,7 +19,7 @@ from app.models.reservation_vehicle import ReservationVehicle  # noqa: F401 — 
 from app.models.reservation_addon import ReservationAddon  # noqa: F401 — register with SQLAlchemy
 from app.models.owner_settlement_payment import OwnerSettlementPayment  # noqa: F401 — register with SQLAlchemy
 from app.models.ai_assistant import AiAssistantStatus, AiAssistantUsage  # noqa: F401 — register with SQLAlchemy
-from app.routers import addon_packages, ai_assistant, auth, billing_documents, blog, calendar, catalog_locations, contacts, customers, dashboard, drivers, finance, florist, follow_up_messages, instagram, integrations, owner_settlements, public_leads, quotes, reservation_addons, reservation_attachments, reservations, reviews, seo, service_orders, timelines, users, vehicle_owner_attachments, vehicle_owner_contracts, vehicle_owners, vehicle_photos, vehicles
+from app.routers import addon_packages, ai_assistant, auth, billing_documents, blog, calendar, catalog_locations, contacts, customers, dashboard, drivers, finance, florist, follow_up_messages, instagram, integrations, owner_settlements, public_leads, quotes, reservation_addons, reservation_attachments, reservation_contracts, reservations, reviews, seo, service_orders, timelines, users, vehicle_owner_attachments, vehicle_owner_contracts, vehicle_owners, vehicle_photos, vehicles
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
@@ -121,6 +121,7 @@ app.include_router(timelines.router)
 app.include_router(quotes.router)
 app.include_router(reservations.router)
 app.include_router(reservation_attachments.router)
+app.include_router(reservation_contracts.router)
 app.include_router(reservation_addons.router)
 app.include_router(finance.router)
 app.include_router(owner_settlements.router)

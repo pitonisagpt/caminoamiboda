@@ -114,6 +114,8 @@ export interface Reservation extends ReservationListItem {
   contact_type: string | null;
   special_instructions: string | null;
   notes: string | null;
+  decoration_details: string | null;
+  decoration_removal_date: string | null;
   customer_phone: string | null;
   customer_whatsapp: string | null;
   customer_whatsapp_username: string | null;
