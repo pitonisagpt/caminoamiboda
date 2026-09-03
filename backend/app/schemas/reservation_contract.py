@@ -29,6 +29,7 @@ class ReservationContractRead(BaseModel):
 
 
 class ReservationContractUpdate(BaseModel):
+    status: Optional[ContractStatus] = None
     client_type: Optional[ClientType] = None
     client_name: Optional[str] = None
     client_legal_rep_name: Optional[str] = None

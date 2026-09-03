@@ -1,12 +1,37 @@
 import { useEffect, useState } from 'react';
-import { Download, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Download, FileText, Loader2, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
 import type { ReservationContract, PaymentScheduleItem, ClientType, ClientIdType } from '../../../types/reservationContract';
 import { reservationsApi } from '../../../api/reservations';
 import { reservationContractsApi } from '../../../api/reservationContracts';
+import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
+}
+
+// Same style as FinanceTab.tsx's buildCobroMsg/buildOwnerMsg — no emojis
+// (they corrupt to "?" through encodeURIComponent for wa.me links, per
+// the confirmed no-emoji rule for WhatsApp messages), only *bold* markup.
+function buildContractMsg(reservation: Reservation, contract: ReservationContract): string {
+  const greetName = (contract.client_name || reservation.display_customer).split(' ')[0];
+  const hasVehicle = !!reservation.display_vehicle && reservation.display_vehicle !== '—';
+
+  const lines: string[] = [
+    `Hola ${greetName}, te compartimos el contrato de arrendamiento con Camino a mi Boda${hasVehicle ? ` — ${reservation.display_vehicle}` : ''}:`,
+    '',
+    `*Contrato:* ${contract.contract_number}`,
+  ];
+
+  if (reservation.event_date) {
+    const evDate = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+    lines.push(`*Fecha del evento:* ${evDate}`);
+  }
+  lines.push(`*Valor total:* ${formatCOP(Number(reservation.total_amount))}`, '');
+  lines.push('Te adjuntamos el PDF con todas las condiciones — cualquier duda nos escribes.', '');
+  lines.push('Camino a mi Boda', 'https://www.instagram.com/caminoamiboda');
+
+  return lines.join('\n');
 }
 
 interface ContractTabProps {
@@ -44,6 +69,8 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
 
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const whatsappPhone = reservation.customer_whatsapp || reservation.customer_phone;
 
   const syncFormFromContract = (c: ReservationContract) => {
     setClientType(c.client_type);
@@ -159,6 +186,16 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
     }
   };
 
+  // Fire-and-forget — doesn't block opening WhatsApp, just persists that
+  // the contract has been sent (ContractStatus already existed on the
+  // model but nothing ever flipped it to "sent" until now).
+  const handleContractSent = () => {
+    if (contract && contract.status !== 'sent') {
+      reservationContractsApi.update(reservation.id, { status: 'sent' })
+        .then(res => setContract(res.data));
+    }
+  };
+
   if (loading || !contract) {
     return <div className="flex justify-center py-10 text-brand-400"><Loader2 className="animate-spin" size={28} /></div>;
   }
@@ -171,7 +208,12 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Datos del arrendatario</h2>
-          <span className="text-xs text-gray-400 font-mono">{contract.contract_number}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 font-mono">{contract.contract_number}</span>
+            {contract.status === 'sent' && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">Enviado</span>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -422,7 +464,7 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
       {/* PDF */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Documento</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={handleGeneratePdf}
@@ -443,7 +485,25 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
               Descargar PDF
             </button>
           )}
+          {contract.pdf_path && (
+            whatsappPhone ? (
+              <a
+                href={buildWaUrl(whatsappPhone, buildContractMsg(reservation, contract))}
+                {...whatsAppLinkProps()}
+                onClick={handleContractSent}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <MessageCircle size={14} />
+                WhatsApp
+              </a>
+            ) : (
+              <span className="flex items-center text-xs text-gray-400 px-2">Cliente sin teléfono para WhatsApp</span>
+            )
+          )}
         </div>
+        {contract.pdf_path && whatsappPhone && (
+          <p className="text-xs text-gray-400">Descarga el PDF y adjúntalo manualmente en el chat que se abre.</p>
+        )}
       </div>
     </div>
   );
