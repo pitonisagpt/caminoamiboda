@@ -172,7 +172,11 @@ def update_florist_settings(
 
 
 @router.post("/photos", response_model=List[FloristPhotoRead], dependencies=[Depends(require_admin)])
-async def upload_photos(files: List[UploadFile], db: Session = Depends(get_db)):
+def upload_photos(files: List[UploadFile], db: Session = Depends(get_db)):
+    # Plain `def`, not `async def` — same fix as vehicle_photos.py's
+    # upload_photos: the HEIC conversion below is CPU-bound and was
+    # blocking the whole (single-worker, --workers 1) event loop while it
+    # ran. See that file's comment for the full explanation.
     _ensure_upload_dir()
 
     max_order = db.query(FloristPhoto).count()
@@ -182,7 +186,7 @@ async def upload_photos(files: List[UploadFile], db: Session = Depends(get_db)):
         ext = Path(file.filename or "").suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
             continue
-        content = await file.read()
+        content = file.file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=413, detail=f"El archivo '{file.filename}' excede el límite de 10 MB")
 

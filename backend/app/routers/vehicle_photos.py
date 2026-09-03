@@ -52,11 +52,19 @@ def _build_zip_filename(vehicle: Vehicle) -> str:
 
 
 @router.post("/{vehicle_id}/photos", response_model=List[VehiclePhotoRead])
-async def upload_photos(
+def upload_photos(
     vehicle_id: int,
     files: List[UploadFile],
     db: Session = Depends(get_db),
 ):
+    # Plain `def`, not `async def`, on purpose: HEIC conversion below (PIL
+    # decode + re-encode) is CPU-bound and was blocking the whole event
+    # loop while it ran — with only one Uvicorn worker in production
+    # (Dockerfile.prod, --workers 1), uploading several HEIC photos in one
+    # request stalled every other concurrent request (including a plain
+    # vehicle save) long enough to trip the platform's connection timeout.
+    # A sync `def` route is what tells FastAPI/Starlette to run this in its
+    # own thread-pool thread instead of directly on the event loop.
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
@@ -72,7 +80,8 @@ async def upload_photos(
         ext = Path(file.filename or "").suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
             continue
-        content = await file.read()
+        # file.file (not the async file.read()) — this function is sync now.
+        content = file.file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=413, detail=f"El archivo '{file.filename}' excede el límite de 10 MB")
 
