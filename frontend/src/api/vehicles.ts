@@ -27,6 +27,17 @@ export interface VehicleStatsResponse {
   }[];
 }
 
+export interface VehicleAiGenerateResponse {
+  bride_description: string;
+  bride_description_en: string;
+  score_elegance: number;
+  score_exclusivity: number;
+  score_photogeny: number;
+  score_comfort: number;
+  score_romance: number;
+  used_photos: boolean;
+}
+
 interface ListParams {
   status?: VehicleStatus;
   location?: VehicleLocation;
@@ -96,6 +107,13 @@ export const vehiclesApi = {
 
   stats(id: number, params?: { date_from?: string | null; date_to?: string | null }) {
     return api.get<VehicleStatsResponse>(`/vehicles/${id}/stats`, { params: params ?? {} });
+  },
+
+  generateAiContent(vehicleId: number) {
+    // Vision + adaptive thinking on Opus 5 over up to 5 photos can take
+    // longer than the default request timeout — same idea as
+    // downloadPhotosZip's 120000 for zip generation.
+    return api.post<VehicleAiGenerateResponse>(`/vehicles/${vehicleId}/generate-ai`, {}, { timeout: 90000 });
   },
 };
 

@@ -1,9 +1,9 @@
-import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Combobox from "../../components/ui/Combobox";
 import { useNavigate, useParams } from "react-router-dom";
-import { vehiclesApi } from "../../api/vehicles";
+import { vehiclesApi, type VehicleAiGenerateResponse } from "../../api/vehicles";
 import { vehicleOwnersApi } from "../../api/vehicleOwners";
 import type { VehicleOwner } from "../../types/vehicleOwner";
 import { PhotoManager } from "./PhotoManager";
@@ -66,12 +66,14 @@ export function VehicleForm() {
   const [legacyOwnerName, setLegacyOwnerName] = useState<string | null>(null);
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
   const [availableFor, setAvailableFor] = useState<string[]>(DEFAULT_AVAILABLE_FOR);
+  const [generatingAi, setGeneratingAi] = useState(false);
+  const [aiUsedPhotos, setAiUsedPhotos] = useState<boolean | null>(null);
 
   useEffect(() => {
     vehicleOwnersApi.list().then(r => setOwners(r.data)).catch(() => {});
   }, []);
 
-  const { register, handleSubmit, watch, reset, control, formState: { errors } } = useForm<VehicleFormData>({
+  const { register, handleSubmit, watch, reset, control, setValue, formState: { errors } } = useForm<VehicleFormData>({
     defaultValues: {
       vehicle_type: "car",
       location: "medellin",
@@ -198,6 +200,31 @@ export function VehicleForm() {
       alert(msg ?? "Error al guardar el vehículo.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGenerateAi = async () => {
+    if (!id) return;
+    setGeneratingAi(true);
+    try {
+      const res = await vehiclesApi.generateAiContent(Number(id));
+      const data: VehicleAiGenerateResponse = res.data;
+      setValue("bride_description", data.bride_description, { shouldDirty: true });
+      setValue("bride_description_en", data.bride_description_en, { shouldDirty: true });
+      setValue("score_elegance", data.score_elegance, { shouldDirty: true });
+      setValue("score_exclusivity", data.score_exclusivity, { shouldDirty: true });
+      setValue("score_photogeny", data.score_photogeny, { shouldDirty: true });
+      setValue("score_comfort", data.score_comfort, { shouldDirty: true });
+      setValue("score_romance", data.score_romance, { shouldDirty: true });
+      setAiUsedPhotos(data.used_photos);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : null;
+      alert(msg ?? "Error al generar contenido con IA.");
+    } finally {
+      setGeneratingAi(false);
     }
   };
 
@@ -529,8 +556,28 @@ export function VehicleForm() {
 
       {/* Bride-facing description */}
       <Card>
-        <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Descripción para novias</h2></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Descripción para novias</h2>
+            {isEditing && id && (
+              <button
+                type="button"
+                onClick={handleGenerateAi}
+                disabled={generatingAi}
+                className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {generatingAi ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                Generar con IA
+              </button>
+            )}
+          </div>
+        </CardHeader>
         <CardBody className="space-y-4">
+          {aiUsedPhotos === false && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Este vehículo no tiene fotos visibles — el contenido se generó solo con los datos del vehículo. La puntuación de fotogenia en particular es una estimación aproximada; revisa el resultado antes de guardar.
+            </p>
+          )}
           <div>
             <TextArea
               label="Descripción inspiradora"
