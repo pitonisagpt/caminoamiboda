@@ -724,7 +724,7 @@ export default function EventoTab({
       )}
       {/* Event info strip */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900 text-sm">Detalles del evento</h3>
             <select
@@ -738,7 +738,7 @@ export default function EventoTab({
               ))}
             </select>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {gcalLink && (
               <a href={gcalLink} target="_blank" rel="noreferrer"
                 className="flex items-center gap-1.5 text-xs border border-blue-200 text-blue-600 hover:bg-blue-50 px-2.5 py-1 rounded-lg transition-colors"
@@ -763,7 +763,7 @@ export default function EventoTab({
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {timeline.main_contact_name && (
             <div className="flex items-center gap-2 text-gray-700">
               <User className="w-4 h-4 text-gray-400 shrink-0" />
