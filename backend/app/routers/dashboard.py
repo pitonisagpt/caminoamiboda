@@ -1,6 +1,7 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import List, Optional
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import extract, func
@@ -44,7 +45,7 @@ def get_summary(
     db: Session = Depends(get_db),
     _=Depends(require_admin),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     # Resolve effective range
     eff_from = date_from
@@ -223,7 +224,7 @@ def revenue_trend(
     db: Session = Depends(get_db),
     _=Depends(require_admin),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     base_filters = [
         Reservation.status == ReservationStatus.completed,
@@ -276,7 +277,7 @@ def analytics(
     db: Session = Depends(get_db),
     _=Depends(require_admin),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     # Build reusable date filter fragments
     def date_range_filters(date_col):
@@ -433,7 +434,7 @@ def vehicle_usage(
     db: Session = Depends(get_db),
     _=Depends(require_admin),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     parsed_ids: Optional[List[int]] = None
     if vehicle_ids:

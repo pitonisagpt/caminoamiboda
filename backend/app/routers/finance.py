@@ -1,8 +1,9 @@
 import io
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
@@ -33,7 +34,7 @@ def finance_summary(
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
     current_year = today.year
 
     # Year-level revenue (always full years, ignores date range filter)
@@ -170,7 +171,7 @@ def deposits_chart(
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     # Default: last 12 months
     if not date_from and not date_to:
@@ -212,7 +213,7 @@ def deposits_chart(
 
 @router.get("/aging", dependencies=[Depends(require_admin)])
 def aging(db: Session = Depends(get_db)):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     rows = (
         db.query(Reservation)
@@ -318,7 +319,7 @@ def vehicle_revenue_chart(
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
 ):
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
     if not date_from and not date_to:
         m, y = today.month - 11, today.year
         if m <= 0:
@@ -341,7 +342,7 @@ def export_excel(
 ):
     from openpyxl import Workbook  # lazy import — only needed on export
 
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/Bogota")).date()
 
     res_query = db.query(Reservation).order_by(Reservation.event_date.desc())
     if date_from:
