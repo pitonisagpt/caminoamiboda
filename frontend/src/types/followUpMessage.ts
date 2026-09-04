@@ -17,6 +17,7 @@ export interface FollowUpPanelEntry {
   event_date: string;
   days_to_event: number;
   phone: string | null;
+  whatsapp_username: string | null;
   current_key: string | null;
   last_sent_at: string | null;
   templates: FollowUpTemplateEntry[];

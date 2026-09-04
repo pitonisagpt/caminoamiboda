@@ -26,6 +26,14 @@ def _phone_for(r: Reservation) -> str | None:
     return None
 
 
+def _username_for(r: Reservation) -> str | None:
+    if r.customer:
+        return r.customer.whatsapp_username
+    if r.contact:
+        return r.contact.whatsapp_username
+    return None
+
+
 def _build_panel_entry(r: Reservation, sent_by_key: dict[str, datetime]) -> FollowUpPanelEntry:
     days_to_event = (r.event_date - _today()).days
     templates = []
@@ -54,6 +62,7 @@ def _build_panel_entry(r: Reservation, sent_by_key: dict[str, datetime]) -> Foll
         event_date=r.event_date,
         days_to_event=days_to_event,
         phone=_phone_for(r),
+        whatsapp_username=_username_for(r),
         current_key=current_key,
         last_sent_at=last_sent_at,
         templates=templates,

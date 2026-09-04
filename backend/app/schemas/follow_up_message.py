@@ -21,6 +21,7 @@ class FollowUpPanelEntry(BaseModel):
     event_date: date
     days_to_event: int
     phone: Optional[str] = None
+    whatsapp_username: Optional[str] = None
     current_key: Optional[str] = None
     last_sent_at: Optional[datetime] = None
     templates: List[FollowUpTemplateEntry]
