@@ -8,6 +8,7 @@ import type { ReservationListItem, ReservationStatus } from '../../types/reserva
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { EntityLink } from '../../components/EntityLink';
+import { FilePreviewModal } from '../../components/FilePreviewModal';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
@@ -88,6 +89,7 @@ export default function VehicleDetail() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [bookings, setBookings] = useState<ReservationListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewPhotoId, setPreviewPhotoId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -118,6 +120,8 @@ export default function VehicleDetail() {
   const displayName = [vehicle.brand, vehicle.model_line, vehicle.color].filter(Boolean).join(' ');
   const categoryLabel = CATEGORY_OPTIONS.find(c => c.value === vehicle.category)?.label;
   const visiblePhotos = vehicle.photos.filter(p => p.is_visible);
+  const previewIndex = previewPhotoId != null ? visiblePhotos.findIndex(p => p.id === previewPhotoId) : -1;
+  const previewPhoto = previewIndex >= 0 ? visiblePhotos[previewIndex] : null;
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -279,10 +283,30 @@ export default function VehicleDetail() {
           <CardHeader><h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Fotos</h2></CardHeader>
           <CardBody className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {visiblePhotos.map(p => (
-              <img key={p.id} src={p.url} alt={displayName} className="w-full aspect-square object-cover rounded-lg" />
+              <img
+                key={p.id}
+                src={p.url}
+                alt={displayName}
+                onClick={() => setPreviewPhotoId(p.id)}
+                className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              />
             ))}
           </CardBody>
         </Card>
+      )}
+
+      {previewPhoto && (
+        <FilePreviewModal
+          src={previewPhoto.url}
+          contentType="image/*"
+          fileName={previewPhoto.original_name}
+          onClose={() => setPreviewPhotoId(null)}
+          onPrev={() => setPreviewPhotoId(visiblePhotos[previewIndex - 1].id)}
+          onNext={() => setPreviewPhotoId(visiblePhotos[previewIndex + 1].id)}
+          hasPrev={previewIndex > 0}
+          hasNext={previewIndex < visiblePhotos.length - 1}
+          position={{ current: previewIndex + 1, total: visiblePhotos.length }}
+        />
       )}
 
       {/* Notes */}
