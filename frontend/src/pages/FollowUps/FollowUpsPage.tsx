@@ -172,7 +172,7 @@ export default function FollowUpsPage() {
                       {entry.display_vehicle} · {formatDate(entry.event_date)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-3 shrink-0 flex-wrap max-w-full">
                     <div className="flex gap-1" title={`${sentCount}/${entry.templates.length} enviados`}>
                       {entry.templates.map(t => (
                         <span key={t.key} className={`w-2 h-2 rounded-full ${t.sent_at ? 'bg-brand-500' : 'bg-gray-200'}`} />
