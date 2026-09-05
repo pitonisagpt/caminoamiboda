@@ -27,6 +27,8 @@ import { timelinesApi } from '../../api/timelines';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import Combobox from '../../components/ui/Combobox';
 import type { ComboboxOption } from '../../components/ui/Combobox';
+import { Modal } from '../../components/ui/Modal';
+import { Button } from '../../components/ui/Button';
 import type {
   EventTimeline, EventLocation, TimelineActivity,
   LocationType, LocationFormData, ActivityFormData,
@@ -186,74 +188,66 @@ function LocationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar ubicación' : 'Nueva ubicación'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
+    <Modal
+      title={initial ? 'Editar ubicación' : 'Nueva ubicación'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button onClick={() => { if (form.location_name.trim()) onSave(form); }}>Guardar</Button>
+        </>
+      }
+    >
+      {catalogOptions.length > 0 && (
+        <div>
+          <Combobox
+            label="Buscar en catálogo (opcional)"
+            options={catalogOptions}
+            value=""
+            onChange={handleCatalogSelect}
+            placeholder="Buscar ubicación guardada..."
+          />
         </div>
-        <div className="px-6 py-4 space-y-3">
-          {catalogOptions.length > 0 && (
-            <div>
-              <Combobox
-                label="Buscar en catálogo (opcional)"
-                options={catalogOptions}
-                value=""
-                onChange={handleCatalogSelect}
-                placeholder="Buscar ubicación guardada..."
-              />
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
-            <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Catedral de Laureles" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-              <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                {Object.entries(LOCATION_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
-              <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Padre Martínez" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
-            <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Cra 80 # 33-02, Medellín" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
-            <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
-              <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+57 300 000 0000" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-              <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Entrar por la puerta sur" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Acceso vial</label>
-            <input value={form.road_access_notes} onChange={f('road_access_notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="¿Portería, carretera estrecha, cobro de ingreso, acceso restringido?" />
-          </div>
+      )}
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
+        <input value={form.location_name} onChange={f('location_name')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Catedral de Laureles" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+          <select value={form.location_type} onChange={f('location_type')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            {Object.entries(LOCATION_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
         </div>
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button
-            onClick={() => { if (form.location_name.trim()) onSave(form); }}
-            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer"
-          >
-            Guardar
-          </button>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
+          <input value={form.contact_person} onChange={f('contact_person')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Padre Martínez" />
         </div>
       </div>
-    </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
+        <input value={form.address} onChange={f('address')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Cra 80 # 33-02, Medellín" />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
+        <input value={form.google_maps_link} onChange={f('google_maps_link')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="https://maps.google.com/..." />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
+          <input value={form.contact_phone} onChange={f('contact_phone')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+57 300 000 0000" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
+          <input value={form.notes} onChange={f('notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Entrar por la puerta sur" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Acceso vial</label>
+        <input value={form.road_access_notes} onChange={f('road_access_notes')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="¿Portería, carretera estrecha, cobro de ingreso, acceso restringido?" />
+      </div>
+    </Modal>
   );
 }
 
@@ -290,63 +284,55 @@ function ActivityModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar actividad' : 'Nueva actividad'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
+    <Modal
+      title={initial ? 'Editar actividad' : 'Nueva actividad'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button onClick={() => { if (form.time && form.description.trim()) onSave(form); }}>Guardar</Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Hora *</label>
+          <input
+            type="time"
+            value={form.time}
+            onChange={f('time')}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
         </div>
-        <div className="px-6 py-4 space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Hora *</label>
-              <input
-                type="time"
-                value={form.time}
-                onChange={f('time')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
-              <input type="date" value={activityDate} onChange={onDateChange} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
-              <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="30 min" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Descripción *</label>
-            <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Llegada del novio a la ceremonia" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación relacionada</label>
-            <select
-              value={form.location_id ?? ''}
-              onChange={f('location_id')}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              <option value="">Sin ubicación</option>
-              {locations.map(l => <option key={l.id} value={l.id}>{l.location_name} ({LOCATION_TYPE_LABELS[l.location_type]})</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-            <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Instrucciones adicionales..." />
-          </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
+          <input type="date" value={activityDate} onChange={onDateChange} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
         </div>
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button
-            onClick={() => { if (form.time && form.description.trim()) onSave(form); }}
-            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer"
-          >
-            Guardar
-          </button>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Duración estimada</label>
+          <input value={form.estimated_duration} onChange={f('estimated_duration')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="30 min" />
         </div>
       </div>
-    </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Descripción *</label>
+        <input value={form.description} onChange={f('description')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Llegada del novio a la ceremonia" />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación relacionada</label>
+        <select
+          value={form.location_id ?? ''}
+          onChange={f('location_id')}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        >
+          <option value="">Sin ubicación</option>
+          {locations.map(l => <option key={l.id} value={l.id}>{l.location_name} ({LOCATION_TYPE_LABELS[l.location_type]})</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
+        <textarea value={form.notes} onChange={f('notes')} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Instrucciones adicionales..." />
+      </div>
+    </Modal>
   );
 }
 

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { AlertTriangle, ArrowLeft, Plus, Save, X } from 'lucide-react';
 import Combobox from '../../components/ui/Combobox';
+import { Modal } from '../../components/ui/Modal';
+import { Button } from '../../components/ui/Button';
 import { reservationsApi } from '../../api/reservations';
 import { customersApi } from '../../api/customers';
 import { contactsApi } from '../../api/contacts';
@@ -697,69 +699,53 @@ function CustomerQuickCreateModal({
   const labelCls = 'block text-sm text-gray-600 mb-1';
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar cliente' : 'Nuevo cliente'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="px-6 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Novia</label>
-              <input value={form.bride_name} onChange={f('bride_name')} className={inputCls} placeholder="María" />
-            </div>
-            <div>
-              <label className={labelCls}>Novio</label>
-              <input value={form.groom_name} onChange={f('groom_name')} className={inputCls} placeholder="Carlos" />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Contacto principal *</label>
-            <input value={form.main_contact_name} onChange={f('main_contact_name')} className={inputCls} placeholder="María García" />
-          </div>
-          <div>
-            <label className={labelCls}>Teléfono / WhatsApp</label>
-            <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
-          </div>
-          <div>
-            <label className={labelCls}>Usuario de WhatsApp</label>
-            <input value={form.whatsapp_username} onChange={f('whatsapp_username')} className={inputCls} placeholder="usuario.whatsapp" />
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <p className="text-xs text-gray-400">
-            Podrás completar cédula, email y más datos luego desde Clientes.
-            {initial && (
-              <>
-                {' '}·{' '}
-                <button type="button" onClick={handleGoToFullEdit} className="text-brand-600 hover:underline cursor-pointer font-medium">
-                  Editar cliente completo
-                </button>
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
+    <Modal
+      title={initial ? 'Editar cliente' : 'Nuevo cliente'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="button" onClick={handleSave} loading={saving}>
             {saving ? (initial ? 'Guardando…' : 'Creando…') : (initial ? 'Guardar' : 'Crear y usar')}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Novia</label>
+          <input value={form.bride_name} onChange={f('bride_name')} className={inputCls} placeholder="María" />
+        </div>
+        <div>
+          <label className={labelCls}>Novio</label>
+          <input value={form.groom_name} onChange={f('groom_name')} className={inputCls} placeholder="Carlos" />
         </div>
       </div>
-    </div>
+      <div>
+        <label className={labelCls}>Contacto principal *</label>
+        <input value={form.main_contact_name} onChange={f('main_contact_name')} className={inputCls} placeholder="María García" />
+      </div>
+      <div>
+        <label className={labelCls}>Teléfono / WhatsApp</label>
+        <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
+      </div>
+      <div>
+        <label className={labelCls}>Usuario de WhatsApp</label>
+        <input value={form.whatsapp_username} onChange={f('whatsapp_username')} className={inputCls} placeholder="usuario.whatsapp" />
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <p className="text-xs text-gray-400">
+        Podrás completar cédula, email y más datos luego desde Clientes.
+        {initial && (
+          <>
+            {' '}·{' '}
+            <button type="button" onClick={handleGoToFullEdit} className="text-brand-600 hover:underline cursor-pointer font-medium">
+              Editar cliente completo
+            </button>
+          </>
+        )}
+      </p>
+    </Modal>
   );
 }
 
@@ -814,57 +800,41 @@ function VehicleQuickCreateModal({
   const labelCls = 'block text-sm text-gray-600 mb-1';
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar vehículo' : 'Nuevo vehículo'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="px-6 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Marca *</label>
-              <input value={form.brand} onChange={f('brand')} className={inputCls} placeholder="Mercedes Benz" />
-            </div>
-            <div>
-              <label className={labelCls}>Placa *</label>
-              <input value={form.license_plate} onChange={f('license_plate')} className={inputCls} placeholder="ABC123" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Línea / Modelo</label>
-              <input value={form.model_line} onChange={f('model_line')} className={inputCls} placeholder="Clase S" />
-            </div>
-            <div>
-              <label className={labelCls}>Color</label>
-              <input value={form.color} onChange={f('color')} className={inputCls} placeholder="Blanco" />
-            </div>
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <p className="text-xs text-gray-400">Podrás completar zonas, precios y fotos luego desde Vehículos.</p>
-        </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
+    <Modal
+      title={initial ? 'Editar vehículo' : 'Nuevo vehículo'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="button" onClick={handleSave} loading={saving}>
             {saving ? (initial ? 'Guardando…' : 'Creando…') : (initial ? 'Guardar' : 'Crear y usar')}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Marca *</label>
+          <input value={form.brand} onChange={f('brand')} className={inputCls} placeholder="Mercedes Benz" />
+        </div>
+        <div>
+          <label className={labelCls}>Placa *</label>
+          <input value={form.license_plate} onChange={f('license_plate')} className={inputCls} placeholder="ABC123" />
         </div>
       </div>
-    </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Línea / Modelo</label>
+          <input value={form.model_line} onChange={f('model_line')} className={inputCls} placeholder="Clase S" />
+        </div>
+        <div>
+          <label className={labelCls}>Color</label>
+          <input value={form.color} onChange={f('color')} className={inputCls} placeholder="Blanco" />
+        </div>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <p className="text-xs text-gray-400">Podrás completar zonas, precios y fotos luego desde Vehículos.</p>
+    </Modal>
   );
 }
 
@@ -917,51 +887,35 @@ function DriverQuickCreateModal({
   const labelCls = 'block text-sm text-gray-600 mb-1';
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar conductor' : 'Nuevo conductor'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="px-6 py-4 space-y-3">
-          <div>
-            <label className={labelCls}>Nombre completo *</label>
-            <input value={form.full_name} onChange={f('full_name')} className={inputCls} placeholder="Carlos Ramírez" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Teléfono</label>
-              <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
-            </div>
-            <div>
-              <label className={labelCls}>WhatsApp</label>
-              <input value={form.whatsapp} onChange={f('whatsapp')} className={inputCls} placeholder="312 345 6789" />
-            </div>
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <p className="text-xs text-gray-400">Podrás completar licencia y más datos luego desde Conductores.</p>
-        </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
+    <Modal
+      title={initial ? 'Editar conductor' : 'Nuevo conductor'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="button" onClick={handleSave} loading={saving}>
             {saving ? (initial ? 'Guardando…' : 'Creando…') : (initial ? 'Guardar' : 'Crear y usar')}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div>
+        <label className={labelCls}>Nombre completo *</label>
+        <input value={form.full_name} onChange={f('full_name')} className={inputCls} placeholder="Carlos Ramírez" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Teléfono</label>
+          <input value={form.phone} onChange={f('phone')} className={inputCls} placeholder="312 345 6789" />
+        </div>
+        <div>
+          <label className={labelCls}>WhatsApp</label>
+          <input value={form.whatsapp} onChange={f('whatsapp')} className={inputCls} placeholder="312 345 6789" />
         </div>
       </div>
-    </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <p className="text-xs text-gray-400">Podrás completar licencia y más datos luego desde Conductores.</p>
+    </Modal>
   );
 }
 
@@ -1020,75 +974,59 @@ function ContactQuickCreateModal({
   const labelCls = 'block text-sm text-gray-600 mb-1';
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar contacto' : 'Nuevo contacto'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="px-6 py-4 space-y-3">
-          <div>
-            <label className={labelCls}>Nombre *</label>
-            <input
-              value={form.full_name}
-              onChange={(e) => setForm(prev => ({ ...prev, full_name: e.target.value }))}
-              className={inputCls}
-              placeholder="Andrea Vélez"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Tipo</label>
-              <select
-                value={form.contact_type}
-                onChange={(e) => setForm(prev => ({ ...prev, contact_type: e.target.value }))}
-                className={inputCls}
-              >
-                {CONTACT_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Teléfono</label>
-              <input
-                value={form.phone}
-                onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
-                className={inputCls}
-                placeholder="312 345 6789"
-              />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Usuario de WhatsApp</label>
-            <input
-              value={form.whatsapp_username}
-              onChange={(e) => setForm(prev => ({ ...prev, whatsapp_username: e.target.value }))}
-              className={inputCls}
-              placeholder="usuario.whatsapp"
-            />
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <p className="text-xs text-gray-400">Podrás completar email, Instagram y más datos luego desde Contactos.</p>
-        </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-          >
+    <Modal
+      title={initial ? 'Editar contacto' : 'Nuevo contacto'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="button" onClick={handleSave} loading={saving}>
             {saving ? (initial ? 'Guardando…' : 'Creando…') : (initial ? 'Guardar' : 'Crear y usar')}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div>
+        <label className={labelCls}>Nombre *</label>
+        <input
+          value={form.full_name}
+          onChange={(e) => setForm(prev => ({ ...prev, full_name: e.target.value }))}
+          className={inputCls}
+          placeholder="Andrea Vélez"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Tipo</label>
+          <select
+            value={form.contact_type}
+            onChange={(e) => setForm(prev => ({ ...prev, contact_type: e.target.value }))}
+            className={inputCls}
+          >
+            {CONTACT_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>Teléfono</label>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
+            className={inputCls}
+            placeholder="312 345 6789"
+          />
         </div>
       </div>
-    </div>
+      <div>
+        <label className={labelCls}>Usuario de WhatsApp</label>
+        <input
+          value={form.whatsapp_username}
+          onChange={(e) => setForm(prev => ({ ...prev, whatsapp_username: e.target.value }))}
+          className={inputCls}
+          placeholder="usuario.whatsapp"
+        />
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <p className="text-xs text-gray-400">Podrás completar email, Instagram y más datos luego desde Contactos.</p>
+    </Modal>
   );
 }
