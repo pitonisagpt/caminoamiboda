@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
-import { Plus, Edit, Trash2, Eye, EyeOff, X, BookOpen, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen, ExternalLink } from 'lucide-react';
 import { blogApi, type BlogPost, type BlogPostForm } from '../../api/blog';
+import { Modal } from '../../components/ui/Modal';
+import { Button } from '../../components/ui/Button';
 
 const EMPTY_FORM: BlogPostForm = {
   title: '', slug: '', excerpt: '', content_md: '',
@@ -154,91 +156,88 @@ export default function BlogAdminPage() {
       </div>
 
       {modal.open && (
-        <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-[9999] p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl my-8">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">{modal.editing ? 'Editar artículo' : 'Nuevo artículo'}</h3>
-              <button onClick={() => setModal({ open: false })} className="text-gray-400 hover:text-gray-600 cursor-pointer"><X size={18} /></button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Título *</label>
-                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value, slug: slugify(e.target.value) }))}
-                  className={inputCls} placeholder="Cómo elegir el carro para tu boda en Medellín" autoFocus />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Slug (URL)</label>
-                <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
-                  className={inputCls} placeholder="como-elegir-carro-boda-medellin" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Extracto</label>
-                <input value={form.excerpt} onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
-                  className={inputCls} placeholder="Descripción corta que aparece en la lista del blog..." />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">URL portada</label>
-                <input value={form.cover_image_url} onChange={e => setForm(f => ({ ...f, cover_image_url: e.target.value }))}
-                  className={inputCls} placeholder="https://..." />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Contenido (Markdown)</label>
-                <div data-color-mode="light">
-                  <MDEditor
-                    value={form.content_md}
-                    onChange={v => setForm(f => ({ ...f, content_md: v ?? '' }))}
-                    height={320}
-                    preview="edit"
-                  />
-                </div>
-              </div>
-
-              <div className="border-t border-gray-100 pt-4 space-y-4">
-                <p className="text-xs font-semibold text-brand-600 uppercase tracking-wide">Versión en inglés (opcional — se muestra en /en/blog)</p>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Título (inglés)</label>
-                  <input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value, slug_en: slugify(e.target.value) }))}
-                    className={inputCls} placeholder="How to choose the car for your wedding in Medellín" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Slug (inglés)</label>
-                  <input value={form.slug_en} onChange={e => setForm(f => ({ ...f, slug_en: e.target.value }))}
-                    className={inputCls} placeholder="how-to-choose-wedding-car-medellin" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Extracto (inglés)</label>
-                  <input value={form.excerpt_en} onChange={e => setForm(f => ({ ...f, excerpt_en: e.target.value }))}
-                    className={inputCls} placeholder="Short description shown in the English blog list..." />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Contenido (inglés, Markdown)</label>
-                  <div data-color-mode="light">
-                    <MDEditor
-                      value={form.content_md_en}
-                      onChange={v => setForm(f => ({ ...f, content_md_en: v ?? '' }))}
-                      height={320}
-                      preview="edit"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400">Si se deja vacío, el post no aparece en el listado de /en/blog; un link directo cae de vuelta al contenido en español con un aviso.</p>
-              </div>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
-                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
-                <span className="text-sm text-gray-700">Publicar inmediatamente</span>
-              </label>
-            </div>
-            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
-              <button onClick={() => setModal({ open: false })} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button onClick={handleSave} disabled={saving || !form.title.trim()}
-                className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer disabled:opacity-60">
+        <Modal
+          title={modal.editing ? 'Editar artículo' : 'Nuevo artículo'}
+          onClose={() => setModal({ open: false })}
+          size="xl"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setModal({ open: false })}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={saving || !form.title.trim()} loading={saving}>
                 {saving ? 'Guardando…' : 'Guardar'}
-              </button>
+              </Button>
+            </>
+          }
+        >
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Título *</label>
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value, slug: slugify(e.target.value) }))}
+              className={inputCls} placeholder="Cómo elegir el carro para tu boda en Medellín" autoFocus />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Slug (URL)</label>
+            <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+              className={inputCls} placeholder="como-elegir-carro-boda-medellin" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Extracto</label>
+            <input value={form.excerpt} onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
+              className={inputCls} placeholder="Descripción corta que aparece en la lista del blog..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">URL portada</label>
+            <input value={form.cover_image_url} onChange={e => setForm(f => ({ ...f, cover_image_url: e.target.value }))}
+              className={inputCls} placeholder="https://..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Contenido (Markdown)</label>
+            <div data-color-mode="light">
+              <MDEditor
+                value={form.content_md}
+                onChange={v => setForm(f => ({ ...f, content_md: v ?? '' }))}
+                height={320}
+                preview="edit"
+              />
             </div>
           </div>
-        </div>
+
+          <div className="border-t border-gray-100 pt-4 space-y-4">
+            <p className="text-xs font-semibold text-brand-600 uppercase tracking-wide">Versión en inglés (opcional — se muestra en /en/blog)</p>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Título (inglés)</label>
+              <input value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value, slug_en: slugify(e.target.value) }))}
+                className={inputCls} placeholder="How to choose the car for your wedding in Medellín" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Slug (inglés)</label>
+              <input value={form.slug_en} onChange={e => setForm(f => ({ ...f, slug_en: e.target.value }))}
+                className={inputCls} placeholder="how-to-choose-wedding-car-medellin" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Extracto (inglés)</label>
+              <input value={form.excerpt_en} onChange={e => setForm(f => ({ ...f, excerpt_en: e.target.value }))}
+                className={inputCls} placeholder="Short description shown in the English blog list..." />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Contenido (inglés, Markdown)</label>
+              <div data-color-mode="light">
+                <MDEditor
+                  value={form.content_md_en}
+                  onChange={v => setForm(f => ({ ...f, content_md_en: v ?? '' }))}
+                  height={320}
+                  preview="edit"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-400">Si se deja vacío, el post no aparece en el listado de /en/blog; un link directo cae de vuelta al contenido en español con un aviso.</p>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
+              className="rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
+            <span className="text-sm text-gray-700">Publicar inmediatamente</span>
+          </label>
+        </Modal>
       )}
     </div>
   );

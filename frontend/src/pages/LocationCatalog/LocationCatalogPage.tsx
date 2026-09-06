@@ -5,6 +5,8 @@ import L from 'leaflet';
 import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, Navigation, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import type { CatalogLocation, CatalogLocationFormData, LocationType } from '../../types/catalogLocation';
+import { Modal } from '../../components/ui/Modal';
+import { Button } from '../../components/ui/Button';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -125,67 +127,64 @@ function LocationModal({
   const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">{initial ? 'Editar ubicación' : 'Nueva ubicación'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer"><X size={18} /></button>
-        </div>
-        <div className="px-6 py-4 space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
-            <input value={form.name} onChange={f('name')} className={inputCls} placeholder="Catedral de Laureles" autoFocus />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-              <select value={form.location_type} onChange={f('location_type')} className={inputCls}>
-                {(Object.entries(TYPE_LABELS) as [LocationType, string][]).map(([v, l]) => (
-                  <option key={v} value={v}>{l}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
-              <input value={form.contact_person} onChange={f('contact_person')} className={inputCls} placeholder="Padre Martínez" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
-            <input value={form.address} onChange={f('address')} className={inputCls} placeholder="Cra 80 # 33-02, Medellín" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
-            <input value={form.google_maps_link} onChange={f('google_maps_link')} className={inputCls} placeholder="https://maps.app.goo.gl/..." />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
-            <input value={form.waze_link} onChange={f('waze_link')} className={inputCls} placeholder="https://waze.com/ul/..." />
-            <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se genera automático desde las coordenadas.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
-              <input value={form.contact_phone} onChange={f('contact_phone')} className={inputCls} placeholder="+57 300 000 0000" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-              <input value={form.notes} onChange={f('notes')} className={inputCls} placeholder="Entrar por la puerta sur" />
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button
+    <Modal
+      title={initial ? 'Editar ubicación' : 'Nueva ubicación'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button
             onClick={async () => { if (!form.name.trim()) return; setSaving(true); try { await onSave(form); } finally { setSaving(false); } }}
             disabled={saving || !form.name.trim()}
-            className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg cursor-pointer disabled:opacity-60"
+            loading={saving}
           >
             {saving ? 'Guardando…' : 'Guardar'}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
+        <input value={form.name} onChange={f('name')} className={inputCls} placeholder="Catedral de Laureles" autoFocus />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+          <select value={form.location_type} onChange={f('location_type')} className={inputCls}>
+            {(Object.entries(TYPE_LABELS) as [LocationType, string][]).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
+          <input value={form.contact_person} onChange={f('contact_person')} className={inputCls} placeholder="Padre Martínez" />
         </div>
       </div>
-    </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
+        <input value={form.address} onChange={f('address')} className={inputCls} placeholder="Cra 80 # 33-02, Medellín" />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
+        <input value={form.google_maps_link} onChange={f('google_maps_link')} className={inputCls} placeholder="https://maps.app.goo.gl/..." />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
+        <input value={form.waze_link} onChange={f('waze_link')} className={inputCls} placeholder="https://waze.com/ul/..." />
+        <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se genera automático desde las coordenadas.</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
+          <input value={form.contact_phone} onChange={f('contact_phone')} className={inputCls} placeholder="+57 300 000 0000" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
+          <input value={form.notes} onChange={f('notes')} className={inputCls} placeholder="Entrar por la puerta sur" />
+        </div>
+      </div>
+    </Modal>
   );
 }
 

@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss';
 
-type Size = 'sm' | 'md' | 'lg';
+type Size = 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZE_CLASSES: Record<Size, string> = {
   sm: 'sm:max-w-sm',
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-3xl',
 };
 
 const EXIT_MS = 200;
