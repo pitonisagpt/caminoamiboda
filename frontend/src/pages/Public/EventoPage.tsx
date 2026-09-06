@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route, Compass } from 'lucide-react';
 import EventRouteMap from '../../components/EventRouteMap';
 import { timelinesApi } from '../../api/timelines';
-import type { TimelinePublic, EventLocation, LocationType } from '../../types/timeline';
+import type { TimelinePublic, EventLocation, EventType, LocationType } from '../../types/timeline';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
 
 const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
@@ -13,6 +14,35 @@ const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   photoshoot: 'Sesión de fotos',
   other: 'Otro',
 };
+
+const EVENT_TYPE_TITLE_LABELS: Record<EventType, string> = {
+  wedding: 'Boda',
+  brand_activation: 'Activación de marca',
+  audiovisual_production: 'Producción audiovisual',
+  quinceanera: 'Quinceañera',
+  other: 'Evento',
+};
+
+// Enriches the bare event_name ("Novia & Novio") with the event type and
+// full vehicle name, e.g. "Boda Camila Ferrer & Martín (Mercedes Benz
+// Gazelle Beige y negro)" — falls back to the planner or first contact
+// when no couple name is on record, and to the plain event_name if none
+// of those exist either.
+function buildPageTitle(event: TimelinePublic): string {
+  const typeLabel = EVENT_TYPE_TITLE_LABELS[event.event_type] ?? 'Evento';
+  let contact: string | null = null;
+  if (event.main_contact_name) {
+    contact = event.main_contact_name;
+  } else if (event.planner_name) {
+    contact = `${event.planner_name} (Wedding Planner)`;
+  } else if (event.contacts.length > 0) {
+    const c = event.contacts[0];
+    contact = c.role ? `${c.name} (${c.role})` : c.name;
+  }
+  if (!contact) return event.event_name;
+  const vehiclePart = event.assigned_vehicle ? ` (${event.assigned_vehicle})` : '';
+  return `${typeLabel} ${contact}${vehiclePart}`;
+}
 
 const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
   pickup: 'border-blue-300 bg-blue-50',
@@ -143,9 +173,14 @@ export default function EventoPage() {
 
   const sortedActivities = [...event.activities].sort((a, b) => a.display_order - b.display_order);
   const multiDayEvent = new Set(sortedActivities.map(a => a.day_number)).size > 1;
+  const pageTitle = buildPageTitle(event);
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{pageTitle} | Camino a mi Boda</title>
+      </Helmet>
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-5 sticky top-0 z-10 shadow-sm">
         <div className="max-w-lg mx-auto">
@@ -154,7 +189,7 @@ export default function EventoPage() {
               <span className="text-brand-500 text-lg">💍</span>
             </div>
             <div>
-              <h1 className="font-bold text-gray-900 text-lg leading-tight">{event.event_name}</h1>
+              <h1 className="font-bold text-gray-900 text-lg leading-tight">{pageTitle}</h1>
               <p className="text-sm text-gray-500 capitalize">{formatDate(event.event_date)}</p>
             </div>
           </div>
@@ -165,27 +200,15 @@ export default function EventoPage() {
         {/* Event summary */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
           {event.main_contact_name && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-gray-700">
-                <User className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium">{event.main_contact_name}</span>
-              </div>
-              {event.main_contact_phone && (
-                <a
-                  href={`https://wa.me/${event.main_contact_phone.replace(/\D/g, '')}`}
-                  {...whatsAppLinkProps()}
-                  className="flex items-center gap-1.5 text-sm text-green-600 font-medium"
-                >
-                  <Phone className="w-4 h-4" />
-                  {event.main_contact_phone}
-                </a>
-              )}
+            <div className="flex items-center gap-2 text-gray-700">
+              <User className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium">{event.main_contact_name} · Pareja</span>
             </div>
           )}
           {event.assigned_vehicle && (
             <div className="flex items-center gap-2 text-gray-700">
               <Car className="w-4 h-4 text-gray-400" />
-              <span className="text-sm">{event.assigned_vehicle}</span>
+              <span className="text-sm"><span className="text-gray-500">Vehículo:</span> {event.assigned_vehicle}</span>
             </div>
           )}
           {event.assigned_driver && (

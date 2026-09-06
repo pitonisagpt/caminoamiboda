@@ -395,7 +395,8 @@ def _build_client_gcal_event(timeline, locations: list, activities: list | None 
     event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
     couple = _couple_first_names(timeline, reservation, sep=" & ")
     date_str = _format_date_es(event_date)
-    summary = f"💍 {event_type_label} {couple} {date_str}"
+    vehicle_str = f" ({timeline.assigned_vehicle})" if timeline.assigned_vehicle else ""
+    summary = f"💍 {event_type_label} {couple} {date_str}{vehicle_str}"
     max_day = max_day_number(activities)
     return {
         "summary": summary,
