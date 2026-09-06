@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { Menu, X, Phone, Mail, Instagram, Languages, LayoutDashboard } from "lucide-react";
 import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
@@ -14,14 +14,50 @@ export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t, lang, setLang } = useLang();
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Catalog, Productions and Reviews all point at the same /catalogo
+  // pathname and only differ by query string or hash — react-router's
+  // NavLink only compares pathname, so all three used to light up as
+  // "active" at once. Computed manually here instead, so exactly one link
+  // (or none) is active at a time.
+  const catalogPath = toLangPath("/catalogo", lang);
+  const howItWorksPath = toLangPath("/como-funciona", lang);
+  const blogPath = toLangPath("/blog", lang);
+  const contactPath = toLangPath("/contacto", lang);
+  const onCatalogPage = location.pathname === catalogPath;
 
   const NAV_LINKS = [
-    { to: toLangPath("/catalogo", lang), label: t("nav.catalog") },
-    { to: `${toLangPath("/catalogo", lang)}?use_case=audiovisual_production,brand_activation`, label: t("nav.productions") },
-    { to: toLangPath("/como-funciona", lang), label: t("nav.howItWorks") },
-    { to: `${toLangPath("/catalogo", lang)}#opiniones`, label: t("nav.opinions") },
-    { to: toLangPath("/blog", lang), label: t("nav.blog") },
-    { to: toLangPath("/contacto", lang), label: t("nav.contact") },
+    {
+      to: catalogPath,
+      label: t("nav.catalog"),
+      isActive: onCatalogPage && !location.search && location.hash !== "#opiniones",
+    },
+    {
+      to: `${catalogPath}?use_case=audiovisual_production,brand_activation`,
+      label: t("nav.productions"),
+      isActive: onCatalogPage && location.search.includes("use_case"),
+    },
+    {
+      to: howItWorksPath,
+      label: t("nav.howItWorks"),
+      isActive: location.pathname === howItWorksPath,
+    },
+    {
+      to: `${catalogPath}#opiniones`,
+      label: t("nav.opinions"),
+      isActive: onCatalogPage && location.hash === "#opiniones",
+    },
+    {
+      to: blogPath,
+      label: t("nav.blog"),
+      isActive: location.pathname === blogPath || location.pathname.startsWith(`${blogPath}/`),
+    },
+    {
+      to: contactPath,
+      label: t("nav.contact"),
+      isActive: location.pathname === contactPath,
+    },
   ];
 
   const LanguageSwitch = ({ className = "" }: { className?: string }) => (
@@ -45,20 +81,21 @@ export function PublicLayout() {
             <p className="text-xs text-gray-400 mt-0.5">{t("layout.tagline")}</p>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop nav — shown from xl (1280px) up. The 6 labels need
+              ~1130px to sit on one line without wrapping; below that (even
+              at 1024px) they broke into 2-3 uneven lines, which read as
+              "crowded" — the hamburger menu covers that whole range instead. */}
+          <nav className="hidden xl:flex items-center gap-6">
             {NAV_LINKS.map(link => (
-              <NavLink
+              <Link
                 key={link.to}
                 to={link.to}
-                className={({ isActive }) =>
-                  `text-sm font-medium transition-colors ${
-                    isActive ? "text-brand-600" : "text-gray-600 hover:text-brand-600"
-                  }`
-                }
+                className={`text-sm font-medium whitespace-nowrap transition-colors ${
+                  link.isActive ? "text-brand-600" : "text-gray-600 hover:text-brand-600"
+                }`}
               >
                 {link.label}
-              </NavLink>
+              </Link>
             ))}
           </nav>
 
@@ -67,14 +104,14 @@ export function PublicLayout() {
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               {...whatsAppLinkProps()}
-              className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+              className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
               <WhatsAppIcon className="w-4 h-4" />
               {t("layout.contactUs")}
             </a>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="md:hidden p-2 text-gray-500 hover:text-brand-600 cursor-pointer"
+              className="xl:hidden p-2 text-gray-500 hover:text-brand-600 cursor-pointer"
               aria-label={t("layout.mobileMenuAria")}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -84,18 +121,16 @@ export function PublicLayout() {
 
         {/* Mobile nav */}
         {menuOpen && (
-          <nav className="md:hidden border-t border-brand-100 px-4 py-3 flex flex-col gap-3">
+          <nav className="xl:hidden border-t border-brand-100 px-4 py-3 flex flex-col gap-3">
             {NAV_LINKS.map(link => (
-              <NavLink
+              <Link
                 key={link.to}
                 to={link.to}
                 onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `text-sm font-medium ${isActive ? "text-brand-600" : "text-gray-600"}`
-                }
+                className={`text-sm font-medium ${link.isActive ? "text-brand-600" : "text-gray-600"}`}
               >
                 {link.label}
-              </NavLink>
+              </Link>
             ))}
             {!loading && user && (
               <Link
