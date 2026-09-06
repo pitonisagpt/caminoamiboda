@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, Download, FileText, Gift, Link2, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
+import { AlertTriangle, DollarSign, Download, FileText, Gift, Link2, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
 import type { BillingDocumentListItem, DocumentStatus } from '../../../types';
 import type { ReservationAddon, ReservationAddonForm } from '../../../types/reservationAddon';
@@ -740,6 +740,12 @@ export default function FinanceTab({
         {/* Add payment form */}
         {addingPayment && (
           <div className="border border-brand-100 rounded-xl p-4 space-y-3 bg-brand-50/30">
+            {Number(reservation.total_amount) === 0 && (
+              <p className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                Esta reserva todavía no tiene "Valor total" cargado — el saldo pendiente se calculará mal hasta que lo agregues en la pestaña Información.
+              </p>
+            )}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
               <div className="flex gap-2">
