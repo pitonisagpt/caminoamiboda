@@ -717,7 +717,23 @@ export function CatalogPage() {
         />
       )}
 
-      {/* Reviews section */}
+      {/* Availability widget */}
+      <div className="mt-16 max-w-lg mx-auto">
+        <AvailabilityWidget />
+      </div>
+
+      {/* Instagram grid */}
+      <div className="mt-16">
+        <InstagramGrid />
+      </div>
+
+      {/* Floristería aliada */}
+      <div className="mt-16">
+        <FloristAllySection />
+      </div>
+
+      {/* Reviews section — last, right before the footer (PublicLayout renders
+          it immediately after this component's content) */}
       {reviews.length > 0 && (
         <div id="opiniones" className="mt-16 space-y-6 scroll-mt-24">
           <h2 className="text-2xl font-brand text-brand-500 text-center">{t("catalog.reviewsTitle")}</h2>
@@ -745,21 +761,6 @@ export function CatalogPage() {
           </div>
         </div>
       )}
-
-      {/* Availability widget */}
-      <div className="mt-16 max-w-lg mx-auto">
-        <AvailabilityWidget />
-      </div>
-
-      {/* Instagram grid */}
-      <div className="mt-16">
-        <InstagramGrid />
-      </div>
-
-      {/* Floristería aliada */}
-      <div className="mt-16">
-        <FloristAllySection />
-      </div>
     </>
   );
 }
