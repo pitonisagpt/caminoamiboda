@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { MessageCircle } from 'lucide-react';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
 import { useLang } from '../../i18n/LanguageContext';
+import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 
 const WA_NUMBER = '573147372030';
 
@@ -35,16 +35,19 @@ export function AvailabilityWidget() {
         className="w-full max-w-xs mx-auto block border border-brand-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white text-gray-800"
       />
 
+      {/* Compact on purpose (wishlist fila 63) — same treatment as the
+          catalog card/modal buttons: lighter weight, less tall, same
+          recognizable solid WhatsApp green. */}
       <a
         href={waUrl}
         {...whatsAppLinkProps()}
-        className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
+        className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-medium text-sm transition-all ${
           date
-            ? 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg cursor-pointer'
+            ? 'bg-green-500 hover:bg-green-600 text-white shadow-sm hover:shadow-md cursor-pointer'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
         }`}
       >
-        <MessageCircle size={18} />
+        <WhatsAppIcon className="w-3.5 h-3.5" />
         {t('availability.cta')}
       </a>
 
