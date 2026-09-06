@@ -1,3 +1,5 @@
+import type { VehicleLocation } from "./vehicle";
+
 export type ReservationStatus =
   | 'lead'
   | 'quoted'
@@ -62,6 +64,7 @@ export interface VehicleBrief {
   owner_driver_id: number | null;
   display_driver: string | null;
   display_driver_phone: string | null;
+  location: VehicleLocation | null;
 }
 
 export interface ReservationListItem {
@@ -121,6 +124,7 @@ export interface Reservation extends ReservationListItem {
   customer_whatsapp_username: string | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
+  vehicle_location: VehicleLocation | null;
   event_location: string | null;
   timeline_event_name: string | null;
   updated_at: string;

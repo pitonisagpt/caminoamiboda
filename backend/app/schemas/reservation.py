@@ -30,6 +30,7 @@ class VehicleBrief(BaseModel):
     owner_driver_id: Optional[int] = None
     display_driver: Optional[str] = None
     display_driver_phone: Optional[str] = None
+    location: Optional[str] = None
 
 
 class VehicleAssignmentIn(BaseModel):
@@ -67,6 +68,7 @@ def _build(r, db) -> dict:
     d["display_driver_phone"] = r.display_driver_phone
     d["display_driver_whatsapp_username"] = r.display_driver_whatsapp_username
     d["vehicle_license_plate"] = r.vehicle.license_plate if r.vehicle else None
+    d["vehicle_location"] = r.vehicle.location.value if r.vehicle else None
     d["owner_driver_name"] = r.owner_driver.full_name if r.owner_driver else None
     d["owner_driver_phone"] = r.owner_driver.phone if r.owner_driver else None
     d["owner_id"] = r.vehicle.owner_id if r.vehicle else None
@@ -115,6 +117,7 @@ def _build(r, db) -> dict:
             owner_driver_id=rv.owner_driver_id,
             display_driver=rv_display_driver(rv),
             display_driver_phone=rv_display_driver_phone(rv),
+            location=v.location.value,
         ))
     d["vehicles"] = vehicles
     return d
@@ -212,6 +215,7 @@ class ReservationRead(BaseModel):
     contact_type: Optional[str] = None
     display_vehicle: str
     vehicle_license_plate: Optional[str] = None
+    vehicle_location: Optional[str] = None
     customer_phone: Optional[str] = None
     customer_whatsapp: Optional[str] = None
     customer_whatsapp_username: Optional[str] = None

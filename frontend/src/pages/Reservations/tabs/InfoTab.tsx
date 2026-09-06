@@ -2,13 +2,23 @@ import { useEffect, useState } from 'react';
 import { Calendar, Car, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
+import type { VehicleLocation } from '../../../types/vehicle';
 import VehiclePhotoTooltip from '../../../components/VehiclePhotoTooltip';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { Dropzone } from '../../../components/ui/Dropzone';
+import { VehicleAvailabilityWhatsAppModal } from '../../../components/VehicleAvailabilityWhatsAppModal';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
+
+interface AvailabilityTarget {
+  vehicleLabel: string;
+  licensePlate: string | null;
+  location: VehicleLocation | null;
+  ownerContact: string | null;
+  ownerWhatsappUsername: string | null;
+}
 
 const GOOGLE_REVIEW_LINK = 'https://g.page/r/CZk-2HPmACi3EBM/review';
 
@@ -51,6 +61,7 @@ export default function InfoTab({
     onStatusChange(s);
   };
 
+  const [waTarget, setWaTarget] = useState<AvailabilityTarget | null>(null);
   const [attachments, setAttachments] = useState<ReservationAttachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -169,6 +180,21 @@ export default function InfoTab({
                 <span className="text-gray-700">
                   <EntityLink to={`/vehiculos/${v.id}`} id={v.id}>{v.display_name}</EntityLink>
                 </span>
+                {(v.owner_whatsapp || v.owner_whatsapp_username) && (
+                  <button
+                    onClick={() => setWaTarget({
+                      vehicleLabel: v.display_name,
+                      licensePlate: v.license_plate,
+                      location: v.location,
+                      ownerContact: v.owner_whatsapp,
+                      ownerWhatsappUsername: v.owner_whatsapp_username,
+                    })}
+                    className="p-1 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
+                    title="Consultar disponibilidad con el propietario por WhatsApp"
+                  >
+                    <MessageCircle size={14} />
+                  </button>
+                )}
               </div>
               {v.display_driver && (
                 <div className="flex items-center gap-2 text-sm pl-8">
@@ -201,6 +227,21 @@ export default function InfoTab({
                 <span className="text-gray-700">
                   <EntityLink to={`/vehiculos/${reservation.vehicle_id}`} id={reservation.vehicle_id}>{reservation.display_vehicle}</EntityLink>
                 </span>
+                {(reservation.owner_whatsapp || reservation.owner_whatsapp_username) && (
+                  <button
+                    onClick={() => setWaTarget({
+                      vehicleLabel: reservation.display_vehicle,
+                      licensePlate: reservation.vehicle_license_plate,
+                      location: reservation.vehicle_location,
+                      ownerContact: reservation.owner_whatsapp,
+                      ownerWhatsappUsername: reservation.owner_whatsapp_username,
+                    })}
+                    className="p-1 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors cursor-pointer"
+                    title="Consultar disponibilidad con el propietario por WhatsApp"
+                  >
+                    <MessageCircle size={14} />
+                  </button>
+                )}
               </div>
             )}
             {reservation.display_driver !== '—' && (
@@ -363,6 +404,18 @@ export default function InfoTab({
           onPrev={() => setPreviewIndex(i => (i !== null ? i - 1 : i))}
           onNext={() => setPreviewIndex(i => (i !== null ? i + 1 : i))}
           position={{ current: previewIndex + 1, total: attachments.length }}
+        />
+      )}
+
+      {waTarget && (
+        <VehicleAvailabilityWhatsAppModal
+          vehicleLabel={waTarget.vehicleLabel}
+          licensePlate={waTarget.licensePlate}
+          location={waTarget.location}
+          ownerContact={waTarget.ownerContact}
+          ownerWhatsappUsername={waTarget.ownerWhatsappUsername}
+          initialDate={reservation.event_date}
+          onClose={() => setWaTarget(null)}
         />
       )}
     </div>
