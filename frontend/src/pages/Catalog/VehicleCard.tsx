@@ -59,38 +59,42 @@ export function VehicleCard({
           brandName={vehicle.brand}
         />
 
-        {/* Badges over photo */}
-        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
-          {vehicle.is_featured && (
-            <span className="flex items-center gap-1 bg-brand-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
-              <Star size={11} className="fill-white" />
-              {t("catalog.featured")}
-            </span>
-          )}
-          {vehicle.category && (
-            <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
-              {t(CATEGORY_LABEL_KEY[vehicle.category])}
-            </span>
-          )}
-          {vehicle.body_type && vehicle.body_type !== "NA" && (
-            <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
-              {BODY_TYPE_LABEL_KEY[vehicle.body_type] ? t(BODY_TYPE_LABEL_KEY[vehicle.body_type]) : vehicle.body_type}
-            </span>
-          )}
-          {vehicle.pico_y_placa_day && (
-            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
-              title={t("vehicleModal.picoYPlacaTooltip", { hours: PICO_HOURS })}
-            >
-              {t("vehicleModal.picoYPlaca", { day: PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day] ? t(PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day]) : vehicle.pico_y_placa_day })}
-            </span>
-          )}
-        </div>
-
         <AdminEditLink to={`/vehiculos/editar/${vehicle.id}`} className="absolute bottom-2 right-2" />
       </div>
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-4 gap-3">
+        {/* Tags — live in the card body, not over the photo. Overlaid on
+            variable photo backgrounds they crowded the image and fought
+            contrast; on the white card they read as plain, legible chips. */}
+        {(vehicle.is_featured || vehicle.category || (vehicle.body_type && vehicle.body_type !== "NA") || vehicle.pico_y_placa_day) && (
+          <div className="flex flex-wrap gap-1.5">
+            {vehicle.is_featured && (
+              <span className="flex items-center gap-1 bg-brand-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                <Star size={11} className="fill-white" />
+                {t("catalog.featured")}
+              </span>
+            )}
+            {vehicle.category && (
+              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                {t(CATEGORY_LABEL_KEY[vehicle.category])}
+              </span>
+            )}
+            {vehicle.body_type && vehicle.body_type !== "NA" && (
+              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                {BODY_TYPE_LABEL_KEY[vehicle.body_type] ? t(BODY_TYPE_LABEL_KEY[vehicle.body_type]) : vehicle.body_type}
+              </span>
+            )}
+            {vehicle.pico_y_placa_day && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
+                title={t("vehicleModal.picoYPlacaTooltip", { hours: PICO_HOURS })}
+              >
+                {t("vehicleModal.picoYPlaca", { day: PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day] ? t(PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day]) : vehicle.pico_y_placa_day })}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Title */}
         <div>
           <h3 className="font-bold text-gray-900 leading-tight">
