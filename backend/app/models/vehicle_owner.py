@@ -18,6 +18,8 @@ class VehicleOwner(Base):
     whatsapp: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     whatsapp_username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    instagram: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    website: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     bank_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     account_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     account_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

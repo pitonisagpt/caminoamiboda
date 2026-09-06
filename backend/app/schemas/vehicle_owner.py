@@ -12,6 +12,8 @@ class VehicleOwnerBase(BaseModel):
     whatsapp: Optional[str] = None
     whatsapp_username: Optional[str] = None
     email: Optional[str] = None
+    instagram: Optional[str] = None
+    website: Optional[str] = None
     bank_name: Optional[str] = None
     account_type: Optional[str] = None
     account_number: Optional[str] = None
@@ -29,6 +31,8 @@ class VehicleOwnerUpdate(BaseModel):
     whatsapp: Optional[str] = None
     whatsapp_username: Optional[str] = None
     email: Optional[str] = None
+    instagram: Optional[str] = None
+    website: Optional[str] = None
     bank_name: Optional[str] = None
     account_type: Optional[str] = None
     account_number: Optional[str] = None

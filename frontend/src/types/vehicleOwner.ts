@@ -7,6 +7,8 @@ export interface VehicleOwner {
   whatsapp: string | null;
   whatsapp_username: string | null;
   email: string | null;
+  instagram: string | null;
+  website: string | null;
   bank_name: string | null;
   account_type: string | null;
   account_number: string | null;
@@ -22,6 +24,8 @@ export interface VehicleOwnerFormData {
   whatsapp: string;
   whatsapp_username: string;
   email: string;
+  instagram: string;
+  website: string;
   bank_name: string;
   account_type: string;
   account_number: string;

@@ -39,7 +39,7 @@ export function OwnerForm() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<VehicleOwnerFormData>({
     defaultValues: {
       full_name: "", company_name: "", identification_number: "", phone: "", whatsapp: "", whatsapp_username: "",
-      email: "", bank_name: "", account_type: "", account_number: "",
+      email: "", instagram: "", website: "", bank_name: "", account_type: "", account_number: "",
     },
   });
 
@@ -55,6 +55,8 @@ export function OwnerForm() {
         whatsapp: o.whatsapp ?? "",
         whatsapp_username: o.whatsapp_username ?? "",
         email: o.email ?? "",
+        instagram: o.instagram ?? "",
+        website: o.website ?? "",
         bank_name: o.bank_name ?? "",
         account_type: o.account_type ?? "",
         account_number: o.account_number ?? "",
@@ -73,6 +75,8 @@ export function OwnerForm() {
         whatsapp: data.whatsapp || null,
         whatsapp_username: data.whatsapp_username || null,
         email: data.email || null,
+        instagram: data.instagram || null,
+        website: data.website || null,
         bank_name: data.bank_name || null,
         account_type: data.account_type || null,
         account_number: data.account_number || null,
@@ -224,6 +228,8 @@ export function OwnerForm() {
           <Input label="WhatsApp" {...register("whatsapp")} placeholder="312 345 6789" />
           <Input label="Usuario de WhatsApp" {...register("whatsapp_username")} placeholder="usuario.whatsapp" />
           <Input label="Email" {...register("email")} type="email" placeholder="jaime@ejemplo.com" />
+          <Input label="Instagram" {...register("instagram")} placeholder="@usuario" />
+          <Input label="Sitio web" {...register("website")} placeholder="https://..." />
         </CardBody>
       </Card>
 
