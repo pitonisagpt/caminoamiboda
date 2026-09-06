@@ -40,3 +40,19 @@ python3 -m ruff check --config backend/ruff.toml backend/
 ```
 
 `alembic/` and `scripts/` (one-off data/import scripts) are excluded from `ruff` — see `backend/ruff.toml`.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR:
+
+- **frontend** — `npm run lint` + `npm run build`
+- **backend-lint** — `ruff check`
+- **backend-migrations** — spins up Postgres and runs `alembic upgrade head` against it, to catch broken migrations before they hit a real database
+
+No test suite yet, frontend or backend.
+
+## Production
+
+- **Frontend:** Cloudflare Pages — config in `frontend/wrangler.jsonc`
+- **Backend + Postgres:** Render (Starter plan) — see `render.yaml` and `backend/Dockerfile.prod`
+- Deploy decision and setup notes: [`docs/desarrollo/deploy-readiness.md`](./docs/desarrollo/deploy-readiness.md)
