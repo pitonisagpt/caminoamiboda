@@ -886,10 +886,20 @@ export default function EventoTab({
               to: `/clientes/editar/${reservation.customer_id}`, id: reservation.customer_id, requireAdmin: false },
             ...(reservation.display_contact ? [{ label: 'Planeador', token: timeline.share_token_customer, phone: reservation.contact_phone, username: reservation.contact_whatsapp_username, name: reservation.display_contact,
               to: `/contactos/editar/${reservation.contact_id}`, id: reservation.contact_id, requireAdmin: false }] : []),
-            { label: 'Operaciones', token: timeline.share_token_ops, phone: null, username: null as string | null, name: null, to: '', id: null, requireAdmin: false },
+            { label: 'Operaciones', token: timeline.share_token_ops, phone: OPS_PHONE, username: null as string | null, name: null, to: '', id: null, requireAdmin: false },
           ].map(({ label, token, phone, username, name, to, id, requireAdmin }) => {
             const link = `${window.location.origin}/evento/${token}`;
-            const waMsg = `Hola${name ? ` ${name.split(' ')[0]}` : ''}, aquí está el enlace del evento:\n${link}`;
+            const eventDate = formatEventDate(timeline.event_date);
+            const vehicle = timeline.assigned_vehicle || '';
+            const detailLines = [
+              eventDate && `*Fecha:* ${eventDate}`,
+              vehicle && `*Vehiculo:* ${vehicle}`,
+            ].filter(Boolean);
+            const waMsg = [
+              name ? `Hola ${name.split(' ')[0]}, aquí está el enlace del evento:` : 'Aquí está el enlace del evento:',
+              ...detailLines,
+              link,
+            ].join('\n');
             return (
               <div key={label} className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 py-2">
                 <div className="min-w-0 flex-1">
