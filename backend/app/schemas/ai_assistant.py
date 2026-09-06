@@ -14,6 +14,7 @@ class AiAssistantMessageRequest(BaseModel):
     history: List[AiAssistantHistoryTurn] = Field(default_factory=list, max_length=40)
     message: str = Field(default="", max_length=2000)
     probe: bool = False
+    lang: Literal["es", "en"] = "es"
 
 
 class AiAssistantMessageResponse(BaseModel):

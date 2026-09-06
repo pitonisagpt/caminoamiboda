@@ -31,6 +31,7 @@ def send_ai_assistant_message(request: Request, body: AiAssistantMessageRequest,
         history=[t.model_dump() for t in body.history],
         user_message=body.message,
         probe=body.probe,
+        lang=body.lang,
         db=db,
     )
     return AiAssistantMessageResponse(**result)

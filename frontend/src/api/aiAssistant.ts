@@ -10,6 +10,7 @@ export interface AiAssistantMessageRequest {
   history: AiAssistantHistoryTurn[];
   message: string;
   probe: boolean;
+  lang?: "es" | "en";
 }
 
 export interface AiAssistantMessageResponse {

@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { VehiclePhoto } from "../../types/vehicle";
 import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 import { isTouchPrimaryDevice } from "../../utils/device";
+import { useLang } from "../../i18n/LanguageContext";
 
 interface PhotoSliderProps {
   photos: VehiclePhoto[];
@@ -11,6 +12,7 @@ interface PhotoSliderProps {
 }
 
 export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProps) {
+  const { t } = useLang();
   const [current, setCurrent] = useState(0);
   // Defined unconditionally (rules-of-hooks) even though they're only used
   // once we know there are 2+ photos below.
@@ -57,14 +59,14 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
       <button
         onClick={(e) => { e.stopPropagation(); prev(); }}
         className={`absolute left-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity cursor-pointer ${controlsVisibility}`}
-        aria-label="Foto anterior"
+        aria-label={t("vehicleModal.prevPhoto")}
       >
         <ChevronLeft size={14} className="text-gray-700" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); next(); }}
         className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white shadow transition-opacity cursor-pointer ${controlsVisibility}`}
-        aria-label="Foto siguiente"
+        aria-label={t("vehicleModal.nextPhoto")}
       >
         <ChevronRight size={14} className="text-gray-700" />
       </button>
@@ -78,7 +80,7 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
             className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
               i === current ? "bg-white scale-125" : "bg-white/50"
             }`}
-            aria-label={`Foto ${i + 1}`}
+            aria-label={t("vehicleModal.viewPhoto", { n: i + 1 })}
           />
         ))}
       </div>

@@ -281,4 +281,58 @@ export const en: Record<keyof typeof es, string> = {
   "blog.ctaTitle": "Ready to book?",
   "blog.ctaBody": "Check availability and pricing, no commitment.",
   "blog.onlySpanishBanner": "This article is currently only available in Spanish.",
+
+  // AI chat widget
+  "chat.greeting": "Hi! 💍 I'm Camino a mi Boda's virtual assistant. Tell me — do you already have a wedding date, or would you like to see what car styles we have?",
+  "chat.errorReply": "We had a problem replying. Message us on WhatsApp: {{link}}",
+  "chat.title": "Wedding assistant",
+  "chat.leaveDataTitle": "Leave my details",
+  "chat.loading": "Loading...",
+  "chat.disabledMessage": "We're updating the assistant, check back soon. In the meantime, message us on WhatsApp and we'll help right away.",
+  "chat.leadSavedMessage": "Thank you! An advisor will message you on WhatsApp soon.",
+  "chat.limitReached": "You've reached this chat's message limit. Continue on WhatsApp.",
+  "chat.inputPlaceholder": "Type your message...",
+  "chat.closeAssistantAria": "Close virtual assistant",
+  "chat.openAssistantAria": "Open AI-powered virtual assistant",
+  "chat.viewDetails": "View details",
+
+  // Lead-capture form — shared copy
+  "leadCapture.nameLabel": "Name",
+  "leadCapture.whatsappLabel": "WhatsApp",
+  "leadCapture.dateLabel": "Wedding date",
+  "leadCapture.dateLabelOptional": "Wedding date (optional)",
+  "leadCapture.errorGeneric": "Something went wrong. Please try again or message us on WhatsApp.",
+  "leadCapture.errorValidation": "Please check the details and try again.",
+
+  // RevealPricesModal.tsx-specific copy
+  "revealPrices.titleNew": "Tell us your date",
+  "revealPrices.titleEdit": "Update your date",
+  "revealPrices.subtitleNew": "Leave us your details and unlock the estimated price for every car in the collection, based on your date.",
+  "revealPrices.subtitleEdit": "Fix the details and we'll recalculate the estimated price for every car.",
+  "revealPrices.submitNew": "See prices",
+  "revealPrices.submitEdit": "Update prices",
+
+  // AiLeadCaptureCard.tsx-specific copy
+  "aiLeadCapture.title": "Leave us your details",
+  "aiLeadCapture.subtitle": "That way an advisor can message you on WhatsApp to confirm availability and coordinate the details.",
+  "aiLeadCapture.submit": "Send my details",
+
+  // Availability widget
+  "availability.question": "What's the date of your event?",
+  "availability.hint": "Pick the date and we'll confirm availability instantly on WhatsApp.",
+  "availability.cta": "Check availability",
+  "availability.confirmingFor": "We'll message you for",
+  "availability.waMessage": "Hi! I'd like to check availability for {{date}}. Which vehicles do you have available?",
+
+  // Instagram grid + florist section
+  "instagram.followUs": "Follow us on Instagram",
+  "catalog.viewProfile": "View profile",
+  "florist.title": "Allied florist",
+
+  // VehicleCard.tsx aria-label + WhatsApp "check availability" message
+  "catalog.viewDetailAria": "View details for {{vehicle}}",
+  "catalog.waAvailabilityMessage": "Hi! I'm interested in the {{vehicle}}{{date}}. Is it available?",
+  "catalog.waAvailabilityMessageDate": " for {{date}}",
+  "catalog.waAvailabilityMessageCode": "Code: {{sku}}",
+  "catalog.waAvailabilityMessageLink": "View vehicle: {{link}}",
 };

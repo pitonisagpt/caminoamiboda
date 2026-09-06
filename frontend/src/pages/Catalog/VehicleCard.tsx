@@ -37,10 +37,10 @@ export function VehicleCard({
   onRequestUnlock?: () => void;
   hidePricing?: boolean;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
 
-  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
+  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock, t, lang));
 
   return (
     <div
@@ -49,7 +49,7 @@ export function VehicleCard({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick?.()}
-      aria-label={`Ver detalle de ${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+      aria-label={t("catalog.viewDetailAria", { vehicle: `${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}` })}
     >
       {/* Photo */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-50 to-brand-100 overflow-hidden">

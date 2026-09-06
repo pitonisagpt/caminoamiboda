@@ -5,16 +5,11 @@ import { getSessionId, getHistory, saveHistory } from "./aiChatSession";
 import { VehicleChip } from "./VehicleChip";
 import { AiLeadCaptureCard } from "./AiLeadCaptureCard";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { useLang } from "../../i18n/LanguageContext";
 
 const WA_NUMBER = "573147372030";
 const VEHICLE_TAG_RE = /\[VEHICLE:(\d+)\]/g;
 const LEAD_TAG_RE = /\[LEAD_CAPTURE\]/g;
-
-const GREETING: AiAssistantHistoryTurn = {
-  role: "assistant",
-  content:
-    "¡Hola! 💍 Soy el asistente virtual de Camino a mi Boda. Cuéntame, ¿ya tienes fecha para tu boda, o quieres ver qué estilos de carro tenemos?",
-};
 
 function parseAssistantMessage(content: string): { text: string; vehicleIds: number[]; leadCapture: boolean } {
   const vehicleIds = Array.from(content.matchAll(VEHICLE_TAG_RE)).map(m => Number(m[1]));
@@ -24,6 +19,7 @@ function parseAssistantMessage(content: string): { text: string; vehicleIds: num
 }
 
 export function AiChatWidget() {
+  const { t, lang } = useLang();
   const [open, setOpen] = useState(false);
   const [probed, setProbed] = useState(false);
   const [probing, setProbing] = useState(false);
@@ -54,11 +50,12 @@ export function AiChatWidget() {
         history: [],
         message: "",
         probe: true,
+        lang,
       });
       setDisabledReason(res.data.disabled ? res.data.disabled_reason : null);
       setTurnsRemaining(res.data.turns_remaining);
       if (!res.data.disabled && messages.length === 0) {
-        setMessages([GREETING]);
+        setMessages([{ role: "assistant", content: t("chat.greeting") }]);
       }
     } catch {
       setDisabledReason("repeated_errors");
@@ -81,6 +78,7 @@ export function AiChatWidget() {
         history: nextHistory,
         message: text,
         probe: false,
+        lang,
       });
       setTurnsRemaining(res.data.turns_remaining);
       if (res.data.disabled) setDisabledReason(res.data.disabled_reason);
@@ -90,8 +88,7 @@ export function AiChatWidget() {
         ...nextHistory,
         {
           role: "assistant",
-          content:
-            `Tuvimos un problema para responder. Escríbenos por WhatsApp: https://wa.me/${WA_NUMBER}`,
+          content: t("chat.errorReply", { link: `https://wa.me/${WA_NUMBER}` }),
         },
       ]);
     } finally {
@@ -112,7 +109,7 @@ export function AiChatWidget() {
               </span>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-brand text-xl leading-none truncate">Asistente de bodas</span>
+                  <span className="font-brand text-xl leading-none truncate">{t("chat.title")}</span>
                   <span className="shrink-0 bg-gold-400 text-brand-900 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full">
                     IA
                   </span>
@@ -124,7 +121,7 @@ export function AiChatWidget() {
               {!disabledReason && (
                 <button
                   onClick={() => setShowLeadCapture(true)}
-                  title="Dejar mis datos"
+                  title={t("chat.leaveDataTitle")}
                   className="p-1.5 hover:bg-white/20 rounded-lg cursor-pointer"
                 >
                   <UserPlus size={16} />
@@ -139,19 +136,19 @@ export function AiChatWidget() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 bg-blush-50/40">
             {probing && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm gap-2">
-                <Loader2 size={16} className="animate-spin" /> Cargando...
+                <Loader2 size={16} className="animate-spin" /> {t("chat.loading")}
               </div>
             )}
 
             {!probing && disabledReason && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-3 py-3">
-                Estamos actualizando el asistente, vuelve pronto. Mientras tanto, escríbenos por WhatsApp y te ayudamos enseguida.
+                {t("chat.disabledMessage")}
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
                   {...whatsAppLinkProps()}
                   className="block mt-2 font-medium text-green-700 hover:underline"
                 >
-                  Escríbenos por WhatsApp →
+                  {t("contacto.errorWhatsappLink")}
                 </a>
               </div>
             )}
@@ -196,19 +193,19 @@ export function AiChatWidget() {
             )}
             {leadSaved && (
               <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-3 py-2">
-                ¡Gracias! Un asesor te escribirá pronto por WhatsApp.
+                {t("chat.leadSavedMessage")}
               </div>
             )}
 
             {!probing && !disabledReason && capped && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-3 py-3">
-                Has llegado al límite de mensajes de este chat. Continúa por WhatsApp.
+                {t("chat.limitReached")}
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
                   {...whatsAppLinkProps()}
                   className="block mt-2 font-medium text-green-700 hover:underline"
                 >
-                  Escríbenos por WhatsApp →
+                  {t("contacto.errorWhatsappLink")}
                 </a>
               </div>
             )}
@@ -220,7 +217,7 @@ export function AiChatWidget() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder="Escribe tu mensaje..."
+                placeholder={t("chat.inputPlaceholder")}
                 disabled={sending}
                 className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-gray-50"
               />
@@ -239,7 +236,7 @@ export function AiChatWidget() {
       <button
         onClick={() => (open ? setOpen(false) : handleOpen())}
         className="relative w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-lg flex items-center justify-center cursor-pointer transition-colors"
-        aria-label={open ? "Cerrar asistente virtual" : "Abrir asistente virtual con inteligencia artificial"}
+        aria-label={open ? t("chat.closeAssistantAria") : t("chat.openAssistantAria")}
       >
         {!open && !probed && (
           <span className="absolute inset-0 rounded-full bg-blush-300/70 animate-ping motion-reduce:hidden" aria-hidden="true" />

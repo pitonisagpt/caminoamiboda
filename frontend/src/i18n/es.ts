@@ -280,6 +280,65 @@ export const es = {
   "blog.ctaTitle": "¿Listo para reservar?",
   "blog.ctaBody": "Consulta disponibilidad y precios sin compromiso.",
   "blog.onlySpanishBanner": "Este artículo todavía solo está disponible en español.",
+
+  // AI chat widget (AiChatWidget.tsx, VehicleChip.tsx) — mounted on every
+  // public page, so this is the most-visible surface in the whole audit.
+  "chat.greeting": "¡Hola! 💍 Soy el asistente virtual de Camino a mi Boda. Cuéntame, ¿ya tienes fecha para tu boda, o quieres ver qué estilos de carro tenemos?",
+  "chat.errorReply": "Tuvimos un problema para responder. Escríbenos por WhatsApp: {{link}}",
+  "chat.title": "Asistente de bodas",
+  "chat.leaveDataTitle": "Dejar mis datos",
+  "chat.loading": "Cargando...",
+  "chat.disabledMessage": "Estamos actualizando el asistente, vuelve pronto. Mientras tanto, escríbenos por WhatsApp y te ayudamos enseguida.",
+  "chat.leadSavedMessage": "¡Gracias! Un asesor te escribirá pronto por WhatsApp.",
+  "chat.limitReached": "Has llegado al límite de mensajes de este chat. Continúa por WhatsApp.",
+  "chat.inputPlaceholder": "Escribe tu mensaje...",
+  "chat.closeAssistantAria": "Cerrar asistente virtual",
+  "chat.openAssistantAria": "Abrir asistente virtual con inteligencia artificial",
+  "chat.viewDetails": "Ver detalles",
+
+  // Lead-capture form — shared copy between AiLeadCaptureCard.tsx and
+  // RevealPricesModal.tsx (near-identical forms; consolidated here instead
+  // of duplicated per file, same reasoning as the shared quick-create
+  // modals elsewhere in the app).
+  "leadCapture.nameLabel": "Nombre",
+  "leadCapture.whatsappLabel": "WhatsApp",
+  "leadCapture.dateLabel": "Fecha de la boda",
+  "leadCapture.dateLabelOptional": "Fecha de la boda (opcional)",
+  "leadCapture.errorGeneric": "Ocurrió un error. Intenta de nuevo o escríbenos por WhatsApp.",
+  "leadCapture.errorValidation": "Revisa los datos e intenta de nuevo.",
+
+  // RevealPricesModal.tsx-specific copy
+  "revealPrices.titleNew": "Cuéntanos tu fecha",
+  "revealPrices.titleEdit": "Actualiza tu fecha",
+  "revealPrices.subtitleNew": "Déjanos tus datos y desbloquea el precio estimado de cada carro de la colección, según tu fecha.",
+  "revealPrices.subtitleEdit": "Corrige los datos y volvemos a calcular el precio estimado de cada carro.",
+  "revealPrices.submitNew": "Ver precios",
+  "revealPrices.submitEdit": "Actualizar precios",
+
+  // AiLeadCaptureCard.tsx-specific copy
+  "aiLeadCapture.title": "Déjanos tus datos",
+  "aiLeadCapture.subtitle": "Así un asesor te escribe por WhatsApp para confirmar disponibilidad y coordinar los detalles.",
+  "aiLeadCapture.submit": "Enviar mis datos",
+
+  // Availability widget (AvailabilityWidget.tsx, on the catalog page)
+  "availability.question": "¿Cuál es la fecha de tu evento?",
+  "availability.hint": "Selecciona la fecha y te confirmamos disponibilidad al instante por WhatsApp.",
+  "availability.cta": "Consultar disponibilidad",
+  "availability.confirmingFor": "Te escribiremos para el",
+  "availability.waMessage": "Hola! Quisiera consultar disponibilidad para el {{date}}. ¿Qué vehículos tienen disponibles?",
+
+  // Instagram grid + florist section (public catalog page)
+  "instagram.followUs": "Síguenos en Instagram",
+  "catalog.viewProfile": "Ver perfil",
+  "florist.title": "Floristería aliada",
+
+  // VehicleCard.tsx aria-label + WhatsApp "check availability" message
+  // (VehicleCard.tsx/VehicleModal.tsx, via vehicleWhatsappMessage.ts)
+  "catalog.viewDetailAria": "Ver detalle de {{vehicle}}",
+  "catalog.waAvailabilityMessage": "Hola! Me interesa el {{vehicle}}{{date}}. ¿Está disponible?",
+  "catalog.waAvailabilityMessageDate": " para el {{date}}",
+  "catalog.waAvailabilityMessageCode": "Código: {{sku}}",
+  "catalog.waAvailabilityMessageLink": "Ver vehículo: {{link}}",
 } as const;
 
 export type TranslationKey = keyof typeof es;

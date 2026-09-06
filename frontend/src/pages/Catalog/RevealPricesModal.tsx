@@ -6,6 +6,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { setUnlock } from "../../utils/priceUnlock";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { useLang } from "../../i18n/LanguageContext";
 
 const WA_NUMBER = "573147372030";
 
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
+  const { t } = useLang();
   const [name, setName] = useState(initial?.name ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
   const [weddingDate, setWeddingDate] = useState(initial?.weddingDate ?? "");
@@ -34,16 +36,19 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showWhatsappFallback, setShowWhatsappFallback] = useState(false);
   const mountedAt = useRef(Date.now());
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!consent) {
-      setError("Debes aceptar la política de tratamiento de datos para continuar.");
+      setError(t("contacto.errorConsent"));
+      setShowWhatsappFallback(false);
       return;
     }
     setSubmitting(true);
     setError(null);
+    setShowWhatsappFallback(false);
     try {
       await publicLeadsApi.create({
         main_contact_name: name,
@@ -59,11 +64,12 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 429) {
-        setError("Demasiados intentos. Espera un minuto e intenta de nuevo.");
+        setError(t("contacto.errorRateLimit"));
       } else if (status === 422) {
-        setError(firstValidationMessage(err) ?? "Revisa los datos e intenta de nuevo.");
+        setError(firstValidationMessage(err) ?? t("leadCapture.errorValidation"));
       } else {
-        setError("Ocurrió un error. Intenta de nuevo o escríbenos por WhatsApp.");
+        setError(t("leadCapture.errorGeneric"));
+        setShowWhatsappFallback(true);
       }
     } finally {
       setSubmitting(false);
@@ -84,31 +90,29 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{initial ? "Actualiza tu fecha" : "Cuéntanos tu fecha"}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{initial ? t("revealPrices.titleEdit") : t("revealPrices.titleNew")}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              {initial
-                ? "Corrige los datos y volvemos a calcular el precio estimado de cada carro."
-                : "Déjanos tus datos y desbloquea el precio estimado de cada carro de la colección, según tu fecha."}
+              {initial ? t("revealPrices.subtitleEdit") : t("revealPrices.subtitleNew")}
             </p>
           </div>
 
           <Input
-            label="Nombre"
+            label={t("leadCapture.nameLabel")}
             required
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="¿Cómo te llamas?"
+            placeholder={t("contacto.placeholderName")}
           />
           <Input
-            label="Teléfono / WhatsApp"
+            label={t("leadCapture.whatsappLabel")}
             type="tel"
             required
             value={phone}
             onChange={e => setPhone(e.target.value)}
-            placeholder="300 000 0000"
+            placeholder={t("contacto.placeholderPhone")}
           />
           <Input
-            label="Fecha de la boda"
+            label={t("leadCapture.dateLabel")}
             type="date"
             required
             value={weddingDate}
@@ -117,7 +121,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
 
           {/* Honeypot — hidden from real users, off-screen (not display:none) */}
           <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-            <label htmlFor="hp_website_reveal">Sitio web</label>
+            <label htmlFor="hp_website_reveal">{t("contacto.honeypotLabel")}</label>
             <input
               id="hp_website_reveal"
               name="hp_website"
@@ -137,9 +141,9 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
               className="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-400"
             />
             <span>
-              Acepto la{" "}
+              {t("contacto.consentText")}{" "}
               <Link to="/politica-de-datos" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
-                política de tratamiento de datos personales
+                {t("contacto.consentLinkText")}
               </Link>.
             </span>
           </label>
@@ -147,20 +151,20 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
           {error && (
             <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
               {error}
-              {error.startsWith("Ocurrió un error") && (
+              {showWhatsappFallback && (
                 <a
                   href={`https://wa.me/${WA_NUMBER}`}
                   {...whatsAppLinkProps()}
                   className="block mt-1 font-medium text-green-600 hover:underline"
                 >
-                  Escríbenos por WhatsApp →
+                  {t("contacto.errorWhatsappLink")}
                 </a>
               )}
             </div>
           )}
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting} loading={submitting}>
-            {initial ? "Actualizar precios" : "Ver precios"}
+            {initial ? t("revealPrices.submitEdit") : t("revealPrices.submitNew")}
           </Button>
         </form>
       </div>

@@ -543,13 +543,13 @@ export function CatalogPage() {
             <aside className="hidden md:block w-56 shrink-0 sticky top-4">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-2">
                 <div className="flex items-center justify-between py-3 border-b border-gray-100 mb-1">
-                  <p className="text-sm font-semibold text-gray-800">Filtros</p>
+                  <p className="text-sm font-semibold text-gray-800">{t("catalog.filters")}</p>
                   {activeFilterCount > 0 && (
                     <button
                       onClick={clearAll}
                       className="text-xs text-brand-700 hover:text-brand-800 cursor-pointer"
                     >
-                      Limpiar
+                      {t("catalog.clear")}
                     </button>
                   )}
                 </div>

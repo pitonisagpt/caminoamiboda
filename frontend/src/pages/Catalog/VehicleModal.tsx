@@ -36,7 +36,7 @@ interface Props {
 }
 
 export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePricing }: Props) {
-  const { t, pickLocalized } = useLang();
+  const { t, lang, pickLocalized } = useLang();
   const photos = (vehicle.photos ?? []).filter((p) => p.is_visible);
   const [current, setCurrent] = useState(0);
   const [searchParams] = useSearchParams();
@@ -64,7 +64,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
     };
   }, [photos.length]);
 
-  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock));
+  const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock, t, lang));
 
   return (
     <div

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Play, Instagram } from 'lucide-react';
 import { instagramApi, type InstagramPost } from '../../api/instagram';
+import { useLang } from '../../i18n/LanguageContext';
 
 export function InstagramGrid() {
+  const { t } = useLang();
   const [posts, setPosts] = useState<InstagramPost[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -19,7 +21,7 @@ export function InstagramGrid() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-brand text-brand-500">Síguenos en Instagram</h2>
+          <h2 className="text-2xl font-brand text-brand-500">{t("instagram.followUs")}</h2>
           <p className="text-sm text-gray-400 mt-0.5">@caminoamiboda</p>
         </div>
         <a
@@ -29,7 +31,7 @@ export function InstagramGrid() {
           className="flex items-center gap-1.5 text-sm text-brand-700 hover:text-brand-800 font-medium cursor-pointer"
         >
           <Instagram size={16} />
-          Ver perfil
+          {t("catalog.viewProfile")}
         </a>
       </div>
 

@@ -1,28 +1,30 @@
 import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
+import { useLang } from '../../i18n/LanguageContext';
 
 const WA_NUMBER = '573147372030';
 
-function formatLongDate(iso: string): string {
-  const d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-}
-
 export function AvailabilityWidget() {
+  const { t, lang } = useLang();
   const [date, setDate] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
+  const formatLongDate = (iso: string): string => {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
   const waUrl = date
-    ? `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quisiera consultar disponibilidad para el ${formatLongDate(date)}. ¿Qué vehículos tienen disponibles?`)}`
+    ? `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(t('availability.waMessage', { date: formatLongDate(date) }))}`
     : undefined;
 
   return (
     <div className="bg-gradient-to-br from-brand-50 to-brand-100 rounded-2xl border border-brand-100 p-6 text-center space-y-4">
       <div>
-        <p className="text-lg font-semibold text-gray-900">¿Cuál es la fecha de tu evento?</p>
-        <p className="text-sm text-gray-500 mt-1">Selecciona la fecha y te confirmamos disponibilidad al instante por WhatsApp.</p>
+        <p className="text-lg font-semibold text-gray-900">{t('availability.question')}</p>
+        <p className="text-sm text-gray-500 mt-1">{t('availability.hint')}</p>
       </div>
 
       <input
@@ -43,12 +45,12 @@ export function AvailabilityWidget() {
         }`}
       >
         <MessageCircle size={18} />
-        Consultar disponibilidad
+        {t('availability.cta')}
       </a>
 
       {date && (
         <p className="text-xs text-gray-400">
-          Te escribiremos para el <strong className="text-gray-700">{formatLongDate(date)}</strong>
+          {t('availability.confirmingFor')} <strong className="text-gray-700">{formatLongDate(date)}</strong>
         </p>
       )}
     </div>

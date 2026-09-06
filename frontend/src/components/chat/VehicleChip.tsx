@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Car } from "lucide-react";
 import { vehiclesApi } from "../../api/vehicles";
 import type { PublicVehicleListItem } from "../../types/vehicle";
+import { useLang } from "../../i18n/LanguageContext";
+import { CATEGORY_LABEL_KEY } from "../../i18n/catalogLabels";
 
 // Shared across every chip instance in the widget so we fetch the public
 // vehicle list at most once per page load, regardless of how many
@@ -14,13 +16,8 @@ function loadVehicles(): Promise<PublicVehicleListItem[]> {
   return vehiclesPromise;
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  clasico: "Clásico",
-  vintage: "Vintage",
-  moderno: "Moderno",
-};
-
 export function VehicleChip({ id }: { id: number }) {
+  const { t } = useLang();
   const [vehicle, setVehicle] = useState<PublicVehicleListItem | null | undefined>(undefined);
 
   useEffect(() => {
@@ -60,7 +57,7 @@ export function VehicleChip({ id }: { id: number }) {
           {vehicle.brand} {vehicle.model_line ?? ""}
         </p>
         <p className="text-[11px] text-gray-500">
-          {vehicle.category ? CATEGORY_LABEL[vehicle.category] : ""} · Ver detalles
+          {vehicle.category && CATEGORY_LABEL_KEY[vehicle.category] ? `${t(CATEGORY_LABEL_KEY[vehicle.category])} · ` : ""}{t("chat.viewDetails")}
         </p>
       </div>
     </a>
