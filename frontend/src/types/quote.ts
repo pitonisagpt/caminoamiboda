@@ -26,6 +26,8 @@ export const ZONE_LABEL: Record<LocationZone, string> = {
 export interface QuoteListItem {
   id: number;
   quote_number: string;
+  customer_id: number | null;
+  vehicle_id: number | null;
   display_customer: string;
   display_vehicle: string;
   resolved_customer_phone: string | null;
@@ -38,10 +40,8 @@ export interface QuoteListItem {
 }
 
 export interface Quote extends QuoteListItem {
-  customer_id: number | null;
   customer_name: string | null;
   customer_phone: string | null;
-  vehicle_id: number | null;
   vehicle_description: string | null;
   service_duration: string | null;
   location_zone: LocationZone;

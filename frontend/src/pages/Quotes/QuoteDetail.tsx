@@ -5,6 +5,7 @@ import {
   Trash2, ArrowRight, CheckCircle2,
 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
+import { EntityLink } from '../../components/EntityLink';
 import { FilePreviewModal } from '../../components/FilePreviewModal';
 import type { Quote, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL, ZONE_LABEL } from '../../types/quote';
@@ -144,7 +145,9 @@ export default function QuoteDetail() {
           </button>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900">{quote.display_customer}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                <EntityLink to={`/clientes/editar/${quote.customer_id}`} id={quote.customer_id}>{quote.display_customer}</EntityLink>
+              </h1>
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${QUOTE_STATUS_COLOR[quote.status]}`}>
                 {QUOTE_STATUS_LABEL[quote.status]}
               </span>
@@ -236,7 +239,9 @@ export default function QuoteDetail() {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Cliente</p>
-            <p className="text-sm font-semibold text-gray-900">{quote.display_customer}</p>
+            <p className="text-sm font-semibold text-gray-900">
+              <EntityLink to={`/clientes/editar/${quote.customer_id}`} id={quote.customer_id}>{quote.display_customer}</EntityLink>
+            </p>
             {quote.resolved_customer_phone && (
               <p className="text-sm text-gray-500 mt-0.5">{quote.resolved_customer_phone}</p>
             )}
@@ -256,7 +261,9 @@ export default function QuoteDetail() {
             <hr className="border-gray-50" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Vehículo</p>
-              <p className="text-sm font-semibold text-gray-900">{quote.display_vehicle}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                <EntityLink to={`/vehiculos/${quote.vehicle_id}`} id={quote.vehicle_id}>{quote.display_vehicle}</EntityLink>
+              </p>
             </div>
           </>
         )}

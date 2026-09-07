@@ -96,6 +96,10 @@ def get_summary(
         upcoming.append({
             "id": r.id,
             "reservation_number": r.reservation_number,
+            "customer_id": r.customer_id,
+            "vehicle_id": r.vehicle_id,
+            "driver_id": r.driver_id,
+            "owner_driver_id": r.owner_driver_id,
             "title": r.display_customer,
             "date": r.event_date.isoformat(),
             "end_date": r_end_date.isoformat(),
@@ -183,6 +187,10 @@ def get_summary(
         {
             "id": r.id,
             "reservation_number": r.reservation_number,
+            "customer_id": r.customer_id,
+            "vehicle_id": r.vehicle_id,
+            "driver_id": r.driver_id,
+            "owner_driver_id": r.owner_driver_id,
             "title": r.display_customer,
             "date": r.event_date.isoformat(),
             "status": r.status,

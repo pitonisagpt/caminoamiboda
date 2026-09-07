@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, Car, ClipboardList, TrendingUp, AlertCircle, CheckCircle2, Loader2, Info } from 'lucide-react';
 import { dashboardApi, type DashboardSummary } from '../../api/dashboard';
+import { DriverLink, EntityLink } from '../../components/EntityLink';
 import { RESERVATION_STATUS_LABEL, RESERVATION_STATUS_COLOR } from '../../types/reservation';
 import type { ReservationStatus } from '../../types/reservation';
 import AnalyticsSection from './AnalyticsSection';
@@ -211,10 +212,12 @@ export default function DashboardPage() {
                       : <Car size={20} className="text-gray-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{r.title}</p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      <EntityLink to={`/clientes/editar/${r.customer_id}`} id={r.customer_id}>{r.title}</EntityLink>
+                    </p>
                     <p className="text-xs text-gray-400 truncate">
-                      {r.vehicle !== '—' ? r.vehicle : 'Sin vehículo'}
-                      {r.driver !== '—' ? ` · ${r.driver}` : ''}
+                      {r.vehicle !== '—' ? <EntityLink to={`/vehiculos/${r.vehicle_id}`} id={r.vehicle_id}>{r.vehicle}</EntityLink> : 'Sin vehículo'}
+                      {r.driver !== '—' ? <> · <DriverLink driverId={r.driver_id} ownerDriverId={r.owner_driver_id}>{r.driver}</DriverLink></> : ''}
                     </p>
                   </div>
                   <div className="shrink-0 text-right space-y-1">
@@ -378,8 +381,12 @@ export default function DashboardPage() {
                         <td className="px-5 py-3 text-gray-600 whitespace-nowrap">
                           {d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
                         </td>
-                        <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{r.title}</td>
-                        <td className="px-4 py-3 text-gray-500 hidden md:table-cell max-w-[140px] truncate">{r.vehicle !== '—' ? r.vehicle : '—'}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">
+                          <EntityLink to={`/clientes/editar/${r.customer_id}`} id={r.customer_id}>{r.title}</EntityLink>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 hidden md:table-cell max-w-[140px] truncate">
+                          {r.vehicle !== '—' ? <EntityLink to={`/vehiculos/${r.vehicle_id}`} id={r.vehicle_id}>{r.vehicle}</EntityLink> : '—'}
+                        </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[r.status as ReservationStatus] ?? 'bg-gray-100 text-gray-600'}`}>
                             {RESERVATION_STATUS_LABEL[r.status as ReservationStatus] ?? r.status}

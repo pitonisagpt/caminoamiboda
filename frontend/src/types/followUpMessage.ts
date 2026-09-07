@@ -12,6 +12,8 @@ export interface FollowUpTemplateEntry {
 export interface FollowUpPanelEntry {
   reservation_id: number;
   reservation_number: string;
+  customer_id: number | null;
+  vehicle_id: number | null;
   display_customer: string;
   display_vehicle: string;
   event_date: string;

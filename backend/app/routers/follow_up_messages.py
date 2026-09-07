@@ -57,6 +57,8 @@ def _build_panel_entry(r: Reservation, sent_by_key: dict[str, datetime]) -> Foll
     return FollowUpPanelEntry(
         reservation_id=r.id,
         reservation_number=r.reservation_number,
+        customer_id=r.customer_id,
+        vehicle_id=r.vehicle_id,
         display_customer=r.display_customer,
         display_vehicle=r.display_vehicle,
         event_date=r.event_date,

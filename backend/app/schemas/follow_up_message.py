@@ -16,6 +16,8 @@ class FollowUpTemplateEntry(BaseModel):
 class FollowUpPanelEntry(BaseModel):
     reservation_id: int
     reservation_number: str
+    customer_id: Optional[int] = None
+    vehicle_id: Optional[int] = None
     display_customer: str
     display_vehicle: str
     event_date: date

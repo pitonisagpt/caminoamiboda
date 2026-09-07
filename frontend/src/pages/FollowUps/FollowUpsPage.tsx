@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink, Loader2, MessageCircle, Search } from 'lucide-react';
 import { followUpMessagesApi } from '../../api/followUpMessages';
+import { EntityLink } from '../../components/EntityLink';
 import type { FollowUpPanelEntry, WindowStatus } from '../../types/followUpMessage';
 import { buildWaUrl, whatsAppLinkProps, openWhatsApp } from '../../utils/whatsapp';
 
@@ -167,9 +168,11 @@ export default function FollowUpsPage() {
               <div key={entry.reservation_id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800">{entry.display_customer}</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      <EntityLink to={`/clientes/editar/${entry.customer_id}`} id={entry.customer_id}>{entry.display_customer}</EntityLink>
+                    </p>
                     <p className="text-xs text-gray-400">
-                      {entry.display_vehicle} · {formatDate(entry.event_date)}
+                      <EntityLink to={`/vehiculos/${entry.vehicle_id}`} id={entry.vehicle_id}>{entry.display_vehicle}</EntityLink> · {formatDate(entry.event_date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0 flex-wrap max-w-full">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Download, FileText, Loader2, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { quotesApi } from '../../api/quotes';
+import { EntityLink } from '../../components/EntityLink';
 import type { QuoteListItem, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL } from '../../types/quote';
 import { openWhatsApp } from '../../utils/whatsapp';
@@ -198,8 +199,12 @@ export default function QuoteList() {
               {filteredQuotes.map(q => (
                 <tr key={q.id} className="hover:bg-brand-50/40 transition-colors cursor-pointer" onClick={() => navigate(`/cotizaciones/${q.id}`)}>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{q.quote_number}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{q.display_customer}</td>
-                  <td className="px-4 py-3 text-gray-600">{q.display_vehicle}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    <EntityLink to={`/clientes/editar/${q.customer_id}`} id={q.customer_id}>{q.display_customer}</EntityLink>
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    <EntityLink to={`/vehiculos/${q.vehicle_id}`} id={q.vehicle_id}>{q.display_vehicle}</EntityLink>
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{formatDate(q.event_date)}</td>
                   <td className="px-4 py-3 text-right">
                     <p className="font-semibold text-gray-900">{formatCOP(q.total_price)}</p>

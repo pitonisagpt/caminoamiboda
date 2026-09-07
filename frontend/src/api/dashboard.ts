@@ -3,6 +3,10 @@ import { api } from './index';
 export interface UpcomingReservation {
   id: number;
   reservation_number: string;
+  customer_id: number | null;
+  vehicle_id: number | null;
+  driver_id: number | null;
+  owner_driver_id: number | null;
   title: string;
   date: string;
   end_date: string;

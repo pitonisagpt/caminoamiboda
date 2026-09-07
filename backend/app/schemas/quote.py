@@ -99,6 +99,8 @@ class QuoteList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     quote_number: str
+    customer_id: Optional[int] = None
+    vehicle_id: Optional[int] = None
     display_customer: str
     display_vehicle: str
     resolved_customer_phone: Optional[str] = None
