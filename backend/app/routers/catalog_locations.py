@@ -69,19 +69,19 @@ def _nominatim(query: str) -> tuple[float, float] | None:
     return None
 
 
-def _geocode(loc: CatalogLocation) -> tuple[float, float] | None:
-    if loc.google_maps_link:
-        result = _follow_maps_link(loc.google_maps_link)
+def _geocode(name: str, address: Optional[str] = None, google_maps_link: Optional[str] = None) -> tuple[float, float] | None:
+    if google_maps_link:
+        result = _follow_maps_link(google_maps_link)
         if result:
             return result
     queries = []
-    if loc.address:
-        queries.append(f"{loc.name}, {loc.address}")
+    if address:
+        queries.append(f"{name}, {address}")
     queries += [
-        f"{loc.name}, Medellín, Colombia",
-        f"{loc.name}, Antioquia, Colombia",
-        f"{loc.name}, Colombia",
-        loc.name,
+        f"{name}, Medellín, Colombia",
+        f"{name}, Antioquia, Colombia",
+        f"{name}, Colombia",
+        name,
     ]
     for q in queries:
         try:
@@ -171,7 +171,7 @@ def update_catalog_location(loc_id: int, data: CatalogLocationUpdate, db: Sessio
     # supplied — otherwise editing an address silently leaves the map pin in the old spot.
     geocode_triggers = {"address", "google_maps_link", "name"}
     if geocode_triggers & update_fields.keys() and not ({"lat", "lng"} & update_fields.keys()):
-        coords = _geocode(loc)
+        coords = _geocode(loc.name, loc.address, loc.google_maps_link)
         if coords:
             loc.lat, loc.lng = coords
             update_fields["lat"], update_fields["lng"] = coords
@@ -231,7 +231,7 @@ def sync_to_catalog(db: Session, event_location: "EventLocation") -> CatalogLoca
         db.flush()  # get id without committing
     # Geocode if coordinates are missing
     if existing.lat is None or existing.lng is None:
-        coords = _geocode(existing)
+        coords = _geocode(existing.name, existing.address, existing.google_maps_link)
         if coords:
             existing.lat, existing.lng = coords
     return existing
@@ -248,7 +248,7 @@ def resolve_coords(db: Session = Depends(get_db)):
 
     resolved = 0
     for loc in locs:
-        coords = _geocode(loc)
+        coords = _geocode(loc.name, loc.address, loc.google_maps_link)
         if coords:
             loc.lat, loc.lng = coords
             resolved += 1

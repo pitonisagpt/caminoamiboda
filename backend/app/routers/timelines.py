@@ -15,7 +15,7 @@ from app.core.dependencies import get_current_user
 from app.database import SessionLocal, get_db
 from app.models.event_timeline import EventTimeline
 from app.models.event_location import EventLocation
-from app.routers.catalog_locations import sync_to_catalog
+from app.routers.catalog_locations import _geocode, sync_to_catalog
 from app.models.timeline_activity import TimelineActivity
 from app.models.timeline_contact import TimelineContact
 from app.schemas.event_timeline import (
@@ -216,15 +216,36 @@ def _background_location_sync(location_id: int, label: str = "") -> None:
         loc = db.query(EventLocation).filter(EventLocation.id == location_id).first()
         if not loc:
             return
-        timeline = db.query(EventTimeline).filter(EventTimeline.id == loc.timeline_id).first()
-        if timeline:
-            _gcal_sync(timeline, db, label)
         try:
             catalog_loc = sync_to_catalog(db, loc)
-            loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
+            # Only inherit the catalog's shared coordinates when this
+            # location's own address/link still matches what the catalog
+            # has under the same name — venue names repeat a lot in real
+            # data, so a name match alone doesn't mean it's the same place.
+            # When they've diverged (e.g. this address was just corrected,
+            # or the name was reused for a different venue), geocode this
+            # location on its own instead of inheriting a pin that belongs
+            # to a different address.
+            same_place = (
+                (loc.address or "").strip().lower() == (catalog_loc.address or "").strip().lower()
+                and (loc.google_maps_link or "").strip() == (catalog_loc.google_maps_link or "").strip()
+            )
+            if same_place:
+                loc.lat, loc.lng = catalog_loc.lat, catalog_loc.lng
+            else:
+                coords = _geocode(loc.location_name, loc.address, loc.google_maps_link)
+                if coords:
+                    loc.lat, loc.lng = coords
             db.commit()
         except Exception:
             pass
+        # Runs after the geocoding above (not before) so that when a GCal
+        # push does happen, it reflects this location's up-to-date
+        # coordinates/effective_waze_link instead of what it had before
+        # this edit.
+        timeline = db.query(EventTimeline).filter(EventTimeline.id == loc.timeline_id).first()
+        if timeline:
+            _gcal_sync(timeline, db, label)
     except Exception as e:
         print(f"[LocationSync] background sync failed{' ' + label if label else ''}: {e}")
     finally:
