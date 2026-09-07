@@ -102,15 +102,20 @@ export default function App() {
             {PUBLIC_SITE_ROUTES.map(r => (
               <Route key={`es-${r.path}`} path={r.path} element={r.element} />
             ))}
+            {/* Public event view — no auth. The page itself is
+                Spanish-only by design (no useLang()/t()), but it still
+                needs to resolve under /en too: LanguageProvider
+                auto-redirects a browser-language-English visitor from
+                any bare path to its /en-prefixed twin, and that redirect
+                doesn't know this route is an exception. */}
+            <Route path="evento/:token" element={<EventoPage />} />
           </Route>
           <Route path="en" element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
             {PUBLIC_SITE_ROUTES.map(r => (
               <Route key={`en-${r.path}`} path={r.path} element={r.element} />
             ))}
+            <Route path="evento/:token" element={<EventoPage />} />
           </Route>
-
-          {/* Public event view — no auth, no site chrome (private per-event tool) */}
-          <Route path="/evento/:token" element={<EventoPage />} />
 
           <Route path="/login" element={<LoginPage />} />
 

@@ -137,7 +137,7 @@ export default function EventoPage() {
   }, [token]);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex items-center justify-center bg-gray-50 py-20">
       <div className="text-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500 mx-auto mb-3" />
         <p className="text-sm text-gray-500">Cargando evento...</p>
@@ -146,7 +146,7 @@ export default function EventoPage() {
   );
 
   if (notFound || !event) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div className="flex items-center justify-center bg-gray-50 p-6 py-20">
       <div className="text-center max-w-sm">
         <div className="text-5xl mb-4">🔗</div>
         <h1 className="text-xl font-bold text-gray-900 mb-2">Enlace no válido</h1>
@@ -176,27 +176,26 @@ export default function EventoPage() {
   const pageTitle = buildPageTitle(event);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <Helmet>
         <title>{pageTitle} | Camino a mi Boda</title>
       </Helmet>
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-5 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-brand-500 text-lg">💍</span>
-            </div>
-            <div>
-              <h1 className="font-bold text-gray-900 text-lg leading-tight">{pageTitle}</h1>
-              <p className="text-sm text-gray-500 capitalize">{formatDate(event.event_date)}</p>
-            </div>
+      {/* Event identity header — not sticky here, the site's own nav
+          header already is (PublicLayout). */}
+      <div className="bg-white border border-gray-200 rounded-xl py-5 px-4 shadow-sm max-w-lg mx-auto">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
+            <span className="text-brand-500 text-lg">💍</span>
+          </div>
+          <div>
+            <h1 className="font-bold text-gray-900 text-lg leading-tight">{pageTitle}</h1>
+            <p className="text-sm text-gray-500 capitalize">{formatDate(event.event_date)}</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
+      <div className="max-w-lg mx-auto py-5 space-y-6">
         {/* Event summary */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
           {event.main_contact_name && (
