@@ -16,6 +16,7 @@ from app.config import settings
 from app.core.dependencies import get_current_user
 from app.core.files import safe_pdf_path
 from app.database import get_db
+from app.models.addon_package import AddonPackage
 from app.models.quote import LocationZone, Quote, QuoteStatus
 from app.models.reservation import Reservation, ReservationStatus
 from app.schemas.quote import (
@@ -65,7 +66,31 @@ def _format_cop(amount) -> str:
     return f"COP ${int(amount):,}".replace(",", ".")
 
 
-def _build_wa_text(quote: Quote) -> str:
+def _addon_lines(quote: Quote, db: Session) -> List[str]:
+    """Human-readable labels for the addons folded into quote.addons_total
+    (bouquet + extra hours, the only addon system a Quote can reference —
+    see the module-level note on quotes.py's structural gap with
+    reservation_addons). Deliberately doesn't try to itemize a price per
+    line: addons_total is the one number guaranteed to still match what
+    was actually quoted, even if a catalog price changed since."""
+    lines: List[str] = []
+    for pkg_id in (quote.addon_package_ids or []):
+        pkg = db.query(AddonPackage).filter(AddonPackage.id == pkg_id).first()
+        if pkg:
+            lines.append(pkg.name)
+    if quote.extra_hours:
+        hour_pkg = db.query(AddonPackage).filter(AddonPackage.type == "extra_hour").first()
+        if hour_pkg:
+            lines.append(f"{hour_pkg.name} × {quote.extra_hours}")
+        else:
+            plural = "s" if quote.extra_hours != 1 else ""
+            lines.append(f"{quote.extra_hours} hora{plural} adicional{plural}")
+    return lines
+
+
+def _build_wa_text(quote: Quote, db: Session) -> str:
+    addons_total = quote.addons_total or Decimal("0")
+    addon_lines = _addon_lines(quote, db)
     lines = [
         "💍 Propuesta de Servicio – Camino a Mi Boda",
         "",
@@ -84,7 +109,9 @@ def _build_wa_text(quote: Quote) -> str:
     if quote.reception_location:
         lines.append(f"🥂 Recepción: {quote.reception_location}")
     lines.append("")
-    lines.append(f"💰 Valor total: {_format_cop(quote.total_price)}")
+    if addon_lines:
+        lines.append(f"✨ Adicionales: {', '.join(addon_lines)} ({_format_cop(addons_total)})")
+    lines.append(f"💰 Valor total: {_format_cop(quote.total_price + addons_total)}")
     if quote.deposit_amount:
         lines.append(f"💳 Anticipo para reservar: {_format_cop(quote.deposit_amount)}")
     lines += [
@@ -168,6 +195,9 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         if photo:
             vehicle_photo_url = f"/app/uploads/vehicles/{photo.file_name}"
 
+    addons_total = quote.addons_total or Decimal("0")
+    addon_lines = _addon_lines(quote, db)
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
     template = env.get_template("quote.html")
     html = template.render(
@@ -176,7 +206,8 @@ def generate_quote_pdf(quote_id: int, db: Session = Depends(get_db)):
         display_vehicle=quote.display_vehicle,
         formatted_date=_format_date_es(datetime.now(ZoneInfo("America/Bogota")).date()),
         formatted_event_date=_format_date_es(quote.event_date),
-        formatted_price=_format_cop(quote.total_price),
+        formatted_price=_format_cop(quote.total_price + addons_total),
+        addon_lines=addon_lines,
         formatted_deposit=_format_cop(quote.deposit_amount) if quote.deposit_amount else None,
         zone_label=ZONE_LABEL.get(quote.location_zone, quote.location_zone),
         vehicle_photo_url=vehicle_photo_url,
@@ -272,4 +303,4 @@ def convert_to_reservation(quote_id: int, db: Session = Depends(get_db)):
 @router.get("/{quote_id}/whatsapp-text", response_model=WhatsappTextResponse, dependencies=[Depends(get_current_user)])
 def get_whatsapp_text(quote_id: int, db: Session = Depends(get_db)):
     quote = _get_quote(quote_id, db)
-    return WhatsappTextResponse(text=_build_wa_text(quote))
+    return WhatsappTextResponse(text=_build_wa_text(quote, db))

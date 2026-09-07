@@ -16,7 +16,7 @@
     .section-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 9pt; font-weight: 700; color: #166f73; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #f0fbfb; padding-bottom: 4px; margin-bottom: 8px; }
     .two-col { display: flex; gap: 24px; margin-bottom: 16px; }
     .two-col .col { flex: 1; }
-    .info-row { display: flex; margin-bottom: 4px; font-size: 10pt; }
+    .info-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 10pt; }
     .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
     .info-value { color: #1a1a1a; font-weight: 500; }
     .blank-line { color: #bbb; }
@@ -126,6 +126,13 @@
     <div class="clause">
       <div class="clause-title">Quinta. Valor y forma de pago</div>
       <div class="clause-body">El valor total del arrendamiento será de {{ formatted_total_amount }} ({{ amount_in_words }}), suma que EL ARRENDATARIO pagará a EL ARRENDADOR de la siguiente manera:</div>
+      {% if addon_rows %}
+      <div class="clause-body">Dicho valor incluye los siguientes servicios adicionales, además del valor del vehículo:</div>
+      <div class="info-row"><span class="info-label">Vehículo:</span><span class="info-value">{{ formatted_vehicle_value }}</span></div>
+      {% for row in addon_rows %}
+      <div class="info-row"><span class="info-label">{{ row.label }}:</span><span class="info-value">{{ row.formatted_price }}</span></div>
+      {% endfor %}
+      {% endif %}
       {% if payment_schedule %}
         {% for row in payment_schedule %}
         <div class="clause-body">{{ 'abcdefghijklmnopqrstuvwxyz'[loop.index0] }}. {{ row.description }}. Se pagará {{ row.amount_text }}.</div>

@@ -281,6 +281,18 @@
   </div>
   {% endif %}
 
+  <!-- Additional services -->
+  {% if addon_lines %}
+  <div class="section">
+    <div class="section-title">Servicios Adicionales</div>
+    <div style="font-size:10.5pt; color:#1a1a1a; line-height:1.6;">
+      {% for line in addon_lines %}
+      <div>• {{ line }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Price -->
   <div class="price-box">
     <div>

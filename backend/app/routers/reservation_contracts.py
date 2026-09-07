@@ -21,6 +21,7 @@ from app.models.reservation_contract import ReservationContract
 from app.models.reservation_payment_schedule_item import ReservationPaymentScheduleItem
 from app.schemas.reservation_contract import ReservationContractRead, ReservationContractUpdate
 from app.services.event_span import effective_end_date
+from app.services.reservation_addons import get_reservation_addons
 
 # Not admin-gated: unlike VehicleOwnerContract (owner-facing, carries the
 # revenue split — admin-only per CLAUDE.md), a customer rental contract
@@ -154,6 +155,25 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
 
     half = (total * Decimal("0.5")).quantize(Decimal("0.01"))
 
+    # Addon breakdown for the "Quinta" clause — only shown when the numbers
+    # actually reconcile. reservation_addons has no enforced link to
+    # total_amount (the operator is expected to have folded addon prices
+    # into it manually, same convention owner_settlements.py and
+    # FinanceTab.tsx already rely on) — if that manual bookkeeping is off
+    # and addons would outweigh the total, skip the breakdown entirely
+    # rather than show a negative "vehicle value" in a legal document.
+    addons = get_reservation_addons(reservation_id, db)
+    addons_total = sum((a.price for a in addons), Decimal("0"))
+    show_addon_breakdown = bool(addons) and addons_total <= total
+    addon_rows = [
+        {
+            "label": f"{a.name} ({a.provider_name})" if a.provider_name else a.name,
+            "formatted_price": _format_cop(a.price),
+        }
+        for a in addons
+    ] if show_addon_breakdown else []
+    formatted_vehicle_value = _format_cop(total - addons_total) if show_addon_breakdown else None
+
     tls = reservation.timelines if reservation.timelines else []
     activities = []
     if tls:
@@ -178,6 +198,8 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         formatted_total_amount=_format_cop(total),
         amount_in_words=_amount_in_words(total),
         payment_schedule=payment_schedule,
+        addon_rows=addon_rows,
+        formatted_vehicle_value=formatted_vehicle_value,
         formatted_half_amount=_format_cop(half),
         formatted_decoration_removal_date=_format_date_es(reservation.decoration_removal_date) if reservation.decoration_removal_date else None,
         formatted_soat=_format_date_es(vehicle.soat_expiration) if vehicle and vehicle.soat_expiration else None,
