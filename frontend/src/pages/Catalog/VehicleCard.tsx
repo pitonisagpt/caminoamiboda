@@ -4,6 +4,7 @@ import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { AdminEditLink } from "../../components/AdminEditLink";
+import { ShareVehicleButton } from "../../components/ShareVehicleButton";
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
@@ -61,6 +62,11 @@ export function VehicleCard({
         />
 
         <AdminEditLink to={`/vehiculos/editar/${vehicle.id}`} className="absolute bottom-2 right-2" />
+        <ShareVehicleButton
+          vehicleId={vehicle.id}
+          vehicleName={`${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+          className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-colors cursor-pointer"
+        />
       </div>
 
       {/* Content */}

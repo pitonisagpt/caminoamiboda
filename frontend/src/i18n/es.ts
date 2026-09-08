@@ -335,6 +335,7 @@ export const es = {
   // VehicleCard.tsx aria-label + WhatsApp "check availability" message
   // (VehicleCard.tsx/VehicleModal.tsx, via vehicleWhatsappMessage.ts)
   "catalog.viewDetailAria": "Ver detalle de {{vehicle}}",
+  "catalog.share": "Compartir",
   "catalog.waAvailabilityMessage": "Hola! Me interesa el {{vehicle}}{{date}}. ¿Está disponible?",
   "catalog.waAvailabilityMessageDate": " para el {{date}}",
   "catalog.waAvailabilityMessageCode": "Código: {{sku}}",

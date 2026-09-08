@@ -302,6 +302,26 @@ export function CatalogPage() {
     }, { replace: true });
   }
 
+  // Keeps ?vehiculo=<id> in sync with the open/closed modal, so the address
+  // bar is always a valid, shareable link to whatever's currently open.
+  function openVehicle(v: PublicVehicleListItem) {
+    setSelected(v);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("vehiculo", String(v.id));
+      return next;
+    }, { replace: true });
+  }
+
+  function closeVehicle() {
+    setSelected(null);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete("vehiculo");
+      return next;
+    }, { replace: true });
+  }
+
   useEffect(() => {
     setLoading(true);
     vehiclesApi
@@ -331,20 +351,27 @@ export function CatalogPage() {
     return () => timers.forEach(clearTimeout);
   }, [location.hash, reviews]);
 
-  // Deep link from the AI chat assistant (?vehiculo=<id>) — auto-opens that
-  // vehicle's modal once the list has loaded, then strips the param so it
-  // doesn't reopen on a later filter change.
+  // Deep link (?vehiculo=<id>) — auto-opens that vehicle's modal once the
+  // list has loaded. Originally built for the AI chat assistant, now also
+  // the mechanism behind sharing a vehicle: opening/closing the modal keeps
+  // this param in sync (see setSelected/onClose below), so the address bar
+  // always reflects whichever vehicle is open and can be copied/shared
+  // as-is. Only stripped here if it doesn't match a real vehicle — a stale or
+  // bad id shouldn't linger in the URL.
   useEffect(() => {
     if (vehicles.length === 0) return;
     const vehiculoParam = searchParams.get("vehiculo");
     if (!vehiculoParam) return;
     const match = vehicles.find(v => v.id === Number(vehiculoParam));
-    if (match) setSelected(match);
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.delete("vehiculo");
-      return next;
-    }, { replace: true });
+    if (match) {
+      setSelected(match);
+    } else {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("vehiculo");
+        return next;
+      }, { replace: true });
+    }
   }, [vehicles]);
 
   const availableBrands = useMemo(
@@ -446,7 +473,15 @@ export function CatalogPage() {
   return (
     <>
       <Helmet>
-        {noPricing ? (
+        {selected ? (
+          <>
+            <title>{`${selected.brand}${selected.model_line ? ` ${selected.model_line}` : ""} — Camino a mi Boda`}</title>
+            <meta property="og:title" content={`${selected.brand}${selected.model_line ? ` ${selected.model_line}` : ""}`} />
+            <meta property="og:description" content={t("catalog.helmetDescriptionWeddings")} />
+            <meta property="og:type" content="website" />
+            <meta property="og:image" content={selected.photos?.find(p => p.is_visible)?.url ?? "/favicon.png"} />
+          </>
+        ) : noPricing ? (
           <>
             <title>{t("catalog.helmetTitleProductions")}</title>
             <meta name="description" content={t("catalog.helmetDescriptionProductions")} />
@@ -621,7 +656,7 @@ export function CatalogPage() {
                     <VehicleCard
                       key={v.id}
                       vehicle={v}
-                      onClick={() => setSelected(v)}
+                      onClick={() => openVehicle(v)}
                       unlock={unlock}
                       onRequestUnlock={() => setGateOpen(true)}
                       hidePricing={noPricing}
@@ -699,7 +734,7 @@ export function CatalogPage() {
       {selected && (
         <VehicleModal
           vehicle={selected}
-          onClose={() => setSelected(null)}
+          onClose={closeVehicle}
           unlock={unlock}
           onRequestUnlock={() => setGateOpen(true)}
           hidePricing={noPricing}

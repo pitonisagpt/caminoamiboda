@@ -331,6 +331,7 @@ export const en: Record<keyof typeof es, string> = {
 
   // VehicleCard.tsx aria-label + WhatsApp "check availability" message
   "catalog.viewDetailAria": "View details for {{vehicle}}",
+  "catalog.share": "Share",
   "catalog.waAvailabilityMessage": "Hi! I'm interested in the {{vehicle}}{{date}}. Is it available?",
   "catalog.waAvailabilityMessageDate": " for {{date}}",
   "catalog.waAvailabilityMessageCode": "Code: {{sku}}",

@@ -5,6 +5,7 @@ import type { PublicVehicleListItem } from "../../types/vehicle";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { AdminEditLink } from "../../components/AdminEditLink";
+import { ShareVehicleButton } from "../../components/ShareVehicleButton";
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
@@ -89,6 +90,11 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
         >
           <X size={18} />
         </button>
+        <ShareVehicleButton
+          vehicleId={vehicle.id}
+          vehicleName={`${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+          className="absolute top-3 right-14 z-20 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors cursor-pointer"
+        />
 
         <div className="flex flex-col sm:flex-row overflow-y-auto sm:overflow-hidden">
           {/* ── Photo gallery (left / top) ─────────────────────── */}
