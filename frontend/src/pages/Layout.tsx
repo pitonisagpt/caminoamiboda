@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
+import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Globe, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LucideIcon } from "lucide-react";
@@ -192,6 +192,16 @@ export function Layout() {
                   {user?.role === "admin" ? "Admin" : "Operaciones"}
                 </span>
               </div>
+              <a
+                href="/catalogo"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Ver sitio público"
+                title="Ver sitio público"
+                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+              >
+                <Globe size={18} />
+              </a>
               <button
                 onClick={handleLogout}
                 aria-label="Cerrar sesión"
@@ -203,6 +213,16 @@ export function Layout() {
           )}
           {c && (
             <div className="flex flex-col items-center gap-1 py-2">
+              <a
+                href="/catalogo"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Ver sitio público"
+                title="Ver sitio público"
+                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+              >
+                <Globe size={17} />
+              </a>
               <button
                 onClick={handleLogout}
                 aria-label="Cerrar sesión"

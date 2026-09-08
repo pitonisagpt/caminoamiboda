@@ -104,6 +104,16 @@ export function PublicLayout() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {!loading && user && (
+              <Link
+                to="/"
+                className="hidden sm:flex p-2 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                title={t("nav.goToPanel")}
+                aria-label={t("nav.goToPanel")}
+              >
+                <LayoutDashboard size={18} />
+              </Link>
+            )}
             <LanguageSwitch className="hidden sm:flex" />
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
