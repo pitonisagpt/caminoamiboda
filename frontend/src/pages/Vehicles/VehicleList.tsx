@@ -544,7 +544,7 @@ export function VehicleList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-800">Vehículos</h1>
-          <p className="text-sm text-gray-500 mt-1">Flota de Camino a mi Boda</p>
+          <p className="text-sm text-gray-500 mt-1">Colección de Camino a mi Boda</p>
         </div>
         <div className="flex items-center gap-2">
           <a
