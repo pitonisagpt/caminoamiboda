@@ -167,7 +167,7 @@ export function PublicLayout() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <span className="font-brand text-2xl text-brand-400">Camino a mi Boda</span>
-            <nav className="flex items-center gap-5 text-sm text-gray-500">
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500">
               {NAV_LINKS.map(link => (
                 <Link key={link.to} to={link.to} className="hover:text-brand-600 transition-colors">
                   {link.label}
