@@ -317,17 +317,20 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
           />
           <MapFitter points={points} />
 
-          {routeLine ? (
+          {/* No fallback line when OSRM fails (routeLine null) — a straight
+              edge between waypoints doesn't represent any real path (cuts
+              across blocks/hills) and is more misleading than helpful; the
+              numbered pins already convey the visiting order, and the
+              distance card below still discloses the estimate honestly. */}
+          {routeLine && (
             <Polyline key="route-real" positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
-          ) : waypointPositions.length >= 2 && (
-            <Polyline
-              key="route-approx"
-              positions={waypointPositions}
-              pathOptions={{ color: ROUTE_COLOR, weight: 3, opacity: 0.6, dashArray: '6 8' }}
-            />
           )}
 
-          {repeatedLegs.map(i => (
+          {/* This overlay only makes sense next to a real route line to
+              retrace — without one (OSRM failed, routeLine null) it would
+              be the only straight line left on the map, exactly the
+              confusing case just avoided above. */}
+          {routeLine && repeatedLegs.map(i => (
             <Polyline
               key={`repeat-${i}`}
               positions={offsetLegLine(waypointPositions[i], waypointPositions[i + 1])}
