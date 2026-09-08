@@ -76,9 +76,13 @@ export function PublicLayout() {
       {/* Header */}
       <header className="bg-white border-b border-brand-100 shadow-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-          <Link to={toLangPath("/catalogo", lang)} className="shrink-0">
+          {/* min-w-0 (not shrink-0) lets this shrink below the tagline's
+              unwrapped width — without it, the tagline's own max-content
+              width forced the whole block to ~288px on a 320px viewport,
+              pushing the hamburger button (below) entirely off-screen. */}
+          <Link to={toLangPath("/catalogo", lang)} className="min-w-0">
             <span className="font-brand text-3xl text-brand-500">Camino a mi Boda</span>
-            <p className="text-xs text-gray-400 mt-0.5">{t("layout.tagline")}</p>
+            <p className="text-xs text-gray-400 mt-0.5 truncate">{t("layout.tagline")}</p>
           </Link>
 
           {/* Desktop nav — shown from xl (1280px) up. The 6 labels need
