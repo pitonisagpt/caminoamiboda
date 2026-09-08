@@ -43,7 +43,7 @@ export function AvailabilityWidget() {
         {...whatsAppLinkProps()}
         className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-medium text-sm transition-all ${
           date
-            ? 'bg-green-500 hover:bg-green-600 text-white shadow-sm hover:shadow-md cursor-pointer'
+            ? 'bg-brand-500 hover:bg-brand-600 text-white shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 active:scale-[0.98] cursor-pointer'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
         }`}
       >

@@ -172,7 +172,7 @@ export default function ComoFuncionaPage() {
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
             {...whatsAppLinkProps()}
-            className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-6 py-3 rounded-xl shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 transition-all active:scale-[0.98] cursor-pointer"
           >
             {t("comoFunciona.finalCtaWhatsapp")}
           </a>

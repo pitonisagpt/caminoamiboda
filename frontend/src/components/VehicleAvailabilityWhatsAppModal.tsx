@@ -73,8 +73,8 @@ export function VehicleAvailabilityWhatsAppModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <MessageCircle size={20} className="text-green-600" />
+          <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+            <MessageCircle size={20} className="text-brand-600" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 leading-tight">{vehicleLabel}</p>
@@ -112,7 +112,7 @@ export function VehicleAvailabilityWhatsAppModal({
               href={toWhatsAppUrl(ownerContact, message)}
               {...whatsAppLinkProps()}
               onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 transition-all active:scale-[0.98] cursor-pointer"
             >
               <WhatsAppIcon className="w-4 h-4" />
               Abrir WhatsApp

@@ -108,7 +108,7 @@ export function PublicLayout() {
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               {...whatsAppLinkProps()}
-              className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+              className="hidden sm:flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap"
             >
               <WhatsAppIcon className="w-4 h-4" />
               {t("layout.contactUs")}
@@ -150,7 +150,7 @@ export function PublicLayout() {
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 {...whatsAppLinkProps()}
-                className="flex items-center gap-2 bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-lg w-fit"
+                className="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm shadow-brand-500/25 active:scale-[0.98] transition-all w-fit"
               >
                 <WhatsAppIcon className="w-4 h-4" />
                 {t("layout.contactUs")}

@@ -171,7 +171,7 @@ export function VehicleCard({
           href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMsg}`}
           {...whatsAppLinkProps()}
           onClick={(e) => e.stopPropagation()}
-          className="mt-auto w-full flex items-center justify-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 rounded-xl transition-colors cursor-pointer"
+          className="mt-auto w-full flex items-center justify-center gap-1.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-2 rounded-xl shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 transition-all active:scale-[0.98] cursor-pointer"
         >
           <WhatsAppIcon className="w-3.5 h-3.5" />
           {t("vehicleModal.checkAvailability")}
