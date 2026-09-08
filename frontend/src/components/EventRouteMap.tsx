@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { ExternalLink, Navigation } from 'lucide-react';
+import { ExternalLink, Navigation, RefreshCw } from 'lucide-react';
 import type { EventLocation, TimelineActivity, LocationType } from '../types/timeline';
 
 const TYPE_LABELS: Record<LocationType, string> = {
@@ -178,21 +178,21 @@ function offsetLegLine(a: [number, number], b: [number, number]): [number, numbe
   return [[a[0] + offLat, a[1] + offLng], [b[0] + offLat, b[1] + offLng]];
 }
 
-// ─── OSRM route fetch (falls back to straight line on failure) ─────────────────
+// ─── OSRM per-leg route fetch (falls back to straight line on failure) ─────────
 
 interface OsrmResponse {
   routes?: {
     distance?: number;
     geometry?: { coordinates?: [number, number][] };
-    legs?: { distance?: number }[];
   }[];
 }
 
-interface RouteResult {
+/** One routing option for a single leg — either a real OSRM geometry, or
+ * (line: null) the straight-line fallback estimate when OSRM couldn't be
+ * reached for this leg. */
+interface LegOption {
   line: [number, number][] | null;
-  totalKm: number | null;
-  legKm: number[] | null;
-  isApprox: boolean;
+  km: number;
 }
 
 /** Great-circle distance in km — used only as a fallback when OSRM can't be reached. */
@@ -207,54 +207,58 @@ function haversineKm([lat1, lng1]: [number, number], [lat2, lng2]: [number, numb
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function straightLineLegs(waypoints: [number, number][]): number[] {
-  const legs: number[] = [];
-  for (let i = 0; i < waypoints.length - 1; i++) legs.push(haversineKm(waypoints[i], waypoints[i + 1]));
-  return legs;
+/** Fetches every alternative OSRM has for one A→B leg. Requested per-leg
+ * (not as a single multi-point trip covering the whole route) because the
+ * public OSRM server only returns `alternatives` for a plain two-point
+ * request — a combined multi-stop request silently drops back to one
+ * route with no alternatives, even when a real second road exists for one
+ * of its legs. Always resolves (never rejects) — falls back to a single
+ * straight-line estimate (no geometry) on any failure/timeout. */
+async function fetchLegOptions(a: [number, number], b: [number, number], signal: AbortSignal): Promise<LegOption[]> {
+  const coordsParam = `${a[1]},${a[0]};${b[1]},${b[0]}`;
+  const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson&alternatives=true`;
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) throw new Error('OSRM request failed');
+    const data = (await res.json()) as OsrmResponse;
+    const routes = data.routes ?? [];
+    if (routes.length === 0) throw new Error('empty OSRM route');
+    return routes.map(r => ({
+      line: r.geometry?.coordinates ? r.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]) : null,
+      km: (r.distance ?? 0) / 1000,
+    }));
+  } catch {
+    return [{ line: null, km: haversineKm(a, b) }];
+  }
 }
 
-function useRoute(waypoints: [number, number][]): RouteResult {
-  const [result, setResult] = useState<RouteResult>({ line: null, totalKm: null, legKm: null, isApprox: false });
+/** One entry per leg (waypoints[i] -> waypoints[i+1]), each holding every
+ * alternative OSRM returned for that specific leg — fetched in parallel,
+ * with an independent fallback per leg on failure. Cycling between a
+ * leg's alternatives (see the component below) is purely client-side —
+ * `alternatives=true` already returns every option in this one response. */
+function useLegRoutes(waypoints: [number, number][]): { legs: LegOption[][] } {
+  const [legs, setLegs] = useState<LegOption[][]>([]);
   const waypointsKey = waypoints.map(p => p.join(',')).join('|');
 
   useEffect(() => {
-    setResult({ line: null, totalKm: null, legKm: null, isApprox: false });
+    setLegs([]);
     if (waypoints.length < 2) return;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
-    const coordsParam = waypoints.map(([lat, lng]) => `${lng},${lat}`).join(';');
-    const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+    let cancelled = false;
 
-    fetch(url, { signal: controller.signal })
-      .then(res => (res.ok ? res.json() as Promise<OsrmResponse> : Promise.reject(res)))
-      .then(data => {
-        const route = data.routes?.[0];
-        const coords = route?.geometry?.coordinates;
-        if (coords && coords.length > 0) {
-          setResult({
-            line: coords.map(([lng, lat]) => [lat, lng]),
-            totalKm: route!.distance != null ? route!.distance / 1000 : null,
-            legKm: route!.legs?.map(l => (l.distance ?? 0) / 1000) ?? null,
-            isApprox: false,
-          });
-        } else {
-          throw new Error('empty OSRM route');
-        }
-      })
-      .catch(() => {
-        // OSRM unavailable — fall back to straight-line distance (and the
-        // dashed straight polyline already rendered elsewhere) rather than
-        // showing nothing.
-        const legKm = straightLineLegs(waypoints);
-        setResult({ line: null, totalKm: legKm.reduce((a, b) => a + b, 0), legKm, isApprox: true });
-      })
+    Promise.all(
+      waypoints.slice(0, -1).map((_, i) => fetchLegOptions(waypoints[i], waypoints[i + 1], controller.signal))
+    )
+      .then(results => { if (!cancelled) setLegs(results); })
       .finally(() => clearTimeout(timeout));
 
-    return () => { controller.abort(); clearTimeout(timeout); };
+    return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waypointsKey]);
 
-  return result;
+  return { legs };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -263,7 +267,16 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
   const waypoints = useMemo(() => buildOrderedWaypoints(locations, activities), [locations, activities]);
   const stops = useMemo(() => buildStops(waypoints), [waypoints]);
   const waypointPositions = useMemo<[number, number][]>(() => waypoints.map(w => [w.loc.lat!, w.loc.lng!]), [waypoints]);
-  const { line: routeLine, totalKm, legKm, isApprox } = useRoute(waypointPositions);
+  const { legs } = useLegRoutes(waypointPositions);
+  // Which alternative is currently shown per leg — reset to the default
+  // (index 0) whenever a fresh set of legs loads for new waypoints.
+  const [selectedAlt, setSelectedAlt] = useState<number[]>([]);
+  useEffect(() => { setSelectedAlt(legs.map(() => 0)); }, [legs]);
+  const legKm = legs.map((options, i) => options[selectedAlt[i] ?? 0]?.km ?? null);
+  const totalKm = legs.length > 0 && legKm.every(km => km != null)
+    ? legKm.reduce((a, b) => a + (b ?? 0), 0)
+    : null;
+  const isApprox = legs.length > 0 && legs.some((options, i) => options[selectedAlt[i] ?? 0]?.line == null);
   const repeatedLegs = useMemo(() => findRepeatedLegs(waypointPositions), [waypointPositions]);
   const fmtKm = (km: number) => km.toLocaleString('es-CO', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const unlocated = locations.filter(l => l.lat == null || l.lng == null);
@@ -317,28 +330,37 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
           />
           <MapFitter points={points} />
 
-          {/* No fallback line when OSRM fails (routeLine null) — a straight
-              edge between waypoints doesn't represent any real path (cuts
-              across blocks/hills) and is more misleading than helpful; the
-              numbered pins already convey the visiting order, and the
-              distance card below still discloses the estimate honestly. */}
-          {routeLine && (
-            <Polyline key="route-real" positions={routeLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
-          )}
+          {/* One polyline per leg (not a single combined line) — a leg
+              without a real route (OSRM failed for just that segment)
+              must not get bridged by a straight edge to its neighbors,
+              same reasoning as the fallback note below. */}
+          {legs.map((options, i) => {
+            const line = options[selectedAlt[i] ?? 0]?.line;
+            return line ? (
+              <Polyline key={`leg-${i}`} positions={line} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85 }} />
+            ) : null;
+            // No fallback line drawn when OSRM fails for a leg — a straight
+            // edge between its waypoints doesn't represent any real path
+            // (cuts across blocks/hills) and is more misleading than
+            // helpful; the numbered pins already convey the visiting
+            // order, and the distance card below discloses the estimate.
+          })}
 
           {/* This overlay only makes sense next to a real route line to
-              retrace — without one (OSRM failed, routeLine null) it would
-              be the only straight line left on the map, exactly the
+              retrace — without one for this specific leg (OSRM failed) it
+              would be the only line left for that segment, exactly the
               confusing case just avoided above. */}
-          {routeLine && repeatedLegs.map(i => (
-            <Polyline
-              key={`repeat-${i}`}
-              positions={offsetLegLine(waypointPositions[i], waypointPositions[i + 1])}
-              pathOptions={{ color: '#f59e0b', weight: 3, opacity: 0.9, dashArray: '2 8' }}
-            >
-              <Tooltip sticky>Tramo repetido (ida y vuelta)</Tooltip>
-            </Polyline>
-          ))}
+          {repeatedLegs
+            .filter(i => (legs[i]?.[selectedAlt[i] ?? 0]?.line ?? null) != null)
+            .map(i => (
+              <Polyline
+                key={`repeat-${i}`}
+                positions={offsetLegLine(waypointPositions[i], waypointPositions[i + 1])}
+                pathOptions={{ color: '#f59e0b', weight: 3, opacity: 0.9, dashArray: '2 8' }}
+              >
+                <Tooltip sticky>Tramo repetido (ida y vuelta)</Tooltip>
+              </Polyline>
+            ))}
 
           {stops.map(stop => {
             const primaryType = stop.locations[0].location_type;
@@ -410,12 +432,38 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
             </p>
           )}
           <ul className="mt-2 space-y-1">
-            {waypoints.slice(0, -1).map((w, i) => (
-              <li key={i} className="flex items-center justify-between text-xs text-gray-500">
-                <span className="truncate pr-3">{w.loc.location_name} → {waypoints[i + 1].loc.location_name}</span>
-                <span className="shrink-0">{legKm?.[i] != null ? `${fmtKm(legKm[i])} km` : '—'}</span>
-              </li>
-            ))}
+            {waypoints.slice(0, -1).map((w, i) => {
+              const options = legs[i];
+              const hasAlternative = options && options.length > 1;
+              const showingAlternative = (selectedAlt[i] ?? 0) > 0;
+              const toName = waypoints[i + 1].loc.location_name;
+              return (
+                <li key={i} className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                  <span className="truncate pr-1">{w.loc.location_name} → {toName}</span>
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    {hasAlternative && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAlt(prev => {
+                          const next = [...prev];
+                          next[i] = ((next[i] ?? 0) + 1) % options.length;
+                          return next;
+                        })}
+                        title="Probar otra ruta para este tramo"
+                        aria-label={`Probar otra ruta para ${w.loc.location_name} a ${toName}`}
+                        className="text-gray-400 hover:text-teal-600 transition-colors cursor-pointer"
+                      >
+                        <RefreshCw size={12} />
+                      </button>
+                    )}
+                    <span>
+                      {legKm[i] != null ? `${fmtKm(legKm[i]!)} km` : '—'}
+                      {showingAlternative && <span className="text-teal-600"> · alterna</span>}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
