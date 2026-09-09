@@ -197,7 +197,21 @@ function SortableActivity({ activity, locations, dayLabel, onEdit, onDelete }: {
           <span className="text-sm text-gray-900 truncate">{activity.description}</span>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-          {loc && <span className="text-xs text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> {loc.location_name}</span>}
+          {loc && (
+            <span className="text-xs text-gray-500 flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> {loc.location_name}{loc.address ? ` – ${loc.address}` : ''}
+            </span>
+          )}
+          {loc?.road_access_notes && (
+            <span className="text-xs text-amber-600 flex items-center gap-1" title="Acceso vial">
+              <Route className="w-3 h-3" /> {loc.road_access_notes}
+            </span>
+          )}
+          {loc?.notes && (
+            <span className="text-xs text-gray-400 flex items-center gap-1" title="Notas de la ubicación">
+              <FileText className="w-3 h-3" /> {loc.notes}
+            </span>
+          )}
           {activity.estimated_duration && <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" /> {activity.estimated_duration}</span>}
           {activity.notes && <span className="text-xs text-gray-400 flex items-center gap-1"><Info className="w-3 h-3" /> {activity.notes}</span>}
         </div>
