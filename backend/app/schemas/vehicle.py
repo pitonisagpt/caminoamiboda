@@ -187,6 +187,11 @@ class VehicleList(BaseModel):
     bride_description: Optional[str] = None
     bride_description_en: Optional[str] = None
     photos: List[VehiclePhotoRead] = []
+    # Filled in by list_all_vehicles() after construction (a bulk aggregate
+    # query, not a per-vehicle ORM attribute) — count of reservations with
+    # event_date >= today and a genuinely "agendado" status, same rule as
+    # AGENDADO_STATUSES in VehicleDetail.tsx's "Eventos agendados" card.
+    upcoming_events_count: int = 0
 
     @classmethod
     def from_orm_with_pico(cls, vehicle) -> "VehicleList":

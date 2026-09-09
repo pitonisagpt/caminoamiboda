@@ -15,6 +15,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   BarChart2,
+  CalendarDays,
   Car,
   ChevronDown,
   ChevronUp,
@@ -31,7 +32,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -125,7 +126,7 @@ const DAY_COLOR: Record<string, string> = {
   Viernes: "bg-green-100 text-green-700",
 };
 
-type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name" | "pico_y_placa_day";
+type SortKey = "display_order" | "license_plate" | "brand" | "year" | "color" | "status" | "score_total" | "owner_name" | "pico_y_placa_day" | "upcoming_events_count";
 
 const WEEKDAY_ORDER: Record<string, number> = { Lunes: 0, Martes: 1, Miércoles: 2, Jueves: 3, Viernes: 4 };
 type SortDir = "asc" | "desc";
@@ -236,6 +237,20 @@ function SortableVehicleRow({
       </td>
       <td className="px-4 py-3">
         <Badge variant={STATUS_VARIANT[v.status]}>{STATUS_LABEL[v.status]}</Badge>
+      </td>
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        {v.upcoming_events_count > 0 ? (
+          <Link
+            to={`/reservas?vehicle=${v.id}&status=deposit_received,reserved,confirmed`}
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-700 hover:bg-brand-200 transition-colors cursor-pointer"
+            title="Ver reservas agendadas de este vehículo"
+          >
+            <CalendarDays size={12} />
+            {v.upcoming_events_count}
+          </Link>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        )}
       </td>
       <td className="px-4 py-3">
         <ScoreTotalBar total={v.score_total} size="sm" />
@@ -534,6 +549,7 @@ export function VehicleList() {
     { label: "Ubicación",   key: null },
     { label: "Propietario", key: "owner_name" },
     { label: "Estado",      key: "status" },
+    { label: "Próx. eventos", key: "upcoming_events_count" },
     { label: "Score",       key: "score_total" },
     { label: "Pico y Placa", key: "pico_y_placa_day" },
     { label: "Precios",     key: null },
@@ -844,7 +860,7 @@ export function VehicleList() {
                   <tbody className="divide-y divide-pink-50">
                     {displayed.length === 0 ? (
                       <tr>
-                        <td colSpan={14} className="px-6 py-10 text-center text-sm text-gray-400">
+                        <td colSpan={15} className="px-6 py-10 text-center text-sm text-gray-400">
                           {search
                             ? `No hay vehículos que coincidan con "${search}"`
                             : "Ningún vehículo coincide con los filtros seleccionados"}

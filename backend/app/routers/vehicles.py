@@ -2,6 +2,7 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import get_current_user, require_admin
@@ -111,7 +112,25 @@ def list_all_vehicles(
         query = query.filter(Vehicle.location == location)
     if vehicle_type:
         query = query.filter(Vehicle.vehicle_type == vehicle_type)
-    return _serialize_list(query.all())
+    items = _serialize_list(query.all())
+
+    # Same "agendado" rule as AGENDADO_STATUSES in VehicleDetail.tsx's
+    # "Eventos agendados" card — excludes leads/quotes (not a real event
+    # yet) and completed/cancelled. Queried via ReservationVehicle, not the
+    # legacy singular Reservation.vehicle_id, so a reservation with more
+    # than one vehicle counts against all of them (same as the vehicle_id
+    # filter in list_reservations()).
+    agendado_statuses = [ReservationStatus.deposit_received, ReservationStatus.reserved, ReservationStatus.confirmed]
+    counts = dict(
+        db.query(ReservationVehicle.vehicle_id, func.count(ReservationVehicle.id))
+        .join(Reservation, Reservation.id == ReservationVehicle.reservation_id)
+        .filter(Reservation.event_date >= date.today(), Reservation.status.in_(agendado_statuses))
+        .group_by(ReservationVehicle.vehicle_id)
+        .all()
+    )
+    for item in items:
+        item.upcoming_events_count = counts.get(item.id, 0)
+    return items
 
 
 @router.put("/reorder", dependencies=[Depends(require_admin)])

@@ -50,6 +50,10 @@ export interface VehicleListItem {
   bride_description: string | null;
   bride_description_en: string | null;
   photos: VehiclePhoto[];
+  // Count of reservations with event_date >= today and status in
+  // (deposit_received, reserved, confirmed) — same rule as
+  // AGENDADO_STATUSES in VehicleDetail.tsx.
+  upcoming_events_count: number;
 }
 
 // Public catalog shape — never carries the license plate or the vehicle
