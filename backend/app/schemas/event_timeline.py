@@ -186,7 +186,15 @@ class TimelineBase(TimelineFields):
 
 
 class TimelineCreate(TimelineBase):
-    pass
+    # Optional so admin-tool callers that don't attach a reservation still
+    # work, but EventoTab.tsx's manual "Crear evento" button always sends
+    # this — without it here, TimelineCreate silently dropped the field
+    # (unknown to the base schema) and every timeline created this way came
+    # out with reservation_id=NULL: created successfully, but invisible to
+    # the reservation that asked for it (ReservationRead.timeline_id is
+    # computed from EventTimeline.reservation_id), so the tab kept showing
+    # "no event yet" no matter how many times you clicked create.
+    reservation_id: Optional[int] = None
 
 
 class TimelineUpdate(BaseModel):
