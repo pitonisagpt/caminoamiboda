@@ -1,7 +1,11 @@
 from datetime import datetime
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from app.models.photo_provider import PhotoProvider
 
 from app.database import Base
 
@@ -16,3 +20,13 @@ class VehiclePhoto(Base):
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     is_visible: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # viewonly=True on purpose — writes to the credit set go through
+    # VehiclePhotoProvider directly (PUT .../photos/{id}/providers), never
+    # through this relationship. Same reasoning ReservationVehicle's
+    # docstring gives for not trusting a live ORM list on a join table for
+    # writes; read-only here sidesteps that footgun entirely.
+    providers: Mapped[List["PhotoProvider"]] = relationship(
+        "PhotoProvider", secondary="vehicle_photo_providers", viewonly=True,
+        order_by="PhotoProvider.name",
+    )

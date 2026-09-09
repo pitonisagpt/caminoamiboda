@@ -4,6 +4,13 @@ export type VehicleLocation = "medellin" | "rionegro" | "carmen_de_viboral";
 export type VehicleCategory = "clasico" | "vintage" | "moderno";
 export type VehicleUseCase = "wedding" | "audiovisual_production" | "brand_activation" | "tourism";
 
+// Optional credit shown on a photo — photographer, decorator, etc.
+export interface PhotoProviderBrief {
+  id: number;
+  name: string;
+  instagram_url: string | null;
+}
+
 export interface VehiclePhoto {
   id: number;
   vehicle_id: number;
@@ -13,6 +20,20 @@ export interface VehiclePhoto {
   is_visible: boolean;
   url: string;
   created_at: string;
+  providers: PhotoProviderBrief[];
+}
+
+// Full directory entry — used by the admin CRUD page and the photo
+// credit picker in PhotoManager.tsx.
+export interface PhotoProvider {
+  id: number;
+  name: string;
+  category: string | null;
+  instagram_url: string | null;
+  website_url: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VehicleListItem {

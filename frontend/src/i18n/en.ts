@@ -252,6 +252,7 @@ export const en: Record<keyof typeof es, string> = {
   "vehicleModal.prevPhoto": "Previous photo",
   "vehicleModal.nextPhoto": "Next photo",
   "vehicleModal.viewPhoto": "View photo {{n}}",
+  "vehicleModal.photoCredit": "Courtesy",
   "vehicleModal.contactOwner": "Contact owner",
   "vehicleModal.picoYPlaca": "Pico y placa {{day}}",
   "vehicleModal.picoYPlacaTooltip": "Pico y Placa (driving restriction) in Medellín: {{hours}}",

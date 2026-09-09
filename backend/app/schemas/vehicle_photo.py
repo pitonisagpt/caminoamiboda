@@ -4,6 +4,7 @@ from typing import List
 from pydantic import BaseModel, model_validator
 
 from app.core.urls import build_upload_url
+from app.schemas.photo_provider import PhotoProviderBrief
 
 
 class VehiclePhotoRead(BaseModel):
@@ -15,6 +16,10 @@ class VehiclePhotoRead(BaseModel):
     is_visible: bool
     url: str = ""
     created_at: datetime
+    # Optional credits (photographer, decorator, etc.) — empty for the vast
+    # majority of photos. Comes from VehiclePhoto.providers, a viewonly
+    # relationship, so from_attributes picks it up automatically.
+    providers: List[PhotoProviderBrief] = []
 
     model_config = {"from_attributes": True}
 

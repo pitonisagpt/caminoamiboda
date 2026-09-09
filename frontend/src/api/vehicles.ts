@@ -90,6 +90,10 @@ export const vehiclesApi = {
     return api.delete(`/vehicles/${vehicleId}/photos/${photoId}`);
   },
 
+  setPhotoProviders(vehicleId: number, photoId: number, providerIds: number[]) {
+    return api.put<VehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/providers`, { provider_ids: providerIds });
+  },
+
   async downloadPhotosZip(vehicleId: number): Promise<void> {
     // Bulk zip generation for vehicles with many full-size photos can take
     // longer than the default request timeout — give this one more room.

@@ -251,6 +251,7 @@ export const es = {
   "vehicleModal.prevPhoto": "Foto anterior",
   "vehicleModal.nextPhoto": "Foto siguiente",
   "vehicleModal.viewPhoto": "Ver foto {{n}}",
+  "vehicleModal.photoCredit": "Cortesía",
   "vehicleModal.contactOwner": "Contactar propietario",
   "vehicleModal.picoYPlaca": "Pico y placa {{day}}",
   "vehicleModal.picoYPlacaTooltip": "Pico y Placa en Medellín: {{hours}}",

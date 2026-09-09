@@ -48,6 +48,7 @@ import BlogPostPage from "./pages/Blog/BlogPostPage";
 import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
 import ReviewsPage from "./pages/Admin/ReviewsPage";
 import FloristPage from "./pages/Admin/FloristPage";
+import PhotoProvidersPage from "./pages/Admin/PhotoProvidersPage";
 import { timelinesApi } from "./api/timelines";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
@@ -250,6 +251,14 @@ export default function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <FloristPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/proveedores-fotos"
+              element={
+                <ProtectedRoute adminOnly>
+                  <PhotoProvidersPage />
                 </ProtectedRoute>
               }
             />
