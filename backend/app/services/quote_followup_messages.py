@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
+from app.services.whatsapp_signature import append_signature
+
 
 def _first_name(full_name: str | None) -> str:
     return (full_name or "").split(" ")[0] or "Hola"
@@ -46,8 +48,7 @@ def _tpl1(name: str, date_str: str, vehicle: str) -> str:
 def _tpl2(name: str, date_str: str, vehicle: str) -> str:
     return (
         f"Hola {name}, te cuento que el {vehicle} que cotizamos ha estado en varios eventos últimamente "
-        f"— te comparto nuestro Instagram para que lo veas en acción: https://www.instagram.com/caminoamiboda. "
-        f"¿Seguimos con la reserva?"
+        f"— míralo en acción en nuestro Instagram. ¿Seguimos con la reserva?"
     )
 
 
@@ -116,4 +117,4 @@ def build_message(template_key: str, reservation) -> str:
     name = _first_name(reservation.display_customer if reservation.display_customer != "—" else None)
     date_str = _format_date_es(reservation.event_date) if reservation.event_date else "la fecha de tu evento"
     vehicle = reservation.display_vehicle if reservation.display_vehicle != "—" else "el vehículo"
-    return t.build(name, date_str, vehicle)
+    return append_signature(t.build(name, date_str, vehicle))

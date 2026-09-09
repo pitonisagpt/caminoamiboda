@@ -4,7 +4,7 @@ import type { Reservation } from '../../../types/reservation';
 import type { ReservationContract, PaymentScheduleItem, ClientType, ClientIdType } from '../../../types/reservationContract';
 import { reservationsApi } from '../../../api/reservations';
 import { reservationContractsApi } from '../../../api/reservationContracts';
-import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
@@ -28,10 +28,9 @@ function buildContractMsg(reservation: Reservation, contract: ReservationContrac
     lines.push(`*Fecha del evento:* ${evDate}`);
   }
   lines.push(`*Valor total:* ${formatCOP(Number(reservation.total_amount))}`, '');
-  lines.push('Te adjuntamos el PDF con todas las condiciones — cualquier duda nos escribes.', '');
-  lines.push('Camino a mi Boda', 'https://www.instagram.com/caminoamiboda');
+  lines.push('Te adjuntamos el PDF con todas las condiciones — cualquier duda nos escribes.');
 
-  return lines.join('\n');
+  return withSignature(lines.join('\n'));
 }
 
 interface ContractTabProps {

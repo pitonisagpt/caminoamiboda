@@ -31,7 +31,7 @@ import type {
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
-import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -164,11 +164,7 @@ function buildFullMsg(t: EventTimeline): string {
     });
   }
 
-  lines.push('');
-  lines.push(`_Camino a mi Boda_`);
-  lines.push(`https://www.instagram.com/caminoamiboda`);
-
-  return lines.join('\n').trim();
+  return withSignature(lines.join('\n').trim());
 }
 
 // ─── Sortable Activity ─────────────────────────────────────────────────────────

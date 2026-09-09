@@ -15,7 +15,7 @@ import { reservationAddonsApi } from '../../../api/reservationAddons';
 import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
-import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: 'Borrador',
@@ -83,11 +83,8 @@ function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[],
 
   lines.push('');
   lines.push(`La cuenta de ahorros Bancolombia es 00484248273`);
-  lines.push('');
-  lines.push('Camino a mi Boda');
-  lines.push('https://www.instagram.com/caminoamiboda');
 
-  return lines.join('\n');
+  return withSignature(lines.join('\n'));
 }
 
 // Just the itemized breakdown + total — no payment/deposit history, unlike
@@ -118,11 +115,7 @@ function buildDetalleMsg(reservation: Reservation, addons: ReservationAddon[], r
     lines.push(`*Fecha del evento:* ${evDate}`);
   }
 
-  lines.push('');
-  lines.push('Camino a mi Boda');
-  lines.push('https://www.instagram.com/caminoamiboda');
-
-  return lines.join('\n');
+  return withSignature(lines.join('\n'));
 }
 
 function formatDate(d: string) {
@@ -183,10 +176,7 @@ function buildOwnerMsg(
     lines.push('');
   }
 
-  lines.push('Camino a mi Boda');
-  lines.push('https://www.instagram.com/caminoamiboda');
-
-  return lines.join('\n');
+  return withSignature(lines.join('\n').trim());
 }
 
 export default function FinanceTab({

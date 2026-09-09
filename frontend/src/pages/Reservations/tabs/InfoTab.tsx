@@ -9,7 +9,7 @@ import { Dropzone } from '../../../components/ui/Dropzone';
 import { VehicleAvailabilityWhatsAppModal } from '../../../components/VehicleAvailabilityWhatsAppModal';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
-import { buildWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
+import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
 interface AvailabilityTarget {
@@ -43,7 +43,9 @@ function formatDate(d: string) {
 
 function buildReviewMsg(name?: string | null): string {
   const greeting = name ? `Hola ${name.split(' ')[0]}` : 'Hola';
-  return `${greeting}, ¿cómo estás?\n\nFue un gusto trabajar contigo en este evento. Si tienes un minuto, ¿nos ayudarías dejando una reseña de 5 estrellas en Google sobre nuestro servicio? Nos ayuda muchísimo a seguir creciendo.\n\nAquí el enlace: ${GOOGLE_REVIEW_LINK}\n\n¡Mil gracias por el apoyo!`;
+  return withSignature(
+    `${greeting}, ¿cómo estás?\n\nFue un gusto trabajar contigo en este evento. Si tienes un minuto, ¿nos ayudarías dejando una reseña de 5 estrellas en Google sobre nuestro servicio? Nos ayuda muchísimo a seguir creciendo.\n\nAquí el enlace: ${GOOGLE_REVIEW_LINK}\n\n¡Mil gracias por el apoyo!`
+  );
 }
 
 export default function InfoTab({

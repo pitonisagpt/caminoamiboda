@@ -44,3 +44,15 @@ export function toWhatsAppUrl(phone: string | null, name: string): string {
   const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda.`);
   return `https://wa.me/${num}?text=${msg}`;
 }
+
+/** Shared closing signature for substantive outbound WhatsApp messages the
+ * company sends (cobro, contrato, minuto a minuto, reseña, etc.) — not for
+ * one-line pings like toWhatsAppUrl above. Mirrors the Python copy in
+ * backend/app/services/whatsapp_signature.py; keep both in sync. */
+export const WHATSAPP_SIGNATURE =
+  "Camino a mi Boda\nInstagram: https://www.instagram.com/caminoamiboda\nWeb: https://caminoamiboda.com";
+
+/** Appends WHATSAPP_SIGNATURE to an outbound message, separated by a blank line. */
+export function withSignature(message: string): string {
+  return `${message}\n\n${WHATSAPP_SIGNATURE}`;
+}

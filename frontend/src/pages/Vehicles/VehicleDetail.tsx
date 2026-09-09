@@ -12,7 +12,7 @@ import { FilePreviewModal } from '../../components/FilePreviewModal';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
-import { buildWaUrl, whatsAppLinkProps } from '../../utils/whatsapp';
+import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../utils/whatsapp';
 
 const LOCATION_LABEL: Record<string, string> = {
   medellin: 'Medellín',
@@ -66,10 +66,7 @@ function buildBookingsMsg(vehicle: Vehicle, bookings: ReservationListItem[]): st
   bookings.forEach(b => {
     lines.push(`*${formatDateRange(b.event_date, b.event_end_date)}* – ${b.display_customer}`);
   });
-  lines.push('');
-  lines.push('Camino a mi Boda');
-  lines.push('https://www.instagram.com/caminoamiboda');
-  return lines.join('\n');
+  return withSignature(lines.join('\n'));
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {

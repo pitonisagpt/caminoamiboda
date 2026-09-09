@@ -23,6 +23,7 @@ from app.schemas.quote import (
     QuoteCreate, QuoteList, QuoteRead, QuoteUpdate, WhatsappTextResponse,
 )
 from app.schemas.reservation import ReservationRead as ReservationReadSchema
+from app.services.whatsapp_signature import append_signature
 
 router = APIRouter(prefix="/api/quotes", tags=["quotes"], redirect_slashes=False)
 
@@ -92,35 +93,34 @@ def _build_wa_text(quote: Quote, db: Session) -> str:
     addons_total = quote.addons_total or Decimal("0")
     addon_lines = _addon_lines(quote, db)
     lines = [
-        "💍 Propuesta de Servicio – Camino a Mi Boda",
+        "*Propuesta de Servicio – Camino a mi Boda*",
         "",
         f"Hola {quote.display_customer}! Aquí tienes la propuesta para tu boda el {_format_date_es(quote.event_date)}:",
         "",
-        f"🚗 Vehículo: {quote.display_vehicle}",
-        f"📅 Fecha: {_format_date_es(quote.event_date)}",
+        f"*Vehículo:* {quote.display_vehicle}",
+        f"*Fecha:* {_format_date_es(quote.event_date)}",
     ]
     if quote.service_duration:
-        lines.append(f"🕒 Duración: {quote.service_duration}")
-    lines.append(f"📍 Zona: {ZONE_LABEL.get(quote.location_zone, quote.location_zone)}")
+        lines.append(f"*Duración:* {quote.service_duration}")
+    lines.append(f"*Zona:* {ZONE_LABEL.get(quote.location_zone, quote.location_zone)}")
     if quote.pickup_location:
-        lines.append(f"🚩 Recogida: {quote.pickup_location}")
+        lines.append(f"*Recogida:* {quote.pickup_location}")
     if quote.ceremony_location:
-        lines.append(f"⛪ Ceremonia: {quote.ceremony_location}")
+        lines.append(f"*Ceremonia:* {quote.ceremony_location}")
     if quote.reception_location:
-        lines.append(f"🥂 Recepción: {quote.reception_location}")
+        lines.append(f"*Recepción:* {quote.reception_location}")
     lines.append("")
     if addon_lines:
-        lines.append(f"✨ Adicionales: {', '.join(addon_lines)} ({_format_cop(addons_total)})")
-    lines.append(f"💰 Valor total: {_format_cop(quote.total_price + addons_total)}")
+        lines.append(f"*Adicionales:* {', '.join(addon_lines)} ({_format_cop(addons_total)})")
+    lines.append(f"*Valor total:* {_format_cop(quote.total_price + addons_total)}")
     if quote.deposit_amount:
-        lines.append(f"💳 Anticipo para reservar: {_format_cop(quote.deposit_amount)}")
+        lines.append(f"*Anticipo para reservar:* {_format_cop(quote.deposit_amount)}")
     lines += [
         "",
-        "Para confirmar o resolver dudas, escríbenos 👇",
+        "Para confirmar o resolver dudas, escríbenos:",
         "+57 314 737 20 30",
-        "– Camino a Mi Boda 💍",
     ]
-    return "\n".join(lines)
+    return append_signature("\n".join(lines))
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────

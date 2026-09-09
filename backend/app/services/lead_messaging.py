@@ -5,6 +5,8 @@ No emojis in any of these templates — emojis in the U+1F000+ range corrupt to
 """
 from datetime import date
 
+from app.services.whatsapp_signature import append_signature
+
 
 def _first_name(full_name: str | None) -> str:
     return (full_name or "").split(" ")[0] or "Hola"
@@ -23,7 +25,7 @@ def build_lead_whatsapp_message(customer) -> str:
     date_str = _format_date_es(customer.wedding_date) if customer.wedding_date else "tu fecha"
 
     if customer.lead_temperature == "caliente":
-        return (
+        return append_signature(
             f"Hola {name}, ¿cómo estás?\n\n"
             f"Te escribo de Camino a mi Boda. Ya tienes nuestro portafolio, y quería avisarte "
             f"que se nos está llenando la agenda para {date_str}. Queremos sostenerte la hora "
@@ -32,7 +34,7 @@ def build_lead_whatsapp_message(customer) -> str:
             f"¿Te gustaría que te reserve el espacio?"
         )
 
-    return (
+    return append_signature(
         f"Hola {name}, ¿cómo estás?\n\n"
         f"Te escribo de Camino a mi Boda, el carro clásico/vintage para bodas. Nos conocimos en "
         f"la Feria Vizcaya del 9 de mayo. Como cortesía por haber pasado por nuestro stand, "
