@@ -94,6 +94,8 @@ export default function VehicleStatsSection({ range }: Props) {
                   licensePlate={v.license_plate}
                   ownerName={v.owner_name}
                   ownerPhone={v.owner_whatsapp}
+                  vehicleId={v.id}
+                  ownerId={v.owner_id}
                 />
               ) : (
                 <Car size={12} className="text-gray-400" />

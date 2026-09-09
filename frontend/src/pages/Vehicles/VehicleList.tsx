@@ -207,6 +207,8 @@ function SortableVehicleRow({
                 licensePlate={v.license_plate}
                 ownerName={v.owner_name}
                 ownerPhone={v.owner_contact}
+                vehicleId={v.id}
+                ownerId={v.owner_id}
               />
             )
             : <Car size={22} className="text-gray-300" />

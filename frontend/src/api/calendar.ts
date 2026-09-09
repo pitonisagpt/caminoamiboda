@@ -5,6 +5,7 @@ export interface CalendarEventVehicle {
   display_name: string;
   license_plate: string | null;
   photo_url: string | null;
+  owner_id: number | null;
   owner_name: string | null;
   owner_whatsapp: string | null;
   driver_id: number | null;
@@ -18,6 +19,10 @@ export interface CalendarEvent {
   type: 'reservation' | 'timeline';
   source_id: number;
   title: string;
+  // Separate from `title` (the combined "customer · vehicle" string) so the
+  // customer name can be linked on its own — only set for type: 'reservation'.
+  customer_id?: number | null;
+  customer_name?: string | null;
   subtitle: string | null;
   vehicle?: string | null;
   date: string;
@@ -30,6 +35,7 @@ export interface CalendarEvent {
   timeline_id?: number | null;
   vehicle_photo_url?: string | null;
   vehicle_license_plate?: string | null;
+  owner_id?: number | null;
   owner_name?: string | null;
   owner_whatsapp?: string | null;
   driver_phone?: string | null;

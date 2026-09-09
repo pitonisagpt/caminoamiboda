@@ -54,6 +54,8 @@ function KanbanCard({ r, onNavigate }: { r: ReservationListItem; onNavigate: () 
                 driverPhone={v.display_driver_phone}
                 ownerName={v.owner_name}
                 ownerPhone={v.owner_whatsapp}
+                vehicleId={v.id}
+                ownerId={v.owner_id}
               />
             ) : (
               <div key={v.id} className="w-8 h-8 rounded-lg bg-gray-100 border-2 border-white" />

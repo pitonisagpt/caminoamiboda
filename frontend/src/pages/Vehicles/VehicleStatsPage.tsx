@@ -80,6 +80,8 @@ export default function VehicleStatsPage() {
               licensePlate={vehicle?.license_plate}
               ownerName={vehicle?.owner_name}
               ownerPhone={vehicle?.owner_contact}
+              vehicleId={vehicle?.id}
+              ownerId={vehicle?.owner_id}
             />
           ) : (
             <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">

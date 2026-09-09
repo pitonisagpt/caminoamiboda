@@ -540,6 +540,8 @@ export default function ReservationList() {
                               driverPhone={v.display_driver_phone}
                               ownerName={v.owner_name}
                               ownerPhone={v.owner_whatsapp}
+                              vehicleId={v.id}
+                              ownerId={v.owner_id}
                             />
                           ) : (
                             <div key={v.id} className="w-10 h-10 rounded-lg bg-gray-100 border-2 border-white" />

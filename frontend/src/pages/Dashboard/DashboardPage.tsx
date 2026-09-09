@@ -207,6 +207,8 @@ export default function DashboardPage() {
                           driverPhone={r.driver_phone}
                           ownerName={r.owner_name}
                           ownerPhone={r.owner_whatsapp}
+                          vehicleId={r.vehicle_id}
+                          ownerId={r.owner_id}
                         />
                       )
                       : <Car size={20} className="text-gray-300" />}
@@ -373,6 +375,8 @@ export default function DashboardPage() {
                                   driverPhone={r.driver_phone}
                                   ownerName={r.owner_name}
                                   ownerPhone={r.owner_whatsapp}
+                                  vehicleId={r.vehicle_id}
+                                  ownerId={r.owner_id}
                                 />
                               )
                               : <Car size={16} className="text-gray-300" />}

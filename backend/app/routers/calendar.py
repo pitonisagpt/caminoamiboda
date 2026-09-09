@@ -120,6 +120,7 @@ def calendar_events(
                 "display_name": vehicle_display_name(v),
                 "license_plate": v.license_plate,
                 "photo_url": photo_map.get(v.id),
+                "owner_id": v.owner_id,
                 "owner_name": v.owner_name,
                 "owner_whatsapp": v.owner_contact,
                 "driver_id": rv.driver_id,
@@ -132,6 +133,10 @@ def calendar_events(
             "type": "reservation",
             "source_id": r.id,
             "title": " · ".join(title_parts),
+            # Separate from `title` so the frontend can link the customer
+            # name on its own instead of re-parsing the combined string.
+            "customer_id": r.customer_id,
+            "customer_name": customer,
             "subtitle": driver if driver != "—" else None,
             "vehicle": vehicle if vehicle != "—" else None,
             "date": str(r.event_date),
@@ -144,6 +149,7 @@ def calendar_events(
             "timeline_id": r.timelines[0].id if has_timeline else None,
             "vehicle_photo_url": photo_map.get(r.vehicle_id) if r.vehicle_id else None,
             "vehicle_license_plate": r.vehicle.license_plate if r.vehicle else None,
+            "owner_id": r.vehicle.owner_id if r.vehicle else None,
             "owner_name": r.vehicle.owner_name if r.vehicle else None,
             "owner_whatsapp": r.vehicle.owner_contact if r.vehicle else None,
             "driver_phone": r.display_driver_phone,

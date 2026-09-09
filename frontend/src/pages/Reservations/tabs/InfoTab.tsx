@@ -175,6 +175,8 @@ export default function InfoTab({
                     driverPhone={v.display_driver_phone}
                     ownerName={v.owner_name}
                     ownerPhone={v.owner_whatsapp}
+                    vehicleId={v.id}
+                    ownerId={v.owner_id}
                   />
                 ) : (
                   <Car size={16} className="text-brand-400 shrink-0" />
@@ -222,6 +224,8 @@ export default function InfoTab({
                     driverPhone={reservation.display_driver_phone}
                     ownerName={reservation.owner_name}
                     ownerPhone={reservation.owner_whatsapp}
+                    vehicleId={reservation.vehicle_id}
+                    ownerId={reservation.owner_id}
                   />
                 ) : (
                   <Car size={16} className="text-brand-400 shrink-0" />

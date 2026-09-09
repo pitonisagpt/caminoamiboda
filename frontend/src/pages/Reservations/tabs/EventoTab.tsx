@@ -792,6 +792,8 @@ export default function EventoTab({
                       driverPhone={v.display_driver_phone}
                       ownerName={v.owner_name}
                       ownerPhone={v.owner_whatsapp}
+                      vehicleId={v.id}
+                      ownerId={v.owner_id}
                     />
                   ) : (
                     <Car className="w-4 h-4 text-gray-400 shrink-0" />
@@ -824,6 +826,8 @@ export default function EventoTab({
                       driverPhone={timeline.assigned_driver_phone}
                       ownerName={reservation.owner_name}
                       ownerPhone={reservation.owner_whatsapp}
+                      vehicleId={reservation.vehicle_id}
+                      ownerId={reservation.owner_id}
                     />
                   ) : (
                     <Car className="w-4 h-4 text-gray-400 shrink-0" />

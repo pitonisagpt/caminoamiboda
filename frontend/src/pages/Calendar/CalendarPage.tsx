@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { calendarApi, type CalendarEvent } from '../../api/calendar';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
+import { EntityLink } from '../../components/EntityLink';
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MONTHS = [
@@ -270,6 +271,8 @@ export default function CalendarPage() {
                                   driverPhone={e.driver_phone}
                                   ownerName={e.owner_name}
                                   ownerPhone={e.owner_whatsapp}
+                                  vehicleId={e.vehicle_id}
+                                  ownerId={e.owner_id}
                                 />
                               )}
                               {dayLabel && <span className="opacity-80 mr-0.5">{dayLabel}</span>}
@@ -326,6 +329,8 @@ export default function CalendarPage() {
                               driverPhone={v.display_driver_phone}
                               ownerName={v.owner_name}
                               ownerPhone={v.owner_whatsapp}
+                              vehicleId={v.id}
+                              ownerId={v.owner_id}
                             />
                           ))}
                         </div>
@@ -339,10 +344,19 @@ export default function CalendarPage() {
                           driverPhone={e.driver_phone}
                           ownerName={e.owner_name}
                           ownerPhone={e.owner_whatsapp}
+                          vehicleId={e.vehicle_id}
+                          ownerId={e.owner_id}
                         />
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{e.title}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {e.type === 'reservation' ? (
+                            <>
+                              <EntityLink to={`/clientes/editar/${e.customer_id}`} id={e.customer_id}>{e.customer_name}</EntityLink>
+                              {e.vehicle && <> · <EntityLink to={`/vehiculos/${e.vehicle_id}`} id={e.vehicle_id}>{e.vehicle}</EntityLink></>}
+                            </>
+                          ) : e.title}
+                        </p>
                         {e.subtitle && (
                           <p className="text-xs text-gray-400 truncate">{e.subtitle}</p>
                         )}
