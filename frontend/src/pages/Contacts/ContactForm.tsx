@@ -9,6 +9,8 @@ const TYPE_OPTIONS: { value: ContactType; label: string }[] = [
   { value: 'planner', label: 'Organizador / Wedding Planner' },
   { value: 'venue', label: 'Venue / Salón de eventos' },
   { value: 'agency', label: 'Agencia de eventos' },
+  { value: 'photographer', label: 'Fotógrafo' },
+  { value: 'decorator', label: 'Decoración' },
   { value: 'other', label: 'Otro' },
 ];
 
@@ -33,6 +35,7 @@ export default function ContactForm() {
       phone: '',
       whatsapp_username: '',
       instagram: '',
+      website_url: '',
       email: '',
       status: 'prospect',
       notes: '',
@@ -51,6 +54,7 @@ export default function ContactForm() {
           phone: c.phone ?? '',
           whatsapp_username: c.whatsapp_username ?? '',
           instagram: c.instagram ?? '',
+          website_url: c.website_url ?? '',
           email: c.email ?? '',
           status: c.status ?? 'prospect',
           notes: c.notes ?? '',
@@ -69,6 +73,7 @@ export default function ContactForm() {
         phone: data.phone || null,
         whatsapp_username: data.whatsapp_username || null,
         instagram: data.instagram || null,
+        website_url: data.website_url || null,
         email: data.email || null,
         status: data.status,
         notes: data.notes || null,
@@ -191,13 +196,23 @@ export default function ContactForm() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
-          <input
-            {...register('instagram')}
-            placeholder="@usuario"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+            <input
+              {...register('instagram')}
+              placeholder="@usuario"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sitio web</label>
+            <input
+              {...register('website_url')}
+              placeholder="https://..."
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
         </div>
       </div>
 

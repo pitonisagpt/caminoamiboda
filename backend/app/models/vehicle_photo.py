@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
-    from app.models.photo_provider import PhotoProvider
+    from app.models.contact import Contact
 
 from app.database import Base
 
@@ -26,7 +26,12 @@ class VehiclePhoto(Base):
     # through this relationship. Same reasoning ReservationVehicle's
     # docstring gives for not trusting a live ORM list on a join table for
     # writes; read-only here sidesteps that footgun entirely.
-    providers: Mapped[List["PhotoProvider"]] = relationship(
-        "PhotoProvider", secondary="vehicle_photo_providers", viewonly=True,
-        order_by="PhotoProvider.name",
+    #
+    # Mapped[List["Contact"]] must stay parameterized like this — an
+    # unparameterized Mapped[list] made SQLAlchemy infer uselist=False
+    # (ignoring an explicit uselist=True kwarg), so this returned None
+    # instead of [] and crashed GET /api/vehicles/{id}.
+    providers: Mapped[List["Contact"]] = relationship(
+        "Contact", secondary="vehicle_photo_providers", viewonly=True,
+        order_by="Contact.full_name",
     )

@@ -17,6 +17,8 @@ const TYPE_FILTERS: { value: ContactType | 'all'; label: string }[] = [
   { value: 'planner', label: 'Organizadores' },
   { value: 'venue', label: 'Venues' },
   { value: 'agency', label: 'Agencias' },
+  { value: 'photographer', label: 'Fotógrafos' },
+  { value: 'decorator', label: 'Decoración' },
   { value: 'other', label: 'Otros' },
 ];
 

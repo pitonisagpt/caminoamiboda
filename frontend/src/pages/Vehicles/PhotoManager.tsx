@@ -16,35 +16,44 @@ import { CSS } from "@dnd-kit/utilities";
 import { Download, Eye, EyeOff, GripVertical, Instagram, Loader2, Plus, Tag, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { vehiclesApi } from "../../api/vehicles";
-import { photoProvidersApi } from "../../api/photoProviders";
+import { contactsApi } from "../../api/contacts";
 import { FilePreviewModal } from "../../components/FilePreviewModal";
 import { Dropzone } from "../../components/ui/Dropzone";
 import { Modal } from "../../components/ui/Modal";
 import { Button } from "../../components/ui/Button";
-import type { PhotoProvider, VehiclePhoto } from "../../types/vehicle";
+import type { VehiclePhoto } from "../../types/vehicle";
+import type { Contact, ContactType } from "../../types/contact";
+import { CONTACT_TYPE_LABEL } from "../../types/contact";
 import { isTouchPrimaryDevice } from "../../utils/device";
 
+// Only the roles that actually show up on a wedding-car photo — the full
+// directory has more (venue, agency) that don't apply here.
+const CREDIT_TYPE_OPTIONS: ContactType[] = ["photographer", "decorator", "planner", "other"];
+
 // ─── Photo credits picker ──────────────────────────────────────────────────
-// Optional, per photo — the vast majority of photos will have none. Loads
-// the full directory once and lets ops check 0+ providers, with an inline
-// "+ Nuevo proveedor" so they don't have to leave the vehicle editor to add
-// one on the fly (same quick-create spirit as Cliente/Conductor/Contacto).
+// Optional, per photo — the vast majority of photos will have none. Credited
+// people are Contact rows (the app's one directory for this, shared with
+// planners/venues/etc. — see fila 69→ replaced by Contactos). Loads the full
+// list once and lets ops check 0+, with an inline "+ Nuevo" so they don't
+// have to leave the vehicle editor to add one on the fly (same quick-create
+// spirit as Cliente/Conductor/Contacto elsewhere in the app).
 function CreditsModal({ photo, onSave, onClose }: {
   photo: VehiclePhoto;
-  onSave: (providerIds: number[]) => Promise<void>;
+  onSave: (contactIds: number[]) => Promise<void>;
   onClose: () => void;
 }) {
-  const [providers, setProviders] = useState<PhotoProvider[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<number>>(new Set(photo.providers.map(p => p.id)));
   const [saving, setSaving] = useState(false);
   const [newName, setNewName] = useState("");
   const [newInstagram, setNewInstagram] = useState("");
+  const [newType, setNewType] = useState<ContactType>("photographer");
   const [creating, setCreating] = useState(false);
 
   const load = () => {
     setLoading(true);
-    photoProvidersApi.list().then(r => setProviders(r.data)).finally(() => setLoading(false));
+    contactsApi.list().then(r => setContacts(r.data)).finally(() => setLoading(false));
   };
   useEffect(load, []);
 
@@ -60,8 +69,8 @@ function CreditsModal({ photo, onSave, onClose }: {
     if (!newName.trim()) return;
     setCreating(true);
     try {
-      const res = await photoProvidersApi.create({ name: newName.trim(), instagram_url: newInstagram.trim() || null });
-      setProviders(prev => [...prev, res.data]);
+      const res = await contactsApi.create({ full_name: newName.trim(), contact_type: newType, instagram: newInstagram.trim() || null });
+      setContacts(prev => [...prev, res.data]);
       setSelected(prev => new Set(prev).add(res.data.id));
       setNewName("");
       setNewInstagram("");
@@ -94,28 +103,28 @@ function CreditsModal({ photo, onSave, onClose }: {
 
         {loading ? (
           <div className="flex justify-center py-6 text-brand-400"><Loader2 className="animate-spin" size={20} /></div>
-        ) : providers.length === 0 ? (
-          <p className="text-sm text-gray-400 py-2">Todavía no hay proveedores registrados — crea uno abajo.</p>
+        ) : contacts.length === 0 ? (
+          <p className="text-sm text-gray-400 py-2">Todavía no hay contactos registrados — crea uno abajo.</p>
         ) : (
           <div className="space-y-1.5 max-h-56 overflow-y-auto">
-            {providers.map(p => (
-              <label key={p.id} className="flex items-center gap-2 text-sm py-1 cursor-pointer">
+            {contacts.map(c => (
+              <label key={c.id} className="flex items-center gap-2 text-sm py-1 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={selected.has(p.id)}
-                  onChange={() => toggle(p.id)}
+                  checked={selected.has(c.id)}
+                  onChange={() => toggle(c.id)}
                   className="rounded border-gray-300 text-brand-500 focus:ring-brand-400 cursor-pointer"
                 />
-                <span className="text-gray-800">{p.name}</span>
-                {p.category && <span className="text-xs text-gray-400">· {p.category}</span>}
-                {p.instagram_url && <Instagram size={12} className="text-gray-300" />}
+                <span className="text-gray-800">{c.full_name}</span>
+                <span className="text-xs text-gray-400">· {CONTACT_TYPE_LABEL[c.contact_type]}</span>
+                {c.instagram && <Instagram size={12} className="text-gray-300" />}
               </label>
             ))}
           </div>
         )}
 
         <div className="border-t border-gray-100 pt-3 space-y-2">
-          <p className="text-xs font-medium text-gray-500">+ Nuevo proveedor</p>
+          <p className="text-xs font-medium text-gray-500">+ Nuevo contacto</p>
           <div className="flex gap-2">
             <input
               value={newName}
@@ -123,6 +132,15 @@ function CreditsModal({ photo, onSave, onClose }: {
               placeholder="Nombre"
               className="flex-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as ContactType)}
+              className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              {CREDIT_TYPE_OPTIONS.map(t => (
+                <option key={t} value={t}>{CONTACT_TYPE_LABEL[t]}</option>
+              ))}
+            </select>
             <input
               value={newInstagram}
               onChange={(e) => setNewInstagram(e.target.value)}
@@ -139,6 +157,7 @@ function CreditsModal({ photo, onSave, onClose }: {
               {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
             </button>
           </div>
+          <p className="text-[11px] text-gray-400">Se crea como contacto — puedes completar sus demás datos luego en Contactos.</p>
         </div>
       </div>
     </Modal>
@@ -348,9 +367,9 @@ export function PhotoManager({ vehicleId, isEditing }: PhotoManagerProps) {
     }
   };
 
-  const handleSaveCredits = async (photo: VehiclePhoto, providerIds: number[]) => {
+  const handleSaveCredits = async (photo: VehiclePhoto, contactIds: number[]) => {
     if (!vehicleId) return;
-    const res = await vehiclesApi.setPhotoProviders(vehicleId, photo.id, providerIds);
+    const res = await vehiclesApi.setPhotoProviders(vehicleId, photo.id, contactIds);
     setPhotos((prev) => prev.map((p) => (p.id === photo.id ? res.data : p)));
     setCreditsPhotoId(null);
   };

@@ -12,6 +12,8 @@ class ContactType(str, enum.Enum):
     planner = "planner"
     venue = "venue"
     agency = "agency"
+    photographer = "photographer"
+    decorator = "decorator"
     other = "other"
 
 
@@ -31,6 +33,7 @@ class Contact(Base):
     phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     whatsapp_username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    website_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     status: Mapped[ContactStatus] = mapped_column(Enum(ContactStatus), default=ContactStatus.prospect, nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

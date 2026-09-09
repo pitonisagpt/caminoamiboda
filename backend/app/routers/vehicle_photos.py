@@ -19,8 +19,7 @@ from app.database import get_db
 from app.models.vehicle import Vehicle
 from app.models.vehicle_photo import VehiclePhoto
 from app.models.vehicle_photo_provider import VehiclePhotoProvider
-from app.schemas.photo_provider import PhotoProviderIdsUpdate
-from app.schemas.vehicle_photo import VehiclePhotoBatchUpdate, VehiclePhotoRead
+from app.schemas.vehicle_photo import PhotoCreditIdsUpdate, VehiclePhotoBatchUpdate, VehiclePhotoRead
 
 pillow_heif.register_heif_opener()
 
@@ -178,11 +177,13 @@ def delete_photo(
 def set_photo_providers(
     vehicle_id: int,
     photo_id: int,
-    body: PhotoProviderIdsUpdate,
+    body: PhotoCreditIdsUpdate,
     db: Session = Depends(get_db),
 ):
-    """Replaces the full set of credited providers for one photo — same
-    "send the whole set, diff server-side" style as update_photos above."""
+    """Replaces the full set of credited contacts for one photo — same
+    "send the whole set, diff server-side" style as update_photos above.
+    Credited people (photographers, decorators, etc.) are Contact rows,
+    not a dedicated table — see vehicle_photo_provider.py."""
     photo = (
         db.query(VehiclePhoto)
         .filter(VehiclePhoto.id == photo_id, VehiclePhoto.vehicle_id == vehicle_id)
@@ -192,8 +193,8 @@ def set_photo_providers(
         raise HTTPException(status_code=404, detail="Foto no encontrada")
 
     db.query(VehiclePhotoProvider).filter(VehiclePhotoProvider.photo_id == photo_id).delete()
-    for provider_id in dict.fromkeys(body.provider_ids):  # de-dupe, keep order
-        db.add(VehiclePhotoProvider(photo_id=photo_id, provider_id=provider_id))
+    for contact_id in dict.fromkeys(body.contact_ids):  # de-dupe, keep order
+        db.add(VehiclePhotoProvider(photo_id=photo_id, contact_id=contact_id))
     db.commit()
     db.refresh(photo)
     return VehiclePhotoRead.model_validate(photo)

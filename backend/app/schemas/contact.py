@@ -13,6 +13,7 @@ class ContactCreate(BaseModel):
     phone: Optional[str] = None
     whatsapp_username: Optional[str] = None
     instagram: Optional[str] = None
+    website_url: Optional[str] = None
     email: Optional[str] = None
     status: ContactStatus = ContactStatus.prospect
     notes: Optional[str] = None
@@ -25,6 +26,7 @@ class ContactUpdate(BaseModel):
     phone: Optional[str] = None
     whatsapp_username: Optional[str] = None
     instagram: Optional[str] = None
+    website_url: Optional[str] = None
     email: Optional[str] = None
     status: Optional[ContactStatus] = None
     notes: Optional[str] = None
@@ -40,6 +42,7 @@ class ContactRead(BaseModel):
     phone: Optional[str]
     whatsapp_username: Optional[str]
     instagram: Optional[str]
+    website_url: Optional[str] = None
     email: Optional[str]
     status: ContactStatus
     notes: Optional[str]

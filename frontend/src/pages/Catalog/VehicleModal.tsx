@@ -139,18 +139,21 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
                   )}
                   {/* Optional photo credit — hidden entirely when this photo
                       has no providers attached (the common case). Bottom-left
-                      so it never competes with the counter badge above. */}
+                      so it never competes with the counter badge above.
+                      Credited people are Contact rows — instagram is stored
+                      as a bare handle (e.g. "@usuario"), same normalization
+                      ContactList.tsx uses to build the link. */}
                   {photos[current].providers.length > 0 && (
                     <div className="absolute bottom-3 left-3 max-w-[70%] bg-black/50 text-white text-xs px-2 py-1 rounded-full truncate">
                       {t("vehicleModal.photoCredit")}:{" "}
                       {photos[current].providers.map((p, i) => (
                         <span key={p.id}>
                           {i > 0 && " · "}
-                          {p.instagram_url ? (
-                            <a href={p.instagram_url} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
-                              {p.name}
+                          {p.instagram ? (
+                            <a href={`https://www.instagram.com/${p.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                              {p.full_name}
                             </a>
-                          ) : p.name}
+                          ) : p.full_name}
                         </span>
                       ))}
                     </div>

@@ -90,8 +90,8 @@ export const vehiclesApi = {
     return api.delete(`/vehicles/${vehicleId}/photos/${photoId}`);
   },
 
-  setPhotoProviders(vehicleId: number, photoId: number, providerIds: number[]) {
-    return api.put<VehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/providers`, { provider_ids: providerIds });
+  setPhotoProviders(vehicleId: number, photoId: number, contactIds: number[]) {
+    return api.put<VehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/providers`, { contact_ids: contactIds });
   },
 
   async downloadPhotosZip(vehicleId: number): Promise<void> {

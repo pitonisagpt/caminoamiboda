@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, BookUser, Calendar, Camera, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Globe, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
+import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Globe, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LucideIcon } from "lucide-react";
@@ -170,7 +170,6 @@ export function Layout() {
               <NavItem to="/admin/add-ons"    icon={Package}  label="Add-ons"      onClick={closeSidebar} collapsed={c} />
               <NavItem to="/admin/opiniones"  icon={Star}     label="Opiniones"    onClick={closeSidebar} collapsed={c} />
               <NavItem to="/admin/floristeria" icon={Flower2} label="Floristería" onClick={closeSidebar} collapsed={c} />
-              <NavItem to="/admin/proveedores-fotos" icon={Camera} label="Proveedores de fotos" onClick={closeSidebar} collapsed={c} />
             </>
           )}
 
