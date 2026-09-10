@@ -141,6 +141,32 @@ function isBotRequest(userAgent: string): boolean {
   return BOT_UA_PATTERNS.some((pattern) => ua.includes(pattern));
 }
 
+/** Cloudflare's default Cache-Control for static assets
+ * ("public, max-age=0, must-revalidate") is right for the JS/CSS bundles —
+ * Vite content-hashes their filenames, so a stale cached copy is
+ * impossible: a changed file gets a new URL. But every response here
+ * passes through this Worker first (not a plain static-assets deploy),
+ * and Cloudflare's docs are explicit that the automatic cache-freshness
+ * guarantee for static assets does NOT extend to Worker-generated
+ * responses — which is everything this Worker returns, including the
+ * plain env.ASSETS.fetch() passthroughs below. In practice that let the
+ * unhashed index.html shell (same URL on every deploy, forever) get
+ * served stale from Cloudflare's edge well after a real deploy had
+ * already gone out, because revalidation for it silently wasn't
+ * happening. Forcing no-store on just the HTML response — every other
+ * content type is untouched — makes each deploy visible immediately. */
+function preventEdgeCachingOfHtml(response: Response): Response {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("text/html")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-store");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function vehicleDisplayName(vehicle: VehicleData): string {
   const base = [vehicle.brand, vehicle.model_line, vehicle.color].filter(Boolean).join(" ");
   return vehicle.year ? `${base} (${vehicle.year})` : base;
@@ -237,23 +263,23 @@ export default {
       const userAgent = request.headers.get("User-Agent") || "";
 
       if (!isCatalogRoute || !vehiculoParam || !isBotRequest(userAgent)) {
-        return env.ASSETS.fetch(request);
+        return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
       }
 
       const vehicleId = Number(vehiculoParam);
       if (!Number.isInteger(vehicleId) || vehicleId <= 0) {
-        return env.ASSETS.fetch(request);
+        return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
       }
 
       const vehicle = await findVehicle(env.API_BASE_URL, vehicleId);
       if (!vehicle) {
-        return env.ASSETS.fetch(request);
+        return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
       }
 
       const shellResponse = await env.ASSETS.fetch(request);
       const contentType = shellResponse.headers.get("content-type") || "";
       if (!shellResponse.ok || !contentType.includes("text/html")) {
-        return shellResponse;
+        return preventEdgeCachingOfHtml(shellResponse);
       }
 
       const isEnglish = pathname.startsWith("/en/");
@@ -282,13 +308,13 @@ export default {
           },
         });
 
-      return rewriter.transform(shellResponse);
+      return preventEdgeCachingOfHtml(rewriter.transform(shellResponse));
     } catch (err) {
       // Never let a crawler see a 500 — any failure above (backend down,
       // unexpected response shape, malformed id, etc.) falls through to
       // exactly today's existing behavior.
       console.error("og-preview worker fallback:", err);
-      return env.ASSETS.fetch(request);
+      return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
     }
   },
 };
