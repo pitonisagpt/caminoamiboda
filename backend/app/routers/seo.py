@@ -11,7 +11,10 @@ router = APIRouter(tags=["seo"])
 
 # Was missing "como-funciona" and "politica-de-reservas" — an unrelated,
 # pre-existing gap found while wiring up bilingual sitemap entries below.
-_STATIC_PATHS = ["", "catalogo", "como-funciona", "blog", "contacto", "politica-de-datos", "politica-de-reservas"]
+_STATIC_PATHS = [
+    "", "catalogo", "como-funciona", "blog", "contacto",
+    "politica-de-datos", "politica-de-reservas", "condiciones-de-servicio",
+]
 
 
 def _hreflang_block(es_url: str, en_url: str | None) -> str:

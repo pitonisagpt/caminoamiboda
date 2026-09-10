@@ -29,5 +29,6 @@ Allow: /catalogo
 Allow: /blog
 Allow: /contacto
 Allow: /politica-de-datos
+Allow: /condiciones-de-servicio
 
 Sitemap: https://api.caminoamiboda.com/sitemap.xml

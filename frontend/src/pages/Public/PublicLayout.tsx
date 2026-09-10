@@ -193,6 +193,9 @@ export function PublicLayout() {
               <Link to={toLangPath("/politica-de-reservas", lang)} className="hover:text-brand-600 transition-colors">
                 {t("layout.reservationPolicy")}
               </Link>
+              <Link to={toLangPath("/condiciones-de-servicio", lang)} className="hover:text-brand-600 transition-colors">
+                {t("layout.termsOfService")}
+              </Link>
             </nav>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-gray-500 border-t border-gray-100 pt-6">

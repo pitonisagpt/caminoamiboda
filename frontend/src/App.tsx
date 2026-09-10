@@ -28,6 +28,7 @@ import EventoPage from "./pages/Public/EventoPage";
 import ContactoPage from "./pages/Public/ContactoPage";
 import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
+import CondicionesServicioPage from "./pages/Public/CondicionesServicioPage";
 import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
 import NotFoundPage from "./pages/Public/NotFoundPage";
 import QuoteList from "./pages/Quotes/QuoteList";
@@ -62,6 +63,7 @@ const PUBLIC_SITE_ROUTES: { path: string; element: JSX.Element }[] = [
   { path: "contacto", element: <ContactoPage /> },
   { path: "politica-de-datos", element: <PoliticaDatosPage /> },
   { path: "politica-de-reservas", element: <PoliticaReservasPage /> },
+  { path: "condiciones-de-servicio", element: <CondicionesServicioPage /> },
   { path: "*", element: <NotFoundPage /> },
 ];
 
