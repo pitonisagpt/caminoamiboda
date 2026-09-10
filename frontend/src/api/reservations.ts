@@ -24,6 +24,7 @@ export interface ReservationListParams {
   contact_id?: number;
   location_id?: number;
   needs_gcal_review?: boolean;
+  gcal_imported?: boolean;
   search?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';

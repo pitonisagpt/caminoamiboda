@@ -5,7 +5,7 @@ import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
   ChevronLeft, ChevronRight, CalendarClock, LayoutGrid, TableProperties,
-  BookUser, MapPin, X, CalendarCheck2, CalendarOff,
+  BookUser, MapPin, X, CalendarCheck2, CalendarOff, Archive,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
 import { Toast } from '../../components/ui/Toast';
@@ -123,18 +123,19 @@ export default function ReservationList() {
   const vehicleCategoryFilters = fromParam(searchParams.get('vehicle_category'));
   const vehicleFilter = searchParams.get('vehicle') ?? '';
   const needsGcalReview = searchParams.get('gcal_review') === '1';
+  const historicalImportFilter = searchParams.get('historical') === '1';
   const contactFilter = searchParams.get('contact') ?? '';
   const locationFilter = searchParams.get('location') ?? '';
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
   const page = Number(searchParams.get('page') ?? '1');
-  // Arriving with a ?contact= or ?gcal_review= filter and no explicit date
-  // range should show full history, not just "today onward" — otherwise
-  // past events silently disappear from "ver todas". This bit gcal_review
-  // in particular: a reservation needing a GCal fix is just as likely to
-  // be a past/completed one (reservation 98 was) as a future one, and a
-  // bare shared link like /reservas?gcal_review=1 never sets ?from=.
-  const dateFrom = searchParams.get('from') ?? ((contactFilter || needsGcalReview) ? '' : localToday());
+  // Arriving with a ?contact=, ?gcal_review=, or ?historical= filter and no
+  // explicit date range should show full history, not just "today onward"
+  // — otherwise past events silently disappear from "ver todas". Historical
+  // imports in particular are almost always years in the past by
+  // definition (pre-dating the app), so this one matters even more than
+  // gcal_review does.
+  const dateFrom = searchParams.get('from') ?? ((contactFilter || needsGcalReview || historicalImportFilter) ? '' : localToday());
   const dateTo = searchParams.get('to') ?? '';
   const q = searchParams.get('q') ?? '';
 
@@ -177,7 +178,7 @@ export default function ReservationList() {
   function clearFilters() {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      ['status', 'category', 'vehicle_category', 'vehicle', 'gcal_review'].forEach(k => next.delete(k));
+      ['status', 'category', 'vehicle_category', 'vehicle', 'gcal_review', 'historical'].forEach(k => next.delete(k));
       next.delete('page');
       return next;
     }, { replace: true });
@@ -243,6 +244,7 @@ export default function ReservationList() {
       contact_id: contactFilter ? Number(contactFilter) : undefined,
       location_id: locationFilter ? Number(locationFilter) : undefined,
       needs_gcal_review: needsGcalReview || undefined,
+      gcal_imported: historicalImportFilter || undefined,
       search: q || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -254,7 +256,7 @@ export default function ReservationList() {
       .then(r => setData(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, needsGcalReview, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, needsGcalReview, historicalImportFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
@@ -371,7 +373,7 @@ export default function ReservationList() {
       </div>
 
       {/* Active filters — one removable chip per selected value */}
-      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview) && (
+      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview || historicalImportFilter) && (
         <div className="flex flex-wrap gap-2">
           {contactFilter && (
             <FilterChip
@@ -421,7 +423,14 @@ export default function ReservationList() {
               onRemove={() => setFilter('gcal_review', '')}
             />
           )}
-          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter || needsGcalReview) && (
+          {historicalImportFilter && (
+            <FilterChip
+              icon={<Archive size={15} />}
+              label="Históricos importados de Google Calendar"
+              onRemove={() => setFilter('historical', '')}
+            />
+          )}
+          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter || needsGcalReview || historicalImportFilter) && (
             <button
               onClick={clearFilters}
               className="text-sm text-gray-400 hover:text-brand-600 underline underline-offset-2 cursor-pointer px-1"
@@ -497,6 +506,12 @@ export default function ReservationList() {
           onClick={() => setFilter('gcal_review', needsGcalReview ? '' : '1')}
         >
           <CalendarOff size={13} className="inline -mt-0.5 mr-1" /> No sincronizando GCal
+        </Pill>
+        <Pill
+          active={historicalImportFilter}
+          onClick={() => setFilter('historical', historicalImportFilter ? '' : '1')}
+        >
+          <Archive size={13} className="inline -mt-0.5 mr-1" /> Históricos importados
         </Pill>
       </div>
 

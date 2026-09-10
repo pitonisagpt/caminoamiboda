@@ -126,6 +126,7 @@ def list_reservations(
     contact_id: Optional[int] = Query(None),
     location_id: Optional[int] = Query(None),
     needs_gcal_review: bool = Query(False),
+    gcal_imported: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("event_date"),
     sort_dir: str = Query("desc"),
@@ -190,6 +191,11 @@ def list_reservations(
                 .filter(EventTimeline.gcal_imported == True)  # noqa: E712
             ),
         )
+    if gcal_imported is not None:
+        # The ~380 historical events bulk-imported by scripts/gcal_import.py
+        # (see needs_gcal_review above) — a direct column on Reservation
+        # itself, unlike needs_gcal_review which reads the timeline.
+        q = q.filter(Reservation.gcal_imported == gcal_imported)
     if date_from:
         # Widened, not an exact >= date_from: a multi-day event can start
         # before date_from and still be ongoing during it — the precise
