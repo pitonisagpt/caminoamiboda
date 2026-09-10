@@ -17,7 +17,14 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.services.event_span import max_day_number
 
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+# calendar.events (not the full calendar scope) — every call in this file is
+# under .events() (insert/update/delete/move/get/list); nothing here touches
+# .calendars()/.calendarList()/.acl(). Requesting the narrower scope is both
+# least-privilege and makes Google's OAuth verification for this scope
+# simpler to justify. Must match scripts/gcal_auth.py exactly — a mismatch
+# means whatever token that script mints won't actually grant what this
+# service tries to use.
+SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 
 _LOCATION_EMOJI = {
     "pickup": "📍",

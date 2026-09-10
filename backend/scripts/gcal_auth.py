@@ -10,12 +10,13 @@ Requirements: pip install google-auth-oauthlib google-api-python-client
 import json
 import os
 import sys
-import socket
-import threading
+import socket  # noqa: F401
+import threading  # noqa: F401
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+# Must match app/services/google_calendar_service.py's SCOPES exactly.
+SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), "..", "credentials.json")
 PORT = 8085
 
@@ -43,8 +44,8 @@ class _Handler(BaseHTTPRequestHandler):
 
 def main():
     try:
-        from google_auth_oauthlib.flow import Flow
-        import google.oauth2.credentials
+        from google_auth_oauthlib.flow import Flow  # noqa: F401
+        import google.oauth2.credentials  # noqa: F401
         import requests as _req
     except ImportError:
         print("ERROR: Dependencias faltantes.")
@@ -118,7 +119,7 @@ def main():
     print(f"GOOGLE_CLIENT_ID={client_id}")
     print(f"GOOGLE_CLIENT_SECRET={client_secret}")
     print(f"GOOGLE_REFRESH_TOKEN={refresh_token}")
-    print(f"GOOGLE_CALENDAR_ID=primary")
+    print("GOOGLE_CALENDAR_ID=primary")
     sys.stdout.flush()
 
 

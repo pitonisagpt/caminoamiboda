@@ -21,7 +21,10 @@ def google_calendar_status():
     connected = False
     if _gcal_configured():
         try:
-            _get_service().calendars().get(calendarId="primary").execute()
+            # Not .calendars().get() — that needs calendar metadata access,
+            # which the calendar.events scope doesn't grant. A 1-row events
+            # list is a cheap, read-only check that's fully covered by it.
+            _get_service().events().list(calendarId="primary", maxResults=1).execute()
             connected = True
         except Exception:
             connected = False
