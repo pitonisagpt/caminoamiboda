@@ -128,10 +128,13 @@ export default function ReservationList() {
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
   const sortDir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
   const page = Number(searchParams.get('page') ?? '1');
-  // Arriving with a ?contact= filter and no explicit date range (e.g. from
-  // /contactos) should show that contact's full history, not just "today
-  // onward" — otherwise past events silently disappear from "ver todas".
-  const dateFrom = searchParams.get('from') ?? (contactFilter ? '' : localToday());
+  // Arriving with a ?contact= or ?gcal_review= filter and no explicit date
+  // range should show full history, not just "today onward" — otherwise
+  // past events silently disappear from "ver todas". This bit gcal_review
+  // in particular: a reservation needing a GCal fix is just as likely to
+  // be a past/completed one (reservation 98 was) as a future one, and a
+  // bare shared link like /reservas?gcal_review=1 never sets ?from=.
+  const dateFrom = searchParams.get('from') ?? ((contactFilter || needsGcalReview) ? '' : localToday());
   const dateTo = searchParams.get('to') ?? '';
   const q = searchParams.get('q') ?? '';
 
