@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import asc, desc, func, or_
 from sqlalchemy.orm import Session, contains_eager, selectinload
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
 from app.models.catalog_location import CatalogLocation
 from app.models.contact import Contact
@@ -419,6 +419,38 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     r = _get(reservation_id, db)
     db.delete(r)
     db.commit()
+
+
+@router.post("/api/reservations/{reservation_id}/force-gcal-resync", dependencies=[Depends(require_admin)])
+def force_gcal_resync(reservation_id: int, db: Session = Depends(get_db)):
+    """One-time manual fix for a reservation whose linked timeline(s) are
+    gcal_imported=True and have drifted out of sync with Google Calendar —
+    payment/status changes made after the flag was restored never reach the
+    calendar event, because _sync_linked_timelines() deliberately never
+    auto-overwrites an imported timeline (so this app never fights a
+    human-edited calendar event). This temporarily unlocks each imported
+    timeline, pushes the reservation's current state once, then re-locks
+    it — the same "gcal_imported=False → resync → restore True" procedure
+    this app has needed to run by hand via raw SQL before (372/100/98, see
+    wishlist fila 46), now through the API instead. Admin-only and POST-only
+    on purpose — meant to be a deliberate, occasional action, not routine."""
+    r = _get(reservation_id, db)
+    imported = db.query(EventTimeline).filter(
+        EventTimeline.reservation_id == reservation_id, EventTimeline.gcal_imported == True,  # noqa: E712
+    ).all()
+    if not imported:
+        raise HTTPException(400, "Esta reserva no tiene ningún timeline marcado como importado — ya se sincroniza normalmente, este arreglo no aplica")
+
+    for tl in imported:
+        tl.gcal_imported = False
+    db.commit()
+    try:
+        gcal_synced = _sync_linked_timelines(r, db)
+    finally:
+        for tl in imported:
+            tl.gcal_imported = True
+        db.commit()
+    return {"gcal_synced": gcal_synced, "timelines_fixed": [tl.id for tl in imported]}
 
 
 @router.post("/api/reservations/from-quote/{quote_id}", response_model=ReservationRead, status_code=201, dependencies=[Depends(get_current_user)])
