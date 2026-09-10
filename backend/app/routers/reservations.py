@@ -20,7 +20,10 @@ from app.models.reservation_vehicle import ReservationVehicle
 from app.models.quote import Quote
 from app.models.timeline_activity import TimelineActivity
 from app.models.vehicle import Vehicle, VehicleCategory
-from app.schemas.reservation import ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate
+from app.schemas.reservation import (
+    ReservationCreate, ReservationList, ReservationPage, ReservationRead, ReservationUpdate,
+    TimelineGcalImportedUpdate,
+)
 from app.services.conflicts import find_conflicts
 from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
 from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles
@@ -122,6 +125,7 @@ def list_reservations(
     vehicle_id: Optional[int] = Query(None),
     contact_id: Optional[int] = Query(None),
     location_id: Optional[int] = Query(None),
+    needs_gcal_review: bool = Query(False),
     search: Optional[str] = Query(None),
     sort_by: str = Query("event_date"),
     sort_dir: str = Query("desc"),
@@ -171,6 +175,21 @@ def list_reservations(
                   .distinct())
         else:
             q = q.filter(Reservation.id.is_(None))  # no such location → empty result
+    if needs_gcal_review:
+        # NOT "any frozen timeline" — that would mostly surface the ~380
+        # historical events bulk-imported by scripts/gcal_import.py, which
+        # are frozen on purpose and never need attention. The actual
+        # anomaly (the reservation-98 pattern, wishlist fila 46) is a
+        # reservation that is NOT one of those historical imports but
+        # whose timeline is frozen anyway — that one needs a human to look
+        # at it.
+        q = q.filter(
+            Reservation.gcal_imported == False,  # noqa: E712
+            Reservation.id.in_(
+                db.query(EventTimeline.reservation_id)
+                .filter(EventTimeline.gcal_imported == True)  # noqa: E712
+            ),
+        )
     if date_from:
         # Widened, not an exact >= date_from: a multi-day event can start
         # before date_from and still be ongoing during it — the precise
@@ -451,6 +470,29 @@ def force_gcal_resync(reservation_id: int, db: Session = Depends(get_db)):
             tl.gcal_imported = True
         db.commit()
     return {"gcal_synced": gcal_synced, "timelines_fixed": [tl.id for tl in imported]}
+
+
+@router.patch("/api/reservations/{reservation_id}/timeline-gcal-imported", response_model=ReservationRead, dependencies=[Depends(require_admin)])
+def set_timeline_gcal_imported(reservation_id: int, body: TimelineGcalImportedUpdate, db: Session = Depends(get_db)):
+    """The permanent version of force-gcal-resync above — lets an admin
+    freeze/unfreeze a reservation's Google Calendar sync directly from the
+    UI (the /reservas table toggle), without needing me to run curl against
+    prod. Unlike force-gcal-resync, this does NOT re-freeze afterward: the
+    admin is asking for a lasting state change, not a one-time nudge.
+    Reactivating (gcal_imported=False) refreshes the previously-frozen
+    fields and pushes immediately, same as force-gcal-resync's core step."""
+    r = _get(reservation_id, db)
+    timelines = db.query(EventTimeline).filter(EventTimeline.reservation_id == reservation_id).all()
+    if not timelines:
+        raise HTTPException(400, "Esta reserva no tiene un evento (timeline) asociado.")
+
+    for tl in timelines:
+        tl.gcal_imported = body.gcal_imported
+    db.commit()
+
+    gcal_synced = _sync_linked_timelines(r, db) if not body.gcal_imported else None
+    db.refresh(r)
+    return ReservationRead.build(r, db, gcal_synced=gcal_synced)
 
 
 @router.post("/api/reservations/from-quote/{quote_id}", response_model=ReservationRead, status_code=201, dependencies=[Depends(get_current_user)])

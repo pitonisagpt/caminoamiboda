@@ -5,9 +5,11 @@ import {
   ClipboardList, Loader2, Pencil, Plus, Trash2,
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
   ChevronLeft, ChevronRight, CalendarClock, LayoutGrid, TableProperties,
-  BookUser, MapPin, X,
+  BookUser, MapPin, X, CalendarCheck2, CalendarOff,
 } from 'lucide-react';
 import { reservationsApi } from '../../api/reservations';
+import { Toast } from '../../components/ui/Toast';
+import { useGcalSyncToast } from '../../hooks/useGcalSyncToast';
 import type { ReservationListItem, ReservationPage, ReservationStatus } from '../../types/reservation';
 import { EVENT_CATEGORY_COLOR, EVENT_CATEGORY_LABEL, RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL } from '../../types/reservation';
 import { vehiclesApi } from '../../api/vehicles';
@@ -97,6 +99,7 @@ export default function ReservationList() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast: gcalToast, notify: notifyGcalSync, dismiss: dismissGcalToast } = useGcalSyncToast();
 
   const [data, setData] = useState<ReservationPage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,6 +122,7 @@ export default function ReservationList() {
   const categoryFilters = fromParam(searchParams.get('category'));
   const vehicleCategoryFilters = fromParam(searchParams.get('vehicle_category'));
   const vehicleFilter = searchParams.get('vehicle') ?? '';
+  const needsGcalReview = searchParams.get('gcal_review') === '1';
   const contactFilter = searchParams.get('contact') ?? '';
   const locationFilter = searchParams.get('location') ?? '';
   const sortBy = (searchParams.get('sort') ?? 'event_date') as SortKey;
@@ -170,7 +174,7 @@ export default function ReservationList() {
   function clearFilters() {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      ['status', 'category', 'vehicle_category', 'vehicle'].forEach(k => next.delete(k));
+      ['status', 'category', 'vehicle_category', 'vehicle', 'gcal_review'].forEach(k => next.delete(k));
       next.delete('page');
       return next;
     }, { replace: true });
@@ -235,6 +239,7 @@ export default function ReservationList() {
       vehicle_id: vehicleFilter ? Number(vehicleFilter) : undefined,
       contact_id: contactFilter ? Number(contactFilter) : undefined,
       location_id: locationFilter ? Number(locationFilter) : undefined,
+      needs_gcal_review: needsGcalReview || undefined,
       search: q || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -246,7 +251,7 @@ export default function ReservationList() {
       .then(r => setData(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
+  }, [statusFilters.join(','), categoryFilters.join(','), vehicleCategoryFilters.join(','), vehicleFilter, contactFilter, locationFilter, needsGcalReview, q, sortBy, sortDir, page, pageSize, dateFrom, dateTo]);
 
   const toggleSort = (col: SortKey) => {
     const newDir = sortBy === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
@@ -288,6 +293,30 @@ export default function ReservationList() {
     }
   };
 
+  const handleToggleGcal = async (r: ReservationListItem) => {
+    const nextFrozen = !r.timeline_gcal_imported;
+    // Unfreezing a historical import (gcal_imported=true) would try to push
+    // its reservation state to Google Calendar for the first time — worth
+    // a confirm, since these were deliberately frozen forever on import.
+    if (!nextFrozen && r.gcal_imported && !confirm(
+      'Esta reserva es un evento histórico importado de Google Calendar. ' +
+      '¿Reactivar su sincronización de todas formas?'
+    )) return;
+
+    const prevData = data;
+    setData(prev => prev ? {
+      ...prev,
+      items: prev.items.map(x => x.id === r.id ? { ...x, timeline_gcal_imported: nextFrozen } : x),
+    } : prev);
+    try {
+      const res = await reservationsApi.setTimelineGcalImported(r.id, nextFrozen);
+      notifyGcalSync(res.data.gcal_synced);
+    } catch (err: any) {
+      setData(prevData);
+      alert(err?.response?.data?.detail ?? 'No se pudo cambiar la sincronización con Google Calendar.');
+    }
+  };
+
   const reservations = data?.items ?? [];
   const total = data?.total ?? 0;
   const pages = data?.pages ?? 1;
@@ -297,6 +326,7 @@ export default function ReservationList() {
 
   return (
     <div className="space-y-4">
+      {gcalToast && <Toast message={gcalToast.message} variant={gcalToast.variant} onDismiss={dismissGcalToast} />}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -338,7 +368,7 @@ export default function ReservationList() {
       </div>
 
       {/* Active filters — one removable chip per selected value */}
-      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0) && (
+      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview) && (
         <div className="flex flex-wrap gap-2">
           {contactFilter && (
             <FilterChip
@@ -381,7 +411,14 @@ export default function ReservationList() {
               onRemove={() => setArrayFilter('vehicle_category', vehicleCategoryFilters.filter(x => x !== c))}
             />
           ))}
-          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter) && (
+          {needsGcalReview && (
+            <FilterChip
+              icon={<CalendarOff size={15} />}
+              label="No sincronizando con Google Calendar"
+              onRemove={() => setFilter('gcal_review', '')}
+            />
+          )}
+          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter || needsGcalReview) && (
             <button
               onClick={clearFilters}
               className="text-sm text-gray-400 hover:text-brand-600 underline underline-offset-2 cursor-pointer px-1"
@@ -451,6 +488,13 @@ export default function ReservationList() {
             {o.label}
           </Pill>
         ))}
+        <span className="w-px h-6 self-center bg-gray-200" />
+        <Pill
+          active={needsGcalReview}
+          onClick={() => setFilter('gcal_review', needsGcalReview ? '' : '1')}
+        >
+          <CalendarOff size={13} className="inline -mt-0.5 mr-1" /> No sincronizando GCal
+        </Pill>
       </div>
 
       {/* Loading */}
@@ -600,6 +644,36 @@ export default function ReservationList() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-0.5" onClick={e => e.stopPropagation()}>
+                      {r.timeline_id && (() => {
+                        // Two independent flags: gcal_imported (true only
+                        // for the ~380 historical events bulk-imported from
+                        // Google Calendar, frozen forever on purpose) vs
+                        // timeline_gcal_imported (the live flag — is THIS
+                        // reservation receiving ongoing calendar updates
+                        // right now, whatever the reason).
+                        const frozen = r.timeline_gcal_imported;
+                        const historical = frozen && r.gcal_imported;
+                        const colorClass = !frozen
+                          ? 'text-green-500 hover:bg-green-50'
+                          : historical
+                          ? 'text-gray-400 hover:bg-gray-100'
+                          : 'text-amber-500 hover:bg-amber-50';
+                        const title = !frozen
+                          ? 'Sincronizado con Google Calendar'
+                          : historical
+                          ? 'Evento histórico importado de Google Calendar — congelado intencionalmente'
+                          : 'No se está sincronizando con Google Calendar';
+                        return (
+                          <button
+                            onClick={isAdmin ? () => handleToggleGcal(r) : undefined}
+                            aria-label={title}
+                            title={isAdmin ? `${title} — clic para ${frozen ? 'reactivar' : 'congelar'}` : title}
+                            className={`p-2.5 rounded-lg transition-colors ${colorClass} ${isAdmin ? 'cursor-pointer' : 'cursor-default'}`}
+                          >
+                            {frozen ? <CalendarOff size={14} /> : <CalendarCheck2 size={14} />}
+                          </button>
+                        );
+                      })()}
                       <button
                         onClick={() => r.timeline_id
                           ? navigate(`/eventos/${r.timeline_id}`)

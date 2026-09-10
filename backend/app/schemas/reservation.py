@@ -85,6 +85,14 @@ def _build(r, db) -> dict:
     tls = r.timelines if hasattr(r, "timelines") and r.timelines else []
     d["timeline_id"] = tls[0].id if tls else None
     d["timeline_event_name"] = tls[0].event_name if tls else None
+    # NOT the same thing as gcal_imported above (that's Reservation's own
+    # column — True only for the ~380 historical events bulk-imported from
+    # Google Calendar by scripts/gcal_import.py + gcal_enrich.py, frozen
+    # forever on purpose since there's nothing left to sync for an old,
+    # pre-app wedding). This is the live, per-timeline flag that actually
+    # gates whether *ongoing* changes get pushed to Google Calendar right
+    # now — the one behind the reservation-98 bug (wishlist fila 46).
+    d["timeline_gcal_imported"] = tls[0].gcal_imported if tls else False
     # EventTimeline.activities (the ORM relationship) doesn't reliably behave
     # as a list here — same workaround used elsewhere (owner_settlements.py,
     # calendar.py): query TimelineActivity directly.
@@ -239,6 +247,7 @@ class ReservationRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     gcal_synced: Optional[bool] = None
+    timeline_gcal_imported: bool = False
 
     @classmethod
     def build(cls, r, db, gcal_synced: Optional[bool] = None) -> "ReservationRead":
@@ -278,6 +287,8 @@ class ReservationList(BaseModel):
     vehicle_photo_url: Optional[str] = None
     vehicles: List[VehicleBrief] = []
     timeline_id: Optional[int] = None
+    gcal_imported: bool = False
+    timeline_gcal_imported: bool = False
     created_at: datetime
 
     @classmethod
@@ -291,3 +302,7 @@ class ReservationPage(BaseModel):
     page: int
     page_size: int
     pages: int
+
+
+class TimelineGcalImportedUpdate(BaseModel):
+    gcal_imported: bool

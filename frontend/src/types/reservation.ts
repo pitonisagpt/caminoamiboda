@@ -100,6 +100,14 @@ export interface ReservationListItem {
   // the primary (first) one for anything not yet updated to use this.
   vehicles: VehicleBrief[];
   timeline_id: number | null;
+  // True only for the ~380 historical events bulk-imported from Google
+  // Calendar (pre-dating the app) — frozen on purpose, not a problem.
+  gcal_imported: boolean;
+  // The live, per-timeline freeze flag — true means this reservation is
+  // NOT receiving ongoing Google Calendar updates right now, whatever the
+  // reason. Combine with gcal_imported above to tell "expected, historical"
+  // apart from "should probably be looked at" (see ReservationList.tsx).
+  timeline_gcal_imported: boolean;
   created_at: string;
 }
 

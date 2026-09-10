@@ -23,6 +23,7 @@ export interface ReservationListParams {
   vehicle_id?: number;
   contact_id?: number;
   location_id?: number;
+  needs_gcal_review?: boolean;
   search?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';
@@ -45,6 +46,12 @@ export const reservationsApi = {
 
   updateStatus: (id: number, status: ReservationStatus) =>
     api.put<Reservation>(`${base}/${id}`, { status }),
+
+  // Freezes/unfreezes this reservation's Google Calendar sync (admin-only
+  // on the backend). Unfreezing refreshes the previously-frozen fields and
+  // pushes immediately — see set_timeline_gcal_imported in reservations.py.
+  setTimelineGcalImported: (id: number, gcal_imported: boolean) =>
+    api.patch<Reservation>(`${base}/${id}/timeline-gcal-imported`, { gcal_imported }),
 
   delete: (id: number) => api.delete(`${base}/${id}`),
 
