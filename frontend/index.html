@@ -5,6 +5,7 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Camino a mi Boda</title>
+    <meta name="description" content="Camino a mi Boda es una plataforma de gestión operativa para alquiler de vehículos clásicos, vintage y modernos con conductor, para bodas y eventos especiales en Medellín y el Oriente Antioqueño, Colombia. Permite a los clientes consultar el catálogo de vehículos y reservar, y a nuestro equipo coordinar reservas, logística de eventos y calendario." />
 
     <!-- Static, generic Open Graph / Twitter Card tags — served as-is for
          every page. /catalogo?vehiculo=<id> gets a MORE SPECIFIC per-vehicle
@@ -33,6 +34,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Visible fallback for any crawler/verifier that fetches this page
+         without executing JavaScript — the app itself renders entirely
+         client-side into #root above, so without this, such a crawler
+         would see an empty body with no text describing what the site/
+         app is for. -->
+    <noscript>
+      <h1>Camino a mi Boda</h1>
+      <p>
+        Camino a mi Boda es una plataforma de gestión operativa para
+        alquiler de vehículos clásicos, vintage y modernos con conductor,
+        para bodas y eventos especiales en Medellín y el Oriente
+        Antioqueño, Colombia. Los clientes pueden consultar el catálogo de
+        vehículos y reservar; nuestro equipo la usa para coordinar
+        reservas, logística de eventos y calendario.
+      </p>
+      <p>Activa JavaScript para usar la aplicación completa.</p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
