@@ -19,13 +19,9 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
   }
 
   if (!user) {
-    // "/" is also the admin dashboard's index route (same path, different
-    // audience) — an anonymous visitor to the bare domain should land on
-    // the public site, not the admin login screen.
-    if (location.pathname === "/") return <Navigate to="/catalogo" replace />;
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  if (adminOnly && user.role !== "admin") return <Navigate to="/" replace />;
+  if (adminOnly && user.role !== "admin") return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 }

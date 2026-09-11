@@ -12,7 +12,11 @@ router = APIRouter(tags=["seo"])
 # Was missing "como-funciona" and "politica-de-reservas" — an unrelated,
 # pre-existing gap found while wiring up bilingual sitemap entries below.
 _STATIC_PATHS = [
-    "", "catalogo", "como-funciona", "blog", "contacto",
+    # "" (bare root) deliberately excluded — it now serves the same
+    # CatalogPage as "catalogo" (see frontend/src/App.tsx), which declares
+    # "catalogo" as its canonical URL. Listing both here would list a
+    # non-canonical duplicate alongside the canonical one.
+    "catalogo", "como-funciona", "blog", "contacto",
     "politica-de-datos", "politica-de-reservas", "condiciones-de-servicio",
 ]
 

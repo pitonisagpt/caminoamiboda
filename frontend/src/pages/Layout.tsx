@@ -145,7 +145,7 @@ export function Layout() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
           {isAdmin && (
-            <NavItem to="/" end icon={LayoutDashboard} label="Dashboard" onClick={closeSidebar} collapsed={c} />
+            <NavItem to="/dashboard" end icon={LayoutDashboard} label="Dashboard" onClick={closeSidebar} collapsed={c} />
           )}
 
           <SidebarSection label="Operaciones" collapsed={c} />

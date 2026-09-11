@@ -56,6 +56,14 @@ import { LanguageProvider } from "./i18n/LanguageContext";
 // Spanish paths + under /en) so a new public page only needs adding here,
 // never duplicated by hand for the English tree.
 const PUBLIC_SITE_ROUTES: { path: string; element: JSX.Element }[] = [
+  // The bare root — Google's OAuth homepage verification flagged the old
+  // "/" -> redirect-to-/catalogo behavior as a non-static, redirecting
+  // homepage. Mounting the same CatalogPage here directly (not a new
+  // page) fixes that: real content, no redirect. Its own
+  // <HreflangTags path="/catalogo" /> is left pointing at /catalogo on
+  // purpose, so /catalogo stays the declared canonical URL and this
+  // isn't flagged as duplicate content.
+  { path: "", element: <CatalogPage /> },
   { path: "catalogo", element: <CatalogPage /> },
   { path: "como-funciona", element: <ComoFuncionaPage /> },
   { path: "blog", element: <BlogListPage /> },
@@ -102,7 +110,9 @@ export default function App() {
               PUBLIC_SITE_ROUTES above. */}
           <Route element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
             {PUBLIC_SITE_ROUTES.map(r => (
-              <Route key={`es-${r.path}`} path={r.path} element={r.element} />
+              r.path === ""
+                ? <Route key="es-index" index element={r.element} />
+                : <Route key={`es-${r.path}`} path={r.path} element={r.element} />
             ))}
             {/* Public event view — no auth. The page itself is
                 Spanish-only by design (no useLang()/t()), but it still
@@ -114,7 +124,9 @@ export default function App() {
           </Route>
           <Route path="en" element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
             {PUBLIC_SITE_ROUTES.map(r => (
-              <Route key={`en-${r.path}`} path={r.path} element={r.element} />
+              r.path === ""
+                ? <Route key="en-index" index element={r.element} />
+                : <Route key={`en-${r.path}`} path={r.path} element={r.element} />
             ))}
             <Route path="evento/:token" element={<EventoPage />} />
           </Route>
@@ -128,7 +140,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<HomeRedirect />} />
+            <Route path="dashboard" element={<HomeRedirect />} />
 
             {/* Billing Documents — admin only */}
             <Route path="documentos" element={<ProtectedRoute adminOnly><BillingDocumentList /></ProtectedRoute>} />

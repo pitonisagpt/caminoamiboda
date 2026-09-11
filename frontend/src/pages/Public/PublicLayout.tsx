@@ -25,7 +25,11 @@ export function PublicLayout() {
   const howItWorksPath = toLangPath("/como-funciona", lang);
   const blogPath = toLangPath("/blog", lang);
   const contactPath = toLangPath("/contacto", lang);
-  const onCatalogPage = location.pathname === catalogPath;
+  // The bare root ("/" or "/en") now also renders the catalog directly
+  // (see App.tsx / PUBLIC_SITE_ROUTES) — counts as "on the catalog page"
+  // too, so the nav highlights correctly regardless of which of the two
+  // equivalent URLs a visitor actually landed on.
+  const onCatalogPage = location.pathname === catalogPath || location.pathname === "/" || location.pathname === "/en";
 
   const NAV_LINKS = [
     {
@@ -106,7 +110,7 @@ export function PublicLayout() {
           <div className="flex items-center gap-3">
             {!loading && user && (
               <Link
-                to="/"
+                to="/dashboard"
                 className="hidden sm:flex p-2 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                 title={t("nav.goToPanel")}
                 aria-label={t("nav.goToPanel")}
@@ -148,7 +152,7 @@ export function PublicLayout() {
             ))}
             {!loading && user && (
               <Link
-                to="/"
+                to="/dashboard"
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-1.5 text-sm font-medium text-brand-700"
               >

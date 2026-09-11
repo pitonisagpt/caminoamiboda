@@ -24,7 +24,9 @@ Disallow: /calendario
 Disallow: /ubicaciones
 Disallow: /contactos
 Disallow: /eventos/
+Disallow: /dashboard
 Disallow: /api/
+Allow: /
 Allow: /catalogo
 Allow: /blog
 Allow: /contacto
