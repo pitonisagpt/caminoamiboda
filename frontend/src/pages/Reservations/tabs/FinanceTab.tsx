@@ -17,6 +17,7 @@ import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages'
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
 import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import LastUpdated from '../../../components/ui/LastUpdated';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: 'Borrador',
@@ -548,6 +549,13 @@ export default function FinanceTab({
 
   return (
     <div className="space-y-4">
+      {/* Reflects payments (they touch Reservation.deposit_paid via
+          _sync_deposit) but NOT an addon-payment or settlement-payment on
+          its own — those live in their own tables and don't bump
+          Reservation.updated_at. Good enough as a general staleness signal,
+          not a substitute for the per-addon/per-settlement ledgers below. */}
+      <LastUpdated date={reservation.updated_at} className="justify-end" />
+
       {/* Valor del vehículo — the number to actually communicate to the
           vehicle owner, distinct from the client-facing total once there are
           third-party addon services (florist, etc.) mixed into it. Only

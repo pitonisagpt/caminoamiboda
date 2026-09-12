@@ -5,6 +5,7 @@ import type { ReservationContract, PaymentScheduleItem, ClientType, ClientIdType
 import { reservationsApi } from '../../../api/reservations';
 import { reservationContractsApi } from '../../../api/reservationContracts';
 import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import LastUpdated from '../../../components/ui/LastUpdated';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
@@ -203,6 +204,8 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
 
   return (
     <div className="space-y-4">
+      <LastUpdated date={contract.updated_at} className="justify-end" />
+
       {/* Datos del arrendatario */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
         <div className="flex items-center justify-between gap-3">

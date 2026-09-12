@@ -32,6 +32,7 @@ import type {
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
 import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import LastUpdated from '../../../components/ui/LastUpdated';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -766,6 +767,10 @@ export default function EventoTab({
             </button>
           </div>
         </div>
+        {/* Same wording/format as the "Última actualización" line Google
+            Calendar itself shows in the event description — lets a plain
+            visual diff catch drift between the two (wishlist fila 72). */}
+        <LastUpdated date={timeline.updated_at} className="justify-end -mt-1 mb-2" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {timeline.main_contact_name && (
             <div className="flex items-center gap-2 text-gray-700">

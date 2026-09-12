@@ -11,6 +11,7 @@ import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
 import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
+import LastUpdated from '../../../components/ui/LastUpdated';
 
 interface AvailabilityTarget {
   vehicleLabel: string;
@@ -117,6 +118,8 @@ export default function InfoTab({
 
   return (
     <div className="space-y-4">
+      <LastUpdated date={reservation.updated_at} className="justify-end" />
+
       {/* Status pipeline */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
