@@ -112,6 +112,10 @@ export interface TimelineListItem {
 
 export interface TimelinePublic {
   id: number;
+  // Present in the API response (TimelineFields.reservation_id, already
+  // serialized for every timeline schema incl. this public one) — used to
+  // link a logged-in viewer straight to the edit view (wishlist fila 73).
+  reservation_id: number | null;
   event_name: string;
   event_type: EventType;
   event_date: string;

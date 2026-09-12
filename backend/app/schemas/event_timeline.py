@@ -268,6 +268,11 @@ class TimelineList(BaseModel):
 class TimelinePublic(TimelineFields):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    # Not sensitive (a bare internal ID, and /reservas/{id} is auth-gated on
+    # its own) — exposed so a logged-in viewer of this public link can jump
+    # straight to the edit view instead of hunting for the reservation
+    # (wishlist fila 73).
+    reservation_id: Optional[int] = None
     planner_name: Optional[str] = None
     planner_phone: Optional[str] = None
     locations: List[LocationRead] = []
@@ -276,5 +281,5 @@ class TimelinePublic(TimelineFields):
 
     @classmethod
     def build(cls, timeline, locations: list, activities: list, contacts: list) -> "TimelinePublic":
-        d = _build_timeline_dict(timeline, locations, activities, contacts)
+        d = _build_timeline_dict(timeline, locations, activities, contacts, extra_fields=["reservation_id"])
         return cls.model_validate(d)

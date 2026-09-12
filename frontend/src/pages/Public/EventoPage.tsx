@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route, Compass } from 'lucide-react';
+import { MapPin, Clock, Phone, Car, User, Navigation, Calendar, Route, Compass, Pencil } from 'lucide-react';
 import EventRouteMap from '../../components/EventRouteMap';
 import { timelinesApi } from '../../api/timelines';
 import type { TimelinePublic, EventLocation, EventType, LocationType } from '../../types/timeline';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
+import { useAuth } from '../../context/AuthContext';
 
 const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   pickup: 'Recogida',
@@ -125,6 +126,7 @@ function LocationCard({ loc }: { loc: EventLocation }) {
 
 export default function EventoPage() {
   const { token } = useParams<{ token: string }>();
+  const { user, loading: authLoading } = useAuth();
   const [event, setEvent] = useState<TimelinePublic | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -184,14 +186,29 @@ export default function EventoPage() {
       {/* Event identity header — not sticky here, the site's own nav
           header already is (PublicLayout). */}
       <div className="bg-white border border-gray-200 rounded-xl py-5 px-4 shadow-sm max-w-lg mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
-            <span className="text-brand-500 text-lg">💍</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-brand-500 text-lg">💍</span>
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-gray-900 text-lg leading-tight">{pageTitle}</h1>
+              <p className="text-sm text-gray-500 capitalize">{formatDate(event.event_date)}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-gray-900 text-lg leading-tight">{pageTitle}</h1>
-            <p className="text-sm text-gray-500 capitalize">{formatDate(event.event_date)}</p>
-          </div>
+          {/* Logged-in shortcut straight to the real edit view (wishlist
+              fila 73) — a customer/driver never sees this, since they never
+              have a session; only ops/admin viewing their own share link. */}
+          {!authLoading && user && event.reservation_id && (
+            <Link
+              to={`/reservas/${event.reservation_id}?tab=evento`}
+              title="Editar evento"
+              className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 border border-brand-200 hover:bg-brand-50 rounded-lg px-2.5 py-2 shrink-0 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Editar</span>
+            </Link>
+          )}
         </div>
       </div>
 
