@@ -156,6 +156,7 @@ def _build_description(
     reservation=None,
     client_payments: list | None = None,
     settlement=None,
+    contacts: list | None = None,
 ) -> str:
     lines = []
     if timeline.assigned_vehicle:
@@ -177,6 +178,14 @@ def _build_description(
             if contact.phone:
                 planner_line += f" · {contact.phone}"
             lines.append(planner_line)
+    if contacts:
+        for c in sorted(contacts, key=lambda x: x.display_order):
+            extra_line = f"Contacto adicional: {c.name}"
+            if c.role:
+                extra_line += f" ({c.role})"
+            if c.phone:
+                extra_line += f" · {c.phone}"
+            lines.append(extra_line)
     if timeline.special_instructions:
         lines.append(f"\nInstrucciones: {timeline.special_instructions}")
 
@@ -331,7 +340,7 @@ def _short_vehicle(vehicle: str) -> str:
     return f"{brand} {color}".strip() if color else brand
 
 
-def _build_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, client_payments: list | None = None, settlement=None) -> dict:
+def _build_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, client_payments: list | None = None, settlement=None, contacts: list | None = None) -> dict:
     event_date = timeline.event_date
     category_label = _CATEGORY_LABEL.get(timeline.calendar_category or "", "")
     event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
@@ -346,7 +355,7 @@ def _build_gcal_event(timeline, locations: list, activities: list | None = None,
     return {
         "summary": summary,
         "location": _primary_location_address(locations),
-        "description": _build_description(timeline, locations, activities, reservation, client_payments, settlement),
+        "description": _build_description(timeline, locations, activities, reservation, client_payments, settlement, contacts),
         "start": {"date": str(event_date)},
         "end": {"date": str(event_date + timedelta(days=max_day))},
         "colorId": _CATEGORY_EVENT_COLOR.get(timeline.calendar_category or "", "8"),
@@ -499,7 +508,7 @@ def delete_client_invite(timeline, db: Session) -> None:
     db.commit()
 
 
-def _build_team_description(timeline, locations: list, activities: list | None = None, reservation=None) -> str:
+def _build_team_description(timeline, locations: list, activities: list | None = None, reservation=None, contacts: list | None = None) -> str:
     lines = []
     if timeline.assigned_vehicle:
         lines.append(f"Vehículo: {timeline.assigned_vehicle}")
@@ -520,6 +529,14 @@ def _build_team_description(timeline, locations: list, activities: list | None =
             if contact.phone:
                 planner_line += f" · {contact.phone}"
             lines.append(planner_line)
+    if contacts:
+        for c in sorted(contacts, key=lambda x: x.display_order):
+            extra_line = f"Contacto adicional: {c.name}"
+            if c.role:
+                extra_line += f" ({c.role})"
+            if c.phone:
+                extra_line += f" · {c.phone}"
+            lines.append(extra_line)
     if timeline.special_instructions:
         lines.append(f"\nInstrucciones: {timeline.special_instructions}")
 
@@ -553,7 +570,7 @@ def _build_team_description(timeline, locations: list, activities: list | None =
     return "\n".join(lines)
 
 
-def _build_team_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, attendee_emails: list | None = None) -> dict:
+def _build_team_gcal_event(timeline, locations: list, activities: list | None = None, reservation=None, attendee_emails: list | None = None, contacts: list | None = None) -> dict:
     event_date = timeline.event_date
     event_type_label = _EVENT_TYPE_LABEL.get(getattr(timeline, "event_type", "other") or "other", "Evento")
     short = _short_name(timeline.event_name or "")
@@ -564,7 +581,7 @@ def _build_team_gcal_event(timeline, locations: list, activities: list | None = 
     return {
         "summary": summary,
         "location": _primary_location_address(locations),
-        "description": _build_team_description(timeline, locations, activities, reservation),
+        "description": _build_team_description(timeline, locations, activities, reservation, contacts),
         "start": {"date": str(event_date)},
         "end": {"date": str(event_date + timedelta(days=max_day))},
         "attendees": [{"email": e} for e in (attendee_emails or [])],
@@ -585,6 +602,7 @@ def invite_team(timeline, db: Session) -> dict:
 
     from app.models.event_location import EventLocation
     from app.models.timeline_activity import TimelineActivity
+    from app.models.timeline_contact import TimelineContact
     from app.models.reservation import Reservation
     from app.services.reservation_vehicles import get_reservation_vehicles
 
@@ -624,9 +642,15 @@ def invite_team(timeline, db: Session) -> dict:
         .order_by(TimelineActivity.display_order)
         .all()
     )
+    contacts = (
+        db.query(TimelineContact)
+        .filter(TimelineContact.timeline_id == timeline.id)
+        .order_by(TimelineContact.display_order)
+        .all()
+    )
 
     service = _get_service()
-    body = _build_team_gcal_event(timeline, locations, activities, reservation, emails)
+    body = _build_team_gcal_event(timeline, locations, activities, reservation, emails, contacts)
     cal_id = settings.google_calendar_team
 
     if timeline.gcal_team_event_id:
@@ -680,6 +704,7 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
 
     from app.models.event_location import EventLocation
     from app.models.timeline_activity import TimelineActivity
+    from app.models.timeline_contact import TimelineContact
     from app.models.reservation import Reservation
     from app.models.reservation_payment import ReservationPayment
     from app.models.owner_settlement import OwnerSettlement
@@ -694,6 +719,12 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
         db.query(TimelineActivity)
         .filter(TimelineActivity.timeline_id == timeline.id)
         .order_by(TimelineActivity.display_order)
+        .all()
+    )
+    contacts = (
+        db.query(TimelineContact)
+        .filter(TimelineContact.timeline_id == timeline.id)
+        .order_by(TimelineContact.display_order)
         .all()
     )
     reservation = (
@@ -713,7 +744,7 @@ def sync_timeline(timeline, db: Session) -> Optional[str]:
     )
 
     service = _get_service()
-    body = _build_gcal_event(timeline, locations, activities, reservation, client_payments, settlement)
+    body = _build_gcal_event(timeline, locations, activities, reservation, client_payments, settlement, contacts)
     target_cal_id = _get_calendar_id(timeline.calendar_category)
 
     if timeline.gcal_event_id:
