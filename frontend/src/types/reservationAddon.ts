@@ -17,6 +17,10 @@ export interface ReservationAddon {
   created_at: string;
   company_amount: number;
   provider_amount: number;
+  // Derived from this addon's own payments (wishlist fila 35) — how much
+  // of provider_amount has actually been paid out to the third party.
+  amount_paid: number;
+  remaining_to_provider: number;
 }
 
 export interface ReservationAddonForm {

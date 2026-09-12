@@ -1,12 +1,16 @@
-from typing import List
+from datetime import date, datetime
+from decimal import Decimal
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.models.reservation import Reservation
 from app.models.reservation_addon import ReservationAddon
+from app.models.reservation_addon_payment import ReservationAddonPayment
 from app.schemas.reservation_addon import ReservationAddonCreate, ReservationAddonRead, ReservationAddonUpdate
 from app.services.reservation_addons import get_reservation_addons
 
@@ -76,4 +80,61 @@ def update_addon(reservation_id: int, addon_id: int, body: ReservationAddonUpdat
 def delete_addon(reservation_id: int, addon_id: int, db: Session = Depends(get_db)):
     addon = _get_addon(reservation_id, addon_id, db)
     db.delete(addon)
+    db.commit()
+
+
+# ── Addon Payments ───────────────────────────────────────────────────────────
+# Same pattern as owner_settlements.py's "Settlement Payments" section — a
+# payment actually made toward this addon's provider_amount (see
+# ReservationAddon.remaining_to_provider), which the addon itself never
+# tracked before (wishlist fila 35).
+
+class AddonPaymentCreate(BaseModel):
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str] = None
+
+
+class AddonPaymentRead(BaseModel):
+    id: int
+    addon_id: int
+    amount: Decimal
+    paid_at: date
+    notes: Optional[str]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/{reservation_id}/addons/{addon_id}/payments", response_model=List[AddonPaymentRead])
+def list_addon_payments(reservation_id: int, addon_id: int, db: Session = Depends(get_db)):
+    addon = _get_addon(reservation_id, addon_id, db)
+    return addon.payments
+
+
+@router.post("/{reservation_id}/addons/{addon_id}/payments", response_model=AddonPaymentRead, status_code=201)
+def add_addon_payment(reservation_id: int, addon_id: int, body: AddonPaymentCreate, db: Session = Depends(get_db)):
+    _get_addon(reservation_id, addon_id, db)
+    payment = ReservationAddonPayment(
+        addon_id=addon_id,
+        amount=body.amount,
+        paid_at=body.paid_at,
+        notes=body.notes,
+    )
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+    return payment
+
+
+@router.delete("/{reservation_id}/addons/{addon_id}/payments/{payment_id}", status_code=204)
+def delete_addon_payment(reservation_id: int, addon_id: int, payment_id: int, db: Session = Depends(get_db)):
+    _get_addon(reservation_id, addon_id, db)
+    payment = db.query(ReservationAddonPayment).filter(
+        ReservationAddonPayment.id == payment_id,
+        ReservationAddonPayment.addon_id == addon_id,
+    ).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
+    db.delete(payment)
     db.commit()

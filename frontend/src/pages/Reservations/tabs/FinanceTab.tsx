@@ -11,7 +11,8 @@ import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment 
 import { EntityLink } from '../../../components/EntityLink';
 import { serviceOrdersApi } from '../../../api/serviceOrders';
 import type { ServiceOrder } from '../../../types/serviceOrder';
-import { reservationAddonsApi } from '../../../api/reservationAddons';
+import { reservationAddonsApi, type ReservationAddonPayment } from '../../../api/reservationAddons';
+import AddonPaymentLedger from './AddonPaymentLedger';
 import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
@@ -220,6 +221,7 @@ export default function FinanceTab({
   const [orderPdfLoading, setOrderPdfLoading] = useState(false);
 
   const [addons, setAddons] = useState<ReservationAddon[] | 'loading'>('loading');
+  const [addonPaymentsMap, setAddonPaymentsMap] = useState<Record<number, ReservationAddonPayment[]>>({});
   const [addonPackages, setAddonPackages] = useState<AddonPackage[]>([]);
   const [addingAddon, setAddingAddon] = useState(false);
   const [savingAddon, setSavingAddon] = useState(false);
@@ -310,7 +312,14 @@ export default function FinanceTab({
   // split-specific bits (% and the CRUD form) stay behind isAdmin below.
   useEffect(() => {
     reservationAddonsApi.list(reservation.id)
-      .then(r => setAddons(r.data))
+      .then(r => {
+        setAddons(r.data);
+        r.data.forEach(a => {
+          reservationAddonsApi.listPayments(reservation.id, a.id)
+            .then(pr => setAddonPaymentsMap(prev => ({ ...prev, [a.id]: pr.data })))
+            .catch(() => {});
+        });
+      })
       .catch(() => setAddons([]));
   }, [reservation.id]);
 
@@ -354,6 +363,29 @@ export default function FinanceTab({
     } finally {
       setDeletingAddonId(null);
     }
+  };
+
+  // No single-addon GET exists (unlike ownerSettlementsApi.get), so
+  // refreshing amount_paid/remaining_to_provider after a payment change
+  // means re-fetching the whole addon list, same as it's loaded initially.
+  const handleAddAddonPayment = async (addonId: number, amount: number, paidAt: string, notes: string) => {
+    await reservationAddonsApi.addPayment(reservation.id, addonId, { amount, paid_at: paidAt, notes: notes || undefined });
+    const [paymentsRes, addonsRes] = await Promise.all([
+      reservationAddonsApi.listPayments(reservation.id, addonId),
+      reservationAddonsApi.list(reservation.id),
+    ]);
+    setAddonPaymentsMap(prev => ({ ...prev, [addonId]: paymentsRes.data }));
+    setAddons(addonsRes.data);
+  };
+
+  const handleDeleteAddonPayment = async (addonId: number, paymentId: number) => {
+    await reservationAddonsApi.deletePayment(reservation.id, addonId, paymentId);
+    const [paymentsRes, addonsRes] = await Promise.all([
+      reservationAddonsApi.listPayments(reservation.id, addonId),
+      reservationAddonsApi.list(reservation.id),
+    ]);
+    setAddonPaymentsMap(prev => ({ ...prev, [addonId]: paymentsRes.data }));
+    setAddons(addonsRes.data);
   };
 
   const addonsTotal = addons === 'loading' ? 0 : addons.reduce((s, a) => s + Number(a.price), 0);
@@ -1213,6 +1245,14 @@ export default function FinanceTab({
                     <p className="text-xs text-gray-400 mt-0.5">
                       Empresa ({a.company_percentage}%): {formatCOP(Number(a.company_amount))} · Proveedor ({100 - a.company_percentage}%): {formatCOP(Number(a.provider_amount))}
                     </p>
+                    {Number(a.provider_amount) > 0 && (
+                      <AddonPaymentLedger
+                        addon={a}
+                        payments={addonPaymentsMap[a.id] ?? []}
+                        onAddPayment={(amount, paidAt, notes) => handleAddAddonPayment(a.id, amount, paidAt, notes)}
+                        onDeletePayment={(paymentId) => handleDeleteAddonPayment(a.id, paymentId)}
+                      />
+                    )}
                   </div>
                   <button
                     onClick={() => handleDeleteAddon(a.id)}

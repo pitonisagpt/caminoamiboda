@@ -1,11 +1,14 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.reservation_addon_payment import ReservationAddonPayment
 
 
 class ReservationAddon(Base):
@@ -54,3 +57,23 @@ class ReservationAddon(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     addon_package = relationship("AddonPackage", foreign_keys=[addon_package_id], lazy="select")
+    # Parameterized (not bare Mapped[list]) on purpose — this codebase has
+    # hit the SQLAlchemy uselist-inference bug before (see vehicle_photo.py's
+    # `providers`) where an unparameterized Mapped[list] silently makes
+    # uselist resolve to False despite an explicit relationship() below.
+    payments: Mapped[List["ReservationAddonPayment"]] = relationship(
+        "ReservationAddonPayment", back_populates="addon", lazy="select",
+        order_by="ReservationAddonPayment.paid_at", cascade="all, delete-orphan",
+    )
+
+    @property
+    def amount_paid(self) -> Decimal:
+        return sum((p.amount for p in self.payments), Decimal("0"))
+
+    @property
+    def remaining_to_provider(self) -> Decimal:
+        # Local import: services/reservation_addons.py already imports
+        # ReservationAddon from this module — importing back at module
+        # level would be a real circular import, not just a style choice.
+        from app.services.reservation_addons import addon_provider_amount
+        return max(Decimal("0"), addon_provider_amount(self) - self.amount_paid)

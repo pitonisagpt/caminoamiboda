@@ -44,6 +44,10 @@ class ReservationAddonRead(BaseModel):
     # Derived — precomputed here so the frontend never repeats the math.
     company_amount: Decimal
     provider_amount: Decimal
+    # Also derived, from ReservationAddon.payments (wishlist fila 35) —
+    # same idiom as OwnerSettlementRead.amount_paid/remaining_to_owner.
+    amount_paid: Decimal = Decimal("0")
+    remaining_to_provider: Decimal = Decimal("0")
 
     @classmethod
     def build(cls, a) -> "ReservationAddonRead":
@@ -61,4 +65,6 @@ class ReservationAddonRead(BaseModel):
             created_at=a.created_at,
             company_amount=addon_company_amount(a),
             provider_amount=addon_provider_amount(a),
+            amount_paid=a.amount_paid,
+            remaining_to_provider=a.remaining_to_provider,
         )
