@@ -9,12 +9,14 @@ from sqlalchemy.orm import Session, contains_eager, selectinload
 
 from app.core.dependencies import get_current_user, require_admin
 from app.database import get_db
+from app.models.addon_package import AddonPackage
 from app.models.catalog_location import CatalogLocation
 from app.models.contact import Contact
 from app.models.customer import Customer
 from app.models.event_location import EventLocation
 from app.models.event_timeline import EventTimeline
 from app.models.reservation import Reservation, ReservationStatus
+from app.models.reservation_addon import ReservationAddon
 from app.models.reservation_payment import ReservationPayment
 from app.models.reservation_vehicle import ReservationVehicle
 from app.models.quote import Quote
@@ -523,6 +525,36 @@ def create_from_quote(quote_id: int, db: Session = Depends(get_db)):
     db.add(r)
     quote.status = "accepted"
     db.flush()
+
+    # Fila 35: a quoted "Ramo" is a third-party service (florist), same as
+    # one added by hand in Finanzas — it must NOT share the vehicle's 70/30
+    # split. Before this, it only ever landed in addons_total (a flat number
+    # baked into total_amount), which owner_settlements.py has no way to
+    # exclude — reservation_addons_total() only sums real ReservationAddon
+    # rows. Turning it into a real row here fixes that for free, with no
+    # change needed in owner_settlements.py. "Horas adicionales" (the other
+    # thing addons_total can hold) is genuine vehicle revenue, not a
+    # third-party service — deliberately left untouched, still folded into
+    # total_amount/extra_hours exactly as before.
+    bouquet_pkgs = (
+        db.query(AddonPackage)
+        .filter(AddonPackage.id.in_(quote.addon_package_ids or []), AddonPackage.type == "bouquet")
+        .all()
+    )
+    for pkg in bouquet_pkgs:
+        db.add(ReservationAddon(
+            reservation_id=r.id,
+            addon_package_id=pkg.id,
+            name=pkg.name,
+            description=pkg.description,
+            price=pkg.price,
+            # company_percentage/company_collects_payment left at the
+            # model's defaults (0 / True) — same as the typical florist case
+            # added manually in Finanzas: the provider keeps the money, and
+            # Camino a mi Boda already collected it from the client as part
+            # of total_amount.
+        ))
+
     _set_reservation_vehicles(r, _resolve_vehicle_assignments(None, quote.vehicle_id, None, None), db)
     gcal_synced = _auto_create_timeline(r, db)
     db.commit()
