@@ -13,7 +13,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Download, Eye, EyeOff, GripVertical, Instagram, Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, GripVertical, Instagram, Loader2, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { vehiclesApi } from "../../api/vehicles";
 import { contactsApi } from "../../api/contacts";
@@ -45,6 +45,7 @@ function CreditsModal({ photo, onSave, onClose }: {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<number>>(new Set(photo.providers.map(p => p.id)));
+  const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [newName, setNewName] = useState("");
   const [newInstagram, setNewInstagram] = useState("");
@@ -64,6 +65,14 @@ function CreditsModal({ photo, onSave, onClose }: {
       return next;
     });
   };
+
+  // Client-side only — contacts is already the full list from one
+  // contactsApi.list() call, no server round-trip needed. `selected` stays
+  // keyed by id regardless of what's currently filtered into view, so a
+  // checked contact that scrolls out of the filter keeps its check.
+  const filteredContacts = search.trim()
+    ? contacts.filter(c => c.full_name.toLowerCase().includes(search.trim().toLowerCase()))
+    : contacts;
 
   const handleQuickCreate = async () => {
     if (!newName.trim()) return;
@@ -106,21 +115,36 @@ function CreditsModal({ photo, onSave, onClose }: {
         ) : contacts.length === 0 ? (
           <p className="text-sm text-gray-400 py-2">Todavía no hay contactos registrados — crea uno abajo.</p>
         ) : (
-          <div className="space-y-1.5 max-h-56 overflow-y-auto">
-            {contacts.map(c => (
-              <label key={c.id} className="flex items-center gap-2 text-sm py-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selected.has(c.id)}
-                  onChange={() => toggle(c.id)}
-                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-400 cursor-pointer"
-                />
-                <span className="text-gray-800">{c.full_name}</span>
-                <span className="text-xs text-gray-400">· {CONTACT_TYPE_LABEL[c.contact_type]}</span>
-                {c.instagram && <Instagram size={12} className="text-gray-300" />}
-              </label>
-            ))}
-          </div>
+          <>
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar contacto..."
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+            {filteredContacts.length === 0 ? (
+              <p className="text-sm text-gray-400 py-2">Sin resultados para "{search.trim()}".</p>
+            ) : (
+              <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                {filteredContacts.map(c => (
+                  <label key={c.id} className="flex items-center gap-2 text-sm py-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(c.id)}
+                      onChange={() => toggle(c.id)}
+                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-400 cursor-pointer"
+                    />
+                    <span className="text-gray-800">{c.full_name}</span>
+                    <span className="text-xs text-gray-400">· {CONTACT_TYPE_LABEL[c.contact_type]}</span>
+                    {c.instagram && <Instagram size={12} className="text-gray-300" />}
+                  </label>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <div className="border-t border-gray-100 pt-3 space-y-2">
