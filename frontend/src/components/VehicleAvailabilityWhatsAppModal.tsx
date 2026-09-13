@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { WhatsAppIcon } from "./WhatsAppIcon";
+import { Modal } from "./ui/Modal";
 import { whatsAppLinkProps } from "../utils/whatsapp";
 import type { VehicleLocation } from "../types/vehicle";
 
@@ -47,7 +48,10 @@ interface Props {
 // Shared "check availability with the owner" popover — used from the
 // vehicle inventory (VehicleList.tsx) and from a reservation's Info tab
 // (InfoTab.tsx), so ops can ping the owner from wherever they're already
-// looking, not just the inventory list (wishlist fila 2).
+// looking, not just the inventory list (wishlist fila 2). Migrated to the
+// shared <Modal> shell (fila 50) — its shape (title + body + Cancelar/
+// action footer) already matched, once the vehicle icon+name moved from a
+// custom header into the body.
 export function VehicleAvailabilityWhatsAppModal({
   vehicleLabel,
   licensePlate,
@@ -64,43 +68,11 @@ export function VehicleAvailabilityWhatsAppModal({
   const message = `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${color ? `${color} ` : ""}${vehicleLabel}${licensePlate ? ` (${licensePlate})` : ""}${locationLabel ? ` en ${locationLabel}` : ""} para el ${formatDateES(date)}?`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
-            <MessageCircle size={20} className="text-brand-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900 leading-tight">{vehicleLabel}</p>
-            {licensePlate && <p className="text-xs text-gray-400 font-mono">{licensePlate}</p>}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-brand-800">Fecha del evento</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-lg border border-brand-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
-          />
-          {date && (
-            <p className="text-xs text-gray-400 capitalize">{formatDateES(date)}</p>
-          )}
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 leading-relaxed">
-          <span className="font-medium text-gray-700">Mensaje:</span><br />
-          {message}
-        </div>
-
-        <div className="flex gap-2">
+    <Modal
+      title="Consultar disponibilidad"
+      onClose={onClose}
+      footer={
+        <>
           <button
             onClick={onClose}
             className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -122,8 +94,36 @@ export function VehicleAvailabilityWhatsAppModal({
               Sin teléfono — @{ownerWhatsappUsername}
             </div>
           ) : null}
+        </>
+      }
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+          <MessageCircle size={20} className="text-brand-600" />
+        </div>
+        <div>
+          <p className="font-semibold text-gray-900 leading-tight">{vehicleLabel}</p>
+          {licensePlate && <p className="text-xs text-gray-400 font-mono">{licensePlate}</p>}
         </div>
       </div>
-    </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-brand-800">Fecha del evento</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full rounded-lg border border-brand-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
+        />
+        {date && (
+          <p className="text-xs text-gray-400 capitalize">{formatDateES(date)}</p>
+        )}
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 leading-relaxed">
+        <span className="font-medium text-gray-700">Mensaje:</span><br />
+        {message}
+      </div>
+    </Modal>
   );
 }

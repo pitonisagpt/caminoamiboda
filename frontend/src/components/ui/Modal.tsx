@@ -18,7 +18,14 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
-  footer: ReactNode;
+  // Optional (fila 50) — a form whose submit button lives inside its own
+  // <form> in children has no separate footer; omitting it skips the
+  // footer bar entirely instead of rendering an empty bordered strip.
+  footer?: ReactNode;
+  // Optional (fila 50) — a secondary header action (e.g. "Limpiar") next
+  // to the title, for callers whose header needs more than just the title
+  // + close button.
+  headerExtra?: ReactNode;
   size?: Size;
 }
 
@@ -37,7 +44,7 @@ interface ModalProps {
  * each different enough (sizes, existing backdrop/escape behavior) that
  * migrating them is a separate pass — see wishlist fila 50.
  */
-export function Modal({ title, onClose, children, footer, size = 'md' }: ModalProps) {
+export function Modal({ title, onClose, children, footer, headerExtra, size = 'md' }: ModalProps) {
   const [visible, setVisible] = useState(false);
 
   // Animated close (backdrop/Escape/X): fade+slide out, then unmount.
@@ -86,13 +93,18 @@ export function Modal({ title, onClose, children, footer, size = 'md' }: ModalPr
           </div>
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">{title}</h3>
-            <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 cursor-pointer" aria-label="Cerrar">
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-3">
+              {headerExtra}
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 cursor-pointer" aria-label="Cerrar">
+                <X size={18} />
+              </button>
+            </div>
           </div>
         </div>
         <div className="px-6 py-4 space-y-3 overflow-y-auto flex-1">{children}</div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 shrink-0">{footer}</div>
+        {footer && (
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 shrink-0">{footer}</div>
+        )}
       </div>
     </div>,
     document.body

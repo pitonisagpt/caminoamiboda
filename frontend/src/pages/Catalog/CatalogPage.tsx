@@ -6,6 +6,7 @@ import { vehiclesApi } from "../../api/vehicles";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
+import { Modal } from "../../components/ui/Modal";
 import { AvailabilityWidget } from "./AvailabilityWidget";
 import { InstagramGrid } from "./InstagramGrid";
 import { ParallaxHero } from "../../components/ParallaxHero";
@@ -687,48 +688,31 @@ export function CatalogPage() {
         </div>
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer (fila 50) — migrated to <Modal>, which already IS a
+          bottom sheet on mobile (the only width this ever opens at — its
+          one trigger is md:hidden, so Modal's centered-desktop mode is
+          never reached in practice). Gains Escape/swipe-to-dismiss/body-
+          scroll-lock it didn't have before. */}
       {mobileDrawerOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileDrawerOpen(false)}
-          />
-          {/* Drawer */}
-          <div className="relative bg-white rounded-t-2xl max-h-[85vh] flex flex-col">
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <p className="font-semibold text-gray-900">{t("catalog.filters")}</p>
-              <div className="flex items-center gap-3">
-                {activeFilterCount > 0 && (
-                  <button onClick={clearAll} className="text-sm text-brand-700 cursor-pointer">
-                    {t("catalog.clear")}
-                  </button>
-                )}
-                <button
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-            {/* Scrollable content */}
-            <div className="overflow-y-auto flex-1 px-5">
-              {sidebarContent}
-            </div>
-            {/* Footer CTA */}
-            <div className="px-5 py-4 border-t border-gray-100">
-              <button
-                onClick={() => setMobileDrawerOpen(false)}
-                className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer"
-              >
-                {t("catalog.seeVehicles", { count: filtered.length, plural: filtered.length !== 1 ? "s" : "" })}
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal
+          title={t("catalog.filters")}
+          onClose={() => setMobileDrawerOpen(false)}
+          headerExtra={activeFilterCount > 0 && (
+            <button onClick={clearAll} className="text-sm text-brand-700 cursor-pointer whitespace-nowrap">
+              {t("catalog.clear")}
+            </button>
+          )}
+          footer={
+            <button
+              onClick={() => setMobileDrawerOpen(false)}
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer"
+            >
+              {t("catalog.seeVehicles", { count: filtered.length, plural: filtered.length !== 1 ? "s" : "" })}
+            </button>
+          }
+        >
+          {sidebarContent}
+        </Modal>
       )}
 
       {selected && (
