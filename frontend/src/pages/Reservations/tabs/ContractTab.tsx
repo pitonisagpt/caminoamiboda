@@ -202,6 +202,38 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
 
   const isCompany = clientType === 'company';
 
+  // Reconciles the payment PLAN (this schedule) against what's actually
+  // been paid (fila 56) — Reservation.remaining_balance already nets out
+  // both cash payments and retención en la fuente (see the model), so
+  // total_amount - remaining_balance is exactly "how much of the client's
+  // obligation is discharged so far", no separate ReservationPayment fetch
+  // needed. A schedule line has no date or payment link of its own (it's a
+  // free-text plan, not a ledger) — the only thing that can be reconciled
+  // is cumulative amount, in display_order sequence: line 1 is "covered"
+  // first, then line 2, etc. Deliberately not validated to sum to 100%
+  // (fila 56 already decided that) — any shortfall/excess just saturates
+  // per line without special-casing.
+  const totalAmount = Number(reservation.total_amount);
+  const paidSoFar = totalAmount - Number(reservation.remaining_balance);
+  let cumulativeTarget = 0;
+  const scheduleWithStatus = [...scheduleItems]
+    .sort((a, b) => a.display_order - b.display_order)
+    .map(item => {
+      const targetAmount = item.percentage != null
+        ? (Number(item.percentage) / 100) * totalAmount
+        : Number(item.fixed_amount ?? 0);
+      const coveredOfThisItem = Math.max(0, Math.min(targetAmount, paidSoFar - cumulativeTarget));
+      cumulativeTarget += targetAmount;
+      const status: 'paid' | 'partial' | 'pending' =
+        targetAmount <= 0 || coveredOfThisItem >= targetAmount ? 'paid'
+        : coveredOfThisItem > 0 ? 'partial'
+        : 'pending';
+      return { ...item, targetAmount, coveredOfThisItem, status };
+    });
+  const planTotal = cumulativeTarget;
+  const planCovered = Math.min(paidSoFar, planTotal);
+  const planPct = planTotal > 0 ? Math.round((planCovered / planTotal) * 100) : 0;
+
   return (
     <div className="space-y-4">
       <LastUpdated date={contract.updated_at} className="justify-end" />
@@ -379,25 +411,54 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
         </p>
 
         {scheduleItems.length > 0 && (
-          <div className="space-y-1.5">
-            {scheduleItems.map(item => (
-              <div key={item.id} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                  <p className="text-xs text-gray-400">
-                    {item.percentage != null ? `${item.percentage}% del total` : formatCOP(item.fixed_amount ?? 0)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDeleteScheduleItem(item.id)}
-                  disabled={deletingItemId === item.id}
-                  className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {deletingItemId === item.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                </button>
+          <>
+            {/* Reconciliation summary — compares the plan against what's
+                actually been paid (reservation.total_amount/remaining_balance),
+                the manual comparison fila 56 flagged as still missing. */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500">Pagado {formatCOP(planCovered)} de {formatCOP(planTotal)} del plan</span>
+                <span className="font-semibold text-gray-600">{planPct}%</span>
               </div>
-            ))}
-          </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-brand-400 rounded-full transition-all"
+                  style={{ width: `${Math.min(planPct, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              {scheduleWithStatus.map(item => (
+                <div key={item.id} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.percentage != null ? `${item.percentage}% del total` : formatCOP(item.fixed_amount ?? 0)}
+                    </p>
+                  </div>
+                  {item.status === 'paid' && (
+                    <span className="text-xs font-medium text-green-600 whitespace-nowrap">✓ Pagado</span>
+                  )}
+                  {item.status === 'partial' && (
+                    <span className="text-xs font-medium text-amber-600 whitespace-nowrap">
+                      {formatCOP(item.coveredOfThisItem)} de {formatCOP(item.targetAmount)}
+                    </span>
+                  )}
+                  {item.status === 'pending' && (
+                    <span className="text-xs text-gray-400 whitespace-nowrap">Pendiente</span>
+                  )}
+                  <button
+                    onClick={() => handleDeleteScheduleItem(item.id)}
+                    disabled={deletingItemId === item.id}
+                    className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {deletingItemId === item.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {addingItem && (
