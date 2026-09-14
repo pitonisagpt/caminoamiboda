@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Car, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Star, Trash2, User } from 'lucide-react';
+import { Calendar, Car, Check, Copy, Download, FileText, Loader2, MessageCircle, Network, Paperclip, Sparkles, Star, Trash2, User } from 'lucide-react';
 import type { Reservation, ReservationStatus } from '../../../types/reservation';
 import { RESERVATION_STATUS_COLOR, RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../../types/reservation';
 import type { VehicleLocation } from '../../../types/vehicle';
@@ -49,6 +49,35 @@ function buildReviewMsg(name?: string | null): string {
   );
 }
 
+// Personalized catalog link (?fecha=&para=) — CatalogPage.tsx reads these,
+// applies them as a normal price unlock (same effect as filling
+// RevealPricesModal by hand), and greets the couple by name in the hero.
+// Query params only, same pattern already used for ?vehiculo= (share a
+// single vehicle) and ?use_case= (productions catalog) — no backend, no
+// token table. Built from data the reservation already has, so there's
+// nothing for ops to type.
+function buildPortfolioUrl(reservation: Reservation): string {
+  const url = new URL(`${window.location.origin}/catalogo`);
+  url.searchParams.set('fecha', reservation.event_date);
+  if (reservation.display_customer && reservation.display_customer !== '—') {
+    url.searchParams.set('para', reservation.display_customer);
+  }
+  return url.toString();
+}
+
+function buildPortfolioMsg(reservation: Reservation): string {
+  const firstName = reservation.display_customer && reservation.display_customer !== '—'
+    ? reservation.display_customer.split(' ')[0]
+    : '';
+  const fecha = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+  const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
+  return withSignature(
+    `${greeting} Aquí tienes nuestro portafolio completo de vehículos para tu boda del ${fecha}, con los precios ya actualizados para esa fecha:\n\n${buildPortfolioUrl(reservation)}\n\nCualquier duda, quedamos atentos.`
+  );
+}
+
 export default function InfoTab({
   reservation,
   onStatusChange,
@@ -65,6 +94,7 @@ export default function InfoTab({
   };
 
   const [waTarget, setWaTarget] = useState<AvailabilityTarget | null>(null);
+  const [portfolioCopied, setPortfolioCopied] = useState(false);
   const [attachments, setAttachments] = useState<ReservationAttachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -271,6 +301,45 @@ export default function InfoTab({
             </span></span>
           </div>
         )}
+      </div>
+
+      {/* Personalized portfolio link */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-brand-500" />
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Portafolio personalizado</h2>
+        </div>
+        <p className="text-sm text-gray-500">
+          Envíale a {reservation.display_customer} el catálogo completo, ya saludando por su nombre y con los precios actualizados para el {formatDate(reservation.event_date)}.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(buildPortfolioMsg(reservation));
+                setPortfolioCopied(true);
+                setTimeout(() => setPortfolioCopied(false), 2000);
+              } catch {
+                // Clipboard access denied/unavailable — nothing more we can do here.
+              }
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-brand-700 border border-brand-200 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+          >
+            {portfolioCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {portfolioCopied ? 'Copiado' : 'Copiar mensaje'}
+          </button>
+          {(reservation.customer_whatsapp || reservation.customer_phone) ? (
+            <a
+              href={buildWaUrl(reservation.customer_whatsapp || reservation.customer_phone, buildPortfolioMsg(reservation))}
+              {...whatsAppLinkProps()}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <MessageCircle className="w-3.5 h-3.5" /> Enviar por WhatsApp
+            </a>
+          ) : (
+            <span className="text-xs text-gray-400">Cliente sin teléfono para WhatsApp</span>
+          )}
+        </div>
       </div>
 
       {/* Review request */}

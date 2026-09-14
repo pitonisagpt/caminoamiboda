@@ -227,6 +227,8 @@ export const es = {
   "catalog.heroTitleProductions": "Producciones y Activaciones",
   "catalog.heroSubtitleWeddings": "Vehículos clásicos, vintage y modernos para hacer de tu boda un momento inolvidable en Medellín y el Oriente Antioqueño.",
   "catalog.heroSubtitleProductions": "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño — cotización por hora.",
+  "catalog.heroTitlePersonalized": "¡Hola, {{name}}!",
+  "catalog.heroSubtitlePersonalized": "Preparamos este catálogo especialmente para tu boda del {{fecha}} — los precios ya están actualizados para esa fecha.",
   "catalog.priceFrom": "Carros desde {{price}}",
   "catalog.priceFromHint": "Cuéntanos tu fecha para ver el precio estimado de cada vehículo.",
   "catalog.seePrices": "Ver precios",

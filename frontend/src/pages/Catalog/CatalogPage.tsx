@@ -14,7 +14,7 @@ import { FloristAllySection } from "./FloristAllySection";
 import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import type { VehicleCategory, PublicVehicleListItem } from "../../types/vehicle";
-import { getUnlock, clearUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { getUnlock, setUnlock, clearUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -248,6 +248,30 @@ export function CatalogPage() {
     return unlock ? priceForYear(base, unlock.weddingDate) : base;
   };
 
+  // Personalized link (?fecha=YYYY-MM-DD&para=Nombre) — generated from a
+  // reservation's Info tab so ops can send a couple a portfolio link
+  // already unlocked for their date, no form to fill on their end. Applies
+  // it exactly like RevealPricesModal's manual flow would (same
+  // localStorage-backed setUnlock), then strips the params so the couple's
+  // name/date doesn't linger in the address bar. Runs once on mount, same
+  // idiom as the ?vehiculo= deep link below. A link always overwrites any
+  // prior unlock in this browser — it's the most recent, most authoritative
+  // signal of what date to price for.
+  useEffect(() => {
+    const fechaParam = searchParams.get("fecha");
+    if (!fechaParam || !/^\d{4}-\d{2}-\d{2}$/.test(fechaParam)) return;
+    const paraParam = searchParams.get("para") ?? "";
+    setUnlock(fechaParam, paraParam, "");
+    setUnlockState(getUnlock());
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete("fecha");
+      next.delete("para");
+      return next;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Derive filters from URL — no useState, client-side filtering only
   const filters: Filters = {
     type: (searchParams.get("type") ?? "all") as Filters["type"],
@@ -471,6 +495,15 @@ export function CatalogPage() {
     />
   );
 
+  const unlockDateStr = unlock
+    ? new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString(lang === "en" ? "en-US" : "es-CO", { day: "numeric", month: "long", year: "numeric" })
+    : "";
+  // A personalized link (?para=...) gets the "llamativo al principio de la
+  // página" treatment straight in the hero headline, not just a banner
+  // further down — noPricing (productions catalog) is untouched on purpose,
+  // same isolation as the rest of that catalog's split from weddings.
+  const isPersonalized = !noPricing && !!unlock?.name;
+
   return (
     <>
       <Helmet>
@@ -504,8 +537,8 @@ export function CatalogPage() {
       </Helmet>
       <HreflangTags path="/catalogo" />
       <ParallaxHero
-        title={noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
-        subtitle={noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
+        title={isPersonalized ? t("catalog.heroTitlePersonalized", { name: unlock?.name ?? "" }) : noPricing ? t("catalog.heroTitleProductions") : t("catalog.heroTitleWeddings")}
+        subtitle={isPersonalized ? t("catalog.heroSubtitlePersonalized", { fecha: unlockDateStr }) : noPricing ? t("catalog.heroSubtitleProductions") : t("catalog.heroSubtitleWeddings")}
       >
         <div className="flex items-center justify-center gap-6 sm:gap-10 mt-6">
           <div className="text-center">
@@ -540,7 +573,7 @@ export function CatalogPage() {
             <div>
               <span className="text-gray-700 font-medium">
                 {t("catalog.estimatedPricesFor")}{" "}
-                {new Date(unlock.weddingDate + "T12:00:00").toLocaleDateString(lang === "en" ? "en-US" : "es-CO", { day: "numeric", month: "long", year: "numeric" })}
+                {unlockDateStr}
               </span>
               <p className="text-xs text-gray-500 mt-0.5">{t("catalog.priceHint")}</p>
             </div>

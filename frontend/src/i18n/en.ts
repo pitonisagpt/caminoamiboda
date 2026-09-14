@@ -228,6 +228,8 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.heroTitleProductions": "Productions & Brand Activations",
   "catalog.heroSubtitleWeddings": "Classic, vintage and modern vehicles to make your wedding an unforgettable moment in Medellín and Eastern Antioquia.",
   "catalog.heroSubtitleProductions": "Vehicles available for film productions and brand activations in Medellín and Eastern Antioquia — hourly quotes.",
+  "catalog.heroTitlePersonalized": "Hi, {{name}}!",
+  "catalog.heroSubtitlePersonalized": "We put together this catalog especially for your wedding on {{fecha}} — prices are already updated for that date.",
   "catalog.priceFrom": "Cars from {{price}}",
   "catalog.priceFromHint": "Tell us your date to see the estimated price for each vehicle.",
   "catalog.seePrices": "See prices",
