@@ -554,7 +554,7 @@ export function CatalogPage() {
       </ParallaxHero>
       <div className="space-y-8">
         {!noPricing && !unlock && !loading && !error && minPrice !== null && (
-          <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 sm:px-8 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
               <p className="text-sm font-semibold text-gray-900">{t("catalog.priceFrom", { price: formatCOP(minPrice) })}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t("catalog.priceFromHint")}</p>
@@ -569,7 +569,7 @@ export function CatalogPage() {
         )}
 
         {!noPricing && unlock && !loading && !error && (
-          <div className="flex items-center justify-between gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-2.5 text-sm">
+          <div className="flex items-center justify-between gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-2.5 sm:px-6 sm:py-4 text-sm">
             <div>
               <span className="text-gray-700 font-medium">
                 {t("catalog.estimatedPricesFor")}{" "}
