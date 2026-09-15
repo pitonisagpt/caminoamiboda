@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { Modal } from "./ui/Modal";
-import { whatsAppLinkProps } from "../utils/whatsapp";
+import { buildContactWaUrl, whatsAppLinkProps } from "../utils/whatsapp";
 import type { VehicleLocation } from "../types/vehicle";
 
 const LOCATION_LABEL: Record<VehicleLocation, string> = {
@@ -24,18 +24,12 @@ function formatDateES(iso: string): string {
 }
 
 // Some owner phone numbers came in via an old spreadsheet import that
-// coerced them to floats (e.g. "3001234567.0") — strip that artifact.
-// Vehicle owners are always local partners, so a bare 10-digit number
-// missing the Colombia country code is the only case that needs it added —
-// same 10-digit rule as the shared toWhatsAppUrl() in utils/whatsapp.ts
-// (fixed there for the real bug of corrupting already-international
-// customer numbers; kept consistent here even though owners are unlikely
-// to hit that case in practice).
-function toWhatsAppUrl(phone: string, message: string): string {
-  const cleaned = phone.replace(/\.0*$/, "").trim();
-  const digits = cleaned.replace(/\D/g, "");
-  const normalized = digits.length === 10 ? `57${digits}` : digits;
-  return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
+// coerced them to floats (e.g. "3001234567.0") — strip that artifact
+// before handing off to the shared buildContactWaUrl() (which already
+// applies the 10-digit Colombia-country-code rule, and now also falls
+// back to a wa.me/<username> link when there's no phone at all).
+function cleanOwnerPhone(phone: string | null): string | null {
+  return phone ? phone.replace(/\.0*$/, "").trim() : null;
 }
 
 interface Props {
@@ -70,6 +64,7 @@ export function VehicleAvailabilityWhatsAppModal({
   const locationLabel = location ? LOCATION_LABEL[location] : null;
 
   const message = `Hola! Te escribo de Camino a mi Boda. ¿Está disponible el ${color ? `${color} ` : ""}${vehicleLabel}${licensePlate ? ` (${licensePlate})` : ""}${locationLabel ? ` en ${locationLabel}` : ""} para el ${formatDateES(date)}?`;
+  const waUrl = buildContactWaUrl(cleanOwnerPhone(ownerContact), ownerWhatsappUsername, message);
 
   return (
     <Modal
@@ -83,9 +78,9 @@ export function VehicleAvailabilityWhatsAppModal({
           >
             Cancelar
           </button>
-          {ownerContact ? (
+          {waUrl ? (
             <a
-              href={toWhatsAppUrl(ownerContact, message)}
+              href={waUrl}
               {...whatsAppLinkProps()}
               onClick={onClose}
               className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold shadow-sm shadow-brand-500/25 hover:shadow-md hover:shadow-brand-500/30 transition-all active:scale-[0.98] cursor-pointer"
@@ -93,10 +88,6 @@ export function VehicleAvailabilityWhatsAppModal({
               <WhatsAppIcon className="w-4 h-4" />
               Abrir WhatsApp
             </a>
-          ) : ownerWhatsappUsername ? (
-            <div className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-500 text-sm">
-              Sin teléfono — @{ownerWhatsappUsername}
-            </div>
           ) : null}
         </>
       }

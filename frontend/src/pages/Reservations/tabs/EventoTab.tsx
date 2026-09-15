@@ -31,7 +31,7 @@ import type {
 } from '../../../types/timeline';
 import type { Reservation } from '../../../types/reservation';
 import type { CatalogLocation } from '../../../types/catalogLocation';
-import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 
@@ -868,12 +868,10 @@ export default function EventoTab({
                   {' '}<span className="text-gray-400 text-xs">(planeador)</span>
                 </span>
               </div>
-              {reservation.contact_phone ? (
-                <a href={`https://wa.me/${reservation.contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
+              {(reservation.contact_phone || reservation.contact_whatsapp_username) ? (
+                <a href={buildContactWaUrl(reservation.contact_phone, reservation.contact_whatsapp_username) ?? undefined} {...whatsAppLinkProps()}>
                   <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                 </a>
-              ) : reservation.contact_whatsapp_username ? (
-                <span className="text-xs text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">@{reservation.contact_whatsapp_username}</span>
               ) : null}
             </div>
           )}
@@ -927,17 +925,15 @@ export default function EventoTab({
                   <code className="block text-xs text-gray-500 truncate mt-0.5">/evento/{token}</code>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  {phone ? (
+                  {(phone || username) ? (
                     <a
-                      href={buildWaUrl(phone, waMsg)}
+                      href={buildContactWaUrl(phone, username, waMsg) ?? undefined}
                       {...whatsAppLinkProps()}
                       className="text-gray-400 hover:text-green-600 cursor-pointer"
                       title={`Enviar a ${label} por WhatsApp`}
                     >
                       <MessageCircle className="w-4 h-4" />
                     </a>
-                  ) : username ? (
-                    <span className="text-xs text-gray-400 self-center" title="Sin teléfono — buscar este usuario en WhatsApp">@{username}</span>
                   ) : null}
                   <button onClick={() => copyLink(token, label)} className="text-gray-400 hover:text-brand-500 cursor-pointer" title="Copiar enlace">
                     {copiedToken === label ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -1085,13 +1081,11 @@ export default function EventoTab({
                 {name && <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id} requireAdmin={requireAdmin}>{name}</EntityLink></span>}
                 {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
               </div>
-              {phone ? (
-                <a href={buildWaUrl(phone, buildFullMsg(timeline))} {...whatsAppLinkProps()}
+              {(phone || username) ? (
+                <a href={buildContactWaUrl(phone, username, buildFullMsg(timeline)) ?? undefined} {...whatsAppLinkProps()}
                   className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0">
                   <MessageCircle className="w-3.5 h-3.5" /> Enviar
                 </a>
-              ) : username ? (
-                <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
               ) : (
                 <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
               )}

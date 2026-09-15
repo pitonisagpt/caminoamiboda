@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { customersApi } from "../../api/customers";
 import { Button } from "../../components/ui/Button";
 import type { Customer } from "../../types/customer";
-import { toWhatsAppUrl, buildWaUrl, whatsAppLinkProps, openWhatsApp } from "../../utils/whatsapp";
+import { buildContactWaUrl, whatsAppLinkProps, openWhatsApp } from "../../utils/whatsapp";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -94,8 +94,8 @@ export function CustomerList() {
     setSendingId(c.id);
     try {
       const res = await customersApi.whatsappText(c.id);
-      const phone = c.whatsapp ?? c.phone;
-      openWhatsApp(buildWaUrl(phone, res.data.text));
+      const url = buildContactWaUrl(c.whatsapp ?? c.phone, c.whatsapp_username, res.data.text);
+      if (url) openWhatsApp(url);
     } finally {
       setSendingId(null);
     }
@@ -244,7 +244,7 @@ export function CustomerList() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        {c.lead_temperature && (c.whatsapp || c.phone) && (
+                        {c.lead_temperature && (c.whatsapp || c.phone || c.whatsapp_username) && (
                           <button
                             onClick={() => handleSendFollowUp(c)}
                             disabled={sendingId === c.id}
@@ -254,17 +254,15 @@ export function CustomerList() {
                             {sendingId === c.id ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                           </button>
                         )}
-                        {(c.whatsapp || c.phone) ? (
+                        {(c.whatsapp || c.phone || c.whatsapp_username) ? (
                           <a
-                            href={toWhatsAppUrl(c.whatsapp ?? c.phone, c.main_contact_name)}
+                            href={buildContactWaUrl(c.whatsapp ?? c.phone, c.whatsapp_username, `Hola ${c.main_contact_name}, soy de Camino a mi Boda.`) ?? undefined}
                             {...whatsAppLinkProps()}
                             className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                             title="WhatsApp"
                           >
                             <MessageCircle size={15} />
                           </a>
-                        ) : c.whatsapp_username ? (
-                          <span className="text-xs text-gray-400 px-2" title="Sin teléfono — buscar este usuario en WhatsApp">@{c.whatsapp_username}</span>
                         ) : null}
                         <button
                           onClick={() => navigate(`/clientes/editar/${c.id}`)}

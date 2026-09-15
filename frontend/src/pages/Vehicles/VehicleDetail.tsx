@@ -12,7 +12,7 @@ import { FilePreviewModal } from '../../components/FilePreviewModal';
 import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
-import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../utils/whatsapp';
 
 const LOCATION_LABEL: Record<string, string> = {
   medellin: 'Medellín',
@@ -158,17 +158,15 @@ export default function VehicleDetail() {
           <p className="text-sm text-brand-800">
             Un cliente preguntó por este vehículo para el <span className="font-semibold capitalize">{formatDateLong(fecha)}</span>.
           </p>
-          {vehicle.owner_contact ? (
+          {(vehicle.owner_contact || vehicle.owner_whatsapp_username) ? (
             <a
-              href={buildWaUrl(vehicle.owner_contact, buildAvailabilityCheckMsg(vehicle, fecha))}
+              href={buildContactWaUrl(vehicle.owner_contact, vehicle.owner_whatsapp_username, buildAvailabilityCheckMsg(vehicle, fecha)) ?? undefined}
               {...whatsAppLinkProps()}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer shrink-0"
             >
               <PhoneCall size={13} />
               Consultar disponibilidad con el propietario
             </a>
-          ) : vehicle.owner_whatsapp_username ? (
-            <span className="text-xs text-brand-700 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{vehicle.owner_whatsapp_username} · buscar en WhatsApp</span>
           ) : null}
         </div>
       )}
@@ -331,17 +329,15 @@ export default function VehicleDetail() {
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Eventos agendados</h2>
-            {bookings.length > 0 && (vehicle.owner_contact ? (
+            {bookings.length > 0 && ((vehicle.owner_contact || vehicle.owner_whatsapp_username) ? (
               <a
-                href={buildWaUrl(vehicle.owner_contact, buildBookingsMsg(vehicle, bookings))}
+                href={buildContactWaUrl(vehicle.owner_contact, vehicle.owner_whatsapp_username, buildBookingsMsg(vehicle, bookings)) ?? undefined}
                 {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer"
               >
                 <MessageCircle size={13} />
                 Enviar por WhatsApp al propietario
               </a>
-            ) : vehicle.owner_whatsapp_username ? (
-              <span className="text-xs text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">@{vehicle.owner_whatsapp_username} · buscar en WhatsApp</span>
             ) : null)}
           </div>
         </CardHeader>

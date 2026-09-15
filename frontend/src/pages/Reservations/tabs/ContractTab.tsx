@@ -4,7 +4,7 @@ import type { Reservation } from '../../../types/reservation';
 import type { ReservationContract, PaymentScheduleItem, ClientType, ClientIdType } from '../../../types/reservationContract';
 import { reservationsApi } from '../../../api/reservations';
 import { reservationContractsApi } from '../../../api/reservationContracts';
-import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
 
 function formatCOP(n: number) {
@@ -549,9 +549,9 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
             </button>
           )}
           {contract.pdf_path && (
-            whatsappPhone ? (
+            (whatsappPhone || reservation.customer_whatsapp_username) ? (
               <a
-                href={buildWaUrl(whatsappPhone, buildContractMsg(reservation, contract))}
+                href={buildContactWaUrl(whatsappPhone, reservation.customer_whatsapp_username, buildContractMsg(reservation, contract)) ?? undefined}
                 {...whatsAppLinkProps()}
                 onClick={handleContractSent}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors cursor-pointer"
@@ -564,7 +564,7 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
             )
           )}
         </div>
-        {contract.pdf_path && whatsappPhone && (
+        {contract.pdf_path && (whatsappPhone || reservation.customer_whatsapp_username) && (
           <p className="text-xs text-gray-400">Descarga el PDF y adjúntalo manualmente en el chat que se abre.</p>
         )}
       </div>

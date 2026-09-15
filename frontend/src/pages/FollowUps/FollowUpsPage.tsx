@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, Loader2, MessageCircle, Search
 import { followUpMessagesApi } from '../../api/followUpMessages';
 import { EntityLink } from '../../components/EntityLink';
 import type { FollowUpPanelEntry, WindowStatus } from '../../types/followUpMessage';
-import { buildWaUrl, whatsAppLinkProps, openWhatsApp } from '../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, openWhatsApp } from '../../utils/whatsapp';
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -72,7 +72,8 @@ export default function FollowUpsPage() {
   };
 
   const handleSend = async (entry: FollowUpPanelEntry, templateKey: string, text: string) => {
-    openWhatsApp(buildWaUrl(entry.phone, text));
+    const url = buildContactWaUrl(entry.phone, entry.whatsapp_username, text);
+    if (url) openWhatsApp(url);
     setBusyId(entry.reservation_id);
     try {
       const res = await followUpMessagesApi.markSent(entry.reservation_id, templateKey);
@@ -185,19 +186,15 @@ export default function FollowUpsPage() {
                       {entry.last_sent_at ? `Último enviado: ${formatDateTime(entry.last_sent_at)}` : 'Sin seguimientos enviados'}
                     </span>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge.className}`}>{badge.label}</span>
-                    {entry.phone ? (
+                    {(entry.phone || entry.whatsapp_username) ? (
                       <a
-                        href={buildWaUrl(entry.phone)}
+                        href={buildContactWaUrl(entry.phone, entry.whatsapp_username) ?? undefined}
                         {...whatsAppLinkProps()}
                         className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-green-600 cursor-pointer"
                         title="Abrir WhatsApp sin ningún mensaje prellenado"
                       >
                         <MessageCircle size={13} /> Abrir WhatsApp
                       </a>
-                    ) : entry.whatsapp_username ? (
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">
-                        <MessageCircle size={13} /> @{entry.whatsapp_username}
-                      </span>
                     ) : null}
                     <a
                       href={`/reservas/${entry.reservation_id}`}
@@ -253,7 +250,7 @@ export default function FollowUpsPage() {
                           deshacer
                         </button>
                       </div>
-                    ) : entry.phone ? (
+                    ) : (entry.phone || entry.whatsapp_username) ? (
                       <button
                         onClick={() => handleSend(entry, tpl.key, tpl.text)}
                         disabled={busy}
@@ -262,12 +259,9 @@ export default function FollowUpsPage() {
                         {busy ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
                         Enviar por WhatsApp
                       </button>
-                    ) : entry.whatsapp_username ? (
-                      <span className="text-xs text-gray-400" title="Sin teléfono — buscar este usuario en WhatsApp">
-                        @{entry.whatsapp_username} · buscar en WhatsApp
-                      </span>
-                    ) : null}
-                    {!entry.phone && !entry.whatsapp_username && <span className="text-xs text-gray-400">Sin teléfono registrado</span>}
+                    ) : (
+                      <span className="text-xs text-gray-400">Sin teléfono registrado</span>
+                    )}
                   </div>
                 </div>
               </div>

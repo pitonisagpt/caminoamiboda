@@ -34,27 +34,34 @@ export function buildWaUrl(phone: string | null | undefined, message?: string): 
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
-/** Builds a wa.me URL with a canned Spanish introduction message, prefixing
- * the Colombia country code (57) only for a bare 10-digit Colombian mobile
- * number missing it — used by the customer/driver/owner "greeting" WhatsApp
- * buttons in list pages. Customers in particular can be international (a
- * `startsWith("57")` check used to prepend "57" onto ANY number not already
- * starting with those two digits, corrupting an already-complete
- * international number — e.g. a US number stored as "+1 954 558 1734"
- * became the broken "5719545581734"). A 10-digit length is unambiguous for
- * this business's real data: a Colombian mobile number, with or without
- * the "+57", is never 10 digits once the country code is included. */
-export function toWhatsAppUrl(phone: string | null, name: string): string {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  const num = digits.length === 10 ? `57${digits}` : digits;
-  const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda.`);
-  return `https://wa.me/${num}?text=${msg}`;
+/** Builds a wa.me link from a phone number OR a WhatsApp username —
+ * prefers phone when both exist. WhatsApp's own wa.me/<username> public
+ * links (https://faq.whatsapp.com/1561101675623754) support the same
+ * ?text= prefill as phone links — confirmed against the real wa.me
+ * redirect (`curl -sI "https://wa.me/caminoamiboda?text=hola"` →
+ * `location: https://api.whatsapp.com/send/?text=hola&username=caminoamiboda&type=username...`,
+ * same shape as the phone case's `type=phone_number`, text carried
+ * through identically either way) — not just assumed from the FAQ.
+ * Returns null when neither exists, so callers still render their own
+ * final "sin contacto" fallback instead of a dead link. Used everywhere
+ * a contact might only have a WhatsApp username on file (no raw phone),
+ * replacing the old pattern of showing "@username — buscar en WhatsApp"
+ * as plain, unclickable text. */
+export function buildContactWaUrl(
+  phone: string | null | undefined,
+  username: string | null | undefined,
+  message?: string,
+): string | null {
+  if (phone) return buildWaUrl(phone, message);
+  const handle = username?.replace(/^@/, "").trim();
+  if (!handle) return null;
+  return message ? `https://wa.me/${handle}?text=${encodeURIComponent(message)}` : `https://wa.me/${handle}`;
 }
 
 /** Shared closing signature for substantive outbound WhatsApp messages the
  * company sends (cobro, contrato, minuto a minuto, reseña, etc.) — not for
- * one-line pings like toWhatsAppUrl above. Mirrors the Python copy in
+ * one-line pings like the canned greeting callers build with
+ * buildContactWaUrl above. Mirrors the Python copy in
  * backend/app/services/whatsapp_signature.py; keep both in sync. */
 export const WHATSAPP_SIGNATURE =
   "Camino a mi Boda\nInstagram: https://www.instagram.com/caminoamiboda\nWeb: https://caminoamiboda.com";

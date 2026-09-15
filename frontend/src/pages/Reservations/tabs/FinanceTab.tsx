@@ -16,7 +16,7 @@ import AddonPaymentLedger from './AddonPaymentLedger';
 import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
-import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
@@ -701,16 +701,14 @@ export default function FinanceTab({
             ].map(({ label, phone, username, recipientFirstName }) => (
               <div key={label} className="flex items-center justify-between gap-3">
                 <span className="text-xs text-gray-500">{label}</span>
-                {phone ? (
+                {(phone || username) ? (
                   <a
-                    href={buildWaUrl(phone, buildDetalleMsg(reservation, addons, recipientFirstName))}
+                    href={buildContactWaUrl(phone, username, buildDetalleMsg(reservation, addons, recipientFirstName)) ?? undefined}
                     {...whatsAppLinkProps()}
                     className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> Enviar por WhatsApp
                   </a>
-                ) : username ? (
-                  <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
                 ) : (
                   <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
                 )}
@@ -892,16 +890,14 @@ export default function FinanceTab({
               <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id}>{name}</EntityLink></span>
               {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
             </div>
-            {phone ? (
+            {(phone || username) ? (
               <a
-                href={buildWaUrl(phone, buildCobroMsg(reservation, payments, addons === 'loading' ? [] : addons, recipientFirstName))}
+                href={buildContactWaUrl(phone, username, buildCobroMsg(reservation, payments, addons === 'loading' ? [] : addons, recipientFirstName)) ?? undefined}
                 {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
               </a>
-            ) : username ? (
-              <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
             ) : (
               <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
             )}
@@ -1008,19 +1004,18 @@ export default function FinanceTab({
               </span>
               {reservation.owner_whatsapp && <span className="text-xs text-gray-400 ml-2">· {reservation.owner_whatsapp}</span>}
             </div>
-            {reservation.owner_whatsapp ? (
+            {(reservation.owner_whatsapp || reservation.owner_whatsapp_username) ? (
               <a
-                href={buildWaUrl(
+                href={buildContactWaUrl(
                   reservation.owner_whatsapp,
+                  reservation.owner_whatsapp_username,
                   buildOwnerMsg(reservation, primarySettlement, primarySettlementPayments, reservation.owner_name.split(' ')[0], retentionTotal, settlementBaseValue)
-                )}
+                ) ?? undefined}
                 {...whatsAppLinkProps()}
                 className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Enviar
               </a>
-            ) : reservation.owner_whatsapp_username ? (
-              <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{reservation.owner_whatsapp_username} · buscar en WhatsApp</span>
             ) : (
               <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
             )}

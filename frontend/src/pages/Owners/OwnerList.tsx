@@ -5,7 +5,7 @@ import { vehicleOwnersApi } from "../../api/vehicleOwners";
 import { vehiclesApi } from "../../api/vehicles";
 import { Button } from "../../components/ui/Button";
 import type { VehicleOwner } from "../../types/vehicleOwner";
-import { toWhatsAppUrl, whatsAppLinkProps } from "../../utils/whatsapp";
+import { buildContactWaUrl, whatsAppLinkProps } from "../../utils/whatsapp";
 
 type SortKey = "full_name" | "identification_number" | "phone" | "vehicle_count";
 
@@ -178,17 +178,15 @@ export function OwnerList() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        {(o.whatsapp || o.phone) ? (
+                        {(o.whatsapp || o.phone || o.whatsapp_username) ? (
                           <a
-                            href={toWhatsAppUrl(o.whatsapp ?? o.phone, o.full_name)}
+                            href={buildContactWaUrl(o.whatsapp ?? o.phone, o.whatsapp_username, `Hola ${o.full_name}, soy de Camino a mi Boda.`) ?? undefined}
                             {...whatsAppLinkProps()}
                             className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                             title="WhatsApp"
                           >
                             <MessageCircle size={15} />
                           </a>
-                        ) : o.whatsapp_username ? (
-                          <span className="text-xs text-gray-400 px-2" title="Sin teléfono — buscar este usuario en WhatsApp">@{o.whatsapp_username}</span>
                         ) : null}
                         <button
                           onClick={() => navigate(`/propietarios/editar/${o.id}`)}

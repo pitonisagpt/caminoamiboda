@@ -9,7 +9,7 @@ import { Dropzone } from '../../../components/ui/Dropzone';
 import { VehicleAvailabilityWhatsAppModal } from '../../../components/VehicleAvailabilityWhatsAppModal';
 import { reservationAttachmentsApi } from '../../../api/reservationAttachments';
 import type { AttachmentCategory, ReservationAttachment } from '../../../types/reservationAttachment';
-import { buildWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 import LastUpdated from '../../../components/ui/LastUpdated';
 
@@ -328,9 +328,9 @@ export default function InfoTab({
             {portfolioCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             {portfolioCopied ? 'Copiado' : 'Copiar mensaje'}
           </button>
-          {(reservation.customer_whatsapp || reservation.customer_phone) ? (
+          {(reservation.customer_whatsapp || reservation.customer_phone || reservation.customer_whatsapp_username) ? (
             <a
-              href={buildWaUrl(reservation.customer_whatsapp || reservation.customer_phone, buildPortfolioMsg(reservation))}
+              href={buildContactWaUrl(reservation.customer_whatsapp || reservation.customer_phone, reservation.customer_whatsapp_username, buildPortfolioMsg(reservation)) ?? undefined}
               {...whatsAppLinkProps()}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors"
             >
@@ -362,16 +362,14 @@ export default function InfoTab({
                   <span className="text-sm text-gray-500 ml-2"><EntityLink to={to} id={id}>{name}</EntityLink></span>
                   {phone && <span className="text-xs text-gray-400 ml-2">· {phone}</span>}
                 </div>
-                {phone ? (
+                {(phone || username) ? (
                   <a
-                    href={buildWaUrl(phone, buildReviewMsg(name))}
+                    href={buildContactWaUrl(phone, username, buildReviewMsg(name)) ?? undefined}
                     {...whatsAppLinkProps()}
                     className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> Enviar
                   </a>
-                ) : username ? (
-                  <span className="text-xs text-gray-400 shrink-0" title="Sin teléfono — buscar este usuario en WhatsApp">@{username} · buscar en WhatsApp</span>
                 ) : (
                   <span className="text-xs text-gray-400 shrink-0">Sin teléfono</span>
                 )}

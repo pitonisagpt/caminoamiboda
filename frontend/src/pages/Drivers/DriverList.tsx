@@ -5,7 +5,7 @@ import { driversApi } from "../../api/drivers";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import type { Driver } from "../../types/driver";
-import { toWhatsAppUrl, whatsAppLinkProps } from "../../utils/whatsapp";
+import { buildContactWaUrl, whatsAppLinkProps } from "../../utils/whatsapp";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -172,17 +172,15 @@ export function DriverList() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 justify-end">
-                          {(d.whatsapp || d.phone) ? (
+                          {(d.whatsapp || d.phone || d.whatsapp_username) ? (
                             <a
-                              href={toWhatsAppUrl(d.whatsapp ?? d.phone, d.full_name)}
+                              href={buildContactWaUrl(d.whatsapp ?? d.phone, d.whatsapp_username, `Hola ${d.full_name}, soy de Camino a mi Boda.`) ?? undefined}
                               {...whatsAppLinkProps()}
                               className="p-2 rounded-lg text-green-500 hover:bg-green-50 transition-colors cursor-pointer"
                               title="WhatsApp"
                             >
                               <MessageCircle size={15} />
                             </a>
-                          ) : d.whatsapp_username ? (
-                            <span className="text-xs text-gray-400 px-2" title="Sin teléfono — buscar este usuario en WhatsApp">@{d.whatsapp_username}</span>
                           ) : null}
                           <button
                             onClick={() => navigate(`/conductores/editar/${d.id}`)}
