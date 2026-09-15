@@ -129,7 +129,12 @@ export function PublicLayout() {
             </a>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="xl:hidden p-2 text-gray-500 hover:text-brand-600 cursor-pointer"
+              // p-3 (not p-2) so the 22px icon clears the 44x44 minimum
+              // touch target (measured 38x38 at p-2 — under both Apple
+              // HIG's 44pt and Material's 48dp minimums) on every public
+              // page that shares this header, including the mobile
+              // /evento/{token} share view.
+              className="xl:hidden p-3 text-gray-500 hover:text-brand-600 cursor-pointer"
               aria-label={t("layout.mobileMenuAria")}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}

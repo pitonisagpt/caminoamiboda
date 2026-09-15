@@ -105,7 +105,11 @@ export function Layout() {
         <button
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir menú"
-          className="p-2 rounded-lg text-gray-500 hover:bg-brand-50 cursor-pointer transition-colors"
+          // p-3 (not p-2) — same fix as the public site's mobile menu
+          // button: at p-2 this measured 38x38, under the 44x44 minimum
+          // touch target (Apple HIG / Material). Header is h-14 (56px),
+          // plenty of room.
+          className="p-3 rounded-lg text-gray-500 hover:bg-brand-50 cursor-pointer transition-colors"
         >
           <Menu size={22} />
         </button>

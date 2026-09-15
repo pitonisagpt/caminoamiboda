@@ -773,11 +773,11 @@ export default function EventoTab({
         <LastUpdated date={timeline.updated_at} className="justify-end -mt-1 mb-2" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {timeline.main_contact_name && (
-            <div className="flex items-center gap-2 text-gray-700">
+            <div className="flex items-center gap-2 text-gray-700 min-w-0">
               <User className="w-4 h-4 text-gray-400 shrink-0" />
-              <span>{timeline.main_contact_name}</span>
+              <span className="truncate">{timeline.main_contact_name}</span>
               {timeline.main_contact_phone && (
-                <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="ml-auto">
+                <a href={`https://wa.me/${timeline.main_contact_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="ml-auto shrink-0">
                   <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                 </a>
               )}
@@ -785,7 +785,13 @@ export default function EventoTab({
           )}
           {reservation.vehicles.length > 0 ? (
             reservation.vehicles.map(v => (
-              <div key={v.id} className="flex items-center justify-between">
+              // min-w-0 on the grid item itself, not just the inner flex
+              // child below — a CSS grid item's default min-width is
+              // `auto` (refuses to shrink below content), so the inner
+              // `truncate` had nothing to truncate against and a long
+              // vehicle+driver name still pushed 43px past the viewport
+              // at 375px (wishlist fila 49).
+              <div key={v.id} className="flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-2 text-gray-700 min-w-0">
                   {v.photo_url ? (
                     <VehiclePhotoTooltip
@@ -820,7 +826,7 @@ export default function EventoTab({
           ) : (
             <>
               {timeline.assigned_vehicle && (
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 text-gray-700 min-w-0">
                   {reservation.vehicle_photo_url ? (
                     <VehiclePhotoTooltip
                       photoUrl={reservation.vehicle_photo_url}
@@ -837,21 +843,26 @@ export default function EventoTab({
                   ) : (
                     <Car className="w-4 h-4 text-gray-400 shrink-0" />
                   )}
-                  <span>
+                  <span className="truncate">
                     <EntityLink to={`/vehiculos/${reservation.vehicle_id}`} id={reservation.vehicle_id}>{timeline.assigned_vehicle}</EntityLink>
                   </span>
                 </div>
               )}
               {timeline.assigned_driver && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center justify-between gap-2">
+                  {/* min-w-0 + truncate, matching the multi-vehicle branch
+                      above — this single-vehicle fallback was missing both,
+                      so a long driver name (e.g. "Juan Camilo Yepes" +
+                      " (conductor)") pushed the row 43px past the viewport
+                      at 375px (wishlist fila 49). */}
+                  <div className="flex items-center gap-2 text-gray-700 min-w-0">
                     <User className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span>
+                    <span className="truncate">
                       <DriverLink driverId={reservation.driver_id} ownerDriverId={reservation.owner_driver_id}>{timeline.assigned_driver}</DriverLink> (conductor)
                     </span>
                   </div>
                   {timeline.assigned_driver_phone && (
-                    <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()}>
+                    <a href={`https://wa.me/${timeline.assigned_driver_phone.replace(/\D/g, '')}`} {...whatsAppLinkProps()} className="shrink-0">
                       <Phone className="w-4 h-4 text-green-500 hover:text-green-600 cursor-pointer" />
                     </a>
                   )}

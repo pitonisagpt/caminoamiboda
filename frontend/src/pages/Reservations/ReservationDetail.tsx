@@ -104,12 +104,19 @@ export default function ReservationDetail() {
     <div className="max-w-3xl mx-auto space-y-4">
       {gcalToast && <Toast message={gcalToast.message} variant={gcalToast.variant} onDismiss={dismissGcalToast} />}
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <button onClick={() => navigate('/reservas')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+      {/* flex-wrap + min-w-0 on the title block: with a long couple name,
+          the status badge(s), and the advance/edit/delete buttons all
+          shrink-0, the row otherwise overflows past the viewport on
+          mobile (measured 20px past 375px on reservation 393 — a real
+          instance of wishlist fila 49's "íconos salidos", not just the
+          EventoTab.tsx case already fixed) — buttons wrap to their own
+          line instead of forcing the row wider than the screen. */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-start gap-3 min-w-0">
+          <button onClick={() => navigate('/reservas')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold text-gray-900">{reservation.display_customer}</h1>
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RESERVATION_STATUS_COLOR[reservation.status]}`}>
