@@ -53,7 +53,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
     try {
       await publicLeadsApi.create({
         main_contact_name: name,
-        phone,
+        contact: phone,
         wedding_date: weddingDate,
         found_via: "Catálogo (reveló precios)",
         consent_accepted: consent,
@@ -101,11 +101,12 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
         />
         <Input
           label={t("leadCapture.whatsappLabel")}
-          type="tel"
+          type="text"
           required
           value={phone}
           onChange={e => setPhone(e.target.value)}
           placeholder={t("contacto.placeholderPhone")}
+          hint={t("leadCapture.contactHint")}
         />
         <Input
           label={t("leadCapture.dateLabel")}

@@ -85,7 +85,7 @@ export const en: Record<keyof typeof es, string> = {
   "contacto.labelName": "Contact name",
   "contacto.placeholderName": "What's your name?",
   "contacto.labelPhone": "Phone / WhatsApp",
-  "contacto.placeholderPhone": "300 000 0000",
+  "contacto.placeholderPhone": "+57 300 000 0000",
   "contacto.labelEmail": "Email",
   "contacto.placeholderEmail": "you@email.com",
   "contacto.labelDate": "Event date",
@@ -330,7 +330,8 @@ export const en: Record<keyof typeof es, string> = {
 
   // Lead-capture form — shared copy
   "leadCapture.nameLabel": "Name",
-  "leadCapture.whatsappLabel": "WhatsApp",
+  "leadCapture.whatsappLabel": "Phone or WhatsApp",
+  "leadCapture.contactHint": "If you're outside Colombia, include your country code (+1, +34, etc.). You can also enter your WhatsApp username instead.",
   "leadCapture.dateLabel": "Wedding date",
   "leadCapture.dateLabelOptional": "Wedding date (optional)",
   "leadCapture.errorGeneric": "Something went wrong. Please try again or message us on WhatsApp.",

@@ -9,6 +9,7 @@ from app.core.privacy_policy import PRIVACY_POLICY_VERSION
 from app.database import get_db
 from app.models.customer import Customer
 from app.models.reservation import Reservation, ReservationStatus
+from app.schemas._validation import is_whatsapp_username
 from app.schemas.public_lead import PublicLeadCreate, PublicLeadResponse
 from app.services.email_service import send_new_lead_email
 
@@ -21,14 +22,22 @@ def _digits(s: str | None) -> str:
     return "".join(ch for ch in (s or "") if ch.isdigit())
 
 
-def _find_existing(db: Session, phone_digits: str) -> Customer | None:
-    if not phone_digits:
-        return None
-    for c in db.query(Customer).filter(
-        (Customer.phone.isnot(None)) | (Customer.whatsapp.isnot(None))
-    ):
-        if _digits(c.phone) == phone_digits or _digits(c.whatsapp) == phone_digits:
-            return c
+def _find_existing(db: Session, phone_digits: str, whatsapp_username: str | None) -> Customer | None:
+    if phone_digits:
+        for c in db.query(Customer).filter(
+            (Customer.phone.isnot(None)) | (Customer.whatsapp.isnot(None))
+        ):
+            if _digits(c.phone) == phone_digits or _digits(c.whatsapp) == phone_digits:
+                return c
+    if whatsapp_username:
+        existing = (
+            db.query(Customer)
+            .filter(Customer.whatsapp_username.isnot(None))
+            .filter(Customer.whatsapp_username.ilike(whatsapp_username))
+            .first()
+        )
+        if existing:
+            return existing
     return None
 
 
@@ -69,7 +78,11 @@ def create_public_lead(request: Request, body: PublicLeadCreate, background_task
 
     now = datetime.now(timezone.utc)
     ip = get_remote_address(request)
-    phone_digits = _digits(body.phone)
+    if is_whatsapp_username(body.contact):
+        phone, whatsapp_username = None, body.contact
+    else:
+        phone, whatsapp_username = body.contact, None
+    phone_digits = _digits(phone)
 
     note_line = (
         f"[{now.strftime('%Y-%m-%d %H:%M')}] Formulario web"
@@ -77,11 +90,16 @@ def create_public_lead(request: Request, body: PublicLeadCreate, background_task
         + (f" Mensaje: {body.message}" if body.message else "")
     )
 
-    existing = _find_existing(db, phone_digits)
+    existing = _find_existing(db, phone_digits, whatsapp_username)
     if existing:
         existing.consent_accepted_at = now
         existing.consent_ip = ip
         existing.consent_policy_version = PRIVACY_POLICY_VERSION
+        if not existing.phone and phone:
+            existing.phone = phone
+            existing.whatsapp = phone
+        if not existing.whatsapp_username and whatsapp_username:
+            existing.whatsapp_username = whatsapp_username
         if not existing.email and body.email:
             existing.email = body.email
         if not existing.wedding_date and body.wedding_date:
@@ -97,8 +115,9 @@ def create_public_lead(request: Request, body: PublicLeadCreate, background_task
     else:
         customer = Customer(
             main_contact_name=body.main_contact_name,
-            phone=body.phone,
-            whatsapp=body.phone,
+            phone=phone,
+            whatsapp=phone,
+            whatsapp_username=whatsapp_username,
             email=body.email,
             wedding_date=body.wedding_date,
             bride_name=body.bride_name,

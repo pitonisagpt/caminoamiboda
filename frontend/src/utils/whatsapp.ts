@@ -34,13 +34,20 @@ export function buildWaUrl(phone: string | null | undefined, message?: string): 
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
-/** Builds a wa.me URL with a canned Spanish introduction message, forcing
- * the Colombia country code (57) prefix if missing — used by the
- * customer/driver/owner "greeting" WhatsApp buttons in list pages. */
+/** Builds a wa.me URL with a canned Spanish introduction message, prefixing
+ * the Colombia country code (57) only for a bare 10-digit Colombian mobile
+ * number missing it — used by the customer/driver/owner "greeting" WhatsApp
+ * buttons in list pages. Customers in particular can be international (a
+ * `startsWith("57")` check used to prepend "57" onto ANY number not already
+ * starting with those two digits, corrupting an already-complete
+ * international number — e.g. a US number stored as "+1 954 558 1734"
+ * became the broken "5719545581734"). A 10-digit length is unambiguous for
+ * this business's real data: a Colombian mobile number, with or without
+ * the "+57", is never 10 digits once the country code is included. */
 export function toWhatsAppUrl(phone: string | null, name: string): string {
   if (!phone) return "";
   const digits = phone.replace(/\D/g, "");
-  const num = digits.startsWith("57") ? digits : `57${digits}`;
+  const num = digits.length === 10 ? `57${digits}` : digits;
   const msg = encodeURIComponent(`Hola ${name}, soy de Camino a mi Boda.`);
   return `https://wa.me/${num}?text=${msg}`;
 }

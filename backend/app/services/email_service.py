@@ -37,7 +37,7 @@ def send_new_lead_email(
         f"{'Cliente nuevo' if is_new_customer else 'Cliente existente'} — vía formulario web.",
         "",
         f"Nombre: {body.main_contact_name}",
-        f"Teléfono: {body.phone}",
+        f"Teléfono/WhatsApp: {body.contact}",
     ]
     if body.email:
         lines.append(f"Email: {body.email}")

@@ -24,13 +24,17 @@ function formatDateES(iso: string): string {
 }
 
 // Some owner phone numbers came in via an old spreadsheet import that
-// coerced them to floats (e.g. "3001234567.0") — strip that artifact and
-// enforce the Colombia country code, same normalization VehicleList.tsx
-// already relied on before this modal was extracted from it.
+// coerced them to floats (e.g. "3001234567.0") — strip that artifact.
+// Vehicle owners are always local partners, so a bare 10-digit number
+// missing the Colombia country code is the only case that needs it added —
+// same 10-digit rule as the shared toWhatsAppUrl() in utils/whatsapp.ts
+// (fixed there for the real bug of corrupting already-international
+// customer numbers; kept consistent here even though owners are unlikely
+// to hit that case in practice).
 function toWhatsAppUrl(phone: string, message: string): string {
   const cleaned = phone.replace(/\.0*$/, "").trim();
   const digits = cleaned.replace(/\D/g, "");
-  const normalized = digits.startsWith("57") ? digits : `57${digits}`;
+  const normalized = digits.length === 10 ? `57${digits}` : digits;
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
 }
 

@@ -39,7 +39,7 @@ export function AiLeadCaptureCard({ onClose, onSaved }: Props) {
     try {
       await publicLeadsApi.create({
         main_contact_name: name,
-        phone,
+        contact: phone,
         wedding_date: weddingDate || undefined,
         found_via: "Asistente virtual (chat)",
         consent_accepted: consent,
@@ -73,7 +73,7 @@ export function AiLeadCaptureCard({ onClose, onSaved }: Props) {
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
         <Input label={t("leadCapture.nameLabel")} required value={name} onChange={e => setName(e.target.value)} placeholder={t("contacto.placeholderName")} />
-        <Input label={t("leadCapture.whatsappLabel")} type="tel" required value={phone} onChange={e => setPhone(e.target.value)} placeholder={t("contacto.placeholderPhone")} />
+        <Input label={t("leadCapture.whatsappLabel")} type="text" required value={phone} onChange={e => setPhone(e.target.value)} placeholder={t("contacto.placeholderPhone")} hint={t("leadCapture.contactHint")} />
         <Input label={t("leadCapture.dateLabelOptional")} type="date" value={weddingDate} onChange={e => setWeddingDate(e.target.value)} />
 
         {/* Honeypot — hidden from real users, off-screen (not display:none) */}

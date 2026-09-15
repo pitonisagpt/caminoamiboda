@@ -84,7 +84,7 @@ export const es = {
   "contacto.labelName": "Nombre de contacto",
   "contacto.placeholderName": "¿Cómo te llamas?",
   "contacto.labelPhone": "Teléfono / WhatsApp",
-  "contacto.placeholderPhone": "300 000 0000",
+  "contacto.placeholderPhone": "+57 300 000 0000",
   "contacto.labelEmail": "Email",
   "contacto.placeholderEmail": "tu@correo.com",
   "contacto.labelDate": "Fecha del evento",
@@ -333,7 +333,8 @@ export const es = {
   // of duplicated per file, same reasoning as the shared quick-create
   // modals elsewhere in the app).
   "leadCapture.nameLabel": "Nombre",
-  "leadCapture.whatsappLabel": "WhatsApp",
+  "leadCapture.whatsappLabel": "Teléfono o WhatsApp",
+  "leadCapture.contactHint": "Si eres de otro país, incluye el código (+1, +34, etc.). También puedes escribir tu usuario de WhatsApp.",
   "leadCapture.dateLabel": "Fecha de la boda",
   "leadCapture.dateLabelOptional": "Fecha de la boda (opcional)",
   "leadCapture.errorGeneric": "Ocurrió un error. Intenta de nuevo o escríbenos por WhatsApp.",

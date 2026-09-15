@@ -27,3 +27,11 @@ def validate_phone_or_none(v: Optional[str]) -> Optional[str]:
     if digit_count < 7 or digit_count > 15:
         raise ValueError("Número de teléfono inválido")
     return normalized
+
+
+def is_whatsapp_username(v: str) -> bool:
+    """A phone number never contains a letter — used to tell a WhatsApp
+    username (e.g. "juan.perez") apart from a phone number in a single
+    shared "contact" field (see PublicLeadCreate), before the phone-shaped
+    branch runs through validate_phone_or_none above."""
+    return bool(re.search(r"[a-zA-Z]", v))

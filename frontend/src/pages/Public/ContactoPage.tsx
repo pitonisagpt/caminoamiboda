@@ -78,7 +78,7 @@ export default function ContactoPage() {
     try {
       await publicLeadsApi.create({
         main_contact_name: form.main_contact_name,
-        phone: form.phone,
+        contact: form.phone,
         email: form.email || undefined,
         wedding_date: form.wedding_date || undefined,
         bride_name: form.bride_name || undefined,
@@ -144,11 +144,12 @@ export default function ContactoPage() {
               />
               <Input
                 label={t("contacto.labelPhone")}
-                type="tel"
+                type="text"
                 required
                 value={form.phone}
                 onChange={e => set("phone", e.target.value)}
                 placeholder={t("contacto.placeholderPhone")}
+                hint={t("leadCapture.contactHint")}
               />
               <Input
                 label={t("contacto.labelEmail")}
