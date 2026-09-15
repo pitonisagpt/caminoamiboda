@@ -231,7 +231,13 @@ export default function EventoPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-700">
                 <User className="w-4 h-4 text-gray-400" />
-                <span className="text-sm">{event.assigned_driver} · Conductor</span>
+                {/* First name only — never the driver's last name on this
+                    public, forwardable link (feedback_patterns memory):
+                    the business doesn't want planners/venue staff able to
+                    identify and re-contact a specific driver directly,
+                    cutting Camino a mi Boda out as the middleman. Same rule
+                    already applied to timeline_pdf.html. */}
+                <span className="text-sm">{event.assigned_driver.split(' ')[0]} · Conductor</span>
               </div>
               {event.assigned_driver_phone && (
                 <a
