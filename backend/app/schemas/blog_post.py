@@ -28,6 +28,12 @@ class BlogPostUpdate(BaseModel):
     content_md_en: Optional[str] = None
     cover_image_url: Optional[str] = None
     published: Optional[bool] = None
+    # Lets an admin backdate/schedule a post — e.g. spreading out a batch of
+    # posts published the same day so the blog shows a real cadence instead
+    # of one burst. update_post() in routers/blog.py only auto-fills
+    # published_at when it's still empty, so an explicit value here is
+    # never overwritten.
+    published_at: Optional[datetime] = None
 
 
 class BlogPostRead(BaseModel):
