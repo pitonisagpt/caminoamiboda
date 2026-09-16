@@ -34,6 +34,38 @@ export function buildWaUrl(phone: string | null | undefined, message?: string): 
   return num ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 }
 
+/** Strips invisible Unicode formatting characters (zero-width spaces/
+ * joiners, bidi marks and isolates, BOM) that occasionally sneak into a
+ * pasted WhatsApp username — e.g. copying a handle out of WhatsApp itself
+ * can carry a trailing U+2069 (POP DIRECTIONAL ISOLATE). `.trim()` doesn't
+ * touch these (they aren't Unicode whitespace), so a username like
+ * "JARV94" + U+2069 looked completely normal everywhere in the UI (the
+ * character is invisible) but broke the actual wa.me link — WhatsApp's
+ * resolver has no account matching the literal string including that
+ * character, so the link 404s
+ * (`api.whatsapp.com/resolve/?...&not_found=1`). Found via a real broken
+ * link on reservation 483.
+ * Ranges: U+200B-200F (zero-width space/non-joiner/joiner, LTR/RTL marks),
+ * U+202A-202E (deprecated bidi embedding/override controls), U+2060-2069
+ * (word joiner, invisible math operators, bidi isolates — includes the
+ * U+2069 from the actual bug), U+FEFF (zero-width no-break space / BOM). */
+function stripInvisibleChars(s: string): string {
+  // Checked by numeric code point on purpose, not a regex character class —
+  // embedding the actual invisible characters (or their \u escapes) in this
+  // file's source is exactly the kind of silent, hard-to-review mistake
+  // that caused the bug in the first place.
+  const BOM = 0xfeff;
+  return Array.from(s)
+    .filter((ch) => {
+      const code = ch.codePointAt(0) as number;
+      const zeroWidthOrBidiMark = code >= 0x200b && code <= 0x200f; // zero-width space/non-joiner/joiner, LTR/RTL marks
+      const bidiEmbeddingOrOverride = code >= 0x202a && code <= 0x202e; // deprecated LRE/RLE/PDF/LRO/RLO
+      const wordJoinerOrBidiIsolate = code >= 0x2060 && code <= 0x2069; // word joiner, invisible math ops, LRI/RLI/FSI/PDI
+      return !(zeroWidthOrBidiMark || bidiEmbeddingOrOverride || wordJoinerOrBidiIsolate || code === BOM);
+    })
+    .join("");
+}
+
 /** Builds a wa.me link from a phone number OR a WhatsApp username —
  * prefers phone when both exist. WhatsApp's own wa.me/<username> public
  * links (https://faq.whatsapp.com/1561101675623754) support the same
@@ -53,7 +85,7 @@ export function buildContactWaUrl(
   message?: string,
 ): string | null {
   if (phone) return buildWaUrl(phone, message);
-  const handle = username?.replace(/^@/, "").trim();
+  const handle = stripInvisibleChars(username?.replace(/^@/, "").trim() ?? "");
   if (!handle) return null;
   return message ? `https://wa.me/${handle}?text=${encodeURIComponent(message)}` : `https://wa.me/${handle}`;
 }
