@@ -30,6 +30,7 @@ import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
 import CondicionesServicioPage from "./pages/Public/CondicionesServicioPage";
 import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
+import VehicleDetailPage from "./pages/Public/VehicleDetailPage";
 import NotFoundPage from "./pages/Public/NotFoundPage";
 import QuoteList from "./pages/Quotes/QuoteList";
 import QuoteForm from "./pages/Quotes/QuoteForm";
@@ -65,6 +66,10 @@ const PUBLIC_SITE_ROUTES: { path: string; element: JSX.Element }[] = [
   // isn't flagged as duplicate content.
   { path: "", element: <CatalogPage /> },
   { path: "catalogo", element: <CatalogPage /> },
+  // Per-vehicle SEO landing page (id-prefixed slug, no DB migration
+  // needed — see utils/slug.ts). Mirrored to /en/carros/:idSlug
+  // automatically same as every other entry in this array.
+  { path: "carros/:idSlug", element: <VehicleDetailPage /> },
   { path: "como-funciona", element: <ComoFuncionaPage /> },
   { path: "blog", element: <BlogListPage /> },
   { path: "blog/:slug", element: <BlogPostPage /> },

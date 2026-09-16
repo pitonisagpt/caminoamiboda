@@ -373,6 +373,14 @@ export const es = {
   "catalog.waAvailabilityMessageDate": " para el {{date}}",
   "catalog.waAvailabilityMessageCode": "Código: {{sku}}",
   "catalog.waAvailabilityMessageLink": "Ver vehículo: {{link}}",
+
+  // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
+  "vehiclePage.backToCatalog": "Volver al catálogo",
+  "vehiclePage.reviews": "Reseñas",
+  // Same copy as worker.ts's vehicleDescription() fallback, so the
+  // crawler-bot OG description and the real page's own meta description
+  // never contradict each other for the same vehicle.
+  "vehiclePage.fallbackDescription": "{{vehicle}} — vehículo disponible para bodas y eventos en Medellín y el Oriente Antioqueño. Consulta disponibilidad y precio por WhatsApp.",
 } as const;
 
 export type TranslationKey = keyof typeof es;

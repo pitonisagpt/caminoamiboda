@@ -369,4 +369,9 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.waAvailabilityMessageDate": " for {{date}}",
   "catalog.waAvailabilityMessageCode": "Code: {{sku}}",
   "catalog.waAvailabilityMessageLink": "View vehicle: {{link}}",
+
+  // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
+  "vehiclePage.backToCatalog": "Back to catalog",
+  "vehiclePage.reviews": "Reviews",
+  "vehiclePage.fallbackDescription": "{{vehicle}} — vehicle available for weddings and events in Medellín and Eastern Antioquia. Check availability and pricing on WhatsApp.",
 };

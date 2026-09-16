@@ -1,20 +1,23 @@
 /**
  * Cloudflare Worker — injects per-vehicle Open Graph / Twitter Card meta
- * tags into the SPA shell's <head>, but ONLY for requests to /catalogo or
- * /en/catalogo with a ?vehiculo=<id> param AND a known link-preview-bot
- * User-Agent (WhatsApp, Facebook, Twitter, LinkedIn, Slack, Telegram,
- * Discord, Skype, Pinterest, reddit). Every other request — real visitors,
- * any other path, a bot request with no vehiculo param, anything that
- * fails along the way — falls straight through to env.ASSETS.fetch(request),
- * i.e. exactly today's existing plain-SPA behavior, byte-for-byte.
+ * tags into the SPA shell's <head>, but ONLY for a request carrying a
+ * vehicle id (either the newer canonical `/carros/<id>-<slug>` landing
+ * page, or the older `/catalogo`/`/en/catalogo` with a `?vehiculo=<id>`
+ * param — still honored so already-shared links keep working) AND a
+ * known link-preview-bot User-Agent (WhatsApp, Facebook, Twitter,
+ * LinkedIn, Slack, Telegram, Discord, Skype, Pinterest, reddit). Every
+ * other request — real visitors, any other path, a bot request with no
+ * vehicle id, anything that fails along the way — falls straight through
+ * to env.ASSETS.fetch(request), i.e. exactly today's existing plain-SPA
+ * behavior, byte-for-byte.
  *
  * Why this exists: WhatsApp/Facebook/Twitter/etc. link-preview crawlers
  * fetch raw HTML and never execute JavaScript, so the react-helmet-async
- * <meta> tags CatalogPage.tsx sets client-side are invisible to them — a
- * crawler only ever sees frontend/index.html's static <head>. This Worker
- * is the mechanism that serves different meta tags per vehicle without
- * introducing SSR/prerendering into what is otherwise a pure static-assets
- * deployment (see wrangler.jsonc).
+ * <meta> tags CatalogPage.tsx/VehicleDetailPage.tsx set client-side are
+ * invisible to them — a crawler only ever sees frontend/index.html's
+ * static <head>. This Worker is the mechanism that serves different meta
+ * tags per vehicle without introducing SSR/prerendering into what is
+ * otherwise a pure static-assets deployment (see wrangler.jsonc).
  *
  * This file is intentionally NOT under tsconfig.json's `include: ["src"]`,
  * so it's never part of `npm run build`'s `tsc` step — the ambient
@@ -258,16 +261,36 @@ export default {
     try {
       const url = new URL(request.url);
       const pathname = url.pathname.replace(/\/+$/, "") || "/";
-      const isCatalogRoute = pathname === "/catalogo" || pathname === "/en/catalogo";
-      const vehiculoParam = url.searchParams.get("vehiculo");
       const userAgent = request.headers.get("User-Agent") || "";
 
-      if (!isCatalogRoute || !vehiculoParam || !isBotRequest(userAgent)) {
-        return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
+      // Two link shapes carry a vehicle id worth a bot-specific OG
+      // override: the older `/catalogo?vehiculo=<id>` (still honored —
+      // links already shared this way must keep working) and the newer
+      // canonical `/carros/<id>-<slug>` per-vehicle landing page (SEO
+      // checklist). `/carros/<id>` is a real path segment, not a query
+      // param, so its "canonical URL" for the OG tags is just the request
+      // path itself — no `?vehiculo=` to reconstruct.
+      const isCatalogRoute = pathname === "/catalogo" || pathname === "/en/catalogo";
+      const vehiculoParam = url.searchParams.get("vehiculo");
+      const carrosMatch = pathname.match(/^(?:\/en)?\/carros\/(\d+)/);
+
+      let vehicleId: number | null = null;
+      let canonicalUrl: string | null = null;
+      if (isCatalogRoute && vehiculoParam) {
+        const id = Number(vehiculoParam);
+        if (Number.isInteger(id) && id > 0) {
+          vehicleId = id;
+          canonicalUrl = `${SITE_URL}${pathname}?vehiculo=${id}`;
+        }
+      } else if (carrosMatch) {
+        const id = Number(carrosMatch[1]);
+        if (Number.isInteger(id) && id > 0) {
+          vehicleId = id;
+          canonicalUrl = `${SITE_URL}${pathname}`;
+        }
       }
 
-      const vehicleId = Number(vehiculoParam);
-      if (!Number.isInteger(vehicleId) || vehicleId <= 0) {
+      if (!vehicleId || !canonicalUrl || !isBotRequest(userAgent)) {
         return preventEdgeCachingOfHtml(await env.ASSETS.fetch(request));
       }
 
@@ -283,7 +306,6 @@ export default {
       }
 
       const isEnglish = pathname.startsWith("/en/");
-      const canonicalUrl = `${SITE_URL}${pathname}?vehiculo=${vehicle.id}`;
       const { title, tagsHtml } = buildMetaTagsHtml(vehicle, canonicalUrl, isEnglish);
 
       let rewriter = new HTMLRewriter();

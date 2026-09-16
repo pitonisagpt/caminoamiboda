@@ -93,6 +93,9 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
         <ShareVehicleButton
           vehicleId={vehicle.id}
           vehicleName={`${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+          brand={vehicle.brand}
+          modelLine={vehicle.model_line}
+          color={vehicle.color}
           className="absolute top-3 right-14 z-20 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors cursor-pointer"
         />
 

@@ -43,11 +43,25 @@ export default function ComoFuncionaPage() {
   const catalogPath = lang === "en" ? "/en/catalogo" : "/catalogo";
   const reservationPolicyPath = lang === "en" ? "/en/politica-de-reservas" : "/politica-de-reservas";
 
+  // FAQPage structured data (SEO/GEO checklist) — generated directly from
+  // FAQ_KEYS, the same array the visible accordion below renders from, so
+  // there's no separate copy of the questions/answers to keep in sync.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_KEYS.map(({ qKey, aKey }) => ({
+      "@type": "Question",
+      name: t(qKey),
+      acceptedAnswer: { "@type": "Answer", text: t(aKey) },
+    })),
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-10">
       <Helmet>
         <title>{t("comoFunciona.helmetTitle")}</title>
         <meta name="description" content={t("comoFunciona.helmetDescription")} />
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
       <HreflangTags path="/como-funciona" />
 

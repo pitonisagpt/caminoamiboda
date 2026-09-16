@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Menu, X, Phone, Mail, Instagram, Languages, LayoutDashboard } from "lucide-react";
 import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
@@ -9,6 +10,31 @@ import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { useAuth } from "../../context/AuthContext";
 
 const WHATSAPP_NUMBER = "573147372030";
+
+// Sitewide LocalBusiness structured data (SEO/GEO checklist — see
+// docs/desarrollo/seo-geo-marketing-checklist.md). Rendered once here
+// since react-helmet-async merges every nested <Helmet> in the tree, so
+// each page's own <Helmet> (title, per-page JSON-LD, etc.) still layers
+// on top without conflict. Static/constant — defined outside the
+// component so it isn't rebuilt on every render.
+const LOCAL_BUSINESS_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: "Camino a mi Boda",
+  image: "https://caminoamiboda.com/favicon.png",
+  url: "https://caminoamiboda.com",
+  telephone: `+${WHATSAPP_NUMBER}`,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Medellín",
+    addressRegion: "Antioquia",
+    addressCountry: "CO",
+  },
+  areaServed: ["Medellín", "Oriente Antioqueño", "Rionegro", "El Carmen de Viboral"],
+  sameAs: ["https://www.instagram.com/caminoamiboda"],
+  description:
+    "Alquiler de vehículos clásicos, vintage y modernos con conductor para bodas y eventos especiales en Medellín y el Oriente Antioqueño, Colombia.",
+};
 
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -77,6 +103,15 @@ export function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white flex flex-col">
+      <Helmet>
+        {/* Sitewide default — see index.html's comment on why this lives
+            here now instead of as a static tag: a page-specific <Helmet>
+            further down the tree (catalog, blog, each vehicle page, etc.)
+            correctly replaces this, since react-helmet-async only dedupes
+            tags it rendered itself. */}
+        <meta name="description" content={LOCAL_BUSINESS_JSON_LD.description} />
+        <script type="application/ld+json">{JSON.stringify(LOCAL_BUSINESS_JSON_LD)}</script>
+      </Helmet>
       {/* Header */}
       <header className="bg-white border-b border-brand-100 shadow-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">

@@ -5,7 +5,48 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Camino a mi Boda</title>
-    <meta name="description" content="Camino a mi Boda es una plataforma de gestión operativa para alquiler de vehículos clásicos, vintage y modernos con conductor, para bodas y eventos especiales en Medellín y el Oriente Antioqueño, Colombia. Permite a los clientes consultar el catálogo de vehículos y reservar, y a nuestro equipo coordinar reservas, logística de eventos y calendario." />
+    <!-- No static <meta name="description"> here on purpose (found while
+         building the per-vehicle SEO pages): react-helmet-async can only
+         replace/dedupe a <meta> tag it rendered itself — a tag already
+         baked into this static HTML is invisible to it, so a per-page
+         <Helmet><meta name="description" .../></Helmet> (catalog, blog,
+         each vehicle page, etc.) ended up APPENDING a second description
+         tag instead of overriding this one; document.querySelector (and
+         real crawlers) picked up whichever tag came first, i.e. always
+         this generic one, never the per-page override. <title> doesn't
+         have this problem — the DOM only ever allows one <title> node, so
+         Helmet just overwrites document.title's value directly. Fixed by
+         moving the sitewide default description into a root <Helmet> in
+         PublicLayout.tsx instead (still the same generic text as before),
+         so every page's own description is Helmet-managed from the start
+         and later Helmet instances correctly replace it, not duplicate
+         it. Non-JS clients (no SSR here) lose this one meta tag as a
+         result — the <noscript> block below still gives them the same
+         text as real visible content, which is what actually matters for
+         them. -->
+
+
+    <!-- Google Tag Manager — commented out on purpose, no GTM account
+         exists yet (SEO/GEO/marketing checklist, see
+         docs/desarrollo/seo-geo-marketing-checklist.md). To activate:
+         1) create a container at tagmanager.google.com (free)
+         2) replace BOTH "GTM-XXXXXXX" below (this one and the matching
+            <noscript> block right after <body> further down) with the
+            real container ID
+         3) uncomment both blocks
+         GTM IDs are not secret — every site using GTM has them in its
+         public page source — so hardcoding the real ID directly here is
+         fine, no env var needed. Once this is live, Meta Pixel/Google
+         Ads/TikTok Pixel are added INSIDE the GTM web UI as tags, with NO
+         further changes to this file. -->
+    <!--
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    -->
+    <!-- End Google Tag Manager -->
 
     <!-- Static, generic Open Graph / Twitter Card tags — served as-is for
          every page. /catalogo?vehiculo=<id> gets a MORE SPECIFIC per-vehicle
@@ -33,6 +74,13 @@
     />
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) — commented out, matching the head
+         snippet above; see that comment for activation steps. -->
+    <!--
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    -->
+    <!-- End Google Tag Manager (noscript) -->
     <div id="root"></div>
     <!-- Visible fallback for any crawler/verifier that fetches this page
          without executing JavaScript — the app itself renders entirely

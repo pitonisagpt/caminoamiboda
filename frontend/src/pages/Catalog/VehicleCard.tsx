@@ -65,6 +65,9 @@ export function VehicleCard({
         <ShareVehicleButton
           vehicleId={vehicle.id}
           vehicleName={`${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`}
+          brand={vehicle.brand}
+          modelLine={vehicle.model_line}
+          color={vehicle.color}
           className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-colors cursor-pointer"
         />
       </div>
