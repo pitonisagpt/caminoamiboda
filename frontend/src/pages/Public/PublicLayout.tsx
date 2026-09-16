@@ -26,6 +26,13 @@ const LOCAL_BUSINESS_JSON_LD = {
   telephone: `+${WHATSAPP_NUMBER}`,
   address: {
     "@type": "PostalAddress",
+    // streetAddress/postalCode added 2026-09-17 — Google's Rich Results
+    // Test flagged both as missing (non-critical, but recommended) on the
+    // LocalBusiness schema; confirmed with the owner before adding a real
+    // address here (a wedding car rental doesn't necessarily have a
+    // public storefront, so this wasn't assumed).
+    streetAddress: "Cra. 35 #19-620, Int 2303",
+    postalCode: "050021",
     addressLocality: "Medellín",
     addressRegion: "Antioquia",
     addressCountry: "CO",
