@@ -18,6 +18,7 @@ from app.database import Base  # noqa: E402
 from app.models import billing_document  # noqa: E402,F401 — registers model
 from app.models import florist_settings  # noqa: E402,F401 — registers model
 from app.models import florist_photo  # noqa: E402,F401 — registers model
+from app.models import media_consent  # noqa: E402,F401 — registers model
 
 target_metadata = Base.metadata
 

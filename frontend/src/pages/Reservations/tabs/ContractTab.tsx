@@ -6,6 +6,7 @@ import { reservationsApi } from '../../../api/reservations';
 import { reservationContractsApi } from '../../../api/reservationContracts';
 import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
+import MediaConsentCard from './MediaConsentCard';
 
 function formatCOP(n: number) {
   return `$${Number(n).toLocaleString('es-CO')}`;
@@ -568,6 +569,12 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
           <p className="text-xs text-gray-400">Descarga el PDF y adjúntalo manualmente en el chat que se abre.</p>
         )}
       </div>
+
+      {/* Autorización de imagen/video/datos — deliberately a separate
+          document/model (MediaConsentCard), not a clause here: the owner
+          was explicit this can't be tied to the rental contract above
+          (wishlist fila 70). */}
+      <MediaConsentCard reservation={reservation} />
     </div>
   );
 }

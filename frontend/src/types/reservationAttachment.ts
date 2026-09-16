@@ -1,4 +1,4 @@
-export type AttachmentCategory = 'contract' | 'receipt' | 'photo' | 'other';
+export type AttachmentCategory = 'contract' | 'receipt' | 'photo' | 'media_consent' | 'other';
 
 export interface ReservationAttachment {
   id: number;

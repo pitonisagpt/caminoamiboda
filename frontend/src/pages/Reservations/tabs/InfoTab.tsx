@@ -27,6 +27,7 @@ const CATEGORY_LABEL: Record<AttachmentCategory, string> = {
   contract: 'Contrato',
   receipt: 'Comprobante de pago',
   photo: 'Foto de referencia',
+  media_consent: 'Autorización de imagen',
   other: 'Otro',
 };
 

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    {% include '_brand.html' %}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; background: #fff; }
+    .page { padding: 36px 44px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #21b2b8; padding-bottom: 16px; margin-bottom: 24px; }
+    .brand-tagline { font-family: 'Montserrat', Arial, sans-serif; font-weight: 600; font-size: 8pt; color: #166f73; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #0f4245; }
+    .doc-title { font-family: 'Montserrat', Arial, sans-serif; text-align: center; font-size: 13pt; font-weight: 700; color: #0f4245; letter-spacing: 1.2px; text-transform: uppercase; padding: 10px 0; border-top: 1px solid #d0f4f5; border-bottom: 1px solid #d0f4f5; margin-bottom: 16px; }
+    .section { margin-bottom: 16px; }
+    .section-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 9pt; font-weight: 700; color: #166f73; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #f0fbfb; padding-bottom: 4px; margin-bottom: 8px; }
+    .two-col { display: flex; gap: 24px; margin-bottom: 16px; }
+    .two-col .col { flex: 1; }
+    .info-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 10pt; }
+    .info-label { color: #666; min-width: 90px; flex-shrink: 0; }
+    .info-value { color: #1a1a1a; font-weight: 500; }
+    .blank-line { color: #bbb; }
+    .clause { margin-bottom: 10px; }
+    .clause-title { font-size: 9.5pt; font-weight: 700; color: #0f4245; margin-bottom: 3px; }
+    .clause-body { font-size: 9.5pt; color: #334155; line-height: 1.55; text-align: justify; margin-bottom: 4px; }
+    .clause-body strong { color: #1a1a1a; }
+    .highlight { background: #f0fbfb; border-left: 3px solid #21b2b8; padding: 8px 12px; margin-bottom: 4px; }
+    .signatures { display: flex; gap: 32px; margin-top: 36px; }
+    .sig-box { flex: 1; text-align: center; }
+    .sig-line { border-top: 1px solid #333; margin-top: 44px; padding-top: 6px; font-size: 9pt; }
+    .sig-role { font-size: 8.5pt; color: #666; }
+    .footer { margin-top: 28px; border-top: 1px solid #d0f4f5; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 8pt; color: #888; }
+    .footer .brand { font-weight: 700; color: #166f73; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      {% include '_logo_badge.html' %}
+      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
+    </div>
+    <div class="header-meta">
+      <div class="doc-num">{{ consent.consent_number }}</div>
+      <div>Fecha: {{ formatted_date }}</div>
+      <div>{{ company_phone }}</div>
+    </div>
+  </div>
+
+  <div class="doc-title">Autorización de Uso de Imagen, Video, Audio y Tratamiento de Datos Personales</div>
+
+  <div class="section">
+    <div class="section-title">Las Partes</div>
+    <div class="two-col">
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">CAMINO A MI BODA</p>
+        <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
+        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ company_phone }}</span></div>
+      </div>
+      <div class="col">
+        <p class="info-row" style="font-weight:700; margin-bottom:6px;">LOS NOVIOS (LOS AUTORIZANTES)</p>
+        <div class="info-row"><span class="info-label">Novia:</span><span class="info-value{{ '' if consent.bride_name else ' blank-line' }}">{{ consent.bride_name or '_______________________' }}</span></div>
+        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value{{ '' if consent.bride_id_number else ' blank-line' }}">{{ consent.bride_id_number or '_______________________' }}</span></div>
+        <div class="info-row"><span class="info-label">Novio:</span><span class="info-value{{ '' if consent.groom_name else ' blank-line' }}">{{ consent.groom_name or '_______________________' }}</span></div>
+        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value{{ '' if consent.groom_id_number else ' blank-line' }}">{{ consent.groom_id_number or '_______________________' }}</span></div>
+      </div>
+    </div>
+    <div class="info-row"><span class="info-label">Evento:</span><span class="info-value">{{ formatted_event_date }}</span></div>
+  </div>
+
+  <div class="section">
+    <div class="clause">
+      <div class="clause-title">Primera. Documento independiente y voluntario</div>
+      <div class="highlight">
+        <div class="clause-body" style="margin-bottom:0;">La firma o la no firma del presente documento es enteramente voluntaria y <strong>no afecta, condiciona ni tiene incidencia alguna sobre la validez, vigencia, precio ni cumplimiento del contrato de arrendamiento del vehículo ni de la reserva del evento</strong>. LOS NOVIOS pueden contratar el servicio de transporte sin necesidad de suscribir esta autorización.</div>
+      </div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Segunda. Autorización de uso de imagen, video y audio</div>
+      <div class="clause-body">LOS NOVIOS autorizan a CAMINO A MI BODA el uso de las fotografías, videos y audios que se capturen con ocasión del evento para los siguientes fines:</div>
+      <div class="clause-body">a. Portafolio y catálogo de vehículos, en el sitio web de la empresa.</div>
+      <div class="clause-body">b. Publicaciones en redes sociales de la empresa (Instagram y demás que utilice).</div>
+      <div class="clause-body">c. Material de mercadeo y publicidad de la empresa (impreso o digital).</div>
+      <div class="clause-body"><strong>Parágrafo.</strong> Salvo indicación distinta en el campo "Notas" del presente documento, la autorización se entiende otorgada sin necesidad de mencionar el nombre completo de LOS NOVIOS junto al contenido publicado.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Tercera. Tratamiento de datos personales</div>
+      <div class="clause-body">El tratamiento de los datos personales de LOS NOVIOS por parte de CAMINO A MI BODA se rige por la Política de Tratamiento de Datos Personales publicada en <strong>caminoamiboda.com/politica-de-datos</strong>, la cual LOS NOVIOS declaran conocer. El presente documento autoriza puntualmente el uso de dichos datos, en conjunto con el material fotográfico y audiovisual descrito en la cláusula anterior, para los fines allí señalados.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-title">Cuarta. Revocatoria</div>
+      <div class="clause-body">LOS NOVIOS podrán revocar la presente autorización en cualquier momento mediante comunicación escrita dirigida a CAMINO A MI BODA, sin que ello genere efecto retroactivo sobre el material ya publicado con anterioridad a la revocatoria, el cual será retirado de los canales propios de la empresa dentro de un plazo razonable a partir de la solicitud.</div>
+    </div>
+
+    {% if consent.notes %}
+    <div class="clause">
+      <div class="clause-title">Quinta. Notas y condiciones particulares</div>
+      <div class="clause-body">{{ consent.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <div class="sig-line">{{ consent.bride_name or '_______________________' }}</div>
+      <div class="sig-role">NOVIA {% if consent.bride_id_number %}— C.C. {{ consent.bride_id_number }}{% endif %}</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-line">{{ consent.groom_name or '_______________________' }}</div>
+      <div class="sig-role">NOVIO {% if consent.groom_id_number %}— C.C. {{ consent.groom_id_number }}{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div><span class="brand">{{ company_name }}</span> · CC {{ company_cc }}</div>
+    <div>{{ company_phone }}</div>
+    <div>Generado el {{ formatted_date }}</div>
+  </div>
+
+</div>
+</body>
+</html>
