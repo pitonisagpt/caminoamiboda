@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Menu, X, Phone, Mail, Instagram, Languages, LayoutDashboard } from "lucide-react";
+import { Menu, X, Phone, Mail, Instagram, Facebook, Languages, LayoutDashboard } from "lucide-react";
 import { AiChatWidget } from "../../components/chat/AiChatWidget";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useLang } from "../../i18n/LanguageContext";
@@ -31,7 +31,12 @@ const LOCAL_BUSINESS_JSON_LD = {
     addressCountry: "CO",
   },
   areaServed: ["Medellín", "Oriente Antioqueño", "Rionegro", "El Carmen de Viboral"],
-  sameAs: ["https://www.instagram.com/caminoamiboda"],
+  // Instagram was already linked everywhere; the Facebook page
+  // (facebook.com/caminoamiboda) exists and is active but wasn't
+  // referenced anywhere in the code until now (GEO checklist) — more
+  // verified sameAs entries is a stronger "this is a real, verifiable
+  // business" signal for both Google and AI answer engines.
+  sameAs: ["https://www.instagram.com/caminoamiboda", "https://www.facebook.com/caminoamiboda"],
   description:
     "Alquiler de vehículos clásicos, vintage y modernos con conductor para bodas y eventos especiales en Medellín y el Oriente Antioqueño, Colombia.",
 };
@@ -264,6 +269,14 @@ export function PublicLayout() {
                 className="flex items-center gap-1.5 hover:text-brand-600 transition-colors"
               >
                 <Instagram size={14} /> @caminoamiboda
+              </a>
+              <a
+                href="https://www.facebook.com/caminoamiboda"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-brand-600 transition-colors"
+              >
+                <Facebook size={14} /> Facebook
               </a>
             </div>
             <span className="text-xs text-gray-400">{t("layout.city")}</span>
