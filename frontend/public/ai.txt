@@ -33,4 +33,4 @@ Allow: /contacto
 Allow: /politica-de-datos
 Allow: /condiciones-de-servicio
 
-Sitemap: https://api.caminoamiboda.com/sitemap.xml
+Sitemap: https://caminoamiboda.com/sitemap.xml
