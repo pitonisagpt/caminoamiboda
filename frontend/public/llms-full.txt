@@ -4,7 +4,7 @@
 
 ## Quiénes somos
 
-Camino a mi Boda es una empresa de transporte para bodas y eventos especiales con base en Medellín, Colombia. Ofrecemos vehículos con conductor para el día de la boda y para otro tipo de eventos, con un servicio operativo detallado (minuto a minuto) para que el vehículo llegue a tiempo a cada locación.
+Camino a mi Boda es una empresa de transporte para bodas y eventos especiales con base en Medellín, Colombia, operando desde 2017, con más de 380 bodas y eventos realizados. Ofrecemos vehículos con conductor para el día de la boda y para otro tipo de eventos, con un servicio operativo detallado (minuto a minuto) para que el vehículo llegue a tiempo a cada locación.
 
 ## Tipos de evento que cubrimos
 
@@ -15,11 +15,13 @@ Camino a mi Boda es una empresa de transporte para bodas y eventos especiales co
 
 ## Vehículos
 
-La flota incluye vehículos de tres categorías:
+La flota tiene actualmente más de 30 vehículos activos, con años de fabricación entre 1929 y 2011, de tres categorías:
 
 - **Clásico**: autos de época restaurados.
 - **Vintage**: modelos retro, incluyendo Volkswagen Escarabajo y Combi.
 - **Moderno**: vehículos actuales para quienes prefieren un estilo contemporáneo.
+
+Los precios varían según el vehículo y la zona; en Medellín parten desde $760.000 COP.
 
 El catálogo con disponibilidad, fotos y detalle de cada vehículo está siempre actualizado en [caminoamiboda.com/catalogo](https://caminoamiboda.com/catalogo) — no se enumera aquí porque cambia con frecuencia.
 
