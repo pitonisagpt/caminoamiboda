@@ -17,11 +17,12 @@ PUT /api/vehicles/{id} existente, sin tocar.
 from __future__ import annotations
 
 import base64
+import io
 from pathlib import Path
 from typing import Optional
 
 import anthropic
-import filetype
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -72,17 +73,35 @@ def _select_photos(db: Session, vehicle_id: int) -> list[VehiclePhoto]:
     )
 
 
+# Fotos subidas sin redimensionar (hasta 10MB cada una, ver
+# vehicle_photos.py) — enviar hasta 5 de esas tal cual a Claude con visión
+# causaba 502 en producción (Render Starter, 512MB, 1 worker): payload
+# grande + llamada sync lenta agotaba el timeout del proxy o la memoria del
+# proceso. 1568px es el tamaño máximo que Anthropic recomienda para
+# imágenes de visión — una foto más grande que eso no mejora el resultado,
+# solo pesa más y tarda más.
+_MAX_IMAGE_DIMENSION = 1568
+
+
 def _photo_to_image_block(photo: VehiclePhoto) -> Optional[dict]:
     path = UPLOAD_DIR / photo.file_name
     try:
         data = path.read_bytes()
     except OSError:
         return None  # fila en BD pero archivo faltante en disco — se salta, no rompe todo
-    kind = filetype.guess(data)
-    media_type = kind.mime if kind and kind.mime.startswith("image/") else "image/jpeg"
+    try:
+        img = Image.open(io.BytesIO(data))
+        img = ImageOps.exif_transpose(img)  # misma corrección que vehicle_photos.py — evita fotos de celular giradas
+        img = img.convert("RGB")
+        img.thumbnail((_MAX_IMAGE_DIMENSION, _MAX_IMAGE_DIMENSION), Image.LANCZOS)
+        out = io.BytesIO()
+        img.save(out, format="JPEG", quality=85)
+        resized = out.getvalue()
+    except Exception:
+        return None  # archivo presente pero no es una imagen válida/decodificable — se salta, no rompe todo
     return {
         "type": "image",
-        "source": {"type": "base64", "media_type": media_type, "data": base64.standard_b64encode(data).decode("ascii")},
+        "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.standard_b64encode(resized).decode("ascii")},
     }
 
 
