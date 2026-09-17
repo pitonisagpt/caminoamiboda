@@ -10,7 +10,7 @@ xhtml2pdf==0.2.16
 jinja2==3.1.4
 python-multipart==0.0.9
 PyJWT==2.8.0
-bcrypt==4.2.1
+bcrypt==5.0.0
 openpyxl==3.1.5
 google-auth-oauthlib==1.2.0
 google-api-python-client==2.131.0
