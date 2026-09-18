@@ -15,6 +15,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.image_utils import resize_and_recompress
 from app.database import get_db
 from app.models.vehicle import Vehicle
 from app.models.vehicle_photo import VehiclePhoto
@@ -113,32 +114,15 @@ def upload_photos(
 
         # Redimensionar/recomprimir todo tipo aceptado, no solo HEIC — mismo
         # trabajo CPU-bound que ya justifica que esta función sea sync (ver
-        # comentario arriba). Se salta si es GIF/WEBP animado (poco probable
-        # en una foto de auto, pero convertir a JPEG colapsaría la animación
-        # a un solo frame) o si el resize falla por cualquier motivo — en
-        # ambos casos se sube el archivo original tal cual, ya validado arriba.
-        try:
-            img = Image.open(io.BytesIO(content))
-            if not getattr(img, "is_animated", False):
-                img = ImageOps.exif_transpose(img)
-                if img.mode in ("RGBA", "LA", "P"):
-                    # Aplanar transparencia sobre blanco antes de convertir a
-                    # RGB — un .convert("RGB") directo sobre un canal alpha
-                    # deja artefactos negros donde había transparencia. Sin
-                    # significado real en una foto de vehículo.
-                    img = img.convert("RGBA")
-                    background = Image.new("RGB", img.size, (255, 255, 255))
-                    background.paste(img, mask=img.split()[-1])
-                    img = background
-                elif img.mode != "RGB":
-                    img = img.convert("RGB")
-                img.thumbnail((MAX_PHOTO_DIMENSION, MAX_PHOTO_DIMENSION), Image.LANCZOS)
-                out = io.BytesIO()
-                img.save(out, format="JPEG", quality=85)
-                content = out.getvalue()
-                ext = ".jpg"
-        except Exception:
-            pass
+        # comentario arriba). resize_and_recompress() devuelve None si es
+        # GIF/WEBP animado o si falla el decode — en ambos casos se sube el
+        # archivo original tal cual, ya validado arriba. Misma función que
+        # usa el backfill de fotos ya subidas (backfill_vehicle_photo_sizes.py),
+        # para que las dos rutas nunca diverjan.
+        resized = resize_and_recompress(content, max_dimension=MAX_PHOTO_DIMENSION)
+        if resized is not None:
+            content = resized
+            ext = ".jpg"
 
         file_name = f"{uuid.uuid4().hex}{ext}"
         dest = UPLOAD_DIR / file_name
