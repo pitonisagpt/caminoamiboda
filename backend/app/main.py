@@ -94,6 +94,24 @@ class _HSTSMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(_HSTSMiddleware)
 
+
+class _UploadsCacheControlMiddleware(BaseHTTPMiddleware):
+    """Vehicle/florist photo filenames are UUIDs that are never rewritten in
+    place — a new upload always gets a new name — so an aggressive immutable
+    cache is safe. Scoped to these two exact prefixes, not the generic
+    `/api/uploads/`, so a future mutable upload folder isn't cached by
+    accident. Generated PDFs never go through this middleware at all — they
+    are served via authenticated FileResponse routes, never StaticFiles."""
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/uploads/vehicles/") or request.url.path.startswith("/api/uploads/florist/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+app.add_middleware(_UploadsCacheControlMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],

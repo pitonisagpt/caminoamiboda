@@ -28,6 +28,12 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif"
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 HEIC_EXTENSIONS = {".heic", ".heif"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+# Fotos reales de celular llegaban sin redimensionar (hasta el límite de
+# 10MB de arriba) y se servían tal cual al catálogo público — peso real
+# detrás de acercarse al límite de ancho de banda de Render. 1600px alcanza
+# de sobra para el uso más grande (hero del modal/página de vehículo);
+# nunca agranda una foto más chica que eso.
+MAX_PHOTO_DIMENSION = 1600
 
 router = APIRouter(
     prefix="/api/vehicles",
@@ -104,6 +110,35 @@ def upload_photos(
             kind = filetype.guess(content)
             if kind is None or kind.mime not in ALLOWED_MIME_TYPES:
                 raise HTTPException(status_code=415, detail=f"El archivo '{file.filename}' no es una imagen válida")
+
+        # Redimensionar/recomprimir todo tipo aceptado, no solo HEIC — mismo
+        # trabajo CPU-bound que ya justifica que esta función sea sync (ver
+        # comentario arriba). Se salta si es GIF/WEBP animado (poco probable
+        # en una foto de auto, pero convertir a JPEG colapsaría la animación
+        # a un solo frame) o si el resize falla por cualquier motivo — en
+        # ambos casos se sube el archivo original tal cual, ya validado arriba.
+        try:
+            img = Image.open(io.BytesIO(content))
+            if not getattr(img, "is_animated", False):
+                img = ImageOps.exif_transpose(img)
+                if img.mode in ("RGBA", "LA", "P"):
+                    # Aplanar transparencia sobre blanco antes de convertir a
+                    # RGB — un .convert("RGB") directo sobre un canal alpha
+                    # deja artefactos negros donde había transparencia. Sin
+                    # significado real en una foto de vehículo.
+                    img = img.convert("RGBA")
+                    background = Image.new("RGB", img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[-1])
+                    img = background
+                elif img.mode != "RGB":
+                    img = img.convert("RGB")
+                img.thumbnail((MAX_PHOTO_DIMENSION, MAX_PHOTO_DIMENSION), Image.LANCZOS)
+                out = io.BytesIO()
+                img.save(out, format="JPEG", quality=85)
+                content = out.getvalue()
+                ext = ".jpg"
+        except Exception:
+            pass
 
         file_name = f"{uuid.uuid4().hex}{ext}"
         dest = UPLOAD_DIR / file_name
