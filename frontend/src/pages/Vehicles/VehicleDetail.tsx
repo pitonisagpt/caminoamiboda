@@ -13,6 +13,7 @@ import { Badge } from '../../components/ui/Badge';
 import { CATEGORY_OPTIONS } from '../../components/vehicleFilterKit';
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from '../../components/ui/ScoreRating';
 import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../utils/whatsapp';
+import { formatCOP } from '../../utils/format';
 
 const LOCATION_LABEL: Record<string, string> = {
   medellin: 'Medellín',
@@ -30,9 +31,6 @@ const STATUS_LABEL: Record<string, string> = {
 // agendados yet, and cancelled ones no longer are.
 const AGENDADO_STATUSES: ReservationStatus[] = ['deposit_received', 'reserved', 'confirmed'];
 
-function formatCOP(n: number): string {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
 
 function formatDateLong(iso: string): string {
   return new Date(iso + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });

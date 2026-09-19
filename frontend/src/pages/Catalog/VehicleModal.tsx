@@ -14,6 +14,7 @@ import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 import { isTouchPrimaryDevice } from "../../utils/device";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { ResponsivePhoto } from "../../components/ResponsivePhoto";
+import { formatCOP } from "../../utils/format";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "5:00 AM – 8:00 PM";
@@ -26,9 +27,6 @@ const DAY_COLOR: Record<string, string> = {
   Viernes: "bg-green-100 text-green-700",
 };
 
-function formatCOP(amount: number) {
-  return `$${amount.toLocaleString("es-CO")}`;
-}
 
 interface Props {
   vehicle: PublicVehicleListItem;

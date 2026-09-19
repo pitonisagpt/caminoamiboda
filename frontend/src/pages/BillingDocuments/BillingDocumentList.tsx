@@ -6,6 +6,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import type { BillingDocumentListItem, DocumentStatus, DocumentType } from "../../types";
+import { formatCOPFull } from "../../utils/format";
 
 const STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: "Borrador",
@@ -24,9 +25,7 @@ const TYPE_LABEL: Record<DocumentType, string> = {
   letter: "Carta",
 };
 
-function formatCOP(amount: string) {
-  return `COP $${parseInt(amount).toLocaleString("es-CO")}`;
-}
+const formatCOP = (amount: string) => formatCOPFull(parseInt(amount));
 
 function formatDate(dateStr: string) {
   const [year, month, day] = dateStr.split("-");

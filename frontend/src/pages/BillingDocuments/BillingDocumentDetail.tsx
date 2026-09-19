@@ -16,6 +16,7 @@ import { Button } from "../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 import type { BillingDocument, DocumentStatus } from "../../types";
 import type { ReservationListItem } from "../../types/reservation";
+import { formatCOPFull } from "../../utils/format";
 
 const STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: "Borrador",
@@ -46,9 +47,7 @@ function formatServiceDateRange(start: string, end: string | null) {
   return `${formatDateES(start)} al ${formatDateES(end)}`;
 }
 
-function formatCOP(amount: string) {
-  return `COP $${parseInt(amount).toLocaleString("es-CO")}`;
-}
+const formatCOP = (amount: string) => formatCOPFull(parseInt(amount));
 
 function Field({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;

@@ -15,6 +15,7 @@ import { vehicleFromPrice } from "../../components/vehicleFilterKit";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { vehicleSlugPath, parseVehicleIdFromSlug } from "../../utils/slug";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
+import { formatCOP } from "../../utils/format";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
@@ -24,9 +25,6 @@ import NotFoundPage from "./NotFoundPage";
 const SITE_URL = "https://caminoamiboda.com";
 const WHATSAPP_NUMBER = "573147372030";
 
-function formatCOP(amount: number) {
-  return `$${amount.toLocaleString("es-CO")}`;
-}
 
 /** Per-vehicle public landing page (wishlist SEO/GEO checklist) —
  * `/carros/<id>-<slug>` (and its /en/ twin, mirrored automatically by

@@ -6,6 +6,7 @@ import { EntityLink } from '../../components/EntityLink';
 import type { QuoteListItem, QuoteStatus } from '../../types/quote';
 import { QUOTE_STATUS_COLOR, QUOTE_STATUS_LABEL } from '../../types/quote';
 import { openWhatsApp } from '../../utils/whatsapp';
+import { formatCOP } from '../../utils/format';
 
 const STATUS_FILTERS: { value: QuoteStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Todas' },
@@ -22,9 +23,6 @@ function formatDate(d: string) {
   });
 }
 
-function formatCOP(n: number) {
-  return `$${n.toLocaleString('es-CO')}`;
-}
 
 export default function QuoteList() {
   const navigate = useNavigate();

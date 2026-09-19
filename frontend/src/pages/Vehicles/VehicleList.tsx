@@ -56,6 +56,7 @@ import {
   FilterSection,
   Pill,
 } from "../../components/vehicleFilterKit";
+import { formatCOP } from "../../utils/format";
 
 const STATUS_LABEL: Record<VehicleStatus, string> = {
   active: "Activo",
@@ -114,9 +115,6 @@ const toParam = (arr: (string | number)[]): string | null =>
 const fromParam = (s: string | null): string[] =>
   s ? s.split(",").filter(Boolean) : [];
 
-function formatCOP(amount: number): string {
-  return `$${amount.toLocaleString("es-CO")}`;
-}
 
 const DAY_COLOR: Record<string, string> = {
   Lunes: "bg-blue-100 text-blue-700",

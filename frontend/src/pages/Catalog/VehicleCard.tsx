@@ -11,6 +11,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { formatCOPFull as formatCOP } from "../../utils/format";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "5:00 AM – 8:00 PM";
@@ -22,10 +23,6 @@ const DAY_COLOR: Record<string, string> = {
   Jueves: "bg-orange-100 text-orange-700",
   Viernes: "bg-green-100 text-green-700",
 };
-
-function formatCOP(amount: number) {
-  return `COP $${amount.toLocaleString("es-CO")}`;
-}
 
 export function VehicleCard({
   vehicle,

@@ -8,6 +8,12 @@ export function formatCOP(n: number): string {
   return `$${Number(n).toLocaleString('es-CO')}`;
 }
 
+/** "COP $1.234.567" — VehicleCard.tsx/BillingDocument list+detail, where the
+ * currency code is spelled out explicitly rather than implied by "$". */
+export function formatCOPFull(n: number): string {
+  return `COP $${Number(n).toLocaleString('es-CO')}`;
+}
+
 /** "5 sep 2026" — day/settlement/payment lists (SettlementCard,
  * AddonPaymentLedger, FinanceTab). */
 export function formatDateShort(d: string): string {
