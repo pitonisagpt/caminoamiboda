@@ -26,14 +26,6 @@ export const COLOR_HEX: Record<string, string> = {
 export const COLOR_ORDER = ["Blanco", "Beige", "Amarillo", "Rojo", "Verde", "Azul", "Negro"];
 
 // ─── Static options ────────────────────────────────────────────────────────
-export const DECADE_OPTIONS = [
-  { value: 1920, label: "1920s" },
-  { value: 1950, label: "1950s" },
-  { value: 1960, label: "1960s" },
-  { value: 1970, label: "1970s" },
-  { value: 1980, label: "1980s" },
-];
-
 export const BODY_TYPE_OPTIONS = ["Convertible", "Hardtop", "Semi Descapotable", "Sidecar"];
 export const CAPACITY_OPTIONS = [2, 3, 4, 5, 8];
 
@@ -74,6 +66,15 @@ export function vehicleFromPrice(v: Pick<VehicleListItem, "price_medellin" | "pr
 
 export function toggleItem<T>(arr: T[], item: T): T[] {
   return arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item];
+}
+
+/** Decade filter options, derived from the vehicles actually on screen —
+ * same reasoning as `availableBrands` in CatalogPage.tsx (a hardcoded list
+ * drifts from real data; this one already did, missing the 1940s and 2010s
+ * until a real vehicle in each became unreachable through the filter). */
+export function decadeOptionsFromVehicles(vehicles: Pick<VehicleListItem, "year">[]): { value: number; label: string }[] {
+  const decades = [...new Set(vehicles.map(v => v.year).filter((y): y is number => y != null).map(y => Math.floor(y / 10) * 10))];
+  return decades.sort((a, b) => a - b).map(value => ({ value, label: `${value}s` }));
 }
 
 // ─── FilterSection wrapper ─────────────────────────────────────────────────

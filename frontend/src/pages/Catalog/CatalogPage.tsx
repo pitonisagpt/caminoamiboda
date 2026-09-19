@@ -19,7 +19,7 @@ import { getUnlock, setUnlock, clearUnlock, priceForYear, type PriceUnlock } fro
 import {
   COLOR_HEX,
   COLOR_ORDER,
-  DECADE_OPTIONS,
+  decadeOptionsFromVehicles,
   BODY_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   CAPACITY_OPTIONS,
@@ -70,11 +70,13 @@ function FilterPanel({
   filters,
   setFilters,
   availableBrands,
+  availableDecades,
   noPricing,
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
   availableBrands: string[];
+  availableDecades: { value: number; label: string }[];
   noPricing?: boolean;
 }) {
   const { t } = useLang();
@@ -136,7 +138,7 @@ function FilterPanel({
       {/* Décadas */}
       <FilterSection title={t("catalog.filterDecade")} active={filters.decades.length > 0}>
         <div className="flex flex-wrap gap-1.5">
-          {DECADE_OPTIONS.map(d => (
+          {availableDecades.map(d => (
             <Pill key={d.value} active={filters.decades.includes(d.value)} onClick={() => set({ decades: toggleItem(filters.decades, d.value) })}>
               {d.label}
             </Pill>
@@ -455,6 +457,8 @@ export function CatalogPage() {
     [vehicles]
   );
 
+  const availableDecades = useMemo(() => decadeOptionsFromVehicles(vehicles), [vehicles]);
+
   const filtered = useMemo(() => {
     const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
     const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
@@ -537,6 +541,7 @@ export function CatalogPage() {
       filters={filters}
       setFilters={setFilters}
       availableBrands={availableBrands}
+      availableDecades={availableDecades}
       noPricing={noPricing}
     />
   );
