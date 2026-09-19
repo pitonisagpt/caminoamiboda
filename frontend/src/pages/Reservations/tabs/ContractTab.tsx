@@ -7,10 +7,7 @@ import { reservationContractsApi } from '../../../api/reservationContracts';
 import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
 import MediaConsentCard from './MediaConsentCard';
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
+import { formatCOP } from '../../../utils/format';
 
 // Same style as FinanceTab.tsx's buildCobroMsg/buildOwnerMsg — no emojis
 // (they corrupt to "?" through encodeURIComponent for wa.me links, per

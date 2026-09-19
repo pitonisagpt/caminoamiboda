@@ -2,16 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Loader2, Plus, Trash2 } from 'lucide-react';
 import type { ReservationAddon } from '../../../types/reservationAddon';
 import type { ReservationAddonPayment } from '../../../api/reservationAddons';
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
-
-function formatDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
+import { formatCOP, formatDateShort as formatDate } from '../../../utils/format';
 
 // Same shape as SettlementCard's "Abonos al propietario" block, adapted
 // smaller (collapsed by default, behind a summary line) since a reservation

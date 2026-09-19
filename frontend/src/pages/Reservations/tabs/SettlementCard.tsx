@@ -2,16 +2,7 @@ import { useState } from 'react';
 import { Download, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import type { OwnerSettlement, OwnerSettlementPayment } from '../../../api/ownerSettlements';
 import { EntityLink } from '../../../components/EntityLink';
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
-
-function formatDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
+import { formatCOP, formatDateShort as formatDate } from '../../../utils/format';
 
 // One settlement's full card — amounts, abonos al propietario, PDF actions.
 // A reservation can have several of these (one per vehicle), so this owns

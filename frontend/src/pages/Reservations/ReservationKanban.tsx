@@ -8,16 +8,7 @@ import type { ReservationListItem, ReservationStatus } from '../../types/reserva
 import { RESERVATION_STATUS_LABEL, STATUS_FLOW } from '../../types/reservation';
 import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 import { EntityLink } from '../../components/EntityLink';
-
-function formatDate(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  });
-}
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
+import { formatCOP, formatDateCompact as formatDate } from '../../utils/format';
 
 function KanbanCard({ r, onNavigate }: { r: ReservationListItem; onNavigate: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({

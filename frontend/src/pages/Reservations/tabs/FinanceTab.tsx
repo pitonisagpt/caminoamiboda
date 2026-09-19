@@ -18,6 +18,7 @@ import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
 import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
+import { formatCOP, formatDateShort as formatDate } from '../../../utils/format';
 
 const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
   draft: 'Borrador',
@@ -29,10 +30,6 @@ const DOC_STATUS_STYLE: Record<DocumentStatus, string> = {
   sent: 'bg-blue-100 text-blue-700',
   paid: 'bg-green-100 text-green-700',
 };
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
 
 function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], addons: ReservationAddon[], recipientFirstName?: string): string {
   const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
@@ -118,12 +115,6 @@ function buildDetalleMsg(reservation: Reservation, addons: ReservationAddon[], r
   }
 
   return withSignature(lines.join('\n'));
-}
-
-function formatDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
 }
 
 function buildOwnerMsg(

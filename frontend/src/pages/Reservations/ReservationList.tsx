@@ -23,6 +23,7 @@ import VehiclePhotoTooltip from '../../components/VehiclePhotoTooltip';
 import { EntityLink } from '../../components/EntityLink';
 import { useAuth } from '../../context/AuthContext';
 import { CATEGORY_OPTIONS as VEHICLE_CATEGORY_OPTIONS, Pill, toggleItem } from '../../components/vehicleFilterKit';
+import { formatCOP, formatDateOrRange } from '../../utils/format';
 
 const STATUS_FILTERS: { value: ReservationStatus; label: string }[] = [
   { value: 'lead',             label: 'Lead' },
@@ -47,25 +48,6 @@ const fromParam = (s: string | null): string[] => (s ? s.split(',').filter(Boole
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
 type SortKey = 'event_date' | 'reservation_number' | 'total_amount' | 'deposit_paid' | 'status' | 'customer';
-
-function formatDate(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  });
-}
-
-// Multi-day events (event_end_date past event_date) show the full span, so
-// it's clear why a reservation appears in a filter starting after its own
-// event_date — it's still ongoing.
-function formatDateOrRange(from: string, to: string) {
-  if (!to || to === from) return formatDate(from);
-  const fromShort = new Date(from + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
-  return `${fromShort} - ${formatDate(to)}`;
-}
-
-function formatCOP(n: number) {
-  return `$${Number(n).toLocaleString('es-CO')}`;
-}
 
 function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 'asc' | 'desc' }) {
   if (col !== current) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 inline ml-1" />;

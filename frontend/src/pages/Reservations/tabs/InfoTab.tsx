@@ -12,6 +12,7 @@ import type { AttachmentCategory, ReservationAttachment } from '../../../types/r
 import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
 import { EntityLink, DriverLink } from '../../../components/EntityLink';
 import LastUpdated from '../../../components/ui/LastUpdated';
+import { formatDateLong as formatDate } from '../../../utils/format';
 
 interface AvailabilityTarget {
   vehicleLabel: string;
@@ -35,12 +36,6 @@ function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
 }
 
 function buildReviewMsg(name?: string | null): string {
