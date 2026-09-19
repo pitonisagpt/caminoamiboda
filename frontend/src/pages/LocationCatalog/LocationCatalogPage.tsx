@@ -1,22 +1,12 @@
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapPin, Plus, Edit, Trash2, Search, X, ExternalLink, Navigation, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogLocationsApi } from '../../api/catalogLocations';
 import type { CatalogLocation, CatalogLocationFormData, LocationType } from '../../types/catalogLocation';
-import { Modal } from '../../components/ui/Modal';
-import { Button } from '../../components/ui/Button';
-
-// ─── Constants ─────────────────────────────────────────────────────────────────
-
-const TYPE_LABELS: Record<LocationType, string> = {
-  pickup: 'Recogida',
-  ceremony: 'Ceremonia',
-  reception: 'Recepción',
-  photoshoot: 'Sesión de fotos',
-  other: 'Otro',
-};
+import { TYPE_LABELS, TYPE_HEX } from './locationTypeConstants';
+import { makeIcon, MapResizer, MapFitter } from './LeafletMapHelpers';
+import LocationModal from './LocationModal';
 
 const TYPE_COLORS: Record<LocationType, string> = {
   pickup: 'bg-blue-100 text-blue-700',
@@ -25,168 +15,6 @@ const TYPE_COLORS: Record<LocationType, string> = {
   photoshoot: 'bg-green-100 text-green-700',
   other: 'bg-gray-100 text-gray-600',
 };
-
-const TYPE_HEX: Record<LocationType, string> = {
-  pickup: '#3b82f6',
-  ceremony: '#a855f7',
-  reception: '#ec4899',
-  photoshoot: '#22c55e',
-  other: '#6b7280',
-};
-
-const EMPTY_FORM: CatalogLocationFormData = {
-  name: '', location_type: 'other', address: '',
-  google_maps_link: '', waze_link: '', contact_person: '', contact_phone: '', notes: '',
-};
-
-// ─── Leaflet custom icon ────────────────────────────────────────────────────────
-
-function makeIcon(type: LocationType, selected: boolean): L.DivIcon {
-  const color = TYPE_HEX[type];
-  const w = selected ? 30 : 22;
-  const h = selected ? 38 : 28;
-  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">
-    <filter id="s" x="-30%" y="-10%" width="160%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.25)"/>
-    </filter>
-    <path d="M15 0C7.27 0 1 6.27 1 14c0 10.5 14 24 14 24S29 24.5 29 14C29 6.27 22.73 0 15 0z"
-      fill="${color}" filter="url(#s)"/>
-    <circle cx="15" cy="14" r="5.5" fill="white" opacity="0.95"/>
-  </svg>`;
-  return L.divIcon({
-    className: '',
-    html: svg,
-    iconSize: [w, h],
-    iconAnchor: [w / 2, h],
-    popupAnchor: [0, -h],
-  });
-}
-
-// ─── Map resize observer ────────────────────────────────────────────────────────
-// Leaflet caches its render size at init and doesn't notice the container growing
-// (e.g. as async data/geocoding finishes and the grid row gets taller), leaving the
-// tile layer cut off with a blank gap below it. Re-measure whenever the container resizes.
-
-function MapResizer() {
-  const map = useMap();
-  useEffect(() => {
-    const container = map.getContainer();
-    const ro = new ResizeObserver(() => map.invalidateSize());
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, [map]);
-  return null;
-}
-
-// ─── Map fit-bounds controller ──────────────────────────────────────────────────
-
-function MapFitter({ points }: { points: [number, number][] }) {
-  const map = useMap();
-  const prev = useRef<string>('');
-  useEffect(() => {
-    if (points.length === 0) return;
-    const key = points.map(p => p.join(',')).join('|');
-    if (key === prev.current) return;
-    prev.current = key;
-    if (points.length === 1) {
-      map.setView(points[0], 15, { animate: true });
-    } else {
-      map.fitBounds(points as L.LatLngBoundsExpression, { padding: [48, 48], animate: true });
-    }
-  }, [points, map]);
-  return null;
-}
-
-// ─── Location Form Modal ────────────────────────────────────────────────────────
-
-function LocationModal({
-  initial,
-  onSave,
-  onClose,
-}: {
-  initial?: CatalogLocation | null;
-  onSave: (data: CatalogLocationFormData) => Promise<void>;
-  onClose: () => void;
-}) {
-  const [form, setForm] = useState<CatalogLocationFormData>(
-    initial
-      ? {
-          name: initial.name, location_type: initial.location_type,
-          address: initial.address || '', google_maps_link: initial.google_maps_link || '',
-          waze_link: initial.waze_link || '',
-          contact_person: initial.contact_person || '', contact_phone: initial.contact_phone || '',
-          notes: initial.notes || '',
-        }
-      : EMPTY_FORM
-  );
-  const [saving, setSaving] = useState(false);
-  const f = (k: keyof CatalogLocationFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-      setForm(prev => ({ ...prev, [k]: e.target.value }));
-
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500';
-
-  return (
-    <Modal
-      title={initial ? 'Editar ubicación' : 'Nueva ubicación'}
-      onClose={onClose}
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button
-            onClick={async () => { if (!form.name.trim()) return; setSaving(true); try { await onSave(form); } finally { setSaving(false); } }}
-            disabled={saving || !form.name.trim()}
-            loading={saving}
-          >
-            {saving ? 'Guardando…' : 'Guardar'}
-          </Button>
-        </>
-      }
-    >
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Nombre *</label>
-        <input value={form.name} onChange={f('name')} className={inputCls} placeholder="Catedral de Laureles" autoFocus />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
-          <select value={form.location_type} onChange={f('location_type')} className={inputCls}>
-            {(Object.entries(TYPE_LABELS) as [LocationType, string][]).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Contacto</label>
-          <input value={form.contact_person} onChange={f('contact_person')} className={inputCls} placeholder="Padre Martínez" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
-        <input value={form.address} onChange={f('address')} className={inputCls} placeholder="Cra 80 # 33-02, Medellín" />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Link Google Maps</label>
-        <input value={form.google_maps_link} onChange={f('google_maps_link')} className={inputCls} placeholder="https://maps.app.goo.gl/..." />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Link Waze (opcional)</label>
-        <input value={form.waze_link} onChange={f('waze_link')} className={inputCls} placeholder="https://waze.com/ul/..." />
-        <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se genera automático desde las coordenadas.</p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Tel. contacto</label>
-          <input value={form.contact_phone} onChange={f('contact_phone')} className={inputCls} placeholder="+57 300 000 0000" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Notas</label>
-          <input value={form.notes} onChange={f('notes')} className={inputCls} placeholder="Entrar por la puerta sur" />
-        </div>
-      </div>
-    </Modal>
-  );
-}
 
 // ─── Main Page ──────────────────────────────────────────────────────────────────
 
