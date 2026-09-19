@@ -383,11 +383,18 @@ export const en: Record<keyof typeof es, string> = {
 
   // VehicleCard.tsx aria-label + WhatsApp "check availability" message
   "catalog.viewDetailAria": "View details for {{vehicle}}",
+  "catalog.favoriteAria": "Save as favorite",
+  "catalog.unfavoriteAria": "Remove from favorites",
   "catalog.share": "Share",
   "catalog.waAvailabilityMessage": "Hi! I'm interested in the {{vehicle}}{{date}}. Is it available?",
   "catalog.waAvailabilityMessageDate": " for {{date}}",
   "catalog.waAvailabilityMessageCode": "Code: {{sku}}",
   "catalog.waAvailabilityMessageLink": "View vehicle: {{link}}",
+  "catalog.waFavoritesMessage": "Hi! I'm interested in these {{count}} vehicles for my wedding:",
+  "catalog.waFavoritesMessageClosing": "Could you tell me availability and pricing?",
+  "catalog.favoriteCountOne": "{{count}} favorite",
+  "catalog.favoriteCountOther": "{{count}} favorites",
+  "catalog.sendFavoritesWhatsapp": "Send via WhatsApp",
 
   // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
   "vehiclePage.backToCatalog": "Back to catalog",

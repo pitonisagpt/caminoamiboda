@@ -1,4 +1,4 @@
-import { Star, Lock } from "lucide-react";
+import { Star, Lock, Heart } from "lucide-react";
 import type { PublicVehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
@@ -23,6 +23,8 @@ export function VehicleCard({
   hidePricing,
   availability,
   previewDate,
+  isFavorite,
+  onToggleFavorite,
 }: {
   vehicle: PublicVehicleListItem;
   onClick?: () => void;
@@ -40,6 +42,12 @@ export function VehicleCard({
    * requires the lead-capture modal). When set, the "Desde $X" base price
    * escalates via priceForYear() same as the unlocked breakdown does. */
   previewDate?: string;
+  /** "Favoritos" (mejoras.md ítem 9) — client-side only, see useFavorites.
+   * Both optional so the heart toggle just doesn't render for a caller
+   * that hasn't wired favorites support (the icon needs somewhere to
+   * write the toggle to). */
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const { t, lang } = useLang();
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
@@ -63,6 +71,16 @@ export function VehicleCard({
           brandName={vehicle.brand}
         />
 
+        {onToggleFavorite && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            aria-label={isFavorite ? t("catalog.unfavoriteAria") : t("catalog.favoriteAria")}
+            aria-pressed={isFavorite}
+            className="absolute top-2 left-2 z-10 p-2 rounded-full bg-white/90 hover:bg-white text-gray-500 shadow-sm backdrop-blur-sm transition-colors cursor-pointer"
+          >
+            <Heart size={16} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+          </button>
+        )}
         <AdminEditLink to={`/vehiculos/editar/${vehicle.id}`} className="absolute bottom-2 right-2" />
         <ShareVehicleButton
           vehicleId={vehicle.id}

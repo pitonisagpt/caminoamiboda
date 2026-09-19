@@ -25,6 +25,8 @@ import {
 import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import FilterPanel from "./FilterPanel";
+import FavoritesBar from "./FavoritesBar";
+import { useFavorites } from "../../hooks/useFavorites";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 type SortKey = "default" | "year" | "price_asc" | "price_desc";
@@ -92,6 +94,7 @@ export function CatalogPage() {
   const [unavailableIds, setUnavailableIds] = useState<Set<number>>(new Set());
   const [picoYPlacaIds, setPicoYPlacaIds] = useState<Set<number>>(new Set());
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const { favorites, toggleFavorite } = useFavorites();
 
   function setCheckDate(next: string) {
     setCheckDateState(next);
@@ -326,6 +329,11 @@ export function CatalogPage() {
     const bodyType = vehicles.map(v => v.body_type).find(bt => bt && bt !== "NA");
     return bodyType ? [...modelLines, bodyType] : modelLines;
   }, [vehicles]);
+
+  const favoriteVehicles = useMemo(
+    () => vehicles.filter(v => favorites.has(v.id)),
+    [vehicles, favorites]
+  );
 
   const filtered = useMemo(() => {
     const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
@@ -585,6 +593,12 @@ export function CatalogPage() {
                 </div>
               )}
 
+              <FavoritesBar
+                favoriteVehicles={favoriteVehicles}
+                onRemove={toggleFavorite}
+                onClearAll={() => favoriteVehicles.forEach(v => toggleFavorite(v.id))}
+              />
+
               {/* Top bar */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-sm text-gray-400">
@@ -641,6 +655,8 @@ export function CatalogPage() {
                               : "available"
                       }
                       previewDate={checkDate || undefined}
+                      isFavorite={favorites.has(v.id)}
+                      onToggleFavorite={() => toggleFavorite(v.id)}
                     />
                   ))}
                 </div>

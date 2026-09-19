@@ -256,6 +256,9 @@ export const es = {
   "catalog.priceToPlaceholder": "Hasta",
   "catalog.filters": "Filtros",
   "catalog.clear": "Limpiar",
+  "catalog.favoriteCountOne": "{{count}} favorito",
+  "catalog.favoriteCountOther": "{{count}} favoritos",
+  "catalog.sendFavoritesWhatsapp": "Enviar por WhatsApp",
   "catalog.clearFilters": "Limpiar filtros",
   "catalog.searchPlaceholder": "Buscar por marca, modelo, color, año...",
   "catalog.searchSuggestionsLabel": "Prueba con:",
@@ -387,11 +390,15 @@ export const es = {
   // VehicleCard.tsx aria-label + WhatsApp "check availability" message
   // (VehicleCard.tsx/VehicleModal.tsx, via vehicleWhatsappMessage.ts)
   "catalog.viewDetailAria": "Ver detalle de {{vehicle}}",
+  "catalog.favoriteAria": "Guardar como favorito",
+  "catalog.unfavoriteAria": "Quitar de favoritos",
   "catalog.share": "Compartir",
   "catalog.waAvailabilityMessage": "Hola! Me interesa el {{vehicle}}{{date}}. ¿Está disponible?",
   "catalog.waAvailabilityMessageDate": " para el {{date}}",
   "catalog.waAvailabilityMessageCode": "Código: {{sku}}",
   "catalog.waAvailabilityMessageLink": "Ver vehículo: {{link}}",
+  "catalog.waFavoritesMessage": "Hola! Me interesan estos {{count}} vehículos para mi boda:",
+  "catalog.waFavoritesMessageClosing": "¿Me cuentan disponibilidad y precio?",
 
   // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
   "vehiclePage.backToCatalog": "Volver al catálogo",
