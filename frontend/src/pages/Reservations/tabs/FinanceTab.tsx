@@ -1,176 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, DollarSign, Download, FileText, Gift, Link2, Loader2, MessageCircle, Plus, Receipt, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertTriangle, DollarSign, FileText, Gift, Loader2, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import type { Reservation } from '../../../types/reservation';
-import type { BillingDocumentListItem, DocumentStatus } from '../../../types';
 import type { ReservationAddon, ReservationAddonForm } from '../../../types/reservationAddon';
 import { reservationsApi } from '../../../api/reservations';
 import type { ReservationPayment } from '../../../api/reservations';
-import { billingDocumentsApi } from '../../../api/billingDocuments';
 import { ownerSettlementsApi, type OwnerSettlement, type OwnerSettlementPayment } from '../../../api/ownerSettlements';
 import { EntityLink } from '../../../components/EntityLink';
-import { serviceOrdersApi } from '../../../api/serviceOrders';
-import type { ServiceOrder } from '../../../types/serviceOrder';
+import ServiceOrderSection from './ServiceOrderSection';
+import BillingDocumentsSection from './BillingDocumentsSection';
 import { reservationAddonsApi, type ReservationAddonPayment } from '../../../api/reservationAddons';
 import AddonPaymentLedger from './AddonPaymentLedger';
 import { addonPackagesApi, type AddonPackage } from '../../../api/addonPackages';
 import { useAuth } from '../../../context/AuthContext';
 import SettlementCard from './SettlementCard';
-import { buildContactWaUrl, whatsAppLinkProps, withSignature } from '../../../utils/whatsapp';
+import { buildContactWaUrl, whatsAppLinkProps } from '../../../utils/whatsapp';
 import LastUpdated from '../../../components/ui/LastUpdated';
 import { formatCOP, formatDateShort as formatDate } from '../../../utils/format';
-
-const DOC_STATUS_LABEL: Record<DocumentStatus, string> = {
-  draft: 'Borrador',
-  sent: 'Enviado',
-  paid: 'Pagado',
-};
-const DOC_STATUS_STYLE: Record<DocumentStatus, string> = {
-  draft: 'bg-gray-100 text-gray-600',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-green-100 text-green-700',
-};
-
-function buildCobroMsg(reservation: Reservation, payments: ReservationPayment[], addons: ReservationAddon[], recipientFirstName?: string): string {
-  const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
-  const reservaRef = recipientFirstName ? `la reserva de ${reservation.display_customer}` : 'tu reserva';
-  const totalDeposit = payments.reduce((s, p) => s + Number(p.amount), 0);
-  const remaining = Math.max(0, Number(reservation.total_amount) - totalDeposit);
-  const hasVehicle = !!reservation.display_vehicle && reservation.display_vehicle !== '—';
-  const vehicleValue = Number(reservation.total_amount) - addons.reduce((s, a) => s + Number(a.price), 0);
-
-  const lines: string[] = [
-    // When there are addons, the vehicle+services breakdown below already
-    // names the vehicle, so it isn't repeated in the greeting too.
-    `Hola ${greetName}, aquí está el resumen de pagos de ${reservaRef} con Camino a mi Boda${addons.length === 0 && hasVehicle ? ` — ${reservation.display_vehicle}` : ''}:`,
-    '',
-  ];
-
-  if (addons.length > 0) {
-    lines.push('*Detalle:*');
-    if (hasVehicle) lines.push(`  - ${reservation.display_vehicle}: ${formatCOP(vehicleValue)}`);
-    addons.forEach(a => {
-      const provider = a.provider_name ? ` (${a.provider_name})` : '';
-      lines.push(`  - ${a.name}${provider}: ${formatCOP(Number(a.price))}`);
-    });
-    lines.push('');
-  }
-
-  lines.push(`*Valor total:* ${formatCOP(reservation.total_amount)}`, '');
-
-  if (payments.length > 0) {
-    lines.push('*Abonos realizados:*');
-    payments.forEach(p => {
-      const date = new Date(p.paid_at + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
-      const note = p.notes ? ` (${p.notes})` : '';
-      const withholding = p.payment_type === 'withholding'
-        ? ` [Retención en la fuente${p.withholding_percentage ? ` ${p.withholding_percentage}%` : ''}]`
-        : '';
-      lines.push(`  - ${date}: ${formatCOP(Number(p.amount))}${note}${withholding}`);
-    });
-    lines.push('');
-  }
-
-  lines.push(`*Total abonado:* ${formatCOP(totalDeposit)}`);
-  lines.push(`*Saldo pendiente:* ${formatCOP(remaining)}`);
-
-  if (reservation.event_date) {
-    const evDate = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
-    lines.push('');
-    lines.push(`*Fecha del evento:* ${evDate}`);
-  }
-
-  lines.push('');
-  lines.push(`La cuenta de ahorros Bancolombia es 00484248273`);
-
-  return withSignature(lines.join('\n'));
-}
-
-// Just the itemized breakdown + total — no payment/deposit history, unlike
-// buildCobroMsg above. For quoting a client or wedding planner what's
-// included and what it costs, independent of where payments stand.
-function buildDetalleMsg(reservation: Reservation, addons: ReservationAddon[], recipientFirstName?: string): string {
-  const greetName = recipientFirstName ?? reservation.display_customer.split(' ')[0];
-  const reservaRef = recipientFirstName ? `la reserva de ${reservation.display_customer}` : 'tu reserva';
-  const hasVehicle = !!reservation.display_vehicle && reservation.display_vehicle !== '—';
-  const vehicleValue = Number(reservation.total_amount) - addons.reduce((s, a) => s + Number(a.price), 0);
-
-  const lines: string[] = [
-    `Hola ${greetName}, aquí está el detalle de ${reservaRef} con Camino a mi Boda:`,
-    '',
-  ];
-
-  if (hasVehicle) lines.push(`- ${reservation.display_vehicle}: ${formatCOP(vehicleValue)}`);
-  addons.forEach(a => {
-    const provider = a.provider_name ? ` (${a.provider_name})` : '';
-    lines.push(`- ${a.name}${provider}: ${formatCOP(Number(a.price))}`);
-  });
-  lines.push('');
-  lines.push(`*Valor total:* ${formatCOP(reservation.total_amount)}`);
-
-  if (reservation.event_date) {
-    const evDate = new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
-    lines.push('');
-    lines.push(`*Fecha del evento:* ${evDate}`);
-  }
-
-  return withSignature(lines.join('\n'));
-}
-
-function buildOwnerMsg(
-  reservation: Reservation,
-  settlement: OwnerSettlement | null,
-  settlementPayments: OwnerSettlementPayment[],
-  ownerFirstName: string,
-  retentionTotal: number,
-  vehicleValue: number,
-): string {
-  const ownerPct = settlement ? settlement.owner_percentage : (reservation.vehicle_is_company_owned ? 0 : 70);
-  // vehicleValue is total_amount minus any third-party addon services (ramo,
-  // letrero, etc.) — the owner's % must only ever apply to their vehicle's
-  // share, never to a service that isn't theirs. Once a settlement exists,
-  // its owner_amount is already computed server-side against that same base.
-  const ownerAmount = settlement ? settlement.owner_amount : vehicleValue * (ownerPct / 100);
-  const remainingToOwner = settlement ? settlement.remaining_to_owner : ownerAmount;
-  // Full share had there been no retention — only used to detect whether
-  // ownerAmount was actually reduced for it, so the note below only appears
-  // when a discount really happened (not every time there's a retention).
-  const fullShareWithoutRetention = vehicleValue * (ownerPct / 100);
-  const wasDiscountedForRetention = retentionTotal > 0 && ownerAmount < fullShareWithoutRetention - 1;
-
-  const lines: string[] = [
-    `Hola ${ownerFirstName}, aquí está el resumen de la reserva con Camino a mi Boda${reservation.display_vehicle && reservation.display_vehicle !== '—' ? ` — ${reservation.display_vehicle}` : ''}:`,
-    '',
-    `*Valor del vehículo:* ${formatCOP(vehicleValue)}`,
-    `*Tu parte (${ownerPct}%):* ${formatCOP(ownerAmount)}`,
-  ];
-
-  if (retentionTotal > 0) {
-    lines.push(`_El cliente retuvo ${formatCOP(retentionTotal)} en la fuente en esta reserva${wasDiscountedForRetention ? ' — tu parte de arriba ya descuenta lo que te correspondería de eso' : ''}._`);
-  }
-  lines.push('');
-
-  if (settlementPayments.length > 0) {
-    lines.push('*Abonos recibidos:*');
-    settlementPayments.forEach(p => {
-      const note = p.notes ? ` (${p.notes})` : '';
-      lines.push(`  - ${formatDate(p.paid_at)}: ${formatCOP(Number(p.amount))}${note}`);
-    });
-    lines.push('');
-  }
-
-  if (remainingToOwner > 0) {
-    lines.push(`*Saldo pendiente para ti:* ${formatCOP(remainingToOwner)}`);
-    lines.push('');
-  }
-
-  if (reservation.event_date) {
-    lines.push(`*Fecha del evento:* ${new Date(reservation.event_date + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`);
-    lines.push('');
-  }
-
-  return withSignature(lines.join('\n').trim());
-}
+import { buildCobroMsg, buildDetalleMsg, buildOwnerMsg } from './financeMessages';
 
 export default function FinanceTab({
   reservation,
@@ -180,15 +26,6 @@ export default function FinanceTab({
   onReservationChange?: () => void;
 }) {
   const { isAdmin } = useAuth();
-  const navigate = useNavigate();
-
-  const [billingDocs, setBillingDocs] = useState<BillingDocumentListItem[]>([]);
-  const [billingDocsLoading, setBillingDocsLoading] = useState(true);
-  const [showDocLinkSearch, setShowDocLinkSearch] = useState(false);
-  const [docLinkQuery, setDocLinkQuery] = useState('');
-  const [docLinkResults, setDocLinkResults] = useState<BillingDocumentListItem[]>([]);
-  const [linkingDocId, setLinkingDocId] = useState<number | null>(null);
-  const docLinkSearchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [payments, setPayments] = useState<ReservationPayment[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
@@ -207,10 +44,6 @@ export default function FinanceTab({
   const [creating, setCreating] = useState(false);
   const [ownerAmountOverride, setOwnerAmountOverride] = useState('');
   const [newSettlementVehicleId, setNewSettlementVehicleId] = useState('');
-
-  const [serviceOrder, setServiceOrder] = useState<ServiceOrder | null | 'loading'>('loading');
-  const [creatingOrder, setCreatingOrder] = useState(false);
-  const [orderPdfLoading, setOrderPdfLoading] = useState(false);
 
   const [addons, setAddons] = useState<ReservationAddon[] | 'loading'>('loading');
   const [addonPaymentsMap, setAddonPaymentsMap] = useState<Record<number, ReservationAddonPayment[]>>({});
@@ -241,41 +74,6 @@ export default function FinanceTab({
   }, [reservation.id]);
 
   useEffect(() => {
-    if (!isAdmin) { setBillingDocsLoading(false); return; }
-    billingDocumentsApi.list({ reservation_id: reservation.id })
-      .then(r => setBillingDocs(r.data))
-      .catch(() => setBillingDocs([]))
-      .finally(() => setBillingDocsLoading(false));
-  }, [reservation.id, isAdmin]);
-
-  const handleDocLinkSearch = (q: string) => {
-    setDocLinkQuery(q);
-    if (docLinkSearchRef.current) clearTimeout(docLinkSearchRef.current);
-    if (!q.trim()) { setDocLinkResults([]); return; }
-    docLinkSearchRef.current = setTimeout(async () => {
-      try {
-        const res = await billingDocumentsApi.list({ search: q, unlinked: true });
-        setDocLinkResults(res.data);
-      } catch { setDocLinkResults([]); }
-    }, 300);
-  };
-
-  const handleLinkExistingDoc = async (d: BillingDocumentListItem) => {
-    setLinkingDocId(d.id);
-    try {
-      await billingDocumentsApi.update(d.id, { reservation_id: reservation.id });
-      setBillingDocs(prev => [{ ...d, reservation_id: reservation.id }, ...prev]);
-      setShowDocLinkSearch(false);
-      setDocLinkQuery('');
-      setDocLinkResults([]);
-    } catch {
-      alert('Error al vincular el documento.');
-    } finally {
-      setLinkingDocId(null);
-    }
-  };
-
-  useEffect(() => {
     if (!isAdmin) { setSettlements([]); return; }
     ownerSettlementsApi.list()
       .then(r => {
@@ -288,13 +86,6 @@ export default function FinanceTab({
         });
       })
       .catch(() => setSettlements([]));
-  }, [reservation.id, isAdmin]);
-
-  useEffect(() => {
-    if (!isAdmin) { setServiceOrder(null); return; }
-    serviceOrdersApi.list()
-      .then(r => setServiceOrder(r.data.find(o => o.reservation_id === reservation.id) ?? null))
-      .catch(() => setServiceOrder(null));
   }, [reservation.id, isAdmin]);
 
   // The addon list itself (name/price/provider/description) is plain
@@ -388,40 +179,6 @@ export default function FinanceTab({
   // owner_settlements.py calculation exactly. Shown wherever the settlement
   // amount is previewed so it's never a silent server-side-only number.
   const settlementBaseValue = Math.max(0, Number(reservation.total_amount) - addonsTotal);
-
-  const handleCreateServiceOrder = async () => {
-    setCreatingOrder(true);
-    try {
-      const res = await serviceOrdersApi.create({
-        reservation_id: reservation.id,
-        vehicle_id: reservation.vehicle_id ?? undefined,
-      });
-      setServiceOrder(res.data);
-    } finally {
-      setCreatingOrder(false);
-    }
-  };
-
-  const handleGenerateOrderPdf = async () => {
-    if (!serviceOrder || serviceOrder === 'loading') return;
-    setOrderPdfLoading(true);
-    try {
-      const updated = await serviceOrdersApi.generatePdf(serviceOrder.id);
-      setServiceOrder(updated.data);
-    } finally {
-      setOrderPdfLoading(false);
-    }
-  };
-
-  const handleDownloadOrderPdf = async () => {
-    if (!serviceOrder || serviceOrder === 'loading') return;
-    setOrderPdfLoading(true);
-    try {
-      await serviceOrdersApi.downloadPdf(serviceOrder.id, serviceOrder.order_number);
-    } finally {
-      setOrderPdfLoading(false);
-    }
-  };
 
   const handleAddPayment = async () => {
     if (!newAmount || Number(newAmount) <= 0) return;
@@ -897,88 +654,7 @@ export default function FinanceTab({
       </div>
 
       {/* Billing documents (cuentas de cobro) — admin only */}
-      {isAdmin && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-brand-500" />
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Cuentas de cobro</h2>
-            </div>
-            <div className="flex items-center gap-3 relative">
-              <button
-                onClick={() => setShowDocLinkSearch(v => !v)}
-                className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 cursor-pointer"
-              >
-                <Link2 size={13} /> Vincular documento existente
-              </button>
-              <button
-                onClick={() => navigate(`/documentos/nuevo?reservation_id=${reservation.id}`)}
-                className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 cursor-pointer"
-              >
-                <Plus size={13} /> Generar cuenta de cobro
-              </button>
-              {showDocLinkSearch && (
-                <div className="absolute z-20 top-full right-0 mt-1 w-80 bg-white border border-gray-200 rounded-xl shadow-lg p-2">
-                  <input
-                    type="text"
-                    autoFocus
-                    value={docLinkQuery}
-                    onChange={e => handleDocLinkSearch(e.target.value)}
-                    onBlur={() => setTimeout(() => setShowDocLinkSearch(false), 150)}
-                    placeholder="Número de documento o cliente..."
-                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                  {docLinkResults.length > 0 && (
-                    <div className="mt-1 max-h-56 overflow-y-auto">
-                      {docLinkResults.map(d => (
-                        <button
-                          key={d.id}
-                          type="button"
-                          disabled={linkingDocId !== null}
-                          onMouseDown={() => handleLinkExistingDoc(d)}
-                          className="w-full text-left px-3 py-2 hover:bg-brand-50 text-sm rounded-lg cursor-pointer disabled:opacity-50"
-                        >
-                          <p className="font-medium text-gray-900 font-mono">{d.document_number} — {d.client_name}</p>
-                          <p className="text-xs text-gray-400">{formatDate(d.service_date)} · {formatCOP(Number(d.total_amount))}</p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {billingDocsLoading ? (
-            <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
-              <Loader2 size={14} className="animate-spin" /> Cargando…
-            </div>
-          ) : billingDocs.length === 0 ? (
-            <p className="text-sm text-gray-400">Sin cuentas de cobro generadas para esta reserva.</p>
-          ) : (
-            <div className="space-y-2">
-              {billingDocs.map(d => (
-                <button
-                  key={d.id}
-                  onClick={() => navigate(`/documentos/${d.id}`)}
-                  className="w-full flex items-center justify-between gap-3 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 text-left transition-colors cursor-pointer"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-mono font-semibold text-gray-900">{d.document_number}</p>
-                    <p className="text-xs text-gray-400">{formatDate(d.service_date)}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-sm font-semibold text-gray-700">{formatCOP(Number(d.total_amount))}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DOC_STATUS_STYLE[d.status]}`}>
-                      {DOC_STATUS_LABEL[d.status]}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {isAdmin && <BillingDocumentsSection reservationId={reservation.id} />}
 
       {/* WhatsApp liquidación al propietario — admin only, same privacy boundary as the settlement section below */}
       {isAdmin && reservation.owner_name && !reservation.vehicle_is_company_owned && (
@@ -1016,55 +692,7 @@ export default function FinanceTab({
 
       {/* Service Order — admin only, same boundary as the settlement below */}
       {isAdmin && reservation.owner_name && !reservation.vehicle_is_company_owned && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Orden de servicio</h2>
-
-          {serviceOrder === 'loading' && (
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <Loader2 size={14} className="animate-spin" /> Cargando...
-            </div>
-          )}
-
-          {serviceOrder === null && (
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500">No se ha generado una orden de servicio para esta reserva.</p>
-              <button
-                onClick={handleCreateServiceOrder}
-                disabled={creatingOrder}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-              >
-                {creatingOrder ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-                Generar Orden de Servicio
-              </button>
-            </div>
-          )}
-
-          {serviceOrder && serviceOrder !== 'loading' && (
-            <div className="space-y-3">
-              <span className="text-sm text-gray-500 font-mono">{serviceOrder.order_number}</span>
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={handleGenerateOrderPdf}
-                  disabled={orderPdfLoading}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                >
-                  {orderPdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
-                  {serviceOrder.pdf_path ? 'Regenerar PDF' : 'Generar PDF'}
-                </button>
-                {serviceOrder.pdf_path && (
-                  <button
-                    onClick={handleDownloadOrderPdf}
-                    disabled={orderPdfLoading}
-                    className="flex items-center gap-2 border border-purple-200 text-purple-700 hover:bg-purple-50 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
-                  >
-                    {orderPdfLoading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                    Descargar PDF
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <ServiceOrderSection reservationId={reservation.id} vehicleId={reservation.vehicle_id} />
       )}
 
       {/* Owner Settlement — admin only. A reservation can have several
