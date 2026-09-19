@@ -238,6 +238,8 @@ export const es = {
   "catalog.changeDate": "Cambiar fecha",
   "catalog.removeDate": "Eliminar fecha",
   "catalog.loadError": "No se pudo cargar el catálogo. Intenta más tarde.",
+  "catalog.moreFilters": "Más filtros",
+  "catalog.lessFilters": "Menos filtros",
   "catalog.filterType": "Tipo",
   "catalog.filterTypeAll": "Todos",
   "catalog.filterTypeCar": "Carros",

@@ -239,6 +239,8 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.changeDate": "Change date",
   "catalog.removeDate": "Remove date",
   "catalog.loadError": "We couldn't load the catalog. Please try again later.",
+  "catalog.moreFilters": "More filters",
+  "catalog.lessFilters": "Fewer filters",
   "catalog.filterType": "Type",
   "catalog.filterTypeAll": "All",
   "catalog.filterTypeCar": "Cars",
