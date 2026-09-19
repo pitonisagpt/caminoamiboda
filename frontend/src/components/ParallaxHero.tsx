@@ -68,7 +68,13 @@ export function ParallaxHero({ title, subtitle, children }: Props) {
   return (
     <div
       ref={sectionRef}
-      className="relative left-1/2 -translate-x-1/2 w-screen h-[55vh] min-h-[380px] max-h-[640px] overflow-hidden bg-brand-900"
+      // Shorter on mobile (42vh vs 55vh) — CatalogPage's availability
+      // widget now sits directly below the hero, and at the old height its
+      // CTA button landed right under the viewport's fixed floating
+      // buttons (WhatsApp/Filtros/chat) on first paint, before any
+      // scrolling. Confirmed with Playwright: the button now clears that
+      // zone with ~80px to spare on a 390×844 viewport.
+      className="relative left-1/2 -translate-x-1/2 w-screen h-[42vh] sm:h-[55vh] min-h-[320px] sm:min-h-[380px] max-h-[640px] overflow-hidden bg-brand-900"
     >
       {loadVideo ? (
         <video

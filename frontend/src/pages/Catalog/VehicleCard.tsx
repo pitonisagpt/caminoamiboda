@@ -2,6 +2,7 @@ import { Star, Lock } from "lucide-react";
 import type { PublicVehicleListItem } from "../../types/vehicle";
 import { PhotoSlider } from "./PhotoSlider";
 import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { vehicleFromPrice } from "../../components/vehicleFilterKit";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import { ShareVehicleButton } from "../../components/ShareVehicleButton";
@@ -32,12 +33,21 @@ export function VehicleCard({
   unlock,
   onRequestUnlock,
   hidePricing,
+  availability,
+  previewDate,
 }: {
   vehicle: PublicVehicleListItem;
   onClick?: () => void;
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
   hidePricing?: boolean;
+  /** undefined = no date picked yet (badge hidden). true/false once the
+   * visitor picks a date in the catalog's availability picker. */
+  availability?: boolean;
+  /** The free availability-picker's date (not `unlock`'s — that one still
+   * requires the lead-capture modal). When set, the "Desde $X" base price
+   * escalates via priceForYear() same as the unlocked breakdown does. */
+  previewDate?: string;
 }) {
   const { t, lang } = useLang();
   const visiblePhotos = (vehicle.photos ?? []).filter((p) => p.is_visible);
@@ -136,32 +146,64 @@ export function VehicleCard({
 
         {/* Price — omitted entirely for a use-case-scoped catalog (productions/
             activations are quoted separately, by the hour); the WhatsApp CTA
-            right below already covers "contact us" for that case. */}
-        {hidePricing ? null : vehicle.price_medellin == null && vehicle.price_rionegro == null ? (
-          <p className="text-sm text-gray-400">{t("vehicleModal.priceOnRequest")}</p>
-        ) : !unlock ? (
-          <button
-            onClick={(e) => { e.stopPropagation(); onRequestUnlock?.(); }}
-            className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
-          >
-            <Lock size={13} />
-            {t("vehicleModal.seePrice")}
-          </button>
-        ) : (
-          <div className="space-y-0.5">
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{t("vehicleModal.medellin")}</span>
-              <span className={`ml-2 font-semibold ${vehicle.price_medellin != null ? "text-gray-900" : "text-gray-400"}`}>
-                {vehicle.price_medellin != null ? formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate)) : t("vehicleModal.notApplicable")}
+            right below already covers "contact us" for that case.
+
+            Base "Desde $X" is always visible now (mejoras.md ítem 1 — no
+            card should show only a "Ver precio" lock with nothing else).
+            `unlock` (RevealPricesModal's lead-capture flow) still adds the
+            detailed per-location, date-escalated breakdown below, but it's
+            no longer required to see a real number at all. */}
+        {hidePricing ? null : (
+          <div className="space-y-1">
+            {(() => {
+              const basePrice = vehicleFromPrice(vehicle);
+              if (basePrice == null) {
+                return <p className="text-sm text-gray-400">{t("vehicleModal.priceOnRequest")}</p>;
+              }
+              const fromPrice = previewDate ? priceForYear(basePrice, previewDate) : basePrice;
+              return (
+                <p className="text-sm text-gray-700">
+                  <span className="text-gray-500">{t("catalog.priceFromLabel")}</span>{" "}
+                  <span className="font-bold text-gray-900">{formatCOP(fromPrice)}</span>
+                </p>
+              );
+            })()}
+
+            {availability !== undefined && (
+              <span
+                className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  availability ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                {availability ? t("catalog.availableBadge") : t("catalog.unavailableBadge")}
               </span>
-            </p>
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{t("vehicleModal.llanogrande")}</span>
-              <span className={`ml-2 font-semibold ${vehicle.price_rionegro != null ? "text-gray-900" : "text-gray-400"}`}>
-                {vehicle.price_rionegro != null ? formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate)) : t("vehicleModal.notApplicable")}
-              </span>
-            </p>
-            <p className="text-[11px] text-gray-400">{t("vehicleModal.priceFootnote")}</p>
+            )}
+
+            {unlock ? (
+              <div className="space-y-0.5 pt-0.5">
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">{t("vehicleModal.medellin")}</span>
+                  <span className={`ml-2 font-semibold ${vehicle.price_medellin != null ? "text-gray-900" : "text-gray-400"}`}>
+                    {vehicle.price_medellin != null ? formatCOP(priceForYear(vehicle.price_medellin, unlock.weddingDate)) : t("vehicleModal.notApplicable")}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">{t("vehicleModal.llanogrande")}</span>
+                  <span className={`ml-2 font-semibold ${vehicle.price_rionegro != null ? "text-gray-900" : "text-gray-400"}`}>
+                    {vehicle.price_rionegro != null ? formatCOP(priceForYear(vehicle.price_rionegro, unlock.weddingDate)) : t("vehicleModal.notApplicable")}
+                  </span>
+                </p>
+                <p className="text-[11px] text-gray-400">{t("vehicleModal.priceFootnote")}</p>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); onRequestUnlock?.(); }}
+                className="flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
+              >
+                <Lock size={11} />
+                {t("catalog.exactQuoteLink")}
+              </button>
+            )}
           </div>
         )}
 

@@ -3,6 +3,7 @@ import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
+import { availabilityApi } from "../../api/availability";
 import { VehicleCard } from "./VehicleCard";
 import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
@@ -224,10 +225,6 @@ const toParam = (arr: (string | number)[]): string | null =>
 const fromParam = (s: string | null): string[] =>
   s ? s.split(",").filter(Boolean) : [];
 
-function formatCOP(amount: number) {
-  return `$${Math.round(amount).toLocaleString("es-CO")}`;
-}
-
 // ─── Main page ─────────────────────────────────────────────────────────────
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -241,6 +238,60 @@ export function CatalogPage() {
   const [gateOpen, setGateOpen] = useState(false);
   const location = useLocation();
   const { t, lang, pickLocalized } = useLang();
+
+  // Free availability check (mejoras.md ítem 1) — deliberately separate
+  // from `unlock` above: that one requires RevealPricesModal's lead-capture
+  // form, this one doesn't. Uses its own query param ("disponibilidad",
+  // not "fecha") because "?fecha=" is already a one-shot personalized-link
+  // param that gets consumed into `unlock` and stripped from the URL on
+  // mount (see the effect above `filters`) — reusing it here would make
+  // every date pick silently (mis)trigger that consumption path.
+  const CHECK_DATE_STORAGE_KEY = "camino_availability_check_date";
+  const [checkDate, setCheckDateState] = useState<string>(
+    () => searchParams.get("disponibilidad") ?? localStorage.getItem(CHECK_DATE_STORAGE_KEY) ?? ""
+  );
+  const [unavailableIds, setUnavailableIds] = useState<Set<number>>(new Set());
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+
+  function setCheckDate(next: string) {
+    setCheckDateState(next);
+    setSearchParams(prev => {
+      const next2 = new URLSearchParams(prev);
+      if (next) next2.set("disponibilidad", next); else next2.delete("disponibilidad");
+      return next2;
+    }, { replace: true });
+  }
+
+  // Keyed on `checkDate` itself (not folded into setCheckDate above) so a
+  // date that arrives via ?disponibilidad= URL param on first load — which
+  // only sets React state through the lazy useState initializer above,
+  // never calls setCheckDate() — still gets persisted. Otherwise following
+  // a shared link and then later opening a plain /catalogo tab "forgets"
+  // the date, even though it should still be remembered like any date
+  // picked by hand.
+  useEffect(() => {
+    try {
+      if (checkDate) localStorage.setItem(CHECK_DATE_STORAGE_KEY, checkDate);
+      else localStorage.removeItem(CHECK_DATE_STORAGE_KEY);
+    } catch {
+      // localStorage can throw in a private-browsing edge case — the date
+      // still works for this page load via state, just doesn't persist.
+    }
+  }, [checkDate]);
+
+  useEffect(() => {
+    if (!checkDate) {
+      setUnavailableIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    setAvailabilityLoading(true);
+    availabilityApi.forDate(checkDate)
+      .then(res => { if (!cancelled) setUnavailableIds(new Set(res.data.unavailable_vehicle_ids)); })
+      .catch(() => { if (!cancelled) setUnavailableIds(new Set()); })
+      .finally(() => { if (!cancelled) setAvailabilityLoading(false); });
+    return () => { cancelled = true; };
+  }, [checkDate]);
 
   const effectivePrice = (v: PublicVehicleListItem, locations: string[]): number | null => {
     const base = vehiclePrice(v, locations);
@@ -404,11 +455,6 @@ export function CatalogPage() {
     [vehicles]
   );
 
-  const minPrice = useMemo(() => {
-    const prices = vehicles.map(v => vehiclePrice(v, [])).filter((p): p is number => p !== null);
-    return prices.length ? Math.min(...prices) : null;
-  }, [vehicles]);
-
   const filtered = useMemo(() => {
     const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
     const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
@@ -553,18 +599,19 @@ export function CatalogPage() {
         </div>
       </ParallaxHero>
       <div className="space-y-8">
-        {!noPricing && !unlock && !loading && !error && minPrice !== null && (
-          <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 sm:px-8 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">{t("catalog.priceFrom", { price: formatCOP(minPrice) })}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{t("catalog.priceFromHint")}</p>
-            </div>
-            <button
-              onClick={() => setGateOpen(true)}
-              className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
-            >
-              {t("catalog.seePrices")}
-            </button>
+        {/* Free availability check — moved here from the bottom of the page
+            (mejoras.md ítem 1: "selector de fecha global arriba del
+            catálogo"), and now actually queries real reservations instead
+            of just building a WhatsApp message. */}
+        {!noPricing && !loading && !error && (
+          <div className="max-w-lg mx-auto w-full">
+            <AvailabilityWidget
+              date={checkDate}
+              onDateChange={setCheckDate}
+              loading={availabilityLoading}
+              availableCount={checkDate ? vehicles.length - unavailableIds.size : undefined}
+              totalCount={checkDate ? vehicles.length : undefined}
+            />
           </div>
         )}
 
@@ -694,6 +741,8 @@ export function CatalogPage() {
                       unlock={unlock}
                       onRequestUnlock={() => setGateOpen(true)}
                       hidePricing={noPricing}
+                      availability={checkDate ? !unavailableIds.has(v.id) : undefined}
+                      previewDate={checkDate || undefined}
                     />
                   ))}
                 </div>
@@ -768,11 +817,6 @@ export function CatalogPage() {
           }}
         />
       )}
-
-      {/* Availability widget */}
-      <div className="mt-16 max-w-lg mx-auto">
-        <AvailabilityWidget />
-      </div>
 
       {/* Instagram grid */}
       <div className="mt-16">

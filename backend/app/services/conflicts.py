@@ -87,7 +87,8 @@ def find_conflicts(
 
     if vehicle_ids:
         for clash in candidates:
-            if not (vehicles_by_reservation.get(clash.id, set()) & set(vehicle_ids)):
+            matched_vehicles = vehicles_by_reservation.get(clash.id, set()) & set(vehicle_ids)
+            if not matched_vehicles:
                 continue
             if clash.event_date != event_date:
                 msg = (
@@ -104,6 +105,13 @@ def find_conflicts(
                 "severity": "blocking",
                 "reservation_number": clash.reservation_number,
                 "message": msg,
+                # Which of the queried vehicle_ids this specific clash is
+                # about — added for the public availability endpoint
+                # (public_availability.py), which needs to know per-vehicle
+                # status, not just "something in this set clashed". Existing
+                # callers (calendar.py's check_conflicts) ignore the extra
+                # key.
+                "vehicle_ids": sorted(matched_vehicles),
             })
 
     if driver_ids or owner_driver_ids:

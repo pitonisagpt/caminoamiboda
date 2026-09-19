@@ -62,6 +62,16 @@ export function vehiclePrice(v: Pick<VehicleListItem, "price_medellin" | "price_
   return v.price_medellin ?? v.price_rionegro ?? null;
 }
 
+/** The "Desde $X" figure for a catalog card — the lower of the two
+ * location prices, whichever exist (unlike vehiclePrice() above, which
+ * picks by location preference for filtering/sorting, not by "cheapest
+ * number to advertise"). Null only for the handful of vehicles with
+ * neither price set at all. */
+export function vehicleFromPrice(v: Pick<VehicleListItem, "price_medellin" | "price_rionegro">): number | null {
+  const prices = [v.price_medellin, v.price_rionegro].filter((p): p is number => p != null);
+  return prices.length ? Math.min(...prices) : null;
+}
+
 export function toggleItem<T>(arr: T[], item: T): T[] {
   return arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item];
 }
