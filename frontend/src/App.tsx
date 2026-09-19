@@ -11,6 +11,7 @@ import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
 import CondicionesServicioPage from "./pages/Public/CondicionesServicioPage";
 import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
+import CityPage from "./pages/Public/CityPage";
 import VehicleDetailPage from "./pages/Public/VehicleDetailPage";
 import NotFoundPage from "./pages/Public/NotFoundPage";
 import BlogListPage from "./pages/Blog/BlogListPage";
@@ -85,6 +86,17 @@ const PUBLIC_SITE_ROUTES: { path: string; element: JSX.Element }[] = [
   // automatically same as every other entry in this array.
   { path: "carros/:idSlug", element: <VehicleDetailPage /> },
   { path: "como-funciona", element: <ComoFuncionaPage /> },
+  // City landing pages (mejoras.md ítem 4) — content per city lives in
+  // pages/Public/cityData.ts, not the JSX here, so there's a single
+  // template (CityPage.tsx) to keep in sync. Three static entries, not one
+  // dynamic "bodas-:city" route — react-router v6 doesn't match a literal
+  // prefix fused onto a dynamic segment within the same path segment (only
+  // ":param" alone, or ":param" as its own "/"-delimited segment), so that
+  // shape silently never matched and always fell through to "*" below
+  // (confirmed with Playwright before switching to this).
+  { path: "bodas-medellin", element: <CityPage citySlug="medellin" /> },
+  { path: "bodas-rionegro-llanogrande", element: <CityPage citySlug="rionegro-llanogrande" /> },
+  { path: "bodas-carmen-de-viboral", element: <CityPage citySlug="carmen-de-viboral" /> },
   { path: "blog", element: <BlogListPage /> },
   { path: "blog/:slug", element: <BlogPostPage /> },
   { path: "contacto", element: <ContactoPage /> },

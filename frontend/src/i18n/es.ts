@@ -21,6 +21,7 @@ export const es = {
   "layout.reservationPolicy": "Política de reservas",
   "layout.termsOfService": "Condiciones del servicio",
   "layout.city": "Medellín, Colombia",
+  "layout.serviceAreas": "Zonas que cubrimos:",
   "layout.languageSwitchAria": "Cambiar idioma",
 
   // 404 (NotFoundPage.tsx)

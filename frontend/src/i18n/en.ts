@@ -22,6 +22,7 @@ export const en: Record<keyof typeof es, string> = {
   "layout.reservationPolicy": "Booking policy",
   "layout.termsOfService": "Terms of service",
   "layout.city": "Medellín, Colombia",
+  "layout.serviceAreas": "Areas we cover:",
   "layout.languageSwitchAria": "Switch language",
 
   // 404

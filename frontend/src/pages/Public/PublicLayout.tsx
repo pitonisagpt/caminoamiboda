@@ -8,6 +8,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import { toLangPath } from "../../i18n/langPath";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { useAuth } from "../../context/AuthContext";
+import { CITY_PAGES } from "./cityData";
 
 const WHATSAPP_NUMBER = "573147372030";
 
@@ -68,7 +69,7 @@ const LOCAL_BUSINESS_JSON_LD = {
 
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { t, lang, setLang } = useLang();
+  const { t, lang, setLang, pickLocalized } = useLang();
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -271,6 +272,17 @@ export function PublicLayout() {
                 {t("layout.termsOfService")}
               </Link>
             </nav>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-gray-400 border-t border-gray-100 pt-5">
+            <span>{t("layout.serviceAreas")}</span>
+            {CITY_PAGES.map((city, i) => (
+              <span key={city.slug} className="flex items-center gap-2">
+                <Link to={toLangPath(`/bodas-${city.slug}`, lang)} className="hover:text-brand-600 transition-colors">
+                  {pickLocalized(city.shortLabel, city.shortLabel_en)}
+                </Link>
+                {i < CITY_PAGES.length - 1 && <span className="text-gray-200">·</span>}
+              </span>
+            ))}
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-gray-500 border-t border-gray-100 pt-6">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">

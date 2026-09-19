@@ -45,6 +45,9 @@ _STATIC_PATHS = [
     # non-canonical duplicate alongside the canonical one.
     "catalogo", "como-funciona", "blog", "contacto",
     "politica-de-datos", "politica-de-reservas", "condiciones-de-servicio",
+    # City landing pages (mejoras.md ítem 4) — must match the `slug` values
+    # in frontend/src/pages/Public/cityData.ts exactly (prefixed "bodas-").
+    "bodas-medellin", "bodas-rionegro-llanogrande", "bodas-carmen-de-viboral",
 ]
 
 
