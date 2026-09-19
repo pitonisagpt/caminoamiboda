@@ -1,7 +1,7 @@
 import { Loader2, Search, SlidersHorizontal, Star, Users, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { availabilityApi } from "../../api/availability";
 import { VehicleCard } from "./VehicleCard";
@@ -16,6 +16,7 @@ import { reviewsApi, type Review } from "../../api/reviews";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import type { VehicleCategory, PublicVehicleListItem } from "../../types/vehicle";
 import { getUnlock, setUnlock, clearUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { vehicleSlugPath } from "../../utils/slug";
 import {
   COLOR_HEX,
   COLOR_ORDER,
@@ -239,6 +240,7 @@ export function CatalogPage() {
   const [unlock, setUnlockState] = useState<PriceUnlock | null>(() => getUnlock());
   const [gateOpen, setGateOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, lang, pickLocalized } = useLang();
 
   // Free availability check (mejoras.md ítem 1) — deliberately separate
@@ -378,6 +380,17 @@ export function CatalogPage() {
       if (s && s !== "default") next.set("sort", s); else next.delete("sort");
       return next;
     }, { replace: true });
+  }
+
+  // Real, indexable per-vehicle page (mejoras.md ítem 4 / wishlist fila 66)
+  // — a card click used to only set ?vehiculo=<id> and open the modal, so a
+  // real visitor never landed on /carros/<slug> (no pageview, no shareable
+  // URL in the address bar/history) even though that page already exists
+  // and is built for exactly this. `noPricing` (productions/activaciones
+  // catalog) still opens the modal below — that view deliberately hides
+  // price/score, and VehicleDetailPage.tsx has no equivalent mode for it.
+  function goToVehicle(v: PublicVehicleListItem) {
+    navigate(`${lang === "en" ? "/en" : ""}/carros/${vehicleSlugPath(v)}`);
   }
 
   // Keeps ?vehiculo=<id> in sync with the open/closed modal, so the address
@@ -742,7 +755,7 @@ export function CatalogPage() {
                     <VehicleCard
                       key={v.id}
                       vehicle={v}
-                      onClick={() => openVehicle(v)}
+                      onClick={() => (noPricing ? openVehicle(v) : goToVehicle(v))}
                       unlock={unlock}
                       onRequestUnlock={() => setGateOpen(true)}
                       hidePricing={noPricing}

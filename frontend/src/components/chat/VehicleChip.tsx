@@ -4,6 +4,7 @@ import { vehiclesApi } from "../../api/vehicles";
 import type { PublicVehicleListItem } from "../../types/vehicle";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY } from "../../i18n/catalogLabels";
+import { vehicleSlugPath } from "../../utils/slug";
 
 // Shared across every chip instance in the widget so we fetch the public
 // vehicle list at most once per page load, regardless of how many
@@ -17,7 +18,7 @@ function loadVehicles(): Promise<PublicVehicleListItem[]> {
 }
 
 export function VehicleChip({ id }: { id: number }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [vehicle, setVehicle] = useState<PublicVehicleListItem | null | undefined>(undefined);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export function VehicleChip({ id }: { id: number }) {
 
   return (
     <a
-      href={`/catalogo?vehiculo=${vehicle.id}`}
+      href={`${lang === "en" ? "/en" : ""}/carros/${vehicleSlugPath(vehicle)}`}
       className="flex items-center gap-2 bg-white border border-brand-100 rounded-lg px-2.5 py-2 mt-1.5 hover:border-brand-300 hover:shadow-sm transition-all"
     >
       {photo ? (
