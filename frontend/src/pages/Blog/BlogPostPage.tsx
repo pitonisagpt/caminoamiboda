@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
-import MDEditor from '@uiw/react-md-editor';
+// The read-only renderer, not the full editor (@uiw/react-md-editor) — this
+// is a public page, and importing MDEditor just for its static .Markdown
+// property pulled the entire editor bundle (toolbar, CodeMirror, etc.) into
+// every visitor's main chunk. @uiw/react-markdown-preview is what
+// MDEditor.Markdown itself is built on, same `source`/`style` props, so
+// this is a drop-in swap with none of the editor weight.
+import MarkdownPreview from '@uiw/react-markdown-preview';
 import { AlertCircle } from 'lucide-react';
 import { blogApi, type BlogPost } from '../../api/blog';
 import { AdminEditLink } from '../../components/AdminEditLink';
@@ -96,7 +102,7 @@ export default function BlogPostPage() {
 
         {contentMd && (
           <div data-color-mode="light" className="prose max-w-none">
-            <MDEditor.Markdown source={contentMd} style={{ background: 'transparent', color: '#1f2937' }} />
+            <MarkdownPreview source={contentMd} style={{ background: 'transparent', color: '#1f2937' }} />
           </div>
         )}
 

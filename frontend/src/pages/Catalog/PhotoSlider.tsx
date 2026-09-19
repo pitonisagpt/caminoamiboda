@@ -4,14 +4,18 @@ import type { VehiclePhoto } from "../../types/vehicle";
 import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 import { isTouchPrimaryDevice } from "../../utils/device";
 import { useLang } from "../../i18n/LanguageContext";
+import { ResponsivePhoto } from "../../components/ResponsivePhoto";
 
 interface PhotoSliderProps {
   photos: VehiclePhoto[];
   brandInitial: string;
   brandName: string;
+  /** "card" (default) for the catalog grid — VehicleDetailPage passes
+   * "full" for its larger hero photo. See ResponsivePhoto. */
+  size?: "card" | "full";
 }
 
-export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProps) {
+export function PhotoSlider({ photos, brandInitial, brandName, size = "card" }: PhotoSliderProps) {
   const { t } = useLang();
   const [current, setCurrent] = useState(0);
   // Defined unconditionally (rules-of-hooks) even though they're only used
@@ -36,9 +40,10 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
 
   if (photos.length === 1) {
     return (
-      <img
-        src={photos[0].url}
+      <ResponsivePhoto
+        url={photos[0].url}
         alt={photos[0].original_name}
+        size={size}
         className="w-full h-full object-cover"
         loading="lazy"
       />
@@ -47,10 +52,11 @@ export function PhotoSlider({ photos, brandInitial, brandName }: PhotoSliderProp
 
   return (
     <div className="relative w-full h-full group touch-pan-y" {...swipeHandlers}>
-      <img
+      <ResponsivePhoto
         ref={photoRef}
-        src={photos[current].url}
+        url={photos[current].url}
         alt={photos[current].original_name}
+        size={size}
         className="w-full h-full object-cover"
         loading="lazy"
       />

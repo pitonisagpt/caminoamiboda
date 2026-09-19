@@ -13,6 +13,7 @@ import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 import { isTouchPrimaryDevice } from "../../utils/device";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { ResponsivePhoto } from "../../components/ResponsivePhoto";
 
 const WHATSAPP_NUMBER = "573147372030";
 const PICO_HOURS = "5:00 AM – 8:00 PM";
@@ -113,10 +114,11 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
                 </div>
               ) : (
                 <>
-                  <img
+                  <ResponsivePhoto
                     ref={photoRef}
-                    src={photos[current].url}
+                    url={photos[current].url}
                     alt={photos[current].original_name}
+                    size="full"
                     className="w-full h-full object-cover"
                   />
                   {photos.length > 1 && (
@@ -177,7 +179,7 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
                     }`}
                     aria-label={t("vehicleModal.viewPhoto", { n: i + 1 })}
                   >
-                    <img src={p.url} alt={p.original_name} className="w-full h-full object-cover" />
+                    <ResponsivePhoto url={p.url} alt={p.original_name} size="card" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

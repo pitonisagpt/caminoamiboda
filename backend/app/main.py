@@ -1,3 +1,4 @@
+import mimetypes
 from contextlib import asynccontextmanager
 
 from pathlib import Path
@@ -156,6 +157,15 @@ app.include_router(instagram.router)
 app.include_router(integrations.router)
 app.include_router(ai_assistant.router)
 app.include_router(seo.router)
+
+# This container's Python has no .webp entry in its system mime.types, so
+# StaticFiles (which shells out to mimetypes.guess_type) served every
+# generated WebP variant as a wrong/generic content-type instead of
+# image/webp — harmless to Chrome (it sniffs actual bytes for a <picture>
+# <source> it already committed to via type="image/webp"), but wrong is
+# wrong, and stricter clients/crawlers do respect the header. Registering
+# it explicitly costs nothing and isn't Python-version-dependent.
+mimetypes.add_type("image/webp", ".webp")
 
 # Serve uploaded photos — only the genuinely public subfolders. Reservation
 # attachments (contracts/receipts) and vehicle-owner documents (cédula, RUT)

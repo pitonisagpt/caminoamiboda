@@ -163,7 +163,7 @@ export default function VehicleDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Photo gallery */}
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-black group">
-          <PhotoSlider photos={photos} brandInitial={vehicle.brand[0]} brandName={vehicle.brand} />
+          <PhotoSlider photos={photos} brandInitial={vehicle.brand[0]} brandName={vehicle.brand} size="full" />
           <ShareVehicleButton
             vehicleId={vehicle.id}
             vehicleName={vehicleName}

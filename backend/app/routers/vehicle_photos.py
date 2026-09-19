@@ -15,7 +15,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
-from app.core.image_utils import resize_and_recompress
+from app.core.image_utils import generate_responsive_variants, variant_file_names
 from app.database import get_db
 from app.models.vehicle import Vehicle
 from app.models.vehicle_photo import VehiclePhoto
@@ -114,19 +114,27 @@ def upload_photos(
 
         # Redimensionar/recomprimir todo tipo aceptado, no solo HEIC — mismo
         # trabajo CPU-bound que ya justifica que esta función sea sync (ver
-        # comentario arriba). resize_and_recompress() devuelve None si es
-        # GIF/WEBP animado o si falla el decode — en ambos casos se sube el
-        # archivo original tal cual, ya validado arriba. Misma función que
-        # usa el backfill de fotos ya subidas (backfill_vehicle_photo_sizes.py),
-        # para que las dos rutas nunca diverjan.
-        resized = resize_and_recompress(content, max_dimension=MAX_PHOTO_DIMENSION)
-        if resized is not None:
-            content = resized
+        # comentario arriba). generate_responsive_variants() devuelve None
+        # si es GIF/WEBP animado o si falla el decode — en ese caso se sube
+        # el archivo original tal cual, ya validado arriba, sin variantes
+        # WebP/card (el <picture> del frontend cae de nuevo al <img> base
+        # si un source no existe). Misma función que usa el backfill de
+        # fotos ya subidas (backfill_vehicle_photo_sizes.py), para que las
+        # dos rutas nunca diverjan.
+        variants = generate_responsive_variants(content)
+        if variants is not None:
+            content = variants["full_jpg"]
             ext = ".jpg"
 
         file_name = f"{uuid.uuid4().hex}{ext}"
         dest = UPLOAD_DIR / file_name
         dest.write_bytes(content)
+
+        if variants is not None:
+            names = variant_file_names(file_name)
+            (UPLOAD_DIR / names["full_webp"]).write_bytes(variants["full_webp"])
+            (UPLOAD_DIR / names["card_jpg"]).write_bytes(variants["card_jpg"])
+            (UPLOAD_DIR / names["card_webp"]).write_bytes(variants["card_webp"])
 
         photo = VehiclePhoto(
             vehicle_id=vehicle_id,
@@ -186,6 +194,8 @@ def delete_photo(
         raise HTTPException(status_code=404, detail="Foto no encontrada")
     try:
         (UPLOAD_DIR / photo.file_name).unlink(missing_ok=True)
+        for variant_name in variant_file_names(photo.file_name).values():
+            (UPLOAD_DIR / variant_name).unlink(missing_ok=True)
     except Exception:
         pass
     db.delete(photo)
