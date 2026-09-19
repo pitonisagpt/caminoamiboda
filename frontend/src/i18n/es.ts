@@ -258,6 +258,7 @@ export const es = {
   "catalog.clear": "Limpiar",
   "catalog.clearFilters": "Limpiar filtros",
   "catalog.searchPlaceholder": "Buscar por marca, modelo, color, año...",
+  "catalog.searchSuggestionsLabel": "Prueba con:",
   "catalog.vehicleCountOne": "vehículo",
   "catalog.vehicleCountOther": "vehículos",
   "catalog.sortDefault": "Predeterminado",

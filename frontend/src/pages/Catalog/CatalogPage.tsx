@@ -313,6 +313,20 @@ export function CatalogPage() {
 
   const availableDecades = useMemo(() => decadeOptionsFromVehicles(vehicles), [vehicles]);
 
+  // Search suggestions (mejoras.md ítem 9: "agregar sugerencias — Combi,
+  // Bel Air, convertible") — derived from the real, currently-active
+  // fleet rather than hardcoded example names, so this can't drift stale
+  // the way DECADE_OPTIONS did (a model that's sold/retired would keep
+  // showing as a "suggestion" that returns zero results). Up to 4 distinct
+  // model lines (in display_order, the business's own curated order) plus
+  // one body type, so a visitor sees both "a specific car" and "a style"
+  // as example searches.
+  const searchSuggestions = useMemo(() => {
+    const modelLines = [...new Set(vehicles.map(v => v.model_line).filter((m): m is string => !!m))].slice(0, 4);
+    const bodyType = vehicles.map(v => v.body_type).find(bt => bt && bt !== "NA");
+    return bodyType ? [...modelLines, bodyType] : modelLines;
+  }, [vehicles]);
+
   const filtered = useMemo(() => {
     const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
     const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
@@ -553,6 +567,23 @@ export function CatalogPage() {
                   </button>
                 )}
               </div>
+
+              {/* Search suggestions — only while the box is empty, so they
+                  read as "try this" rather than crowding real results. */}
+              {!filters.search && searchSuggestions.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 -mt-2">
+                  <span className="text-xs text-gray-400">{t("catalog.searchSuggestionsLabel")}</span>
+                  {searchSuggestions.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setFilters({ ...filters, search: s })}
+                      className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition-colors cursor-pointer"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Top bar */}
               <div className="flex items-center justify-between gap-3 flex-wrap">

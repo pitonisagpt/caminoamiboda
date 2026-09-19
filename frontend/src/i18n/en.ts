@@ -259,6 +259,7 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.clear": "Clear",
   "catalog.clearFilters": "Clear filters",
   "catalog.searchPlaceholder": "Search by brand, model, color, year...",
+  "catalog.searchSuggestionsLabel": "Try:",
   "catalog.vehicleCountOne": "vehicle",
   "catalog.vehicleCountOther": "vehicles",
   "catalog.sortDefault": "Default",
