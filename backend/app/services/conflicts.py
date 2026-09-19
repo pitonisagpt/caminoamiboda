@@ -142,15 +142,24 @@ def find_conflicts(
         if vehicle:
             pyp_day = get_effective_pyp(vehicle, event_date)
             if pyp_day and WEEKDAY_ES[event_date.weekday()] == pyp_day:
-                if is_festivo(event_date):
-                    msg = "Festivo — sin restricción de pico y placa ese día"
-                else:
+                restricted = not is_festivo(event_date)
+                if restricted:
                     msg = f"El vehículo tiene pico y placa el {pyp_day} ({PICO_HOURS})"
+                else:
+                    msg = "Festivo — sin restricción de pico y placa ese día"
                 conflicts.append({
                     "type": "pico_y_placa",
                     "severity": "warning",
                     "reservation_number": "",
                     "message": msg,
+                    # Added for the public availability endpoint (mejoras.md
+                    # ítem 9) — it needs to know both which vehicle this is
+                    # about and whether it's an actual restriction (not the
+                    # festivo case, which is the *absence* of one) to build
+                    # its own "pico_y_placa_vehicle_ids" list, without
+                    # duplicating this day/festivo logic.
+                    "vehicle_ids": [vehicle_id],
+                    "restricted": restricted,
                 })
 
     return conflicts

@@ -268,6 +268,7 @@ export const es = {
   "catalog.exactQuoteLink": "Cotización exacta por fecha",
   "catalog.availableBadge": "Disponible",
   "catalog.unavailableBadge": "No disponible",
+  "catalog.picoYPlacaBadge": "Pico y placa el {{day}}",
   "catalog.availabilityTitle": "¿Tu fecha está disponible?",
   "catalog.availabilityDateLabel": "Fecha del evento",
   "catalog.availabilityCheckedFor": "Mostrando disponibilidad para",

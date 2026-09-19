@@ -19,11 +19,21 @@ import { formatCOP } from "../../utils/format";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
-import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY } from "../../i18n/catalogLabels";
+import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import NotFoundPage from "./NotFoundPage";
 
 const SITE_URL = "https://caminoamiboda.com";
 const WHATSAPP_NUMBER = "573147372030";
+const PICO_HOURS = "5:00 AM – 8:00 PM";
+
+// Same palette VehicleModal.tsx/VehicleCard.tsx use for this badge.
+const DAY_COLOR: Record<string, string> = {
+  Lunes: "bg-blue-100 text-blue-700",
+  Martes: "bg-purple-100 text-purple-700",
+  Miércoles: "bg-yellow-100 text-yellow-700",
+  Jueves: "bg-orange-100 text-orange-700",
+  Viernes: "bg-green-100 text-green-700",
+};
 
 
 /** Per-vehicle public landing page (wishlist SEO/GEO checklist) —
@@ -186,6 +196,14 @@ export default function VehicleDetailPage() {
               {vehicle.body_type && vehicle.body_type !== "NA" && (
                 <span className="px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
                   {BODY_TYPE_LABEL_KEY[vehicle.body_type] ? t(BODY_TYPE_LABEL_KEY[vehicle.body_type]) : vehicle.body_type}
+                </span>
+              )}
+              {vehicle.pico_y_placa_day && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
+                  title={t("vehicleModal.picoYPlacaTooltip", { hours: PICO_HOURS })}
+                >
+                  {t("vehicleModal.picoYPlaca", { day: PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day] ? t(PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day]) : vehicle.pico_y_placa_day })}
                 </span>
               )}
               <AdminEditLink to={`/vehiculos/${vehicle.id}`} icon={Pencil} />

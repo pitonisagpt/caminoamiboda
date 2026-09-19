@@ -269,6 +269,7 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.exactQuoteLink": "Get an exact quote for your date",
   "catalog.availableBadge": "Available",
   "catalog.unavailableBadge": "Not available",
+  "catalog.picoYPlacaBadge": "No-drive day: {{day}}",
   "catalog.availabilityTitle": "Is your date available?",
   "catalog.availabilityDateLabel": "Event date",
   "catalog.availabilityCheckedFor": "Showing availability for",

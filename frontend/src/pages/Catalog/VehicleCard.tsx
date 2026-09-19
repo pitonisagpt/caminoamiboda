@@ -14,15 +14,6 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { formatCOPFull as formatCOP } from "../../utils/format";
 
 const WHATSAPP_NUMBER = "573147372030";
-const PICO_HOURS = "5:00 AM – 8:00 PM";
-
-const DAY_COLOR: Record<string, string> = {
-  Lunes: "bg-blue-100 text-blue-700",
-  Martes: "bg-purple-100 text-purple-700",
-  Miércoles: "bg-yellow-100 text-yellow-700",
-  Jueves: "bg-orange-100 text-orange-700",
-  Viernes: "bg-green-100 text-green-700",
-};
 
 export function VehicleCard({
   vehicle,
@@ -38,9 +29,13 @@ export function VehicleCard({
   unlock?: PriceUnlock | null;
   onRequestUnlock?: () => void;
   hidePricing?: boolean;
-  /** undefined = no date picked yet (badge hidden). true/false once the
-   * visitor picks a date in the catalog's availability picker. */
-  availability?: boolean;
+  /** undefined = no date picked yet (badge hidden). Set once the visitor
+   * picks a date in the catalog's availability picker — "pico_y_placa" is
+   * distinct from "unavailable" (mejoras.md ítem 9): the car isn't booked,
+   * it just can't legally be driven that specific weekday. Conflating the
+   * two into one red badge would hide the real reason and read as "we
+   * don't actually know", which is worse than being specific. */
+  availability?: "available" | "unavailable" | "pico_y_placa";
   /** The free availability-picker's date (not `unlock`'s — that one still
    * requires the lead-capture modal). When set, the "Desde $X" base price
    * escalates via priceForYear() same as the unlocked breakdown does. */
@@ -84,7 +79,17 @@ export function VehicleCard({
         {/* Tags — live in the card body, not over the photo. Overlaid on
             variable photo backgrounds they crowded the image and fought
             contrast; on the white card they read as plain, legible chips. */}
-        {(vehicle.is_featured || vehicle.category || (vehicle.body_type && vehicle.body_type !== "NA") || vehicle.pico_y_placa_day) && (
+        {/* Pico y placa deliberately left off this first-level tags row
+            (mejoras.md ítem 9) — it's operational data (a driving
+            restriction), not something a visitor is choosing between cars
+            on, and it crowded the same row where a wedding really wants to
+            see "featured/category/body type". It's still shown once
+            someone is actually interested — VehicleModal.tsx (quick view)
+            and VehicleDetailPage.tsx (the real per-vehicle page) both keep
+            it in their header tags. The real "does this work for my day"
+            question is already answered by the availability badge below,
+            once a date is picked. */}
+        {(vehicle.is_featured || vehicle.category || (vehicle.body_type && vehicle.body_type !== "NA")) && (
           <div className="flex flex-wrap gap-1.5">
             {vehicle.is_featured && (
               <span className="flex items-center gap-1 bg-brand-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -100,13 +105,6 @@ export function VehicleCard({
             {vehicle.body_type && vehicle.body_type !== "NA" && (
               <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
                 {BODY_TYPE_LABEL_KEY[vehicle.body_type] ? t(BODY_TYPE_LABEL_KEY[vehicle.body_type]) : vehicle.body_type}
-              </span>
-            )}
-            {vehicle.pico_y_placa_day && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${DAY_COLOR[vehicle.pico_y_placa_day] ?? "bg-gray-100 text-gray-700"}`}
-                title={t("vehicleModal.picoYPlacaTooltip", { hours: PICO_HOURS })}
-              >
-                {t("vehicleModal.picoYPlaca", { day: PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day] ? t(PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day]) : vehicle.pico_y_placa_day })}
               </span>
             )}
           </div>
@@ -169,10 +167,22 @@ export function VehicleCard({
             {availability !== undefined && (
               <span
                 className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  availability ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"
+                  availability === "available"
+                    ? "bg-green-100 text-green-700"
+                    : availability === "pico_y_placa"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-gray-200 text-gray-600"
                 }`}
               >
-                {availability ? t("catalog.availableBadge") : t("catalog.unavailableBadge")}
+                {availability === "available"
+                  ? t("catalog.availableBadge")
+                  : availability === "pico_y_placa"
+                    ? t("catalog.picoYPlacaBadge", {
+                        day: vehicle.pico_y_placa_day && PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day]
+                          ? t(PICO_DAY_LABEL_KEY[vehicle.pico_y_placa_day])
+                          : vehicle.pico_y_placa_day ?? "",
+                      })
+                    : t("catalog.unavailableBadge")}
               </span>
             )}
 

@@ -90,6 +90,7 @@ export function CatalogPage() {
     () => searchParams.get("disponibilidad") ?? localStorage.getItem(CHECK_DATE_STORAGE_KEY) ?? ""
   );
   const [unavailableIds, setUnavailableIds] = useState<Set<number>>(new Set());
+  const [picoYPlacaIds, setPicoYPlacaIds] = useState<Set<number>>(new Set());
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   function setCheckDate(next: string) {
@@ -121,13 +122,18 @@ export function CatalogPage() {
   useEffect(() => {
     if (!checkDate) {
       setUnavailableIds(new Set());
+      setPicoYPlacaIds(new Set());
       return;
     }
     let cancelled = false;
     setAvailabilityLoading(true);
     availabilityApi.forDate(checkDate)
-      .then(res => { if (!cancelled) setUnavailableIds(new Set(res.data.unavailable_vehicle_ids)); })
-      .catch(() => { if (!cancelled) setUnavailableIds(new Set()); })
+      .then(res => {
+        if (cancelled) return;
+        setUnavailableIds(new Set(res.data.unavailable_vehicle_ids));
+        setPicoYPlacaIds(new Set(res.data.pico_y_placa_vehicle_ids));
+      })
+      .catch(() => { if (!cancelled) { setUnavailableIds(new Set()); setPicoYPlacaIds(new Set()); } })
       .finally(() => { if (!cancelled) setAvailabilityLoading(false); });
     return () => { cancelled = true; };
   }, [checkDate]);
@@ -462,7 +468,7 @@ export function CatalogPage() {
               date={checkDate}
               onDateChange={setCheckDate}
               loading={availabilityLoading}
-              availableCount={checkDate ? vehicles.length - unavailableIds.size : undefined}
+              availableCount={checkDate ? vehicles.filter(v => !unavailableIds.has(v.id) && !picoYPlacaIds.has(v.id)).length : undefined}
               totalCount={checkDate ? vehicles.length : undefined}
             />
           </div>
@@ -594,7 +600,15 @@ export function CatalogPage() {
                       unlock={unlock}
                       onRequestUnlock={() => setGateOpen(true)}
                       hidePricing={noPricing}
-                      availability={checkDate ? !unavailableIds.has(v.id) : undefined}
+                      availability={
+                        !checkDate
+                          ? undefined
+                          : unavailableIds.has(v.id)
+                            ? "unavailable"
+                            : picoYPlacaIds.has(v.id)
+                              ? "pico_y_placa"
+                              : "available"
+                      }
                       previewDate={checkDate || undefined}
                     />
                   ))}
