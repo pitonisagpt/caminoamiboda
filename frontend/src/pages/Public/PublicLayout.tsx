@@ -228,7 +228,7 @@ export function PublicLayout() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 pt-8 pb-24 md:pb-8">
         <Outlet />
       </main>
 
@@ -290,6 +290,15 @@ export function PublicLayout() {
           </div>
         </div>
       </footer>
+
+      <a
+        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t("floatingWhatsapp.message"))}`}
+        {...whatsAppLinkProps()}
+        className="fixed bottom-5 left-5 z-40 w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg flex items-center justify-center transition-colors"
+        aria-label={t("floatingWhatsapp.openAria")}
+      >
+        <WhatsAppIcon className="w-6 h-6" />
+      </a>
 
       <AiChatWidget />
     </div>

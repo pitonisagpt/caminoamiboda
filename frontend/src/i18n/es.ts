@@ -328,6 +328,10 @@ export const es = {
   "chat.openAssistantAria": "Abrir asistente virtual con inteligencia artificial",
   "chat.viewDetails": "Ver detalles",
 
+  // Floating WhatsApp button (PublicLayout.tsx)
+  "floatingWhatsapp.message": "Hola! Estoy interesado(a) en un vehículo para mi boda o evento.",
+  "floatingWhatsapp.openAria": "Contactar por WhatsApp",
+
   // Lead-capture form — shared copy between AiLeadCaptureCard.tsx and
   // RevealPricesModal.tsx (near-identical forms; consolidated here instead
   // of duplicated per file, same reasoning as the shared quick-create

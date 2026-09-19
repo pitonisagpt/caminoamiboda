@@ -328,6 +328,10 @@ export const en: Record<keyof typeof es, string> = {
   "chat.openAssistantAria": "Open AI-powered virtual assistant",
   "chat.viewDetails": "View details",
 
+  // Floating WhatsApp button (PublicLayout.tsx)
+  "floatingWhatsapp.message": "Hi! I'm interested in a vehicle for my wedding or event.",
+  "floatingWhatsapp.openAria": "Contact us on WhatsApp",
+
   // Lead-capture form — shared copy
   "leadCapture.nameLabel": "Name",
   "leadCapture.whatsappLabel": "Phone or WhatsApp",
