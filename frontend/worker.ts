@@ -193,13 +193,13 @@ function vehicleDescription(vehicle: VehicleData, isEnglish: boolean): string {
     const explicit = vehicle.bride_description_en?.trim() || vehicle.bride_description?.trim();
     return (
       explicit ||
-      `${name} — vehicle available for weddings and events in Medellín and Eastern Antioquia. Check availability and pricing on WhatsApp.`
+      `${name} — vehicle available for weddings and events in Medellín, Eastern Antioquia, and the rest of Antioquia. Check availability and pricing on WhatsApp.`
     );
   }
   const explicit = vehicle.bride_description?.trim();
   return (
     explicit ||
-    `${name} — vehículo disponible para bodas y eventos en Medellín y el Oriente Antioqueño. Consulta disponibilidad y precio por WhatsApp.`
+    `${name} — vehículo disponible para bodas y eventos en Medellín, el Oriente Antioqueño y el resto de Antioquia. Consulta disponibilidad y precio por WhatsApp.`
   );
 }
 

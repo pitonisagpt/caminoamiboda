@@ -201,7 +201,7 @@ export const en: Record<keyof typeof es, string> = {
   "condicionesServicio.s1Title": "1. Acceptance of terms",
   "condicionesServicio.s1Body": "By using the website caminoamiboda.com or hiring our chauffeured transportation services for weddings and special events, you accept these Terms of Service. If you do not agree with them, please do not use the site or hire the service.",
   "condicionesServicio.s2Title": "2. Description of the service",
-  "condicionesServicio.s2Body": "Camino a mi Boda offers rental of classic, vintage, and modern vehicles with a driver included, for weddings, brand activations, audiovisual productions, quinceañeras, and other special events, mainly in Medellín and Eastern Antioquia, Colombia.",
+  "condicionesServicio.s2Body": "Camino a mi Boda offers rental of classic, vintage, and modern vehicles with a driver included, for weddings, brand activations, audiovisual productions, quinceañeras, and other special events, mainly in Medellín, Eastern Antioquia, and the rest of Antioquia, Colombia.",
   "condicionesServicio.s3Title": "3. Use of the website",
   "condicionesServicio.s3Body": "The website is for informational and contact purposes: vehicle catalog, quotes, and event scheduling. You agree to use it lawfully and to provide truthful information when requesting a quote or booking (names, event date, contact details).",
   "condicionesServicio.s4Title": "4. Quotes, bookings, and payments",
@@ -221,13 +221,13 @@ export const en: Record<keyof typeof es, string> = {
 
   // Catalog
   "catalog.helmetTitleWeddings": "Classic and Modern Wedding Cars Catalog | Camino a mi Boda",
-  "catalog.helmetDescriptionWeddings": "Rent classic, vintage, and modern cars for weddings and special events in Medellín and Eastern Antioquia. Book your vehicle with a driver.",
+  "catalog.helmetDescriptionWeddings": "Rent classic, vintage, and modern cars for weddings and special events in Medellín, Eastern Antioquia, and the rest of Antioquia. Book your vehicle with a driver.",
   "catalog.helmetTitleProductions": "Vehicles for Film Productions and Brand Activations | Camino a mi Boda",
-  "catalog.helmetDescriptionProductions": "A fleet of classic, vintage, and modern vehicles available for film productions and brand activations in Medellín and Eastern Antioquia. Hourly quotes.",
+  "catalog.helmetDescriptionProductions": "A fleet of classic, vintage, and modern vehicles available for film productions and brand activations in Medellín, Eastern Antioquia, and the rest of Antioquia. Hourly quotes.",
   "catalog.heroTitleWeddings": "Our Collection",
   "catalog.heroTitleProductions": "Productions & Brand Activations",
-  "catalog.heroSubtitleWeddings": "30+ classic, vintage and modern vehicles (1929–2011) with a driver, from $760,000 COP, for your wedding in Medellín and Eastern Antioquia.",
-  "catalog.heroSubtitleProductions": "Vehicles available for film productions and brand activations in Medellín and Eastern Antioquia — hourly quotes.",
+  "catalog.heroSubtitleWeddings": "30+ classic, vintage and modern vehicles (1929–2011) with a driver, from $760,000 COP, for your wedding in Medellín, Eastern Antioquia, and the rest of Antioquia.",
+  "catalog.heroSubtitleProductions": "Vehicles available for film productions and brand activations in Medellín, Eastern Antioquia, and the rest of Antioquia — hourly quotes.",
   "catalog.heroTitlePersonalized": "Hi, {{name}}!",
   "catalog.heroSubtitlePersonalized": "We put together this catalog especially for your wedding on {{fecha}} — prices are already updated for that date.",
   "catalog.priceFrom": "Cars from {{price}}",
@@ -312,9 +312,9 @@ export const en: Record<keyof typeof es, string> = {
 
   // Blog
   "blog.helmetTitle": "Blog: Wedding Guides in Medellín | Camino a mi Boda",
-  "blog.helmetDescription": "Guides and inspiration for choosing the perfect vehicle for your wedding in Medellín and Eastern Antioquia.",
+  "blog.helmetDescription": "Guides and inspiration for choosing the perfect vehicle for your wedding in Medellín, Eastern Antioquia, and the rest of Antioquia.",
   "blog.heroTitle": "Guides & Inspiration",
-  "blog.heroSubtitle": "Guides on pricing, styles, and logistics for choosing a wedding vehicle in Medellín and Eastern Antioquia.",
+  "blog.heroSubtitle": "Guides on pricing, styles, and logistics for choosing a wedding vehicle in Medellín, Eastern Antioquia, and the rest of Antioquia.",
   "blog.loading": "Loading articles...",
   "blog.empty": "No articles published yet.",
   "blog.readArticle": "Read article →",
@@ -387,5 +387,5 @@ export const en: Record<keyof typeof es, string> = {
   // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
   "vehiclePage.backToCatalog": "Back to catalog",
   "vehiclePage.reviews": "Reviews",
-  "vehiclePage.fallbackDescription": "{{vehicle}} — vehicle available for weddings and events in Medellín and Eastern Antioquia. Check availability and pricing on WhatsApp.",
+  "vehiclePage.fallbackDescription": "{{vehicle}} — vehicle available for weddings and events in Medellín, Eastern Antioquia, and the rest of Antioquia. Check availability and pricing on WhatsApp.",
 };

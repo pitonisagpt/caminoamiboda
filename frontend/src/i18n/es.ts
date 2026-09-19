@@ -200,7 +200,7 @@ export const es = {
   "condicionesServicio.s1Title": "1. Aceptación de los términos",
   "condicionesServicio.s1Body": "Al usar el sitio web caminoamiboda.com o contratar nuestros servicios de transporte para bodas y eventos especiales, aceptas estas Condiciones del Servicio. Si no estás de acuerdo con ellas, te pedimos no usar el sitio ni contratar el servicio.",
   "condicionesServicio.s2Title": "2. Descripción del servicio",
-  "condicionesServicio.s2Body": "Camino a mi Boda ofrece alquiler de vehículos clásicos, vintage y modernos con conductor incluido, para bodas, activaciones de marca, producciones audiovisuales, quinceañeras y otros eventos especiales, principalmente en Medellín y el Oriente Antioqueño, Colombia.",
+  "condicionesServicio.s2Body": "Camino a mi Boda ofrece alquiler de vehículos clásicos, vintage y modernos con conductor incluido, para bodas, activaciones de marca, producciones audiovisuales, quinceañeras y otros eventos especiales, principalmente en Medellín, el Oriente Antioqueño y el resto de Antioquia, Colombia.",
   "condicionesServicio.s3Title": "3. Uso del sitio web",
   "condicionesServicio.s3Body": "El sitio web es de uso informativo y de contacto: catálogo de vehículos, cotizaciones y agendamiento de eventos. Te comprometes a usarlo de forma lícita y a proporcionar información veraz al solicitar una cotización o reserva (nombres, fecha del evento, datos de contacto).",
   "condicionesServicio.s4Title": "4. Cotizaciones, reservas y pagos",
@@ -220,13 +220,13 @@ export const es = {
 
   // Catalog (CatalogPage.tsx)
   "catalog.helmetTitleWeddings": "Catálogo de Vehículos Clásicos y Modernos para Bodas | Camino a mi Boda",
-  "catalog.helmetDescriptionWeddings": "Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín y el Oriente Antioqueño. Reserva tu vehículo con conductor.",
+  "catalog.helmetDescriptionWeddings": "Alquiler de autos clásicos, vintage y modernos para bodas y eventos especiales en Medellín, el Oriente Antioqueño y el resto de Antioquia. Reserva tu vehículo con conductor.",
   "catalog.helmetTitleProductions": "Vehículos para Producciones Audiovisuales y Activaciones de Marca | Camino a mi Boda",
-  "catalog.helmetDescriptionProductions": "Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño. Cotización por hora.",
+  "catalog.helmetDescriptionProductions": "Flota de vehículos clásicos, vintage y modernos disponible para producciones audiovisuales y activaciones de marca en Medellín, el Oriente Antioqueño y el resto de Antioquia. Cotización por hora.",
   "catalog.heroTitleWeddings": "Nuestra Colección",
   "catalog.heroTitleProductions": "Producciones y Activaciones",
-  "catalog.heroSubtitleWeddings": "Más de 30 vehículos clásicos, vintage y modernos (1929–2011) con conductor, desde $760.000, para tu boda en Medellín y el Oriente Antioqueño.",
-  "catalog.heroSubtitleProductions": "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín y el Oriente Antioqueño — cotización por hora.",
+  "catalog.heroSubtitleWeddings": "Más de 30 vehículos clásicos, vintage y modernos (1929–2011) con conductor, desde $760.000, para tu boda en Medellín, el Oriente Antioqueño y el resto de Antioquia.",
+  "catalog.heroSubtitleProductions": "Vehículos disponibles para producciones audiovisuales y activaciones de marca en Medellín, el Oriente Antioqueño y el resto de Antioquia — cotización por hora.",
   "catalog.heroTitlePersonalized": "¡Hola, {{name}}!",
   "catalog.heroSubtitlePersonalized": "Preparamos este catálogo especialmente para tu boda del {{fecha}} — los precios ya están actualizados para esa fecha.",
   "catalog.priceFrom": "Carros desde {{price}}",
@@ -311,9 +311,9 @@ export const es = {
 
   // Blog (BlogListPage.tsx, BlogPostPage.tsx)
   "blog.helmetTitle": "Blog: Guías para tu Boda en Medellín | Camino a mi Boda",
-  "blog.helmetDescription": "Guías e inspiración para elegir el vehículo perfecto para tu boda en Medellín y el Oriente Antioqueño.",
+  "blog.helmetDescription": "Guías e inspiración para elegir el vehículo perfecto para tu boda en Medellín, el Oriente Antioqueño y el resto de Antioquia.",
   "blog.heroTitle": "Guías & Inspiración",
-  "blog.heroSubtitle": "Guías sobre precios, estilos y logística para elegir vehículo de boda en Medellín y el Oriente Antioqueño.",
+  "blog.heroSubtitle": "Guías sobre precios, estilos y logística para elegir vehículo de boda en Medellín, el Oriente Antioqueño y el resto de Antioquia.",
   "blog.loading": "Cargando artículos...",
   "blog.empty": "No hay artículos publicados aún.",
   "blog.readArticle": "Leer artículo →",
@@ -394,7 +394,7 @@ export const es = {
   // Same copy as worker.ts's vehicleDescription() fallback, so the
   // crawler-bot OG description and the real page's own meta description
   // never contradict each other for the same vehicle.
-  "vehiclePage.fallbackDescription": "{{vehicle}} — vehículo disponible para bodas y eventos en Medellín y el Oriente Antioqueño. Consulta disponibilidad y precio por WhatsApp.",
+  "vehiclePage.fallbackDescription": "{{vehicle}} — vehículo disponible para bodas y eventos en Medellín, el Oriente Antioqueño y el resto de Antioquia. Consulta disponibilidad y precio por WhatsApp.",
 } as const;
 
 export type TranslationKey = keyof typeof es;

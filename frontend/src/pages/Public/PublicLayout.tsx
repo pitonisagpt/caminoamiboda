@@ -37,7 +37,25 @@ const LOCAL_BUSINESS_JSON_LD = {
     addressRegion: "Antioquia",
     addressCountry: "CO",
   },
-  areaServed: ["Medellín", "Oriente Antioqueño", "Rionegro", "El Carmen de Viboral"],
+  // Antioquia listed alongside the specific zones on purpose (not
+  // replacing them) — the FAQ (comoFunciona.faqA5) already documents this:
+  // Medellín/área metropolitana and Oriente Antioqueño are served most
+  // frequently, but any municipality in Antioquia is in scope on request.
+  // Keeping the named places too matters for long-tail local search
+  // ("boda en Rionegro") that "Antioquia" alone wouldn't rank for.
+  areaServed: [
+    "Antioquia",
+    "Medellín",
+    "Área Metropolitana",
+    "Oriente Antioqueño",
+    "Rionegro",
+    "Llanogrande",
+    "El Carmen de Viboral",
+    "La Ceja",
+    "El Retiro",
+    "Guarne",
+    "Guatapé",
+  ],
   // Instagram was already linked everywhere; the Facebook page
   // (facebook.com/caminoamiboda) exists and is active but wasn't
   // referenced anywhere in the code until now (GEO checklist) — more
@@ -45,7 +63,7 @@ const LOCAL_BUSINESS_JSON_LD = {
   // business" signal for both Google and AI answer engines.
   sameAs: ["https://www.instagram.com/caminoamiboda", "https://www.facebook.com/caminoamiboda"],
   description:
-    "Alquiler de vehículos clásicos, vintage y modernos con conductor para bodas y eventos especiales en Medellín y el Oriente Antioqueño, Colombia.",
+    "Alquiler de vehículos clásicos, vintage y modernos con conductor para bodas y eventos especiales en Medellín, el Oriente Antioqueño y el resto de Antioquia, Colombia.",
 };
 
 export function PublicLayout() {
