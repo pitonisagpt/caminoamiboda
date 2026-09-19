@@ -349,6 +349,8 @@ Widgets:
 - Google Maps
 - PDF generation
 - Email notifications
+- Google Tag Manager (`GTM-M3DF66TK`, activated 2026-09-17, `frontend/index.html`) — single sitewide container; Meta Pixel/Google Ads/TikTok Pixel/GA4 all get added INSIDE the GTM web UI as tags from here on, not pasted into the code.
+- Google Analytics 4 (`G-YQLVSM2M7E`, connected 2026-09-17) — configured as a "Google tag" (the current GTM UI name for the old "GA4 Configuration" tag type) inside GTM, trigger "Initialization - All Pages". No code change.
 
 ## Data Integrity and Business Rules
 
@@ -483,6 +485,7 @@ Business optimization once daily ops run smoothly.
 - Suggested price ranges per vehicle based on historical data
 - Peak season demand signals
 - Vehicle availability heatmap
+- Admin-configurable automated discount rules (e.g. weekday/off-peak bookings)
 
 ---
 
@@ -527,11 +530,16 @@ Features focused on increasing conversion rate, average ticket, and lead volume.
 - Color-coded urgency: green (< 3 days), yellow (3–7 days), red (> 7 days)
 - One-click WhatsApp follow-up button with pre-filled message
 - Goal: reduce quote-to-booking time and prevent leads going cold
+- Optional automated variant: auto-send a gentle follow-up at 48h unaccepted, auto-generate a limited-time promo code (e.g. 5% off) at 7 days to create urgency
 
 ### Public Availability Calendar
 - Embedded calendar on the catalog showing available and booked dates per vehicle
 - Prospect sees real-time availability without contacting ops
 - Removes the friction of "¿está disponible para mi fecha?" before starting a conversation
+
+### Urgency & Scarcity Signals
+- Catalog badges for high-demand dates ("🔥 Alta demanda", "Solo quedan 2 vehículos para esta fecha")
+- Automated alert for vehicles with no bookings 14 days out → auto-generate a "Last Minute Deal" graphic/link the ops team can push to Instagram/WhatsApp broadcasts
 
 ### Online Price Calculator
 - Customer selects vehicle, date, zone, and service duration → sees price in real time
@@ -566,11 +574,25 @@ Features focused on increasing conversion rate, average ticket, and lead volume.
 - Displayed in catalog as "Paquetes populares" section
 - Increases average ticket without acquiring new customers
 
+### Expanded Add-On Catalog
+- High-margin extras beyond today's bouquet/extra-hour add-ons: red carpet rollout, champagne/sparkling wine toast, custom "Just Married" plates, Polaroid camera rental, premium chauffeur attire (vintage cap + white gloves)
+- Bundled tiers at a slight discount (e.g. "VIP Exit Package" = bouquet + champagne + extra hour), to encourage larger upfront commitments instead of à la carte picking
+- Automated pre-event upsell: WhatsApp message ~14 days before the event offering an extra hour or a premium add-on, when couples are more willing to spend as logistics tighten
+
+### "Fondo de Boda" (Crowdfunded Payments)
+- Public gift-registry-style link per reservation — friends/family make partial payments toward the vehicle's balance as a wedding gift
+- Makes premium, higher-priced vehicles more accessible to budget-conscious couples
+
 ### Automated Referral Program
 - 1-year anniversary email: "¿Tienen amigos que se casan? Por cada referido confirmado reciben X descuento"
 - Unique referral link per past customer for tracking
 - Referral dashboard for ops: who referred whom, how many converted
 - Wedding guest lists are the highest-quality leads available — every event is a room full of potential customers
+
+### B2B Partner Referral Program
+- Trackable referral links for wedding planners/venues/agencies (the existing `Contact` records used across quotes/reservations) — distinct from the customer-facing Automated Referral Program above, auto-attributes a lead to the partner when a couple requests a quote through their link
+- Configurable commission (flat fee or %) per completed reservation a partner brings in
+- Lightweight gated Partner Portal — planners log in to see the status of couples they referred and their earned commissions; complements the public Vendor Alliance Directory below
 
 ### Vendor Alliance Directory
 - Public page: recommended vendors (photographers, florists, venues, DJs)
