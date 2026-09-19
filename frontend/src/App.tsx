@@ -1,30 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { Layout } from "./pages/Layout";
 import { LoginPage } from "./pages/Login/LoginPage";
-import { BillingDocumentDetail } from "./pages/BillingDocuments/BillingDocumentDetail";
-import { BillingDocumentForm } from "./pages/BillingDocuments/BillingDocumentForm";
-import { BillingDocumentList } from "./pages/BillingDocuments/BillingDocumentList";
-import DashboardPage from "./pages/Dashboard/DashboardPage";
-import FinancePage from "./pages/Finance/FinancePage";
-import { UserList } from "./pages/Admin/UserList";
-import { UserForm } from "./pages/Admin/UserForm";
-import { VehicleList } from "./pages/Vehicles/VehicleList";
-import { VehicleForm } from "./pages/Vehicles/VehicleForm";
-import VehicleDetail from "./pages/Vehicles/VehicleDetail";
-import VehicleStatsPage from "./pages/Vehicles/VehicleStatsPage";
-import { CustomerList } from "./pages/Customers/CustomerList";
-import { CustomerForm } from "./pages/Customers/CustomerForm";
-import { DriverList } from "./pages/Drivers/DriverList";
-import { DriverForm } from "./pages/Drivers/DriverForm";
-import { OwnerList } from "./pages/Owners/OwnerList";
-import { OwnerForm } from "./pages/Owners/OwnerForm";
 import { PublicLayout } from "./pages/Public/PublicLayout";
 import { CatalogPage } from "./pages/Catalog/CatalogPage";
-import EventoPage from "./pages/Public/EventoPage";
 import ContactoPage from "./pages/Public/ContactoPage";
 import PoliticaDatosPage from "./pages/Public/PoliticaDatosPage";
 import PoliticaReservasPage from "./pages/Public/PoliticaReservasPage";
@@ -32,26 +13,59 @@ import CondicionesServicioPage from "./pages/Public/CondicionesServicioPage";
 import ComoFuncionaPage from "./pages/Public/ComoFuncionaPage";
 import VehicleDetailPage from "./pages/Public/VehicleDetailPage";
 import NotFoundPage from "./pages/Public/NotFoundPage";
-import QuoteList from "./pages/Quotes/QuoteList";
-import QuoteForm from "./pages/Quotes/QuoteForm";
-import QuoteDetail from "./pages/Quotes/QuoteDetail";
-import FollowUpsPage from "./pages/FollowUps/FollowUpsPage";
-import ContactList from "./pages/Contacts/ContactList";
-import ContactForm from "./pages/Contacts/ContactForm";
-import ContactStatsPage from "./pages/Contacts/ContactStatsPage";
-import ReservationList from "./pages/Reservations/ReservationList";
-import ReservationForm from "./pages/Reservations/ReservationForm";
-import ReservationDetail from "./pages/Reservations/ReservationDetail";
-import CalendarPage from "./pages/Calendar/CalendarPage";
-import LocationCatalogPage from "./pages/LocationCatalog/LocationCatalogPage";
-import BlogAdminPage from "./pages/Blog/BlogAdminPage";
 import BlogListPage from "./pages/Blog/BlogListPage";
 import BlogPostPage from "./pages/Blog/BlogPostPage";
-import AddonPackagesPage from "./pages/Admin/AddonPackagesPage";
-import ReviewsPage from "./pages/Admin/ReviewsPage";
-import FloristPage from "./pages/Admin/FloristPage";
 import { timelinesApi } from "./api/timelines";
 import { LanguageProvider } from "./i18n/LanguageContext";
+
+// Public, but lazy anyway: EventoPage (share-link event view for a driver/
+// customer/ops, /evento/:token) is the only public page that renders
+// EventRouteMap, which pulls in leaflet — eagerly importing it here put
+// leaflet in every catalog/blog visitor's main chunk even though almost
+// none of them ever open a share link.
+const EventoPage = lazy(() => import("./pages/Public/EventoPage"));
+
+// Everything below this line is admin/staff-only — never rendered for a
+// public visitor. Lazy-loaded so the public bundle (catalog, blog, vehicle
+// pages — what Google/real prospects actually load) doesn't pull in
+// recharts/leaflet/react-big-calendar/@uiw/react-md-editor, ~23MB of
+// combined source that only the authenticated admin panel needs. Each
+// import becomes its own chunk, fetched on first navigation to that route;
+// see the <Suspense> fallback in Layout.tsx wrapping the shared <Outlet />.
+const Layout = lazy(() => import("./pages/Layout").then(m => ({ default: m.Layout })));
+const BillingDocumentDetail = lazy(() => import("./pages/BillingDocuments/BillingDocumentDetail").then(m => ({ default: m.BillingDocumentDetail })));
+const BillingDocumentForm = lazy(() => import("./pages/BillingDocuments/BillingDocumentForm").then(m => ({ default: m.BillingDocumentForm })));
+const BillingDocumentList = lazy(() => import("./pages/BillingDocuments/BillingDocumentList").then(m => ({ default: m.BillingDocumentList })));
+const DashboardPage = lazy(() => import("./pages/Dashboard/DashboardPage"));
+const FinancePage = lazy(() => import("./pages/Finance/FinancePage"));
+const UserList = lazy(() => import("./pages/Admin/UserList").then(m => ({ default: m.UserList })));
+const UserForm = lazy(() => import("./pages/Admin/UserForm").then(m => ({ default: m.UserForm })));
+const VehicleList = lazy(() => import("./pages/Vehicles/VehicleList").then(m => ({ default: m.VehicleList })));
+const VehicleForm = lazy(() => import("./pages/Vehicles/VehicleForm").then(m => ({ default: m.VehicleForm })));
+const VehicleDetail = lazy(() => import("./pages/Vehicles/VehicleDetail"));
+const VehicleStatsPage = lazy(() => import("./pages/Vehicles/VehicleStatsPage"));
+const CustomerList = lazy(() => import("./pages/Customers/CustomerList").then(m => ({ default: m.CustomerList })));
+const CustomerForm = lazy(() => import("./pages/Customers/CustomerForm").then(m => ({ default: m.CustomerForm })));
+const DriverList = lazy(() => import("./pages/Drivers/DriverList").then(m => ({ default: m.DriverList })));
+const DriverForm = lazy(() => import("./pages/Drivers/DriverForm").then(m => ({ default: m.DriverForm })));
+const OwnerList = lazy(() => import("./pages/Owners/OwnerList").then(m => ({ default: m.OwnerList })));
+const OwnerForm = lazy(() => import("./pages/Owners/OwnerForm").then(m => ({ default: m.OwnerForm })));
+const QuoteList = lazy(() => import("./pages/Quotes/QuoteList"));
+const QuoteForm = lazy(() => import("./pages/Quotes/QuoteForm"));
+const QuoteDetail = lazy(() => import("./pages/Quotes/QuoteDetail"));
+const FollowUpsPage = lazy(() => import("./pages/FollowUps/FollowUpsPage"));
+const ContactList = lazy(() => import("./pages/Contacts/ContactList"));
+const ContactForm = lazy(() => import("./pages/Contacts/ContactForm"));
+const ContactStatsPage = lazy(() => import("./pages/Contacts/ContactStatsPage"));
+const ReservationList = lazy(() => import("./pages/Reservations/ReservationList"));
+const ReservationForm = lazy(() => import("./pages/Reservations/ReservationForm"));
+const ReservationDetail = lazy(() => import("./pages/Reservations/ReservationDetail"));
+const CalendarPage = lazy(() => import("./pages/Calendar/CalendarPage"));
+const LocationCatalogPage = lazy(() => import("./pages/LocationCatalog/LocationCatalogPage"));
+const BlogAdminPage = lazy(() => import("./pages/Blog/BlogAdminPage"));
+const AddonPackagesPage = lazy(() => import("./pages/Admin/AddonPackagesPage"));
+const ReviewsPage = lazy(() => import("./pages/Admin/ReviewsPage"));
+const FloristPage = lazy(() => import("./pages/Admin/FloristPage"));
 
 // The public site's routes, listed once and mounted twice below (bare
 // Spanish paths + under /en) so a new public page only needs adding here,
@@ -125,7 +139,20 @@ export default function App() {
                 auto-redirects a browser-language-English visitor from
                 any bare path to its /en-prefixed twin, and that redirect
                 doesn't know this route is an exception. */}
-            <Route path="evento/:token" element={<EventoPage />} />
+            <Route
+              path="evento/:token"
+              element={
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center items-center h-64 text-brand-400">
+                      <Loader2 className="animate-spin" size={28} />
+                    </div>
+                  }
+                >
+                  <EventoPage />
+                </Suspense>
+              }
+            />
           </Route>
           <Route path="en" element={<LanguageProvider><PublicLayout /></LanguageProvider>}>
             {PUBLIC_SITE_ROUTES.map(r => (
@@ -133,7 +160,20 @@ export default function App() {
                 ? <Route key="en-index" index element={r.element} />
                 : <Route key={`en-${r.path}`} path={r.path} element={r.element} />
             ))}
-            <Route path="evento/:token" element={<EventoPage />} />
+            <Route
+              path="evento/:token"
+              element={
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center items-center h-64 text-brand-400">
+                      <Loader2 className="animate-spin" size={28} />
+                    </div>
+                  }
+                >
+                  <EventoPage />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="/login" element={<LoginPage />} />
@@ -141,7 +181,15 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <Layout />
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center items-center h-screen text-brand-400">
+                      <Loader2 className="animate-spin" size={28} />
+                    </div>
+                  }
+                >
+                  <Layout />
+                </Suspense>
               </ProtectedRoute>
             }
           >

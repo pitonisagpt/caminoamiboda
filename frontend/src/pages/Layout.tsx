@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Globe, Heart, LayoutDashboard, LogOut, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
+import { Suspense, useState, useEffect } from "react";
+import { BookOpen, BookUser, Calendar, Car, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, Globe, Heart, LayoutDashboard, LogOut, Loader2, MapPin, Menu, MessageCircle, Package, Star, TrendingUp, Truck, User, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LucideIcon } from "lucide-react";
@@ -260,7 +260,15 @@ export function Layout() {
               onReenabled={() => setAiDisabledReason(null)}
             />
           )}
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center h-64 text-brand-400">
+                <Loader2 className="animate-spin" size={28} />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </div>
       </main>
 
