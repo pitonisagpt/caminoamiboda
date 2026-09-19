@@ -11,6 +11,7 @@ import { ShareVehicleButton } from "../../components/ShareVehicleButton";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
+import { vehicleFromPrice } from "../../components/vehicleFilterKit";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { vehicleSlugPath, parseVehicleIdFromSlug } from "../../utils/slug";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
@@ -73,21 +74,32 @@ export default function VehicleDetailPage() {
   const pageTitle = `${vehicleName} | Camino a mi Boda`;
   const image = photos[0]?.url ?? `${SITE_URL}/favicon.png`;
   const hasPrice = Boolean(vehicle.price_medellin || vehicle.price_rionegro);
+  const basePrice = vehicleFromPrice(vehicle);
   const visibleReviews = reviews.filter((r) => r.is_visible);
 
   const whatsappMsg = encodeURIComponent(buildAvailabilityMessage(vehicle, unlock, t, lang));
 
-  // JSON-LD: Product + AggregateOffer (only the prices this visitor has
-  // actually unlocked — never emit a price to a crawler that a real
-  // visitor hasn't earned by giving their date, or the structured data
-  // would leak pricing the page itself gates behind RevealPricesModal)
-  // + AggregateRating from this vehicle's own real reviews, + a 2-level
-  // BreadcrumbList (Catálogo -> vehicle).
-  const offers = unlock && hasPrice
+  // JSON-LD offers: the base "Desde $X" price (same vehicleFromPrice()
+  // VehicleCard.tsx already shows unconditionally, mejoras.md ítem 1) is
+  // always public, so it's always safe to emit — unlike the old version
+  // here, which only emitted `offers` once a visitor had unlocked pricing
+  // via RevealPricesModal. Since a crawler (Googlebot included) never
+  // triggers that unlock, `offers` was empty on every single crawl,
+  // which is exactly why Google's Rich Results test flagged this
+  // Product as invalid ("Debe especificarse offers, review o
+  // aggregateRating" — confirmed live via Search Console, 2026-09-19).
+  // A real visitor who *has* unlocked still gets the richer, date-escalated
+  // per-location AggregateOffer, same as before.
+  const unlockedOffers = unlock
     ? [vehicle.price_medellin, vehicle.price_rionegro]
         .filter((p): p is number => p != null)
         .map((p) => priceForYear(p, unlock.weddingDate))
     : [];
+  const offers = unlockedOffers.length > 0
+    ? { "@type": "AggregateOffer", priceCurrency: "COP", lowPrice: Math.min(...unlockedOffers), highPrice: Math.max(...unlockedOffers), availability: "https://schema.org/InStock" }
+    : basePrice != null
+      ? { "@type": "Offer", priceCurrency: "COP", price: basePrice, availability: "https://schema.org/InStock" }
+      : null;
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -96,17 +108,7 @@ export default function VehicleDetailPage() {
       description,
       image,
       brand: { "@type": "Brand", name: vehicle.brand },
-      ...(offers.length > 0
-        ? {
-            offers: {
-              "@type": "AggregateOffer",
-              priceCurrency: "COP",
-              lowPrice: Math.min(...offers),
-              highPrice: Math.max(...offers),
-              availability: "https://schema.org/InStock",
-            },
-          }
-        : {}),
+      ...(offers ? { offers } : {}),
       ...(visibleReviews.length > 0
         ? {
             aggregateRating: {
@@ -198,19 +200,30 @@ export default function VehicleDetailPage() {
 
           {description && <p className="text-sm text-gray-600 leading-relaxed italic">{description}</p>}
 
-          {/* Location + Price — same gating as VehicleModal.tsx */}
+          {/* Location + Price — base "Desde $X" always visible (mejoras.md
+              ítem 1, same vehicleFromPrice() VehicleCard.tsx already uses
+              unconditionally); unlocking via RevealPricesModal still adds
+              the detailed per-location, date-escalated breakdown below. */}
           <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-3 bg-gray-50">
             <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
               <MapPin size={12} />
               <span>{LOCATION_LABEL_KEY[vehicle.location] ? t(LOCATION_LABEL_KEY[vehicle.location]) : vehicle.location}</span>
             </div>
+            {basePrice != null && (
+              <p className="text-sm text-gray-700">
+                <span className="text-gray-500">{t("catalog.priceFromLabel")}</span>{" "}
+                <span className="font-bold text-gray-900">
+                  {formatCOP(unlock ? priceForYear(basePrice, unlock.weddingDate) : basePrice)}
+                </span>
+              </p>
+            )}
             {hasPrice && !unlock && (
               <button
                 onClick={() => setGateOpen(true)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
+                className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 cursor-pointer"
               >
-                <Lock size={13} />
-                {t("vehicleModal.seePrice")}
+                <Lock size={11} />
+                {t("catalog.exactQuoteLink")}
               </button>
             )}
             {hasPrice && unlock && (
