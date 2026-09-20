@@ -1,4 +1,3 @@
-import os
 import urllib.request
 import json
 from datetime import datetime, timezone
@@ -8,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.core.dependencies import require_admin
 from app.database import get_db
 from app.models.instagram_post import InstagramPost
@@ -35,7 +35,7 @@ class SyncResult(BaseModel):
 
 
 def _get_token() -> Optional[str]:
-    return os.getenv("INSTAGRAM_ACCESS_TOKEN")
+    return settings.instagram_access_token or None
 
 
 def _refresh_token_if_needed(token: str) -> str:

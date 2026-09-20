@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     ops_notification_email: str = ""
 
+    # Instagram feed on the public catalog — leave empty to hide it (0 posts synced)
+    instagram_access_token: str = ""
+
     class Config:
         env_file = ".env"
 
