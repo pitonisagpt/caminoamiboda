@@ -1,0 +1,27 @@
+{
+  // Exists ONLY so Cloudflare's "Deploy non-production branches" Workers
+  // Build trigger has something to find. That trigger runs a bare
+  // `npx wrangler versions upload` (no --config, no cwd override) from the
+  // repo root regardless of the dashboard's "Root directory" / "Deploy
+  // command" settings — confirmed 2026-09-20 across several test builds,
+  // those fields simply aren't applied to this particular trigger. The
+  // production trigger (branch `main`) uses its own explicit
+  // `--config frontend/wrangler.jsonc` deploy command and doesn't need this
+  // file at all.
+  //
+  // Same shape as frontend/wrangler.jsonc, just with paths re-anchored to
+  // the repo root instead of frontend/. If frontend/wrangler.jsonc's
+  // compatibility_date or vars change, mirror the change here too.
+  "name": "caminoamiboda",
+  "compatibility_date": "2026-08-31",
+  "main": "frontend/worker.ts",
+  "assets": {
+    "directory": "frontend/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "vars": {
+    "API_BASE_URL": "https://api.caminoamiboda.com"
+  }
+}
