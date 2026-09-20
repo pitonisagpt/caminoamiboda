@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Pencil, Plus, Star, Trash2, X, Check } from 'lucide-react';
 import { reviewsApi, type Review, type ReviewForm } from '../../api/reviews';
+import { vehiclesApi } from '../../api/vehicles';
+import type { VehicleListItem } from '../../types/vehicle';
+import Combobox from '../../components/ui/Combobox';
+
+const vehicleLabel = (v: VehicleListItem) => [v.brand, v.model_line, v.color].filter(Boolean).join(' · ');
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -22,6 +27,7 @@ const EMPTY: ReviewForm = { author_name: '', rating: 5, body: '', body_en: '', s
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -32,7 +38,10 @@ export default function ReviewsPage() {
   const load = () =>
     reviewsApi.listAdmin().then((r: { data: Review[] }) => setReviews(r.data)).finally(() => setLoading(false));
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    vehiclesApi.listAll({ status: 'active' }).then(r => setVehicles(r.data));
+  }, []);
 
   const openNew = () => { setForm(EMPTY); setEditingId(null); setShowForm(true); };
   const openEdit = (r: Review) => {
@@ -118,6 +127,15 @@ export default function ReviewsPage() {
               <input type="date" value={form.event_date ?? ''} onChange={e => setForm(f => ({ ...f, event_date: e.target.value || null }))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
+            <div>
+              <Combobox
+                label="Vehículo (opcional)"
+                options={vehicles.map(v => ({ value: String(v.id), label: vehicleLabel(v) }))}
+                value={form.vehicle_id ? String(form.vehicle_id) : ''}
+                onChange={v => setForm(f => ({ ...f, vehicle_id: v ? Number(v) : null }))}
+                placeholder="Sin vehículo asignado"
+              />
+            </div>
             <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Testimonio</label>
               <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} rows={3}
@@ -161,6 +179,7 @@ export default function ReviewsPage() {
               <tr>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cliente</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Opinión</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Vehículo</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Fuente</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Visible</th>
                 <th className="px-4 py-3" />
@@ -176,6 +195,14 @@ export default function ReviewsPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs max-w-xs hidden md:table-cell">
                     <p className="line-clamp-2">{r.body}</p>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
+                    {r.vehicle_id
+                      ? (() => {
+                          const v = vehicles.find(v => v.id === r.vehicle_id);
+                          return v ? vehicleLabel(v) : `#${r.vehicle_id}`;
+                        })()
+                      : <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${r.source === 'google' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -196,7 +223,7 @@ export default function ReviewsPage() {
                 </tr>
               ))}
               {reviews.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">Sin opiniones todavía.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">Sin opiniones todavía.</td></tr>
               )}
             </tbody>
           </table>
