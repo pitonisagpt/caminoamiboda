@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Repo-root tooling only (git hooks) — the actual app lives in backend/ and frontend/.",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "build": "cd frontend && npm ci && npm run build"
   },
   "repository": {
     "type": "git",
