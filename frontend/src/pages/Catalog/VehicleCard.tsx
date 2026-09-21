@@ -176,7 +176,7 @@ export function VehicleCard({
               const fromPrice = previewDate ? priceForYear(basePrice, previewDate) : basePrice;
               return (
                 <p className="text-sm text-gray-700">
-                  <span className="text-gray-500">{t("catalog.priceFromLabel")}</span>{" "}
+                  <span className="text-gray-500">{t(previewDate ? "catalog.priceForDateLabel" : "catalog.priceFromLabel")}</span>{" "}
                   <span className="font-bold text-gray-900">{formatCOP(fromPrice)}</span>
                 </p>
               );

@@ -271,6 +271,7 @@ export const es = {
   "catalog.emptyState": "No se encontraron vehículos con esos filtros.",
   "catalog.seeAll": "Ver todos los vehículos",
   "catalog.priceFromLabel": "Desde",
+  "catalog.priceForDateLabel": "Para tu fecha",
   "catalog.exactQuoteLink": "Cotización exacta por fecha",
   "catalog.availableBadge": "Disponible",
   "catalog.unavailableBadge": "No disponible",
