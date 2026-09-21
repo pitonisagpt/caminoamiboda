@@ -269,6 +269,7 @@ export const en: Record<keyof typeof es, string> = {
   "catalog.emptyState": "No vehicles found with those filters.",
   "catalog.seeAll": "See all vehicles",
   "catalog.priceFromLabel": "From",
+  "catalog.priceForDateLabel": "For your date",
   "catalog.exactQuoteLink": "Get an exact quote for your date",
   "catalog.availableBadge": "Available",
   "catalog.unavailableBadge": "Not available",

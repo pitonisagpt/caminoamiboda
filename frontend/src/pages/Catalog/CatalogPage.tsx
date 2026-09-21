@@ -156,16 +156,30 @@ export function CatalogPage() {
   // idiom as the ?vehiculo= deep link below. A link always overwrites any
   // prior unlock in this browser — it's the most recent, most authoritative
   // signal of what date to price for.
+  //
+  // Also seeds `checkDate` with the same date — without this, `unlock`
+  // only affects the per-vehicle modal (opened by clicking a card), so a
+  // couple opening this link would see plain, unpersonalized "Desde $X"
+  // cards and no availability badges until they picked the same date by
+  // hand in the widget. Sets the state directly (setCheckDateState, not
+  // setCheckDate) and folds it into the single setSearchParams call below
+  // instead of letting setCheckDate fire its own — two separate
+  // setSearchParams calls in the same tick race on a stale `prev` and
+  // silently drop one of the two changes (confirmed live: the fecha/para
+  // strip below would win and disponibilidad= would never make it into
+  // the URL, even though the state update itself is unaffected either way).
   useEffect(() => {
     const fechaParam = searchParams.get("fecha");
     if (!fechaParam || !/^\d{4}-\d{2}-\d{2}$/.test(fechaParam)) return;
     const paraParam = searchParams.get("para") ?? "";
     setUnlock(fechaParam, paraParam, "");
     setUnlockState(getUnlock());
+    setCheckDateState(fechaParam);
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       next.delete("fecha");
       next.delete("para");
+      next.set("disponibilidad", fechaParam);
       return next;
     }, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
