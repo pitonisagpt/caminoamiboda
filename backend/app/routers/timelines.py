@@ -5,13 +5,14 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import get_current_user
+from app.core.limiter import limiter
 from app.database import SessionLocal, get_db
 from app.models.event_timeline import EventTimeline
 from app.models.event_location import EventLocation
@@ -525,7 +526,8 @@ def download_timeline_pdf(timeline_id: int, db: Session = Depends(get_db)):
 # ── Public token endpoints (no auth) ──────────────────────────────────────────
 
 @router.get("/api/public/evento/{token}", response_model=TimelinePublic)
-def get_public_event(token: str, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def get_public_event(request: Request, token: str, db: Session = Depends(get_db)):
     timeline = db.query(EventTimeline).filter(
         (EventTimeline.share_token_driver == token) |
         (EventTimeline.share_token_customer == token) |

@@ -1,11 +1,12 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.review import Review
 
@@ -49,7 +50,9 @@ class ReviewUpdate(BaseModel):
 
 
 @router.get("", response_model=List[ReviewRead])
+@limiter.limit("30/minute")
 def list_reviews_public(
+    request: Request,
     vehicle_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):

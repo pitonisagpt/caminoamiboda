@@ -2,11 +2,12 @@ import re
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.blog_post import BlogPost
 from app.schemas.blog_post import BlogPostCreate, BlogPostRead, BlogPostUpdate
@@ -35,7 +36,8 @@ def _get_or_404(post_id: int, db: Session) -> BlogPost:
 
 
 @router.get("", response_model=List[BlogPostRead])
-def list_posts(lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def list_posts(request: Request, lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """Public list — published posts only. See list_all_posts for the admin
     view (drafts included). lang="en" additionally excludes posts that have
     no English translation yet, rather than showing a half-English card."""
@@ -54,7 +56,8 @@ def list_all_posts(db: Session = Depends(get_db)):
 
 
 @router.get("/{slug}", response_model=BlogPostRead)
-def get_post(slug: str, lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def get_post(request: Request, slug: str, lang: Optional[str] = Query(None), db: Session = Depends(get_db)):
     q = db.query(BlogPost).filter(BlogPost.published == True)  # noqa: E712
     if lang == "en":
         # Accept either the English slug or a fallback hit on the Spanish

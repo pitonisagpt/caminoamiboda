@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.vehicle import Vehicle
 from app.schemas.vehicle_ai import VehicleAiGenerateResponse
@@ -11,7 +12,8 @@ router = APIRouter(prefix="/api/vehicles", tags=["vehicle-ai"], dependencies=[De
 
 
 @router.post("/{vehicle_id}/generate-ai", response_model=VehicleAiGenerateResponse)
-def generate_ai_content(vehicle_id: int, db: Session = Depends(get_db)):
+@limiter.limit("10/minute;60/hour")
+def generate_ai_content(request: Request, vehicle_id: int, db: Session = Depends(get_db)):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")

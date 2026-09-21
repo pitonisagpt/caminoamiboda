@@ -1,11 +1,12 @@
 from datetime import date
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import get_current_user, require_admin
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.reservation_vehicle import ReservationVehicle
@@ -63,7 +64,9 @@ def _normalize_display_order(db: Session) -> None:
 
 
 @router.get("", response_model=List[VehiclePublicList])
+@limiter.limit("30/minute")
 def list_vehicles(
+    request: Request,
     status: Optional[VehicleStatus] = Query(None),
     location: Optional[VehicleLocation] = Query(None),
     vehicle_type: Optional[VehicleType] = Query(None),

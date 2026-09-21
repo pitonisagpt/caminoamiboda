@@ -3,12 +3,13 @@ import json
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import require_admin
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.instagram_post import InstagramPost
 
@@ -59,7 +60,8 @@ def _fetch_feed(token: str) -> list:
 
 
 @router.get("/feed", response_model=List[InstagramPostRead])
-def get_instagram_feed(db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def get_instagram_feed(request: Request, db: Session = Depends(get_db)):
     posts = (
         db.query(InstagramPost)
         .order_by(InstagramPost.timestamp.desc().nullslast())
