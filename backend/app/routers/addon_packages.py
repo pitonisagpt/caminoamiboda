@@ -1,11 +1,12 @@
 from typing import List, Optional
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_admin
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.addon_package import AddonPackage
 
@@ -52,7 +53,8 @@ def list_addon_packages(
 
 
 @router.get("/public", response_model=List[AddonPackageRead])
-def list_addon_packages_public(db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def list_addon_packages_public(request: Request, db: Session = Depends(get_db)):
     return (
         db.query(AddonPackage)
         .filter(AddonPackage.is_active == True)  # noqa: E712

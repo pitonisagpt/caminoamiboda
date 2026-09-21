@@ -2,10 +2,11 @@ import re
 import unicodedata
 from xml.sax.saxutils import escape
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core.limiter import limiter
 from app.database import get_db
 from app.models.blog_post import BlogPost
 from app.models.vehicle import Vehicle, VehicleStatus
@@ -64,7 +65,8 @@ def _hreflang_block(es_url: str, en_url: str | None) -> str:
 
 
 @router.get("/sitemap.xml", include_in_schema=False)
-def sitemap(db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def sitemap(request: Request, db: Session = Depends(get_db)):
     base = settings.frontend_url.rstrip("/")
 
     entries = []

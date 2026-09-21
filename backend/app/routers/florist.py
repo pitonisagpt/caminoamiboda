@@ -7,12 +7,13 @@ from urllib.parse import quote
 
 import filetype
 import pillow_heif
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, model_validator
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.limiter import limiter
 from app.core.urls import build_upload_url
 from app.database import get_db
 from app.models.florist_photo import FloristPhoto
@@ -127,7 +128,8 @@ def _whatsapp_url(number: str, message: str) -> str:
 
 
 @router.get("", response_model=FloristPublicRead)
-def get_florist_public(db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def get_florist_public(request: Request, db: Session = Depends(get_db)):
     settings = _get_or_create_settings(db)
     photos = (
         db.query(FloristPhoto)
