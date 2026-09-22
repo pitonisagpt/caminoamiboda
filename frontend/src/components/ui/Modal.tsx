@@ -27,6 +27,10 @@ interface ModalProps {
   // + close button.
   headerExtra?: ReactNode;
   size?: Size;
+  // Optional, defaults to Spanish — most callers are admin-only (no
+  // useLang() available there); the couple of public callers (e.g.
+  // RevealPricesModal.tsx) pass a translated value.
+  closeAriaLabel?: string;
 }
 
 /**
@@ -44,7 +48,7 @@ interface ModalProps {
  * each different enough (sizes, existing backdrop/escape behavior) that
  * migrating them is a separate pass — see wishlist fila 50.
  */
-export function Modal({ title, onClose, children, footer, headerExtra, size = 'md' }: ModalProps) {
+export function Modal({ title, onClose, children, footer, headerExtra, size = 'md', closeAriaLabel = 'Cerrar' }: ModalProps) {
   const [visible, setVisible] = useState(false);
 
   // Animated close (backdrop/Escape/X): fade+slide out, then unmount.
@@ -95,7 +99,7 @@ export function Modal({ title, onClose, children, footer, headerExtra, size = 'm
             <h3 className="font-semibold text-gray-900">{title}</h3>
             <div className="flex items-center gap-3">
               {headerExtra}
-              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 cursor-pointer" aria-label="Cerrar">
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 cursor-pointer" aria-label={closeAriaLabel}>
                 <X size={18} />
               </button>
             </div>

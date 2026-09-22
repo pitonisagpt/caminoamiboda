@@ -6,7 +6,7 @@ import { vehicleFromPrice } from "../../components/vehicleFilterKit";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import { ShareVehicleButton } from "../../components/ShareVehicleButton";
-import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
+import { SCORE_CATEGORY_KEYS, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
@@ -143,13 +143,13 @@ export function VehicleCard({
             activations quote separately, by the hour). */}
         {!hidePricing && vehicle.score_total !== null && (
           <div className="space-y-1.5">
-            <ScoreTotalBar total={vehicle.score_total} size="lg" />
+            <ScoreTotalBar total={vehicle.score_total} size="lg" label={t("vehicleModal.scoreLabel")} />
             <div className="flex justify-between pt-1">
-              {SCORE_CATEGORIES.map(({ field, label, short }) => (
+              {SCORE_CATEGORY_KEYS.map(({ field, labelKey, shortKey }) => (
                 <ScoreDotsRow
                   key={field}
-                  label={short}
-                  tooltip={label}
+                  label={t(shortKey)}
+                  tooltip={t(labelKey)}
                   value={vehicle[field as keyof typeof vehicle] as number | null}
                 />
               ))}

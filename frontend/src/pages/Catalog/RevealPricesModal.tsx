@@ -8,10 +8,16 @@ import { Modal } from "../../components/ui/Modal";
 import { setUnlock } from "../../utils/priceUnlock";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { useLang } from "../../i18n/LanguageContext";
+import type { Lang } from "../../i18n/langPath";
 
 const WA_NUMBER = "573147372030";
 
-function firstValidationMessage(err: unknown): string | null {
+// Backend validators raise Spanish-only messages (no request-language
+// context available there) — only surface the raw message in Spanish
+// mode. In English, fall back to the caller's translated generic message
+// instead of showing raw Spanish text.
+function firstValidationMessage(err: unknown, lang: Lang): string | null {
+  if (lang === "en") return null;
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (Array.isArray(detail) && detail.length > 0 && typeof detail[0]?.msg === "string") {
     return detail[0].msg.replace(/^Value error, /, "");
@@ -26,7 +32,7 @@ interface Props {
 }
 
 export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [name, setName] = useState(initial?.name ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
   const [weddingDate, setWeddingDate] = useState(initial?.weddingDate ?? "");
@@ -67,7 +73,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
       if (status === 429) {
         setError(t("contacto.errorRateLimit"));
       } else if (status === 422) {
-        setError(firstValidationMessage(err) ?? t("leadCapture.errorValidation"));
+        setError(firstValidationMessage(err, lang) ?? t("leadCapture.errorValidation"));
       } else {
         setError(t("leadCapture.errorGeneric"));
         setShowWhatsappFallback(true);
@@ -81,6 +87,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
     <Modal
       title={initial ? t("revealPrices.titleEdit") : t("revealPrices.titleNew")}
       onClose={onClose}
+      closeAriaLabel={t("vehicleModal.close")}
     >
       <div className="flex items-start gap-3">
         <div className="w-11 h-11 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center shrink-0">
@@ -139,7 +146,7 @@ export function RevealPricesModal({ onClose, onUnlocked, initial }: Props) {
           />
           <span>
             {t("contacto.consentText")}{" "}
-            <Link to="/politica-de-datos" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
+            <Link to={lang === "en" ? "/en/politica-de-datos" : "/politica-de-datos"} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
               {t("contacto.consentLinkText")}
             </Link>.
           </span>

@@ -6,7 +6,7 @@ import { whatsAppLinkProps } from '../../utils/whatsapp';
 
 export function FloristAllySection() {
   const { settings, loaded } = useFloristSettings();
-  const { t, pickLocalized } = useLang();
+  const { t, lang, pickLocalized } = useLang();
 
   if (!loaded || !settings) return null;
 
@@ -37,6 +37,9 @@ export function FloristAllySection() {
       <p className="text-sm text-gray-600 leading-relaxed mt-4 max-w-2xl whitespace-pre-line">
         {pickLocalized(settings.description, settings.description_en)}
       </p>
+      {lang === "en" && !settings.description_en && (
+        <p className="text-[11px] text-gray-400 italic mt-1">{t("vehiclePage.shownInSpanish")}</p>
+      )}
       {settings.photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mt-5">
           {settings.photos.map(p => (

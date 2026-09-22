@@ -294,6 +294,13 @@ export const es = {
   "catalog.bodyTypeHardtop": "Hardtop",
   "catalog.bodyTypeSemiDescapotable": "Semi Descapotable",
   "catalog.bodyTypeSidecar": "Sidecar",
+  "catalog.colorBlanco": "Blanco",
+  "catalog.colorBeige": "Beige",
+  "catalog.colorAmarillo": "Amarillo",
+  "catalog.colorRojo": "Rojo",
+  "catalog.colorVerde": "Verde",
+  "catalog.colorAzul": "Azul",
+  "catalog.colorNegro": "Negro",
   "catalog.featured": "Destacado",
 
   // Vehicle modal (VehicleModal.tsx)
@@ -312,6 +319,17 @@ export const es = {
   "vehicleModal.priceFootnote": "*Precio para Medellín/Llanogrande y alrededores — puede variar según zona o distancia. ¿Otro pueblo (Guatapé, Santa Fe de Antioquia, etc.)? Pregúntanos.",
   "vehicleModal.priceOnRequest": "Precio a consultar",
   "vehicleModal.checkAvailability": "Consultar disponibilidad",
+  "vehicleModal.scoreLabel": "Puntuación",
+  "vehicleModal.scoreEleganceLabel": "Elegancia y Estilo",
+  "vehicleModal.scoreEleganceShort": "Estilo",
+  "vehicleModal.scoreExclusivityLabel": "Exclusividad y Rareza",
+  "vehicleModal.scoreExclusivityShort": "Rareza",
+  "vehicleModal.scorePhotogenyLabel": "Fotogenia",
+  "vehicleModal.scorePhotogenyShort": "Fotos",
+  "vehicleModal.scoreComfortLabel": "Comodidad y Espacio",
+  "vehicleModal.scoreComfortShort": "Confort",
+  "vehicleModal.scoreRomanceLabel": "Romanticismo y Encanto",
+  "vehicleModal.scoreRomanceShort": "Romance",
   "vehicleModal.dayMonday": "Lunes",
   "vehicleModal.dayTuesday": "Martes",
   "vehicleModal.dayWednesday": "Miércoles",
@@ -337,6 +355,7 @@ export const es = {
   "chat.greeting": "¡Hola! 💍 Soy el asistente virtual de Camino a mi Boda. Cuéntame, ¿ya tienes fecha para tu boda, o quieres ver qué estilos de carro tenemos?",
   "chat.errorReply": "Tuvimos un problema para responder. Escríbenos por WhatsApp: {{link}}",
   "chat.title": "Asistente de bodas",
+  "chat.aiBadge": "IA",
   "chat.leaveDataTitle": "Dejar mis datos",
   "chat.loading": "Cargando...",
   "chat.disabledMessage": "Estamos actualizando el asistente, vuelve pronto. Mientras tanto, escríbenos por WhatsApp y te ayudamos enseguida.",
@@ -404,10 +423,55 @@ export const es = {
   // VehicleDetailPage.tsx — per-vehicle SEO landing page (/carros/:idSlug)
   "vehiclePage.backToCatalog": "Volver al catálogo",
   "vehiclePage.reviews": "Reseñas",
+  "vehiclePage.shownInSpanish": "Mostrado en español",
   // Same copy as worker.ts's vehicleDescription() fallback, so the
   // crawler-bot OG description and the real page's own meta description
   // never contradict each other for the same vehicle.
   "vehiclePage.fallbackDescription": "{{vehicle}} — vehículo disponible para bodas y eventos en Medellín, el Oriente Antioqueño y el resto de Antioquia. Consulta disponibilidad y precio por WhatsApp.",
+
+  // EventoPage.tsx — public event timeline share link (/evento/:token)
+  "evento.locationType.pickup": "Recogida",
+  "evento.locationType.ceremony": "Ceremonia",
+  "evento.locationType.reception": "Recepción",
+  "evento.locationType.photoshoot": "Sesión de fotos",
+  "evento.locationType.other": "Otro",
+  "evento.eventType.wedding": "Boda",
+  "evento.eventType.brand_activation": "Activación de marca",
+  "evento.eventType.audiovisual_production": "Producción audiovisual",
+  "evento.eventType.quinceanera": "Quinceañera",
+  "evento.eventType.other": "Evento",
+  "evento.loading": "Cargando evento...",
+  "evento.invalidLinkTitle": "Enlace no válido",
+  "evento.invalidLinkBody": "Este enlace de evento no existe o ha sido regenerado. Solicita un nuevo enlace al equipo de Camino a mi Boda.",
+  "evento.editTooltip": "Editar evento",
+  "evento.edit": "Editar",
+  "evento.couple": "Pareja",
+  "evento.vehicleLabel": "Vehículo:",
+  "evento.driver": "Conductor",
+  "evento.planner": "Planeador",
+  "evento.specialInstructions": "Instrucciones especiales",
+  "evento.roadAccess": "Acceso vial:",
+  "evento.locations": "Ubicaciones",
+  "evento.route": "Ruta del evento",
+  "evento.timeline": "Timeline del evento",
+  "evento.day": "Día {{n}}",
+  "evento.open": "Abrir",
+
+  // EventRouteMap.tsx — shared by EventoPage.tsx (public) and two admin
+  // pages (LocationCatalogPage.tsx, Reservations/tabs/EventoTab.tsx); the
+  // admin call sites don't pass t/lang and fall back to Spanish by default.
+  "evento.stop": "Parada {{n}}",
+  "evento.openInGoogleMaps": "Abrir en Google Maps",
+  "evento.openInWaze": "Abrir en Waze",
+  "evento.unlocated": "Sin ubicar ({{count}})",
+  "evento.unlocatedHint": "La dirección se busca sola al guardar, pero sitios pequeños no siempre aparecen. Edita la ubicación y pega su link de Google Maps para ubicarla.",
+  "evento.totalDistance": "Distancia total del recorrido",
+  "evento.approxDistanceNotice": "Estimado en línea recta — no se pudo calcular la ruta real por carretera.",
+  "evento.tryAlternativeRoute": "Probar otra ruta para este tramo",
+  "evento.tryAlternativeRouteAria": "Probar otra ruta para {{from}} a {{to}}",
+  "evento.alternativeRoute": "alterna",
+  "evento.noCoordinatesYet": "Ninguna ubicación tiene coordenadas todavía. Se completan automáticamente al guardar una dirección o enlace de Google Maps.",
+  "evento.repeatedLeg": "Tramo repetido (ida y vuelta)",
 } as const;
 
 export type TranslationKey = keyof typeof es;

@@ -707,6 +707,7 @@ export function CatalogPage() {
         <Modal
           title={t("catalog.filters")}
           onClose={() => setMobileDrawerOpen(false)}
+          closeAriaLabel={t("vehicleModal.close")}
           headerExtra={activeFilterCount > 0 && (
             <button onClick={clearAll} className="text-sm text-brand-700 cursor-pointer whitespace-nowrap">
               {t("catalog.clear")}
@@ -774,10 +775,15 @@ export function CatalogPage() {
                   )}
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">"{pickLocalized(r.body, r.body_en).trim()}"</p>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{r.author_name}</p>
-                  {r.event_date && (
-                    <p className="text-xs text-gray-400">{new Date(r.event_date + 'T12:00:00').toLocaleDateString(lang === "en" ? "en-US" : 'es-CO', { month: 'long', year: 'numeric' })}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{r.author_name}</p>
+                    {r.event_date && (
+                      <p className="text-xs text-gray-400">{new Date(r.event_date + 'T12:00:00').toLocaleDateString(lang === "en" ? "en-US" : 'es-CO', { month: 'long', year: 'numeric' })}</p>
+                    )}
+                  </div>
+                  {lang === "en" && !r.body_en && (
+                    <span className="text-[10px] text-gray-400 italic shrink-0">{t("vehiclePage.shownInSpanish")}</span>
                   )}
                 </div>
               </div>

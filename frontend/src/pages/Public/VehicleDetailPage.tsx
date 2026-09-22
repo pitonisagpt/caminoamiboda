@@ -9,7 +9,7 @@ import { PhotoSlider } from "../Catalog/PhotoSlider";
 import { RevealPricesModal } from "../Catalog/RevealPricesModal";
 import { ShareVehicleButton } from "../../components/ShareVehicleButton";
 import { AdminEditLink } from "../../components/AdminEditLink";
-import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
+import { SCORE_CATEGORY_KEYS, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { getUnlock, priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { vehicleFromPrice } from "../../components/vehicleFilterKit";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
@@ -76,8 +76,13 @@ export default function VehicleDetailPage() {
   const photos = (vehicle.photos ?? []).filter((p) => p.is_visible);
   const vehicleName = `${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}`;
   const canonicalPath = `/carros/${vehicleSlugPath(vehicle)}`;
-  const description = vehicle.bride_description
-    ? pickLocalized(vehicle.bride_description, vehicle.bride_description_en)
+  // Checking bare bride_description here would almost never fall back —
+  // nearly every vehicle has the Spanish field filled in, so an English
+  // visitor would silently get pickLocalized()'s Spanish fallback instead
+  // of ever seeing this sentence. Check the field for the CURRENT lang.
+  const hasOwnDescription = lang === "en" ? Boolean(vehicle.bride_description_en) : Boolean(vehicle.bride_description);
+  const description = hasOwnDescription
+    ? pickLocalized(vehicle.bride_description ?? "", vehicle.bride_description_en)
     : t("vehiclePage.fallbackDescription", { vehicle: vehicleName });
   const pageTitle = `${vehicleName} | Camino a mi Boda`;
   const image = photos[0]?.url ?? `${SITE_URL}/favicon.png`;
@@ -131,7 +136,7 @@ export default function VehicleDetailPage() {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Catálogo", item: `${SITE_URL}/catalogo` },
+        { "@type": "ListItem", position: 1, name: t("nav.catalog"), item: `${SITE_URL}/catalogo` },
         { "@type": "ListItem", position: 2, name: vehicleName, item: `${SITE_URL}${canonicalPath}` },
       ],
     },
@@ -264,13 +269,13 @@ export default function VehicleDetailPage() {
 
           {vehicle.score_total !== null && (
             <div>
-              <ScoreTotalBar total={vehicle.score_total} size="lg" />
+              <ScoreTotalBar total={vehicle.score_total} size="lg" label={t("vehicleModal.scoreLabel")} />
               <div className="grid grid-cols-5 gap-1 mt-3">
-                {SCORE_CATEGORIES.map(({ field, label, short, icon }) => (
+                {SCORE_CATEGORY_KEYS.map(({ field, labelKey, shortKey, icon }) => (
                   <ScoreDotsRow
                     key={field}
-                    label={short}
-                    tooltip={label}
+                    label={t(shortKey)}
+                    tooltip={t(labelKey)}
                     icon={icon}
                     value={vehicle[field as keyof typeof vehicle] as number | null}
                   />
@@ -304,7 +309,12 @@ export default function VehicleDetailPage() {
                   ))}
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">{pickLocalized(r.body, r.body_en)}</p>
-                <p className="text-xs text-gray-400 mt-2 font-medium">{r.author_name}</p>
+                <div className="flex items-center justify-between gap-2 mt-2">
+                  <p className="text-xs text-gray-400 font-medium">{r.author_name}</p>
+                  {lang === "en" && !r.body_en && (
+                    <span className="text-[10px] text-gray-400 italic shrink-0">{t("vehiclePage.shownInSpanish")}</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

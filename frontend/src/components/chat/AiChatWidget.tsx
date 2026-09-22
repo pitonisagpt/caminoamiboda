@@ -111,7 +111,7 @@ export function AiChatWidget() {
                 <div className="flex items-center gap-1.5">
                   <span className="font-brand text-xl leading-none truncate">{t("chat.title")}</span>
                   <span className="shrink-0 bg-gold-400 text-brand-900 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full">
-                    IA
+                    {t("chat.aiBadge")}
                   </span>
                 </div>
                 <p className="text-[11px] text-white/70 leading-tight mt-0.5">Camino a mi Boda</p>
@@ -246,7 +246,7 @@ export function AiChatWidget() {
             className="absolute -top-1 -right-1 bg-gold-400 text-brand-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm"
             aria-hidden="true"
           >
-            IA
+            {t("chat.aiBadge")}
           </span>
         )}
         {open ? <X size={22} /> : <Sparkles size={22} />}

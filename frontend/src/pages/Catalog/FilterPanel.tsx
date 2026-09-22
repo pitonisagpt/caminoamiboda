@@ -12,7 +12,7 @@ import {
   Pill,
 } from "../../components/vehicleFilterKit";
 import { useLang } from "../../i18n/LanguageContext";
-import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY } from "../../i18n/catalogLabels";
+import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, COLOR_LABEL_KEY } from "../../i18n/catalogLabels";
 import type { Filters } from "./CatalogPage";
 
 export default function FilterPanel({
@@ -158,7 +158,7 @@ export default function FilterPanel({
                   <button
                     key={color}
                     onClick={() => set({ colors: toggleItem(filters.colors, color) })}
-                    title={color}
+                    title={COLOR_LABEL_KEY[color] ? t(COLOR_LABEL_KEY[color]) : color}
                     className={`relative w-7 h-7 rounded-full transition-all cursor-pointer ${
                       selected ? "ring-2 ring-brand-400 ring-offset-2" : "ring-1 ring-gray-200 hover:ring-brand-300"
                     }`}
@@ -172,7 +172,9 @@ export default function FilterPanel({
               })}
             </div>
             {filters.colors.length > 0 && (
-              <p className="text-[11px] text-gray-400 mt-1.5">{filters.colors.join(", ")}</p>
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                {filters.colors.map(c => (COLOR_LABEL_KEY[c] ? t(COLOR_LABEL_KEY[c]) : c)).join(", ")}
+              </p>
             )}
           </FilterSection>
 
