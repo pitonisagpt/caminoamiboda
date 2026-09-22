@@ -50,20 +50,41 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
         working-directory: backend
       - name: Run tests with coverage
-        id: coverage
-        run: |
-          python -m pytest -v --cov=app --cov-report=term-missing --cov-report=xml
-          TOTAL=$(python -c "import xml.etree.ElementTree as ET; print(round(float(ET.parse('coverage.xml').getroot().get('line-rate'))*100, 1))")
-          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+        run: python -m pytest -v --cov=app --cov-report=term-missing --cov-report=json --junitxml=junit.xml
         working-directory: backend
       - name: Comment coverage on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            const cov = JSON.parse(fs.readFileSync('backend/coverage.json', 'utf8'));
+            const totalPct = cov.totals.percent_covered.toFixed(1);
+
+            const rows = Object.entries(cov.files)
+              .filter(([, d]) => d.summary.num_statements > 0 && d.summary.percent_covered > 0)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([path, d]) => {
+                const s = d.summary;
+                return `| \`${path}\` | ${s.num_statements} | ${s.missing_lines} | ${s.percent_covered.toFixed(1)}% |`;
+              });
+            const table = rows.length
+              ? ['| File | Statements | Missed | Coverage |', '|---|---|---|---|', ...rows].join('\n')
+              : '_No files with partial/full coverage yet._';
+
+            const junit = fs.readFileSync('backend/junit.xml', 'utf8');
+            const attr = name => (junit.match(new RegExp(`${name}="([^"]+)"`)) || [, '?'])[1];
+            const tests = attr('tests');
+            const failures = attr('failures');
+            const errors = attr('errors');
+            const skipped = attr('skipped');
+            const time = attr('time');
+
             const marker = '<!-- backend-coverage-comment -->';
-            const pct = '${{ steps.coverage.outputs.total }}';
-            const body = `${marker}\n**Backend test coverage: ${pct}%** of \`app/\` (from the \`backend-test\` job)\n\nStill early — only \`app/services/pico_y_placa.py\` and part of \`app/core/dependencies.py\` have tests so far. Full per-file report in the job logs.`;
+            const summary = `**Backend test coverage: ${totalPct}%** of \`app/\` — ${tests} tests, ${failures} failed, ${errors} errors, ${skipped} skipped (${parseFloat(time).toFixed(1)}s)`;
+            const footer = '_Only files with any coverage are listed — most of `app/` still has zero tests. Full report in the job logs._';
+            const body = [marker, summary, '', table, '', footer].join('\n');
+
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

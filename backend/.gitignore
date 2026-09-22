@@ -5,3 +5,5 @@ __pycache__/
 generated_pdfs/
 .coverage
 coverage.xml
+coverage.json
+junit.xml
