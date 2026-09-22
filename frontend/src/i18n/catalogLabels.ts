@@ -27,6 +27,17 @@ export const LOCATION_LABEL_KEY: Record<string, TranslationKey> = {
   carmen_de_viboral: "catalog.locationCarmenDeViboral",
 };
 
+// Keyed by vehicleFilterKit.tsx's COLOR_ORDER values.
+export const COLOR_LABEL_KEY: Record<string, TranslationKey> = {
+  Blanco: "catalog.colorBlanco",
+  Beige: "catalog.colorBeige",
+  Amarillo: "catalog.colorAmarillo",
+  Rojo: "catalog.colorRojo",
+  Verde: "catalog.colorVerde",
+  Azul: "catalog.colorAzul",
+  Negro: "catalog.colorNegro",
+};
+
 // pico_y_placa_day comes back from the backend as a Spanish weekday name
 // (e.g. "Lunes") regardless of UI language — this maps it to a display key.
 export const PICO_DAY_LABEL_KEY: Record<string, TranslationKey> = {

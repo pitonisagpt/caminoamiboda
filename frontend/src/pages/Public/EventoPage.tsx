@@ -7,30 +7,35 @@ import { timelinesApi } from '../../api/timelines';
 import type { TimelinePublic, EventLocation, EventType, LocationType } from '../../types/timeline';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
+import { useLang } from '../../i18n/LanguageContext';
+import type { TranslationKey } from '../../i18n/es';
 
-const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
-  pickup: 'Recogida',
-  ceremony: 'Ceremonia',
-  reception: 'Recepción',
-  photoshoot: 'Sesión de fotos',
-  other: 'Otro',
+type TFunction = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+const LOCATION_TYPE_LABEL_KEY: Record<LocationType, TranslationKey> = {
+  pickup: 'evento.locationType.pickup',
+  ceremony: 'evento.locationType.ceremony',
+  reception: 'evento.locationType.reception',
+  photoshoot: 'evento.locationType.photoshoot',
+  other: 'evento.locationType.other',
 };
 
-const EVENT_TYPE_TITLE_LABELS: Record<EventType, string> = {
-  wedding: 'Boda',
-  brand_activation: 'Activación de marca',
-  audiovisual_production: 'Producción audiovisual',
-  quinceanera: 'Quinceañera',
-  other: 'Evento',
+const EVENT_TYPE_TITLE_LABEL_KEY: Record<EventType, TranslationKey> = {
+  wedding: 'evento.eventType.wedding',
+  brand_activation: 'evento.eventType.brand_activation',
+  audiovisual_production: 'evento.eventType.audiovisual_production',
+  quinceanera: 'evento.eventType.quinceanera',
+  other: 'evento.eventType.other',
 };
 
 // Enriches the bare event_name ("Novia & Novio") with the event type and
 // full vehicle name, e.g. "Boda Camila Ferrer & Martín (Mercedes Benz
 // Gazelle Beige y negro)" — falls back to the planner or first contact
 // when no couple name is on record, and to the plain event_name if none
-// of those exist either.
-function buildPageTitle(event: TimelinePublic): string {
-  const typeLabel = EVENT_TYPE_TITLE_LABELS[event.event_type] ?? 'Evento';
+// of those exist either. Takes `t` as a param since this runs outside the
+// component (can't call the useLang() hook here).
+function buildPageTitle(event: TimelinePublic, t: TFunction): string {
+  const typeLabel = t(EVENT_TYPE_TITLE_LABEL_KEY[event.event_type] ?? 'evento.eventType.other');
   let contact: string | null = null;
   if (event.main_contact_name) {
     contact = event.main_contact_name;
@@ -61,7 +66,7 @@ const LOCATION_DOT_COLORS: Record<LocationType, string> = {
   other: 'bg-gray-400',
 };
 
-function LocationCard({ loc }: { loc: EventLocation }) {
+function LocationCard({ loc, t }: { loc: EventLocation; t: TFunction }) {
   return (
     <div className={`border rounded-xl p-4 ${LOCATION_TYPE_COLORS[loc.location_type]}`}>
       <div className="flex items-start justify-between gap-3">
@@ -69,7 +74,7 @@ function LocationCard({ loc }: { loc: EventLocation }) {
           <div className="flex items-center gap-2 mb-1">
             <span className={`w-2 h-2 rounded-full shrink-0 ${LOCATION_DOT_COLORS[loc.location_type]}`} />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              {LOCATION_TYPE_LABELS[loc.location_type]}
+              {t(LOCATION_TYPE_LABEL_KEY[loc.location_type])}
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 text-base">{loc.location_name}</h3>
@@ -93,7 +98,7 @@ function LocationCard({ loc }: { loc: EventLocation }) {
           {loc.notes && <p className="text-sm text-gray-500 mt-2 italic">{loc.notes}</p>}
           {loc.road_access_notes && (
             <p className="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 mt-2">
-              <span className="font-semibold">Acceso vial:</span> {loc.road_access_notes}
+              <span className="font-semibold">{t('evento.roadAccess')}</span> {loc.road_access_notes}
             </p>
           )}
         </div>
@@ -127,6 +132,7 @@ function LocationCard({ loc }: { loc: EventLocation }) {
 export default function EventoPage() {
   const { token } = useParams<{ token: string }>();
   const { user, loading: authLoading } = useAuth();
+  const { t, lang } = useLang();
   const [event, setEvent] = useState<TimelinePublic | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -142,7 +148,7 @@ export default function EventoPage() {
     <div className="flex items-center justify-center bg-gray-50 py-20">
       <div className="text-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500 mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Cargando evento...</p>
+        <p className="text-sm text-gray-500">{t('evento.loading')}</p>
       </div>
     </div>
   );
@@ -151,21 +157,23 @@ export default function EventoPage() {
     <div className="flex items-center justify-center bg-gray-50 p-6 py-20">
       <div className="text-center max-w-sm">
         <div className="text-5xl mb-4">🔗</div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Enlace no válido</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">{t('evento.invalidLinkTitle')}</h1>
         <p className="text-gray-500 text-sm">
-          Este enlace de evento no existe o ha sido regenerado. Solicita un nuevo enlace al equipo de Camino a mi Boda.
+          {t('evento.invalidLinkBody')}
         </p>
       </div>
     </div>
   );
 
+  const dateLocale = lang === 'en' ? 'en-US' : 'es-CO';
+
   const formatDate = (d: string) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
+    new Date(d + 'T00:00:00').toLocaleDateString(dateLocale, {
       weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
     });
 
   const formatShortDate = (d: string) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    new Date(d + 'T00:00:00').toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' });
 
   const addDays = (d: string, n: number) => {
     const date = new Date(d + 'T00:00:00');
@@ -175,7 +183,7 @@ export default function EventoPage() {
 
   const sortedActivities = [...event.activities].sort((a, b) => a.display_order - b.display_order);
   const multiDayEvent = new Set(sortedActivities.map(a => a.day_number)).size > 1;
-  const pageTitle = buildPageTitle(event);
+  const pageTitle = buildPageTitle(event, t);
 
   return (
     <div>
@@ -202,11 +210,11 @@ export default function EventoPage() {
           {!authLoading && user && event.reservation_id && (
             <Link
               to={`/reservas/${event.reservation_id}?tab=evento`}
-              title="Editar evento"
+              title={t('evento.editTooltip')}
               className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 border border-brand-200 hover:bg-brand-50 rounded-lg px-2.5 py-2 shrink-0 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Editar</span>
+              <span className="hidden sm:inline">{t('evento.edit')}</span>
             </Link>
           )}
         </div>
@@ -218,13 +226,13 @@ export default function EventoPage() {
           {event.main_contact_name && (
             <div className="flex items-center gap-2 text-gray-700">
               <User className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium">{event.main_contact_name} · Pareja</span>
+              <span className="text-sm font-medium">{event.main_contact_name} · {t('evento.couple')}</span>
             </div>
           )}
           {event.assigned_vehicle && (
             <div className="flex items-center gap-2 text-gray-700">
               <Car className="w-4 h-4 text-gray-400" />
-              <span className="text-sm"><span className="text-gray-500">Vehículo:</span> {event.assigned_vehicle}</span>
+              <span className="text-sm"><span className="text-gray-500">{t('evento.vehicleLabel')}</span> {event.assigned_vehicle}</span>
             </div>
           )}
           {event.assigned_driver && (
@@ -237,7 +245,7 @@ export default function EventoPage() {
                     identify and re-contact a specific driver directly,
                     cutting Camino a mi Boda out as the middleman. Same rule
                     already applied to timeline_pdf.html. */}
-                <span className="text-sm">{event.assigned_driver.split(' ')[0]} · Conductor</span>
+                <span className="text-sm">{event.assigned_driver.split(' ')[0]} · {t('evento.driver')}</span>
               </div>
               {event.assigned_driver_phone && (
                 <a
@@ -255,7 +263,7 @@ export default function EventoPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-700">
                 <User className="w-4 h-4 text-gray-400" />
-                <span className="text-sm">{event.planner_name} · Planeador</span>
+                <span className="text-sm">{event.planner_name} · {t('evento.planner')}</span>
               </div>
               {event.planner_phone && (
                 <a
@@ -292,7 +300,7 @@ export default function EventoPage() {
         {/* Special instructions */}
         {event.special_instructions && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Instrucciones especiales</p>
+            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">{t('evento.specialInstructions')}</p>
             <p className="text-sm text-amber-900 leading-relaxed">{event.special_instructions}</p>
           </div>
         )}
@@ -301,10 +309,10 @@ export default function EventoPage() {
         {event.locations.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Ubicaciones
+              <MapPin className="w-4 h-4" /> {t('evento.locations')}
             </h2>
             <div className="space-y-3">
-              {event.locations.map(loc => <LocationCard key={loc.id} loc={loc} />)}
+              {event.locations.map(loc => <LocationCard key={loc.id} loc={loc} t={t} />)}
             </div>
           </div>
         )}
@@ -313,9 +321,9 @@ export default function EventoPage() {
         {event.locations.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <Route className="w-4 h-4" /> Ruta del evento
+              <Route className="w-4 h-4" /> {t('evento.route')}
             </h2>
-            <EventRouteMap locations={event.locations} activities={event.activities} />
+            <EventRouteMap locations={event.locations} activities={event.activities} t={t} lang={lang} />
           </div>
         )}
 
@@ -323,7 +331,7 @@ export default function EventoPage() {
         {sortedActivities.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Timeline del evento
+              <Calendar className="w-4 h-4" /> {t('evento.timeline')}
             </h2>
             <div className="relative">
               {/* Timeline line */}
@@ -343,7 +351,7 @@ export default function EventoPage() {
                           <div>
                             {multiDayEvent && (
                               <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-1.5 py-0.5 mr-1.5 align-middle">
-                                {formatShortDate(addDays(event.event_date, act.day_number - 1))} · Día {act.day_number}
+                                {formatShortDate(addDays(event.event_date, act.day_number - 1))} · {t('evento.day', { n: act.day_number })}
                               </span>
                             )}
                             <span className="text-sm font-bold text-brand-700 font-mono">{act.time}</span>
@@ -365,7 +373,7 @@ export default function EventoPage() {
                                 <div className="flex items-center gap-2">
                                   {loc.google_maps_link && (
                                     <a href={loc.google_maps_link} target="_blank" rel="noreferrer" className="text-xs text-blue-600 flex items-center gap-0.5 font-medium">
-                                      <Navigation className="w-3 h-3" /> Abrir
+                                      <Navigation className="w-3 h-3" /> {t('evento.open')}
                                     </a>
                                   )}
                                   {loc.effective_waze_link && (

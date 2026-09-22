@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function AiLeadCaptureCard({ onClose, onSaved }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
@@ -99,7 +99,7 @@ export function AiLeadCaptureCard({ onClose, onSaved }: Props) {
           />
           <span>
             {t("contacto.consentText")}{" "}
-            <Link to="/politica-de-datos" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
+            <Link to={lang === "en" ? "/en/politica-de-datos" : "/politica-de-datos"} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
               {t("contacto.consentLinkText")}
             </Link>.
           </span>

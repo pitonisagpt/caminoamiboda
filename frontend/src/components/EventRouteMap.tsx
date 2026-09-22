@@ -4,10 +4,18 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap } fro
 import L from 'leaflet';
 import { ExternalLink, Navigation, RefreshCw } from 'lucide-react';
 import type { EventLocation, TimelineActivity, LocationType } from '../types/timeline';
+import { es as esDict, type TranslationKey } from '../i18n/es';
+import { interpolate } from '../i18n/interpolate';
+import type { Lang } from '../i18n/langPath';
 
-const TYPE_LABELS: Record<LocationType, string> = {
-  pickup: 'Recogida', ceremony: 'Ceremonia', reception: 'Recepción',
-  photoshoot: 'Sesión de fotos', other: 'Otro',
+type TFunction = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+const TYPE_LABEL_KEY: Record<LocationType, TranslationKey> = {
+  pickup: 'evento.locationType.pickup',
+  ceremony: 'evento.locationType.ceremony',
+  reception: 'evento.locationType.reception',
+  photoshoot: 'evento.locationType.photoshoot',
+  other: 'evento.locationType.other',
 };
 
 const TYPE_HEX: Record<LocationType, string> = {
@@ -263,7 +271,17 @@ function useLegRoutes(waypoints: [number, number][]): { legs: LegOption[][] } {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function EventRouteMap({ locations, activities }: { locations: EventLocation[]; activities: TimelineActivity[] }) {
+export default function EventRouteMap({ locations, activities, t: tProp, lang = 'es' }: {
+  locations: EventLocation[];
+  activities: TimelineActivity[];
+  // Optional — the two admin callers (LocationCatalogPage.tsx,
+  // Reservations/tabs/EventoTab.tsx) don't pass these and fall back to
+  // the real Spanish dictionary, since they're not wrapped in
+  // LanguageProvider (useLang() would throw there).
+  t?: TFunction;
+  lang?: Lang;
+}) {
+  const t: TFunction = tProp ?? ((key, vars) => interpolate(esDict[key], vars));
   const waypoints = useMemo(() => buildOrderedWaypoints(locations, activities), [locations, activities]);
   const stops = useMemo(() => buildStops(waypoints), [waypoints]);
   const waypointPositions = useMemo<[number, number][]>(() => waypoints.map(w => [w.loc.lat!, w.loc.lng!]), [waypoints]);
@@ -278,7 +296,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
     : null;
   const isApprox = legs.length > 0 && legs.some((options, i) => options[selectedAlt[i] ?? 0]?.line == null);
   const repeatedLegs = useMemo(() => findRepeatedLegs(waypointPositions), [waypointPositions]);
-  const fmtKm = (km: number) => km.toLocaleString('es-CO', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const fmtKm = (km: number) => km.toLocaleString(lang === 'en' ? 'en-US' : 'es-CO', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const unlocated = locations.filter(l => l.lat == null || l.lng == null);
   const points = stops.map(s => s.position);
 
@@ -288,7 +306,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
     return (
       <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
         <p className="text-sm text-gray-400">
-          Ninguna ubicación tiene coordenadas todavía. Se completan automáticamente al guardar una dirección o enlace de Google Maps.
+          {t('evento.noCoordinatesYet')}
         </p>
       </div>
     );
@@ -358,7 +376,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                 positions={offsetLegLine(waypointPositions[i], waypointPositions[i + 1])}
                 pathOptions={{ color: '#f59e0b', weight: 3, opacity: 0.9, dashArray: '2 8' }}
               >
-                <Tooltip sticky>Tramo repetido (ida y vuelta)</Tooltip>
+                <Tooltip sticky>{t('evento.repeatedLeg')}</Tooltip>
               </Polyline>
             ))}
 
@@ -369,7 +387,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                 <Popup minWidth={200} maxWidth={280}>
                   <div>
                     <div style={{ background: TYPE_HEX[primaryType], padding: '10px 14px 8px' }}>
-                      <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>Parada {stop.order}</p>
+                      <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>{t('evento.stop', { n: stop.order })}</p>
                       {stop.time && (
                         <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '11px', margin: '2px 0 0' }}>{stop.time}</p>
                       )}
@@ -378,18 +396,18 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                       {stop.locations.map(loc => (
                         <div key={loc.id}>
                           <p style={{ fontSize: '12px', fontWeight: 600, color: '#111827', margin: 0 }}>{loc.location_name}</p>
-                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '1px 0 0' }}>{TYPE_LABELS[loc.location_type]}</p>
+                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '1px 0 0' }}>{t(TYPE_LABEL_KEY[loc.location_type])}</p>
                           {loc.address && <p style={{ fontSize: '11px', color: '#9ca3af', margin: '2px 0 0' }}>{loc.address}</p>}
                           {loc.google_maps_link && (
                             <a href={loc.google_maps_link} target="_blank" rel="noopener noreferrer"
                               style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
-                              <ExternalLink size={10} /> Abrir en Google Maps
+                              <ExternalLink size={10} /> {t('evento.openInGoogleMaps')}
                             </a>
                           )}
                           {loc.effective_waze_link && (
                             <a href={loc.effective_waze_link} target="_blank" rel="noopener noreferrer"
                               style={{ fontSize: '11px', color: TYPE_HEX[loc.location_type], display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', textDecoration: 'none', fontWeight: 500 }}>
-                              <Navigation size={10} /> Abrir en Waze
+                              <Navigation size={10} /> {t('evento.openInWaze')}
                             </a>
                           )}
                         </div>
@@ -404,15 +422,14 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
 
         {unlocated.length > 0 && (
           <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl border border-amber-200 shadow-md px-3 py-2 max-w-[240px]">
-            <p className="text-[11px] font-semibold text-amber-700 mb-1.5">Sin ubicar ({unlocated.length})</p>
+            <p className="text-[11px] font-semibold text-amber-700 mb-1.5">{t('evento.unlocated', { count: unlocated.length })}</p>
             <ul className="space-y-0.5">
               {unlocated.map(l => (
                 <li key={l.id} className="text-[11px] text-gray-600 truncate" title={l.location_name}>• {l.location_name}</li>
               ))}
             </ul>
             <p className="text-[10px] text-gray-400 mt-1.5 leading-snug">
-              La dirección se busca sola al guardar, pero sitios pequeños no siempre aparecen. Edita la
-              ubicación y pega su link de Google Maps para ubicarla.
+              {t('evento.unlocatedHint')}
             </p>
           </div>
         )}
@@ -421,14 +438,14 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
       {waypoints.length >= 2 && (
         <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-900">Distancia total del recorrido</span>
+            <span className="text-sm font-semibold text-gray-900">{t('evento.totalDistance')}</span>
             <span className="text-sm font-semibold text-teal-700">
               {totalKm != null ? `${fmtKm(totalKm)} km` : '—'}
             </span>
           </div>
           {isApprox && (
             <p className="text-xs text-amber-600 mt-1">
-              Estimado en línea recta — no se pudo calcular la ruta real por carretera.
+              {t('evento.approxDistanceNotice')}
             </p>
           )}
           <ul className="mt-2 space-y-1">
@@ -449,8 +466,8 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                           next[i] = ((next[i] ?? 0) + 1) % options.length;
                           return next;
                         })}
-                        title="Probar otra ruta para este tramo"
-                        aria-label={`Probar otra ruta para ${w.loc.location_name} a ${toName}`}
+                        title={t('evento.tryAlternativeRoute')}
+                        aria-label={t('evento.tryAlternativeRouteAria', { from: w.loc.location_name, to: toName })}
                         className="text-gray-400 hover:text-teal-600 transition-colors cursor-pointer"
                       >
                         <RefreshCw size={12} />
@@ -458,7 +475,7 @@ export default function EventRouteMap({ locations, activities }: { locations: Ev
                     )}
                     <span>
                       {legKm[i] != null ? `${fmtKm(legKm[i]!)} km` : '—'}
-                      {showingAlternative && <span className="text-teal-600"> · alterna</span>}
+                      {showingAlternative && <span className="text-teal-600"> · {t('evento.alternativeRoute')}</span>}
                     </span>
                   </span>
                 </li>

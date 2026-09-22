@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/Input";
 import { TextArea } from "../../components/ui/TextArea";
 import { Button } from "../../components/ui/Button";
 import { useLang } from "../../i18n/LanguageContext";
+import type { Lang } from "../../i18n/langPath";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import type { TranslationKey } from "../../i18n/es";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
@@ -40,7 +41,12 @@ const EMPTY_FORM: FormState = {
   bride_name: "", groom_name: "", found_via: "", message: "", consent_accepted: false,
 };
 
-function firstValidationMessage(err: unknown): string | null {
+// Backend validators raise Spanish-only messages (no request-language
+// context available there) — only surface the raw message in Spanish
+// mode. In English, fall back to the caller's translated generic message
+// instead of showing raw Spanish text.
+function firstValidationMessage(err: unknown, lang: Lang): string | null {
+  if (lang === "en") return null;
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (Array.isArray(detail) && detail.length > 0 && typeof detail[0]?.msg === "string") {
     return detail[0].msg.replace(/^Value error, /, "");
@@ -95,7 +101,7 @@ export default function ContactoPage() {
       if (status === 429) {
         setError(t("contacto.errorRateLimit"));
       } else if (status === 422) {
-        setError(firstValidationMessage(err) ?? t("contacto.errorValidationFallback"));
+        setError(firstValidationMessage(err, lang) ?? t("contacto.errorValidationFallback"));
       } else {
         setError(t("contacto.errorGeneric"));
       }

@@ -46,7 +46,7 @@ export default function CityPage({ citySlug }: { citySlug: string }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Catálogo", item: `${SITE_URL}/catalogo` },
+      { "@type": "ListItem", position: 1, name: t("nav.catalog"), item: `${SITE_URL}/catalogo` },
       { "@type": "ListItem", position: 2, name: pageTitle, item: `${SITE_URL}${canonicalPath}` },
     ],
   };

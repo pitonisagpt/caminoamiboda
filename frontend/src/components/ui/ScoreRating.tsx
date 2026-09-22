@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Armchair, Camera, Gem, Heart, Sparkles, type LucideIcon } from "lucide-react";
+import type { TranslationKey } from "../../i18n/es";
 
+// Spanish-only, unchanged — admin callers (Vehicles/VehicleDetail.tsx)
+// use this directly, no useLang() available there.
 export const SCORE_CATEGORIES: { field: string; label: string; short: string; icon: LucideIcon }[] = [
   { field: "score_elegance", label: "Elegancia y Estilo", short: "Estilo", icon: Sparkles },
   { field: "score_exclusivity", label: "Exclusividad y Rareza", short: "Rareza", icon: Gem },
@@ -9,7 +12,17 @@ export const SCORE_CATEGORIES: { field: string; label: string; short: string; ic
   { field: "score_romance", label: "Romanticismo y Encanto", short: "Romance", icon: Heart },
 ];
 
-export function ScoreTotalBar({ total, size = "lg" }: { total: number | null; size?: "sm" | "lg" }) {
+// Same data, as translation keys — for the 3 public pages (VehicleCard,
+// VehicleModal, VehicleDetailPage), which have a real t() from useLang().
+export const SCORE_CATEGORY_KEYS: { field: string; labelKey: TranslationKey; shortKey: TranslationKey; icon: LucideIcon }[] = [
+  { field: "score_elegance", labelKey: "vehicleModal.scoreEleganceLabel", shortKey: "vehicleModal.scoreEleganceShort", icon: Sparkles },
+  { field: "score_exclusivity", labelKey: "vehicleModal.scoreExclusivityLabel", shortKey: "vehicleModal.scoreExclusivityShort", icon: Gem },
+  { field: "score_photogeny", labelKey: "vehicleModal.scorePhotogenyLabel", shortKey: "vehicleModal.scorePhotogenyShort", icon: Camera },
+  { field: "score_comfort", labelKey: "vehicleModal.scoreComfortLabel", shortKey: "vehicleModal.scoreComfortShort", icon: Armchair },
+  { field: "score_romance", labelKey: "vehicleModal.scoreRomanceLabel", shortKey: "vehicleModal.scoreRomanceShort", icon: Heart },
+];
+
+export function ScoreTotalBar({ total, size = "lg", label = "Puntuación" }: { total: number | null; size?: "sm" | "lg"; label?: string }) {
   if (total === null) return <span className="text-gray-400 text-xs">—</span>;
   const pct = (total / 25) * 100;
 
@@ -30,7 +43,7 @@ export function ScoreTotalBar({ total, size = "lg" }: { total: number | null; si
   return (
     <div className="w-full space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">Puntuación</span>
+        <span className="text-xs text-gray-500">{label}</span>
         <span className="text-sm font-bold text-brand-700">{total}/25</span>
       </div>
       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">

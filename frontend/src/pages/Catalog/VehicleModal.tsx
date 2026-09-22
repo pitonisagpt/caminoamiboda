@@ -6,7 +6,7 @@ import { priceForYear, type PriceUnlock } from "../../utils/priceUnlock";
 import { buildAvailabilityMessage } from "../../utils/vehicleWhatsappMessage";
 import { AdminEditLink } from "../../components/AdminEditLink";
 import { ShareVehicleButton } from "../../components/ShareVehicleButton";
-import { SCORE_CATEGORIES, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
+import { SCORE_CATEGORY_KEYS, ScoreDotsRow, ScoreTotalBar } from "../../components/ui/ScoreRating";
 import { useLang } from "../../i18n/LanguageContext";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import { whatsAppLinkProps } from "../../utils/whatsapp";
@@ -223,11 +223,21 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
               </p>
             </div>
 
-            {vehicle.bride_description && (
+            {/* Same fallback as VehicleDetailPage.tsx: checking bare
+                bride_description would almost never trigger it, since
+                nearly every vehicle has the Spanish field filled in — an
+                English visitor would just silently get pickLocalized()'s
+                Spanish fallback instead. Check the field for the current
+                lang, not just whether Spanish text exists at all. */}
+            {(lang === "en" ? vehicle.bride_description_en : vehicle.bride_description) ? (
               <p className="text-sm text-gray-600 leading-relaxed italic">
-                {pickLocalized(vehicle.bride_description, vehicle.bride_description_en)}
+                {pickLocalized(vehicle.bride_description ?? "", vehicle.bride_description_en)}
               </p>
-            )}
+            ) : vehicle.bride_description ? (
+              <p className="text-sm text-gray-600 leading-relaxed italic">
+                {t("vehiclePage.fallbackDescription", { vehicle: `${vehicle.brand}${vehicle.model_line ? ` ${vehicle.model_line}` : ""}` })}
+              </p>
+            ) : null}
 
             {/* Location + Price */}
             <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-3 bg-gray-50">
@@ -277,13 +287,13 @@ export function VehicleModal({ vehicle, onClose, unlock, onRequestUnlock, hidePr
                 (productions/activations quote separately, by the hour). */}
             {!hidePricing && vehicle.score_total !== null && (
               <div>
-                <ScoreTotalBar total={vehicle.score_total} size="lg" />
+                <ScoreTotalBar total={vehicle.score_total} size="lg" label={t("vehicleModal.scoreLabel")} />
                 <div className="grid grid-cols-5 gap-1 mt-3">
-                  {SCORE_CATEGORIES.map(({ field, label, short, icon }) => (
+                  {SCORE_CATEGORY_KEYS.map(({ field, labelKey, shortKey, icon }) => (
                     <ScoreDotsRow
                       key={field}
-                      label={short}
-                      tooltip={label}
+                      label={t(shortKey)}
+                      tooltip={t(labelKey)}
                       icon={icon}
                       value={vehicle[field as keyof typeof vehicle] as number | null}
                     />
