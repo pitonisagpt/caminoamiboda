@@ -3,3 +3,7 @@
 __pycache__/
 *.pyc
 generated_pdfs/
+.coverage
+coverage.xml
+coverage.json
+junit.xml

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 # Medellín / Valle de Aburrá, segundo semestre de 2026. This rotates by
@@ -75,14 +75,17 @@ def get_effective_pyp(vehicle, event_date: Optional[date] = None) -> Optional[st
         valid_to = getattr(vehicle, "pyp_valid_to", None)
         check_date = event_date or date.today()
         in_range = True
-        if valid_from and isinstance(valid_from, date):
-            in_range = in_range and check_date >= valid_from
-        elif valid_from:
-            in_range = in_range and check_date >= valid_from.date()
-        if valid_to and isinstance(valid_to, date):
-            in_range = in_range and check_date <= valid_to
-        elif valid_to:
-            in_range = in_range and check_date <= valid_to.date()
+        # datetime is itself a subclass of date, so an isinstance(x, date)
+        # check alone can never tell them apart — it always takes the
+        # "already a date" branch even when x is really a datetime, which
+        # then raises TypeError comparing a date to a datetime. Check the
+        # more specific type first.
+        if valid_from:
+            vf = valid_from.date() if isinstance(valid_from, datetime) else valid_from
+            in_range = in_range and check_date >= vf
+        if valid_to:
+            vt = valid_to.date() if isinstance(valid_to, datetime) else valid_to
+            in_range = in_range and check_date <= vt
         if in_range:
             return override
 
