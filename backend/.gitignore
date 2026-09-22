@@ -3,3 +3,5 @@
 __pycache__/
 *.pyc
 generated_pdfs/
+.coverage
+coverage.xml
