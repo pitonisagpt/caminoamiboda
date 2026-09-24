@@ -329,6 +329,9 @@ Widgets:
 - TypeScript
 - Tailwind CSS
 
+### Loading States (Public Site)
+Every loading state on the public site (`frontend/src/pages/Public/`, `Catalog/`, `Blog/`, `LocationCatalog/`, and any other route reachable without logging in) must use a skeleton screen shaped like the real content — never a bare spinner, a blank/`return null`, or plain "Cargando..." text. Use the shared primitives in `frontend/src/components/ui/Skeleton.tsx` (`Skeleton` + `SkeletonGroup`, which adds the `role="status"`/`aria-label` a screen reader needs). Match the real component's exact layout/grid so swapping in loaded content causes no shift — see `VehicleCardSkeleton` (`Catalog/VehicleCard.tsx`), `VehicleDetailSkeleton` (`Public/VehicleDetailPage.tsx`), and the skeletons in `Blog/BlogListPage.tsx`/`BlogPostPage.tsx` as reference implementations. Scoped to the public site only — the admin panel's loading states (spinners via `Loader2`) are a separate, not-yet-addressed area.
+
 ### Database
 - PostgreSQL
 
