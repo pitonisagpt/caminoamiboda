@@ -23,6 +23,9 @@ frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo
 
+# Wrangler local dev state (wrangler dev --local)
+frontend/.wrangler/
+
 # Environment files
 .env
 .env.*
