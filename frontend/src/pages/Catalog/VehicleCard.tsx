@@ -12,8 +12,39 @@ import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../
 import { whatsAppLinkProps } from "../../utils/whatsapp";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import { formatCOPFull as formatCOP } from "../../utils/format";
+import { Skeleton } from "../../components/ui/Skeleton";
 
 const WHATSAPP_NUMBER = "573147372030";
+
+/** Same outer shape as VehicleCard itself, so a grid of these doesn't shift
+ * layout when the real cards swap in. */
+export function VehicleCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden flex flex-col">
+      <Skeleton className="aspect-[4/3] rounded-none" />
+      <div className="flex flex-col flex-1 p-4 gap-3">
+        <div className="flex gap-1.5">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+        <div className="space-y-1.5">
+          <Skeleton className="h-2 w-full rounded-full" />
+          <div className="flex justify-between pt-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-4 rounded-full" />
+            ))}
+          </div>
+        </div>
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-9 w-full rounded-xl mt-auto" />
+      </div>
+    </div>
+  );
+}
 
 export function VehicleCard({
   vehicle,

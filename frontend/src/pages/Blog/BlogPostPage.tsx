@@ -14,8 +14,34 @@ import { AdminEditLink } from '../../components/AdminEditLink';
 import { useLang } from '../../i18n/LanguageContext';
 import { HreflangTags } from '../../i18n/HreflangTags';
 import { whatsAppLinkProps } from '../../utils/whatsapp';
+import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton';
 
 const WHATSAPP_NUMBER = '573147372030';
+
+/** Same shell (cover image + max-w-2xl article column) as the loaded post
+ * below, so there's no layout jump once it swaps in. */
+function BlogPostSkeleton({ label }: { label: string }) {
+  return (
+    <div className="min-h-screen bg-white">
+      <Skeleton className="w-full aspect-[3/1] max-h-80 rounded-none" />
+      <SkeletonGroup label={label} className="max-w-2xl mx-auto px-4 py-12">
+        <Skeleton className="h-4 w-24 mb-8" />
+        <div className="mb-8 space-y-3">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-2/3" />
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      </SkeletonGroup>
+    </div>
+  );
+}
 
 export default function BlogPostPage() {
   const { t, lang, pickLocalized } = useLang();
@@ -37,9 +63,7 @@ export default function BlogPostPage() {
 
   const blogPath = lang === "en" ? "/en/blog" : "/blog";
 
-  if (loading) return (
-    <div className="min-h-screen bg-white flex items-center justify-center text-gray-400">{t("blog.loading")}</div>
-  );
+  if (loading) return <BlogPostSkeleton label={t("blog.loading")} />;
 
   if (notFound || !post) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 text-gray-400">

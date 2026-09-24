@@ -6,6 +6,21 @@ import { AdminEditLink } from '../../components/AdminEditLink';
 import { useLang } from '../../i18n/LanguageContext';
 import { HreflangTags } from '../../i18n/HreflangTags';
 import { ParallaxHero } from '../../components/ParallaxHero';
+import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton';
+
+function BlogPostCardSkeleton() {
+  return (
+    <div>
+      <Skeleton className="rounded-2xl mb-4 aspect-video" />
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-6 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+      </div>
+    </div>
+  );
+}
 
 export default function BlogListPage() {
   const { t, lang, pickLocalized } = useLang();
@@ -35,7 +50,11 @@ export default function BlogListPage() {
       {/* Posts grid */}
       <div className="max-w-4xl mx-auto px-4 py-12">
         {loading ? (
-          <div className="text-center text-gray-400 py-16">{t("blog.loading")}</div>
+          <SkeletonGroup label={t("blog.loading")} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <BlogPostCardSkeleton key={i} />
+            ))}
+          </SkeletonGroup>
         ) : posts.length === 0 ? (
           <div className="text-center text-gray-400 py-16">
             <p className="text-lg">{t("blog.empty")}</p>
