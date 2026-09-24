@@ -21,6 +21,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import { HreflangTags } from "../../i18n/HreflangTags";
 import { CATEGORY_LABEL_KEY, BODY_TYPE_LABEL_KEY, LOCATION_LABEL_KEY, PICO_DAY_LABEL_KEY } from "../../i18n/catalogLabels";
 import NotFoundPage from "./NotFoundPage";
+import { Skeleton, SkeletonGroup } from "../../components/ui/Skeleton";
 
 const SITE_URL = "https://caminoamiboda.com";
 const WHATSAPP_NUMBER = "573147372030";
@@ -35,6 +36,44 @@ const DAY_COLOR: Record<string, string> = {
   Viernes: "bg-green-100 text-green-700",
 };
 
+
+/** Same `max-w-5xl` shell + two-column layout as the real page below, so
+ * swapping in the loaded content doesn't shift anything. */
+function VehicleDetailSkeleton({ label }: { label: string }) {
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <Skeleton className="h-5 w-32 mb-4" />
+      <SkeletonGroup label={label} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Skeleton className="aspect-[4/3] rounded-2xl" />
+        <div className="flex flex-col gap-4">
+          <div>
+            <div className="flex gap-1.5 mb-2">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-7 w-2/3 mb-2" />
+            <Skeleton className="h-4 w-1/3" />
+          </div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <div className="border border-gray-100 rounded-xl p-3 bg-gray-50 space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-2 w-full rounded-full" />
+            <div className="grid grid-cols-5 gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-4 w-4 rounded-full" />
+              ))}
+            </div>
+          </div>
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </div>
+      </SkeletonGroup>
+    </div>
+  );
+}
 
 /** Per-vehicle public landing page (wishlist SEO/GEO checklist) —
  * `/carros/<id>-<slug>` (and its /en/ twin, mirrored automatically by
@@ -67,8 +106,9 @@ export default function VehicleDetailPage() {
   }, [vehicleId]);
 
   // Still loading the shared vehicle list — same fetch every catalog page
-  // already does, so this is only a blank instant on a warm cache.
-  if (vehicles === null) return null;
+  // already does, but a direct landing here (Google result, shared link)
+  // hits this cold, so it's a real network round-trip, not just an instant.
+  if (vehicles === null) return <VehicleDetailSkeleton label={t("common.loading")} />;
 
   const vehicle = vehicleId ? vehicles.find((v) => v.id === vehicleId) ?? null : null;
   if (!vehicle) return <NotFoundPage />;

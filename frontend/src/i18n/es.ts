@@ -6,6 +6,9 @@
  * by `pickLocalized()` instead.
  */
 export const es = {
+  // Generic / shared
+  "common.loading": "Cargando...",
+
   // Nav / layout (PublicLayout.tsx)
   "nav.catalog": "Catálogo",
   "nav.productions": "Producciones y Activaciones",

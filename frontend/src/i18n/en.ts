@@ -7,6 +7,9 @@ import { es } from "./es";
  * would give you.
  */
 export const en: Record<keyof typeof es, string> = {
+  // Generic / shared
+  "common.loading": "Loading...",
+
   // Nav / layout
   "nav.catalog": "Catalog",
   "nav.productions": "Productions & Brand Activations",

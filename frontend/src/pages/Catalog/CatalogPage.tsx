@@ -1,10 +1,11 @@
-import { Loader2, Search, SlidersHorizontal, Star, X } from "lucide-react";
+import { Search, SlidersHorizontal, Star, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { vehiclesApi } from "../../api/vehicles";
 import { availabilityApi } from "../../api/availability";
-import { VehicleCard } from "./VehicleCard";
+import { VehicleCard, VehicleCardSkeleton } from "./VehicleCard";
+import { SkeletonGroup } from "../../components/ui/Skeleton";
 import { VehicleModal } from "./VehicleModal";
 import { RevealPricesModal } from "./RevealPricesModal";
 import { Modal } from "../../components/ui/Modal";
@@ -537,9 +538,11 @@ export function CatalogPage() {
         )}
 
         {loading && (
-          <div className="flex items-center justify-center py-20 text-brand-400">
-            <Loader2 className="animate-spin" size={36} />
-          </div>
+          <SkeletonGroup label={t("common.loading")} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <VehicleCardSkeleton key={i} />
+            ))}
+          </SkeletonGroup>
         )}
 
         {!loading && error && (
