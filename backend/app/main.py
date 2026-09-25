@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from pathlib import Path
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -24,6 +25,15 @@ from app.routers import addon_packages, ai_assistant, auth, billing_documents, b
 from app.services.auth import hash_password
 from app.services.vehicle_seed import seed_vehicles
 from app.models.vehicle import Vehicle
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment,
+        send_default_pii=True,
+        traces_sample_rate=1.0,
+        enable_logs=True,
+    )
 
 _DEFAULT_SECRET = "change-me-in-production-use-a-random-32-byte-hex"
 

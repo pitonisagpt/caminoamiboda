@@ -58,6 +58,8 @@ services:
       SMTP_USER: "${SMTP_USER:-}"
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
       OPS_NOTIFICATION_EMAIL: "${OPS_NOTIFICATION_EMAIL:-}"
+      SENTRY_DSN: "${SENTRY_DSN:-}"
+      SENTRY_ENVIRONMENT: "${SENTRY_ENVIRONMENT:-development}"
     volumes:
       - ./backend:/app
       - pdf_storage:/app/generated_pdfs
@@ -74,6 +76,7 @@ services:
       - "5173:5173"
     environment:
       VITE_BACKEND_URL: http://backend:8000
+      VITE_SENTRY_DSN: "${VITE_SENTRY_DSN:-}"
     volumes:
       - ./frontend:/app
       - /app/node_modules

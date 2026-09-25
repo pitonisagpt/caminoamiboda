@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     # Instagram feed on the public catalog — leave empty to hide it (0 posts synced)
     instagram_access_token: str = ""
 
+    # Error monitoring — leave empty to disable (no Sentry SDK init, no events sent)
+    sentry_dsn: str = ""
+    sentry_environment: str = "development"
+
     class Config:
         env_file = ".env"
 

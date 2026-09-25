@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import react from "@vitejs/plugin-react";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig, type Plugin } from "vite";
 
 // Vite's dev server serves files from public/ as text/plain with no charset,
@@ -22,7 +23,25 @@ function utf8StaticText(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), utf8StaticText()],
+  build: { sourcemap: "hidden" },
+  plugins: [
+    react(),
+    utf8StaticText(),
+    // Uploads source maps to Sentry so production stack traces show real
+    // source instead of minified code. No-ops (with a console warning) when
+    // SENTRY_AUTH_TOKEN isn't set — e.g. CI builds/PRs that don't have the
+    // secret — so it never blocks `npm run build`.
+    sentryVitePlugin({
+      org: process.env.SENTRY_ORG ?? "camino-a-mi-boda",
+      project: process.env.SENTRY_PROJECT ?? "camino-boda-frontend",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: {
+        // Source maps are only needed to reach Sentry, not to ship publicly
+        // on Cloudflare Pages — delete them from dist/ once uploaded.
+        filesToDeleteAfterUpload: ["dist/**/*.js.map"],
+      },
+    }),
+  ],
   server: {
     host: true,
     port: 5173,
