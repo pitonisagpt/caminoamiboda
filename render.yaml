@@ -69,6 +69,8 @@ services:
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: "587"
+      - key: SENTRY_ENVIRONMENT
+        value: production
       # --- secrets: se llenan a mano en el dashboard de Render después del primer deploy ---
       - key: SECRET_KEY
         sync: false
@@ -107,4 +109,6 @@ services:
       - key: SMTP_PASSWORD
         sync: false
       - key: OPS_NOTIFICATION_EMAIL
+        sync: false
+      - key: SENTRY_DSN
         sync: false
