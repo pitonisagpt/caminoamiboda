@@ -46,6 +46,18 @@ export default function ReservationDetail() {
       .finally(() => setLoading(false));
   };
 
+  // Goes back to wherever the user actually came from (list with whatever
+  // filters/sort/page were active, calendar, a customer's detail page,
+  // etc.) instead of a hardcoded, filter-less `/reservas` — that was
+  // silently dropping the list's date/status/etc. filters on every return
+  // trip. `location.key === 'default'` means there's no real app history to
+  // pop back to (a direct link, a refresh) — falls back to the plain list
+  // in that case only.
+  const goBack = () => {
+    if (location.key === 'default') navigate('/reservas');
+    else navigate(-1);
+  };
+
   useEffect(() => { load(); }, [id]);
 
   useEffect(() => {
@@ -89,7 +101,7 @@ export default function ReservationDetail() {
     if (!reservation) return;
     if (!confirm(`¿Eliminar reserva ${reservation.reservation_number}?`)) return;
     await reservationsApi.delete(reservation.id);
-    navigate('/reservas');
+    goBack();
   };
 
   const setTab = (tab: TabKey) => setSearchParams({ tab }, { replace: true });
@@ -113,7 +125,7 @@ export default function ReservationDetail() {
           line instead of forcing the row wider than the screen. */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
-          <button onClick={() => navigate('/reservas')} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer shrink-0">
+          <button onClick={goBack} aria-label="Volver" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="min-w-0">

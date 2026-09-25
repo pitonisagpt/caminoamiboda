@@ -120,6 +120,12 @@ export default function ReservationList() {
   const dateFrom = searchParams.get('from') ?? ((contactFilter || needsGcalReview || historicalImportFilter) ? '' : localToday());
   const dateTo = searchParams.get('to') ?? '';
   const q = searchParams.get('q') ?? '';
+  // Explicit ?from=/?to= only — NOT the derived dateFrom/dateTo above, which
+  // fall back to "today" by default even with no filter in the URL. Used to
+  // decide whether to show the active-filters row and "Limpiar filtros" for
+  // a date-only filter (e.g. arriving via a shared /reservas?from=...&to=...
+  // link, or a preserved filter after navigating back from a reservation).
+  const hasExplicitDateFilter = Boolean(searchParams.get('from') || searchParams.get('to'));
 
   // Local input state for debounced search
   const [inputSearch, setInputSearch] = useState(q);
@@ -160,7 +166,7 @@ export default function ReservationList() {
   function clearFilters() {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      ['status', 'category', 'vehicle_category', 'vehicle', 'gcal_review', 'historical'].forEach(k => next.delete(k));
+      ['status', 'category', 'vehicle_category', 'vehicle', 'gcal_review', 'historical', 'contact', 'location', 'from', 'to'].forEach(k => next.delete(k));
       next.delete('page');
       return next;
     }, { replace: true });
@@ -355,7 +361,7 @@ export default function ReservationList() {
       </div>
 
       {/* Active filters — one removable chip per selected value */}
-      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview || historicalImportFilter) && (
+      {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview || historicalImportFilter || hasExplicitDateFilter) && (
         <div className="flex flex-wrap gap-2">
           {contactFilter && (
             <FilterChip
@@ -412,7 +418,24 @@ export default function ReservationList() {
               onRemove={() => setFilter('historical', '')}
             />
           )}
-          {(statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || vehicleFilter || needsGcalReview || historicalImportFilter) && (
+          {hasExplicitDateFilter && (
+            <FilterChip
+              icon={<CalendarClock size={15} />}
+              label={
+                dateFrom && dateTo ? <>Del <strong>{dateFrom}</strong> al <strong>{dateTo}</strong></>
+                : dateFrom ? <>Desde el <strong>{dateFrom}</strong></>
+                : <>Hasta el <strong>{dateTo}</strong></>
+              }
+              onRemove={() => setSearchParams(prev => {
+                const next = new URLSearchParams(prev);
+                next.delete('from');
+                next.delete('to');
+                next.delete('page');
+                return next;
+              }, { replace: true })}
+            />
+          )}
+          {(contactFilter || locationFilter || vehicleFilter || statusFilters.length > 0 || categoryFilters.length > 0 || vehicleCategoryFilters.length > 0 || needsGcalReview || historicalImportFilter || hasExplicitDateFilter) && (
             <button
               onClick={clearFilters}
               className="text-sm text-gray-400 hover:text-brand-600 underline underline-offset-2 cursor-pointer px-1"
