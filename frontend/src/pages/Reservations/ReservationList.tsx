@@ -407,7 +407,7 @@ export default function ReservationList() {
           {needsGcalReview && (
             <FilterChip
               icon={<CalendarOff size={15} />}
-              label="No sincronizando con Google Calendar"
+              label="Con revisión de Google Calendar pendiente"
               onRemove={() => setFilter('gcal_review', '')}
             />
           )}
@@ -509,8 +509,9 @@ export default function ReservationList() {
         <Pill
           active={needsGcalReview}
           onClick={() => setFilter('gcal_review', needsGcalReview ? '' : '1')}
+          title="Filtra a reservas cuyo evento dejó de sincronizarse con Google Calendar y necesita revisión manual — este filtro no dispara ninguna sincronización, solo muestra cuáles la necesitan."
         >
-          <CalendarOff size={13} className="inline -mt-0.5 mr-1" /> No sincronizando GCal
+          <CalendarOff size={13} className="inline -mt-0.5 mr-1" /> Revisión GCal pendiente
         </Pill>
         <Pill
           active={historicalImportFilter}
