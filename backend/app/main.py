@@ -1,4 +1,5 @@
 import mimetypes
+import os
 from contextlib import asynccontextmanager
 
 from pathlib import Path
@@ -30,6 +31,10 @@ if settings.sentry_dsn:
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         environment=settings.sentry_environment,
+        # Render sets this automatically to the exact commit SHA being run —
+        # matches the release name the CI job below creates in Sentry, so
+        # events land under the same release the commits are attached to.
+        release=os.environ.get("RENDER_GIT_COMMIT"),
         send_default_pii=True,
         traces_sample_rate=1.0,
         enable_logs=True,
