@@ -150,3 +150,29 @@ jobs:
         working-directory: backend
       - run: alembic upgrade head
         working-directory: backend
+
+  # Creates the Sentry release object (commits, finalize, deploy record) for
+  # the backend on every real push to main — Render does the actual deploy
+  # separately and picks up the same commit SHA as the release name via
+  # RENDER_GIT_COMMIT (see backend/app/main.py), so this just has to run
+  # somewhere close to that deploy, not literally before it. Skipped on PRs
+  # on purpose: we don't want a release object for commits that never ship.
+  # No-ops silently (not a failed build) if SENTRY_AUTH_TOKEN isn't set as a
+  # repo secret yet.
+  backend-sentry-release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [backend-lint, backend-test, backend-migrations]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create Sentry release (backend)
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: camino-a-mi-boda
+          SENTRY_PROJECT: camino-boda-backend
+        with:
+          environment: production
+          release: ${{ github.sha }}

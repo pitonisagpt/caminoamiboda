@@ -40,6 +40,13 @@ export default defineConfig({
         // on Cloudflare Pages — delete them from dist/ once uploaded.
         filesToDeleteAfterUpload: ["dist/**/*.js.map"],
       },
+      release: {
+        // name/inject/create/finalize all default to on, using the git HEAD
+        // SHA as the release name — matches the backend's release tag
+        // (RENDER_GIT_COMMIT), since both deploy from the same commit.
+        setCommits: { auto: true, ignoreMissing: true },
+        deploy: { env: "production" },
+      },
     }),
   ],
   server: {
