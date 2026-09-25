@@ -91,10 +91,11 @@ export function FilterSection({ title, active, children }: { title: string; acti
 }
 
 // ─── Pill button ───────────────────────────────────────────────────────────
-export function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+export function Pill({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
+      title={title}
       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
         active
           ? "bg-brand-700 text-white border-brand-700"
