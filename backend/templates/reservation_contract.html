@@ -21,15 +21,17 @@
     .doc-title { font-family: 'Montserrat', Arial, sans-serif; text-align: center; font-size: 13pt; font-weight: 700; color: #0f4245; letter-spacing: 2px; text-transform: uppercase; padding: 10px 0; border-top: 1px solid #d0f4f5; border-bottom: 1px solid #d0f4f5; margin-bottom: 16px; }
     .section { margin-bottom: 16px; }
     .section-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 9pt; font-weight: 700; color: #166f73; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #f0fbfb; padding-bottom: 4px; margin-bottom: 8px; }
-    .two-col { display: flex; gap: 24px; margin-bottom: 16px; }
-    .two-col .col { flex: 1; }
+    .party-block { margin-bottom: 14px; }
+    .party-block:last-child { margin-bottom: 0; }
     .info-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 10pt; }
     .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
     .info-value { color: #1a1a1a; font-weight: 500; overflow-wrap: anywhere; }
     .blank-line { color: #bbb; }
-    .itinerary-table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; font-size: 9pt; }
-    .itinerary-table td { padding: 2px 8px 2px 0; vertical-align: top; border-bottom: 1px solid #f0fbfb; }
-    .itinerary-table .itin-time { color: #166f73; font-weight: 600; white-space: nowrap; width: 72px; }
+    .detail-table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; font-size: 9pt; overflow-wrap: anywhere; }
+    .detail-table td { padding: 2px 8px 2px 0; vertical-align: top; border-bottom: 1px solid #f0fbfb; }
+    .detail-table .detail-key { color: #166f73; font-weight: 600; width: 110px; }
+    .detail-table .detail-key.nowrap { white-space: nowrap; width: 72px; }
+    .detail-table a { color: #166f73; }
     .clause { margin-bottom: 10px; }
     .clause-title { font-size: 9.5pt; font-weight: 700; color: #0f4245; margin-bottom: 3px; }
     .clause-body { font-size: 9.5pt; color: #334155; line-height: 1.55; text-align: justify; margin-bottom: 4px; }
@@ -57,24 +59,23 @@
 
   <div class="section">
     <div class="section-title">Las Partes</div>
-    <div class="two-col">
-      <div class="col">
-        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDADOR</p>
-        <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
-        <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}</span></div>
-        <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ company_email or '—' }}</span></div>
-        <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ company_phone }}</span></div>
-      </div>
-      <div class="col">
-        <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDATARIO</p>
-        <div class="info-row"><span class="info-label">{{ 'Razón social:' if contract.client_type.value == 'company' else 'Nombre:' }}</span><span class="info-value">{{ contract.client_name or '—' }}</span></div>
-        {% if contract.client_type.value == 'company' and contract.client_legal_rep_name %}
-        <div class="info-row"><span class="info-label">Representante legal:</span><span class="info-value">{{ contract.client_legal_rep_name }}{% if contract.client_legal_rep_id_number %} — C.C. {{ contract.client_legal_rep_id_number }}{% endif %}</span></div>
-        {% endif %}
-        <div class="info-row"><span class="info-label">{{ contract.client_id_type.value }}:</span><span class="info-value">{{ contract.client_id_number or '—' }}</span></div>
-        <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ customer_email or '—' }}</span></div>
-        <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ customer_contact or '—' }}</span></div>
-      </div>
+    <div class="party-block">
+      <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDADOR</p>
+      <div class="info-row"><span class="info-label">Nombre:</span><span class="info-value">{{ company_owner }}</span></div>
+      <div class="info-row"><span class="info-label">C.C.:</span><span class="info-value">{{ company_cc or '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ company_email or '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ company_phone }}</span></div>
+    </div>
+    <div class="party-block">
+      <p class="info-row" style="font-weight:700; margin-bottom:6px;">EL ARRENDATARIO</p>
+      <div class="info-row"><span class="info-label">{{ 'Razón social:' if contract.client_type.value == 'company' else 'Nombre:' }}</span><span class="info-value">{{ contract.client_name or '—' }}</span></div>
+      {% if contract.client_type.value == 'company' and contract.client_legal_rep_name %}
+      <div class="info-row"><span class="info-label">Representante legal:</span><span class="info-value">{{ contract.client_legal_rep_name }}{% if contract.client_legal_rep_id_number %} — C.C. {{ contract.client_legal_rep_id_number }}{% endif %}</span></div>
+      {% endif %}
+      <div class="info-row"><span class="info-label">{{ contract.client_id_type.value }}:</span><span class="info-value">{{ contract.client_id_number or '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Correo:</span><span class="info-value">{{ customer_email or '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Contacto:</span><span class="info-value">{{ customer_contact or '—' }}</span></div>
+    </div>
     </div>
   </div>
 
@@ -100,18 +101,32 @@
       <div class="info-row"><span class="info-label">Vehículo:</span><span class="info-value">{{ vehicle.brand if vehicle else '—' }}{% if vehicle and vehicle.model_line %} {{ vehicle.model_line }}{% endif %}</span></div>
       <div class="info-row"><span class="info-label">Placa:</span><span class="info-value">{{ vehicle.license_plate if vehicle else '—' }}</span></div>
       <div class="info-row"><span class="info-label">Color:</span><span class="info-value">{{ vehicle.color if vehicle and vehicle.color else '—' }}</span></div>
-      <div class="info-row"><span class="info-label">SOAT:</span><span class="info-value">{{ ('vigente hasta ' + formatted_soat) if formatted_soat else 'No registrado' }}</span></div>
+      {% if formatted_soat %}
+      <div class="info-row"><span class="info-label">SOAT:</span><span class="info-value">vigente hasta {{ formatted_soat }}</span></div>
+      {% endif %}
       <div class="info-row"><span class="info-label">Fecha de inicio:</span><span class="info-value">{{ formatted_event_date }}</span></div>
       <div class="info-row"><span class="info-label">Fecha de finalización:</span><span class="info-value">{{ formatted_event_end_date or formatted_event_date }}</span></div>
       <div class="info-row"><span class="info-label">Horario / disponibilidad:</span><span class="info-value{{ '' if contract.schedule_availability else ' blank-line' }}">{{ contract.schedule_availability or default_schedule_availability or 'Por definir.' }}</span></div>
       {% if itinerary_rows %}
-      <table class="itinerary-table">
+      <table class="detail-table">
         {% for row in itinerary_rows %}
-        <tr><td class="itin-time">{{ row.time_label }}</td><td>{{ row.description }}</td></tr>
+        <tr><td class="detail-key nowrap">{{ row.time_label }}</td><td>{{ row.description }}</td></tr>
         {% endfor %}
       </table>
       {% endif %}
       <div class="info-row"><span class="info-label">Lugar de utilización:</span><span class="info-value{{ '' if contract.usage_location else ' blank-line' }}">{{ contract.usage_location or default_usage_location or 'Por definir.' }}</span></div>
+      {% if location_rows %}
+      <table class="detail-table">
+        {% for row in location_rows %}
+        <tr>
+          <td class="detail-key">{{ row.name }}</td>
+          <td>
+            {{ row.address or '—' }}{% if row.maps_link %} · <a href="{{ row.maps_link }}">Ver en Google Maps</a>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
       <div class="info-row"><span class="info-label">Recorridos autorizados:</span><span class="info-value{{ '' if contract.authorized_routes else ' blank-line' }}">{{ contract.authorized_routes or default_authorized_routes or 'Por definir.' }}</span></div>
       <div class="info-row"><span class="info-label">Decoración / vinilo / ploteo:</span><span class="info-value{{ '' if reservation.decoration_details else ' blank-line' }}">{{ reservation.decoration_details or default_decoration_details or 'Ninguna autorizada.' }}</span></div>
       <div class="info-row"><span class="info-label">Otras condiciones:</span><span class="info-value{{ '' if contract.special_conditions else ' blank-line' }}">{{ contract.special_conditions or 'Ninguna.' }}</span></div>
