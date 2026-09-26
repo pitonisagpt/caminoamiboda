@@ -115,6 +115,12 @@ def _default_authorized_routes(locations) -> Optional[str]:
     return names[0] if names else None
 
 
+def _default_authorized_use(reservation: Reservation) -> str:
+    tls = reservation.timelines if reservation.timelines else []
+    event_type_value = tls[0].event_type.value if tls else "other"
+    return DEFAULT_AUTHORIZED_USE.get(event_type_value, DEFAULT_AUTHORIZED_USE["other"])
+
+
 def _next_contract_number(db: Session) -> str:
     now = datetime.now()
     prefix = f"ARR-{now.year}-"
@@ -155,27 +161,35 @@ def _get_or_create_contract(reservation_id: int, db: Session) -> ReservationCont
 
 @router.get("/{reservation_id}/contract", response_model=ReservationContractRead)
 def get_contract(reservation_id: int, db: Session = Depends(get_db)):
-    _get_reservation(reservation_id, db)
+    reservation = _get_reservation(reservation_id, db)
     contract = db.query(ReservationContract).filter(ReservationContract.reservation_id == reservation_id).first()
     if not contract:
         raise HTTPException(status_code=404, detail="Contrato no generado aún")
-    return ReservationContractRead.model_validate(contract)
+    return ReservationContractRead.model_validate(contract).model_copy(
+        update={"default_authorized_use": _default_authorized_use(reservation)}
+    )
 
 
 @router.post("/{reservation_id}/contract", response_model=ReservationContractRead)
 def get_or_create_contract(reservation_id: int, db: Session = Depends(get_db)):
-    _get_reservation(reservation_id, db)
-    return ReservationContractRead.model_validate(_get_or_create_contract(reservation_id, db))
+    reservation = _get_reservation(reservation_id, db)
+    contract = _get_or_create_contract(reservation_id, db)
+    return ReservationContractRead.model_validate(contract).model_copy(
+        update={"default_authorized_use": _default_authorized_use(reservation)}
+    )
 
 
 @router.put("/{reservation_id}/contract", response_model=ReservationContractRead)
 def update_contract(reservation_id: int, body: ReservationContractUpdate, db: Session = Depends(get_db)):
+    reservation = _get_reservation(reservation_id, db)
     contract = _get_or_create_contract(reservation_id, db)
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(contract, field, value)
     db.commit()
     db.refresh(contract)
-    return ReservationContractRead.model_validate(contract)
+    return ReservationContractRead.model_validate(contract).model_copy(
+        update={"default_authorized_use": _default_authorized_use(reservation)}
+    )
 
 
 @router.post("/{reservation_id}/contract/generate-pdf", response_model=ReservationContractRead)
@@ -233,8 +247,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         locations = db.query(EventLocation).filter(EventLocation.timeline_id == tls[0].id).all()
     event_end_date = effective_end_date(reservation.event_date, activities)
 
-    event_type_value = tls[0].event_type.value if tls else "other"
-    default_authorized_use = DEFAULT_AUTHORIZED_USE.get(event_type_value, DEFAULT_AUTHORIZED_USE["other"])
+    default_authorized_use = _default_authorized_use(reservation)
     default_schedule_availability = _default_schedule_availability(activities)
     default_usage_location = _default_usage_location(locations) or reservation.event_location
     default_authorized_routes = _default_authorized_routes(locations)
@@ -290,7 +303,9 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
     contract.pdf_path = str(pdf_path)
     db.commit()
     db.refresh(contract)
-    return ReservationContractRead.model_validate(contract)
+    return ReservationContractRead.model_validate(contract).model_copy(
+        update={"default_authorized_use": default_authorized_use}
+    )
 
 
 @router.get("/{reservation_id}/contract/pdf")
