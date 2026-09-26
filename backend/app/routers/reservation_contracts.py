@@ -54,6 +54,13 @@ DEFAULT_AUTHORIZED_USE = {
     "other": "Utilización del vehículo para la actividad o evento especial acordado entre las partes, en los lugares y durante los horarios señalados para su ejecución.",
 }
 
+# "Decoración / vinilo / ploteo" fallback — only wedding has a default (a
+# floral arrangement is the norm); other event types keep the existing
+# 'Ninguna autorizada.' fallback in the template.
+DEFAULT_DECORATION_DETAILS = {
+    "wedding": "Arreglo floral. La logística y el costo del arreglo floral estarán a cargo de EL ARRENDATARIO.",
+}
+
 # Same pattern as app/services/pdf_generator.py's _amount_in_words (used for
 # billing documents) — num2words is already a declared dependency
 # (requirements.txt), not something new added for this feature.
@@ -124,10 +131,17 @@ def _itinerary_rows(activities) -> List[dict]:
     return [{"time_label": _format_time_es(a.time), "description": a.description} for a in ordered]
 
 
-def _default_authorized_use(reservation: Reservation) -> str:
+def _event_type_value(reservation: Reservation) -> str:
     tls = reservation.timelines if reservation.timelines else []
-    event_type_value = tls[0].event_type.value if tls else "other"
-    return DEFAULT_AUTHORIZED_USE.get(event_type_value, DEFAULT_AUTHORIZED_USE["other"])
+    return tls[0].event_type.value if tls else "other"
+
+
+def _default_authorized_use(reservation: Reservation) -> str:
+    return DEFAULT_AUTHORIZED_USE.get(_event_type_value(reservation), DEFAULT_AUTHORIZED_USE["other"])
+
+
+def _default_decoration_details(reservation: Reservation) -> Optional[str]:
+    return DEFAULT_DECORATION_DETAILS.get(_event_type_value(reservation))
 
 
 def _next_contract_number(db: Session) -> str:
@@ -260,6 +274,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
     default_schedule_availability = _default_schedule_availability(activities)
     default_usage_location = _default_usage_location(locations) or reservation.event_location
     default_authorized_routes = _default_authorized_routes(locations)
+    default_decoration_details = _default_decoration_details(reservation)
     itinerary_rows = _itinerary_rows(activities)
 
     today = datetime.now(ZoneInfo("America/Bogota")).date()
@@ -300,6 +315,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         default_usage_location=default_usage_location,
         default_authorized_routes=default_authorized_routes,
         itinerary_rows=itinerary_rows,
+        default_decoration_details=default_decoration_details,
     )
 
     output_dir = Path(settings.pdf_storage_path) / "reservation_contracts"

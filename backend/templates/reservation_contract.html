@@ -5,6 +5,14 @@
   <style>
     {% include '_brand.html' %}
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    @page {
+      @bottom-right {
+        content: "Página " counter(page) " de " counter(pages);
+        font-family: 'Inter', Arial, sans-serif;
+        font-size: 8pt;
+        color: #888;
+      }
+    }
     body { font-family: 'Inter', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; background: #fff; }
     .page { padding: 36px 44px; }
     .header { border-bottom: 3px solid #21b2b8; padding-bottom: 16px; margin-bottom: 24px; }
@@ -17,7 +25,7 @@
     .two-col .col { flex: 1; }
     .info-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 10pt; }
     .info-label { color: #666; min-width: 130px; flex-shrink: 0; }
-    .info-value { color: #1a1a1a; font-weight: 500; }
+    .info-value { color: #1a1a1a; font-weight: 500; overflow-wrap: anywhere; }
     .blank-line { color: #bbb; }
     .itinerary-table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; font-size: 9pt; }
     .itinerary-table td { padding: 2px 8px 2px 0; vertical-align: top; border-bottom: 1px solid #f0fbfb; }
@@ -105,7 +113,7 @@
       {% endif %}
       <div class="info-row"><span class="info-label">Lugar de utilización:</span><span class="info-value{{ '' if contract.usage_location else ' blank-line' }}">{{ contract.usage_location or default_usage_location or 'Por definir.' }}</span></div>
       <div class="info-row"><span class="info-label">Recorridos autorizados:</span><span class="info-value{{ '' if contract.authorized_routes else ' blank-line' }}">{{ contract.authorized_routes or default_authorized_routes or 'Por definir.' }}</span></div>
-      <div class="info-row"><span class="info-label">Decoración / vinilo / ploteo:</span><span class="info-value{{ '' if reservation.decoration_details else ' blank-line' }}">{{ reservation.decoration_details or 'Ninguna autorizada.' }}</span></div>
+      <div class="info-row"><span class="info-label">Decoración / vinilo / ploteo:</span><span class="info-value{{ '' if reservation.decoration_details else ' blank-line' }}">{{ reservation.decoration_details or default_decoration_details or 'Ninguna autorizada.' }}</span></div>
       <div class="info-row"><span class="info-label">Otras condiciones:</span><span class="info-value{{ '' if contract.special_conditions else ' blank-line' }}">{{ contract.special_conditions or 'Ninguna.' }}</span></div>
       <div class="clause-body" style="margin-top:8px;"><strong>Parágrafo – Uso autorizado.</strong> EL ARRENDATARIO únicamente podrá destinar el vehículo al uso y bajo las condiciones señaladas en esta cláusula. Cualquier modificación de la finalidad, fechas, horarios, lugares, recorridos o demás condiciones particulares deberá ser previamente informada y aceptada por EL ARRENDADOR.</div>
     </div>
@@ -155,7 +163,7 @@
 
     <div class="clause">
       <div class="clause-title">Sexta. Instalación y retiro de vinilo, ploteo, decoración o material publicitario</div>
-      {% if reservation.decoration_details %}
+      {% if reservation.decoration_details or default_decoration_details %}
       <div class="clause-body">En caso de que, conforme a las condiciones particulares del arrendamiento, se autorice la instalación de vinilo, ploteo, decoración o cualquier otro elemento publicitario sobre el vehículo, su instalación y retiro deberán ser realizados por personal especializado y mediante procedimientos que no impliquen perforaciones, cortes, modificaciones permanentes ni afectaciones a la pintura, carrocería o demás componentes del vehículo.</div>
       <div class="clause-body">EL ARRENDATARIO será responsable por los daños que resulten atribuibles a la instalación, permanencia o retiro de dichos elementos y asumirá la totalidad de los costos necesarios para su reparación y para restablecer el vehículo al estado en que se encontraba antes de la intervención.</div>
       <div class="clause-body">Los elementos instalados deberán ser retirados a más tardar {{ ('el ' + formatted_decoration_removal_date) if formatted_decoration_removal_date else 'al finalizar el evento' }}, momento en el cual el vehículo deberá quedar limpio, libre de residuos y en las mismas condiciones en que se encontraba antes de su instalación.</div>
