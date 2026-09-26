@@ -59,10 +59,16 @@ function MapFitter({ points }: { points: [number, number][] }) {
     const key = points.map(p => p.join(',')).join('|');
     if (key === prev.current) return;
     prev.current = key;
+    // animate: false — with it on, a zoom-transition callback Leaflet
+    // schedules via setTimeout can still fire after the component (and its
+    // DOM pane) unmounts, e.g. switching tabs mid-animation. map.remove()
+    // doesn't reliably cancel that pending callback in time, and it then
+    // throws reading _leaflet_pos off a pane that's gone — a known Leaflet
+    // issue class, not fixable from our side except by not animating.
     if (points.length === 1) {
-      map.setView(points[0], 15, { animate: true });
+      map.setView(points[0], 15, { animate: false });
     } else {
-      map.fitBounds(points as L.LatLngBoundsExpression, { padding: [40, 40], animate: true });
+      map.fitBounds(points as L.LatLngBoundsExpression, { padding: [40, 40], animate: false });
     }
   }, [points, map]);
   return null;
