@@ -28,7 +28,7 @@ from app.schemas.reservation import (
 )
 from app.services.conflicts import find_conflicts
 from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
-from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles
+from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles, get_reservation_vehicles_by_ids
 
 _UNSET = object()
 
@@ -247,8 +247,9 @@ def list_reservations(
         total = q.count()
         items = q.offset((page - 1) * page_size).limit(page_size).all()
 
+    vehicles_by_reservation = get_reservation_vehicles_by_ids([r.id for r in items], db)
     return ReservationPage(
-        items=[ReservationList.build(r, db) for r in items],
+        items=[ReservationList.build(r, db, vehicles_by_reservation) for r in items],
         total=total,
         page=page,
         page_size=page_size,

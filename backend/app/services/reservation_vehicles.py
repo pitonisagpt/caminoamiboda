@@ -17,6 +17,25 @@ def get_reservation_vehicles(reservation_id: int, db: Session) -> list[Reservati
     )
 
 
+def get_reservation_vehicles_by_ids(reservation_ids: list[int], db: Session) -> dict[int, list[ReservationVehicle]]:
+    """Same rows as get_reservation_vehicles, batched across many reservations
+    in one query instead of one query each — for list endpoints that would
+    otherwise call get_reservation_vehicles per row (N+1, flagged by Sentry
+    on GET /api/reservations)."""
+    if not reservation_ids:
+        return {}
+    rows = (
+        db.query(ReservationVehicle)
+        .filter(ReservationVehicle.reservation_id.in_(reservation_ids))
+        .order_by(ReservationVehicle.display_order)
+        .all()
+    )
+    grouped: dict[int, list[ReservationVehicle]] = {}
+    for rv in rows:
+        grouped.setdefault(rv.reservation_id, []).append(rv)
+    return grouped
+
+
 def rv_display_driver(rv: ReservationVehicle) -> Optional[str]:
     """Same owner_driver-priority rule as Reservation.display_driver, for a
     single vehicle assignment."""
