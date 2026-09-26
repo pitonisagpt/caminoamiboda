@@ -55,9 +55,14 @@ class ReservationContract(Base):
     client_id_type: Mapped[IdType] = mapped_column(Enum(IdType), default=IdType.CC)
     client_id_number: Mapped[str] = mapped_column(String(50))
 
-    # Free-text clause SEGUNDA slots with no other home in the schema.
+    # Free-text clause SEGUNDA slots with no other home in the schema. Each
+    # falls back to a computed default (event-type text, or timeline
+    # activities/locations) when null — see reservation_contracts.py.
     authorized_use: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     special_conditions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    schedule_availability: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    usage_location: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    authorized_routes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     pdf_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

@@ -43,6 +43,17 @@ MONTHS_ES = {
 }
 TEMPLATE_DIR = Path(__file__).parent.parent.parent / "templates"
 
+# "Uso autorizado" fallback when the operator hasn't written one — keyed by
+# EventTimeline.event_type, "other" also covers a reservation with no
+# timeline at all. Fixed strings, not LLM-generated per request.
+DEFAULT_AUTHORIZED_USE = {
+    "wedding": "Transporte de los novios y/o su cortejo, con conductor asignado por EL ARRENDADOR, con ocasión de la celebración de su matrimonio, incluyendo la permanencia del vehículo en los lugares y durante los horarios acordados para el evento.",
+    "quinceanera": "Transporte de la quinceañera y/o su acompañamiento, con conductor asignado por EL ARRENDADOR, con ocasión de la celebración de sus quince años, incluyendo la permanencia del vehículo en los lugares y durante los horarios acordados para el evento.",
+    "brand_activation": "Exhibición y/o utilización del vehículo con fines de activación de marca, publicidad o promoción comercial, en los lugares y durante los horarios acordados para la actividad.",
+    "audiovisual_production": "Utilización del vehículo como elemento o locación dentro de una producción audiovisual, fotográfica o cinematográfica, en los lugares y durante los horarios acordados para la producción.",
+    "other": "Utilización del vehículo para la actividad o evento especial acordado entre las partes, en los lugares y durante los horarios señalados para su ejecución.",
+}
+
 # Same pattern as app/services/pdf_generator.py's _amount_in_words (used for
 # billing documents) — num2words is already a declared dependency
 # (requirements.txt), not something new added for this feature.
@@ -64,6 +75,44 @@ def _format_cop(amount) -> str:
     if amount is None:
         return "—"
     return f"COP ${int(amount):,}".replace(",", ".")
+
+
+def _format_time_es(t: str) -> str:
+    """'14:30' -> '2:30 p.m.'"""
+    try:
+        hour, minute = (int(p) for p in t.split(":"))
+    except (ValueError, AttributeError):
+        return t
+    period = "a.m." if hour < 12 else "p.m."
+    hour12 = hour % 12 or 12
+    return f"{hour12}:{minute:02d} {period}"
+
+
+def _default_schedule_availability(activities) -> Optional[str]:
+    """Earliest-to-latest time of day across all activities — doesn't
+    distinguish day_number, since formatted_event_date/formatted_event_end_date
+    already cover the date range separately."""
+    times = sorted(a.time for a in activities if a.time)
+    if not times:
+        return None
+    start, end = times[0], times[-1]
+    return _format_time_es(start) if start == end else f"{_format_time_es(start)} a {_format_time_es(end)}"
+
+
+def _ordered_location_names(locations) -> List[str]:
+    return [loc.location_name for loc in sorted(locations, key=lambda loc: loc.display_order) if loc.location_name]
+
+
+def _default_usage_location(locations) -> Optional[str]:
+    names = _ordered_location_names(locations)
+    return ", ".join(names) if names else None
+
+
+def _default_authorized_routes(locations) -> Optional[str]:
+    names = _ordered_location_names(locations)
+    if len(names) >= 2:
+        return " → ".join(names)
+    return names[0] if names else None
 
 
 def _next_contract_number(db: Session) -> str:
@@ -176,10 +225,19 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
 
     tls = reservation.timelines if reservation.timelines else []
     activities = []
+    locations = []
     if tls:
         from app.models.timeline_activity import TimelineActivity
+        from app.models.event_location import EventLocation
         activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all()
+        locations = db.query(EventLocation).filter(EventLocation.timeline_id == tls[0].id).all()
     event_end_date = effective_end_date(reservation.event_date, activities)
+
+    event_type_value = tls[0].event_type.value if tls else "other"
+    default_authorized_use = DEFAULT_AUTHORIZED_USE.get(event_type_value, DEFAULT_AUTHORIZED_USE["other"])
+    default_schedule_availability = _default_schedule_availability(activities)
+    default_usage_location = _default_usage_location(locations) or reservation.event_location
+    default_authorized_routes = _default_authorized_routes(locations)
 
     today = datetime.now(ZoneInfo("America/Bogota")).date()
 
@@ -206,12 +264,15 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         signature_day=today.day,
         signature_month_es=MONTHS_ES[today.month],
         signature_year=today.year,
-        company_name=settings.company_name,
         company_owner=settings.company_owner,
         company_phone=settings.company_phone,
         company_cc=settings.company_cc,
         company_email=settings.company_email,
         city=settings.city,
+        default_authorized_use=default_authorized_use,
+        default_schedule_availability=default_schedule_availability,
+        default_usage_location=default_usage_location,
+        default_authorized_routes=default_authorized_routes,
     )
 
     output_dir = Path(settings.pdf_storage_path) / "reservation_contracts"

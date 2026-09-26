@@ -52,6 +52,9 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
   const [clientLegalRepIdNumber, setClientLegalRepIdNumber] = useState('');
   const [authorizedUse, setAuthorizedUse] = useState('');
   const [specialConditions, setSpecialConditions] = useState('');
+  const [scheduleAvailability, setScheduleAvailability] = useState('');
+  const [usageLocation, setUsageLocation] = useState('');
+  const [authorizedRoutes, setAuthorizedRoutes] = useState('');
   const [savingClientInfo, setSavingClientInfo] = useState(false);
 
   const [decorationDetails, setDecorationDetails] = useState(reservation.decoration_details ?? '');
@@ -79,6 +82,9 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
     setClientLegalRepIdNumber(c.client_legal_rep_id_number ?? '');
     setAuthorizedUse(c.authorized_use ?? '');
     setSpecialConditions(c.special_conditions ?? '');
+    setScheduleAvailability(c.schedule_availability ?? '');
+    setUsageLocation(c.usage_location ?? '');
+    setAuthorizedRoutes(c.authorized_routes ?? '');
   };
 
   useEffect(() => {
@@ -111,6 +117,9 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
         client_legal_rep_id_number: clientType === 'company' ? clientLegalRepIdNumber || undefined : null,
         authorized_use: authorizedUse || undefined,
         special_conditions: specialConditions || undefined,
+        schedule_availability: scheduleAvailability || undefined,
+        usage_location: usageLocation || undefined,
+        authorized_routes: authorizedRoutes || undefined,
       });
       setContract(res.data);
     } finally {
@@ -334,6 +343,36 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
               rows={2}
               value={specialConditions}
               onChange={e => setSpecialConditions(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Horario / disponibilidad (opcional)</label>
+            <textarea
+              rows={2}
+              value={scheduleAvailability}
+              onChange={e => setScheduleAvailability(e.target.value)}
+              placeholder="Se completa automáticamente según el timeline si se deja vacío."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Lugar de utilización (opcional)</label>
+            <textarea
+              rows={2}
+              value={usageLocation}
+              onChange={e => setUsageLocation(e.target.value)}
+              placeholder="Se completa automáticamente según el timeline si se deja vacío."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Recorridos autorizados (opcional)</label>
+            <textarea
+              rows={2}
+              value={authorizedRoutes}
+              onChange={e => setAuthorizedRoutes(e.target.value)}
+              placeholder="Se completa automáticamente según el timeline si se deja vacío."
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>

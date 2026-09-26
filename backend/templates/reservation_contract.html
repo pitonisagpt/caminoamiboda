@@ -37,7 +37,6 @@
 
   <div class="header">
     <div>
-      {% include '_logo_badge.html' %}
       <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
     </div>
     <div class="header-meta">
@@ -90,16 +89,16 @@
     <div class="clause">
       <div class="clause-title">Segunda. Condiciones particulares y uso autorizado del vehículo</div>
       <div class="clause-body">Para la ejecución del presente contrato, LAS PARTES acuerdan las siguientes condiciones particulares:</div>
-      <div class="info-row"><span class="info-label">Uso autorizado:</span><span class="info-value{{ '' if contract.authorized_use else ' blank-line' }}">{{ contract.authorized_use or '_______________________' }}</span></div>
+      <div class="info-row"><span class="info-label">Uso autorizado:</span><span class="info-value{{ '' if contract.authorized_use else ' blank-line' }}">{{ contract.authorized_use or default_authorized_use }}</span></div>
       <div class="info-row"><span class="info-label">Vehículo:</span><span class="info-value">{{ vehicle.brand if vehicle else '—' }}{% if vehicle and vehicle.model_line %} {{ vehicle.model_line }}{% endif %}</span></div>
       <div class="info-row"><span class="info-label">Placa:</span><span class="info-value">{{ vehicle.license_plate if vehicle else '—' }}</span></div>
       <div class="info-row"><span class="info-label">Color:</span><span class="info-value">{{ vehicle.color if vehicle and vehicle.color else '—' }}</span></div>
       <div class="info-row"><span class="info-label">SOAT:</span><span class="info-value">{{ ('vigente hasta ' + formatted_soat) if formatted_soat else 'No registrado' }}</span></div>
       <div class="info-row"><span class="info-label">Fecha de inicio:</span><span class="info-value">{{ formatted_event_date }}</span></div>
       <div class="info-row"><span class="info-label">Fecha de finalización:</span><span class="info-value">{{ formatted_event_end_date or formatted_event_date }}</span></div>
-      <div class="info-row"><span class="info-label">Horario / disponibilidad:</span><span class="info-value blank-line">_______________________</span></div>
-      <div class="info-row"><span class="info-label">Lugar de utilización:</span><span class="info-value{{ '' if reservation.event_location else ' blank-line' }}">{{ reservation.event_location or '_______________________' }}</span></div>
-      <div class="info-row"><span class="info-label">Recorridos autorizados:</span><span class="info-value blank-line">_______________________</span></div>
+      <div class="info-row"><span class="info-label">Horario / disponibilidad:</span><span class="info-value{{ '' if contract.schedule_availability else ' blank-line' }}">{{ contract.schedule_availability or default_schedule_availability or '_______________________' }}</span></div>
+      <div class="info-row"><span class="info-label">Lugar de utilización:</span><span class="info-value{{ '' if contract.usage_location else ' blank-line' }}">{{ contract.usage_location or default_usage_location or '_______________________' }}</span></div>
+      <div class="info-row"><span class="info-label">Recorridos autorizados:</span><span class="info-value{{ '' if contract.authorized_routes else ' blank-line' }}">{{ contract.authorized_routes or default_authorized_routes or '_______________________' }}</span></div>
       <div class="info-row"><span class="info-label">Decoración / vinilo / ploteo:</span><span class="info-value{{ '' if reservation.decoration_details else ' blank-line' }}">{{ reservation.decoration_details or 'Ninguna autorizada.' }}</span></div>
       <div class="info-row"><span class="info-label">Otras condiciones:</span><span class="info-value{{ '' if contract.special_conditions else ' blank-line' }}">{{ contract.special_conditions or '_______________________' }}</span></div>
       <div class="clause-body" style="margin-top:8px;"><strong>Parágrafo – Uso autorizado.</strong> EL ARRENDATARIO únicamente podrá destinar el vehículo al uso y bajo las condiciones señaladas en esta cláusula. Cualquier modificación de la finalidad, fechas, horarios, lugares, recorridos o demás condiciones particulares deberá ser previamente informada y aceptada por EL ARRENDADOR.</div>
@@ -244,7 +243,7 @@
   </div>
 
   <div class="footer">
-    <div><span class="brand">{{ company_name }}</span> · CC {{ company_cc }}</div>
+    <div><span class="brand">{{ company_owner }}</span> · CC {{ company_cc }}</div>
     <div>{{ company_phone }}</div>
     <div>Generado el {{ formatted_date }}</div>
   </div>

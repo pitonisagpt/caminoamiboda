@@ -20,6 +20,9 @@ class ReservationContractRead(BaseModel):
     client_id_number: str
     authorized_use: Optional[str] = None
     special_conditions: Optional[str] = None
+    schedule_availability: Optional[str] = None
+    usage_location: Optional[str] = None
+    authorized_routes: Optional[str] = None
     pdf_path: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
@@ -38,4 +41,7 @@ class ReservationContractUpdate(BaseModel):
     client_id_number: Optional[str] = None
     authorized_use: Optional[str] = None
     special_conditions: Optional[str] = None
+    schedule_availability: Optional[str] = None
+    usage_location: Optional[str] = None
+    authorized_routes: Optional[str] = None
     notes: Optional[str] = None
