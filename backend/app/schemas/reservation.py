@@ -52,7 +52,7 @@ _SCALARS = [
 ]
 
 
-def _build(r, db) -> dict:
+def _build(r, db, vehicles_by_reservation: Optional[dict] = None, activities_by_timeline: Optional[dict] = None) -> dict:
     d = {f: getattr(r, f, None) for f in _SCALARS}
     d["remaining_balance"] = r.remaining_balance
     d["display_customer"] = r.display_customer
@@ -95,8 +95,12 @@ def _build(r, db) -> dict:
     d["timeline_gcal_imported"] = tls[0].gcal_imported if tls else False
     # EventTimeline.activities (the ORM relationship) doesn't reliably behave
     # as a list here — same workaround used elsewhere (owner_settlements.py,
-    # calendar.py): query TimelineActivity directly.
-    activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all() if tls else []
+    # calendar.py): query TimelineActivity directly (or use the prefetched
+    # by-timeline-id batch when the caller has one, e.g. list_reservations).
+    if activities_by_timeline is not None:
+        activities = activities_by_timeline.get(tls[0].id, []) if tls else []
+    else:
+        activities = db.query(TimelineActivity).filter(TimelineActivity.timeline_id == tls[0].id).all() if tls else []
     d["event_end_date"] = effective_end_date(r.event_date, activities)
     d["is_in_progress"] = is_in_progress(r.event_date, d["event_end_date"], r.status)
 
@@ -105,7 +109,8 @@ def _build(r, db) -> dict:
     # driver_id/owner_driver_id stay synced to the first (primary) vehicle
     # here (see reservation_vehicle.py / _set_reservation_vehicles).
     vehicles = []
-    for rv in get_reservation_vehicles(r.id, db):
+    rv_list = vehicles_by_reservation.get(r.id, []) if vehicles_by_reservation is not None else get_reservation_vehicles(r.id, db)
+    for rv in rv_list:
         v = rv.vehicle
         if not v:
             continue
@@ -250,8 +255,8 @@ class ReservationRead(BaseModel):
     timeline_gcal_imported: bool = False
 
     @classmethod
-    def build(cls, r, db, gcal_synced: Optional[bool] = None) -> "ReservationRead":
-        d = _build(r, db)
+    def build(cls, r, db, gcal_synced: Optional[bool] = None, vehicles_by_reservation: Optional[dict] = None, activities_by_timeline: Optional[dict] = None) -> "ReservationRead":
+        d = _build(r, db, vehicles_by_reservation, activities_by_timeline)
         d["gcal_synced"] = gcal_synced
         return cls.model_validate(d)
 
@@ -292,8 +297,8 @@ class ReservationList(BaseModel):
     created_at: datetime
 
     @classmethod
-    def build(cls, r, db) -> "ReservationList":
-        return cls.model_validate(_build(r, db))
+    def build(cls, r, db, vehicles_by_reservation: Optional[dict] = None, activities_by_timeline: Optional[dict] = None) -> "ReservationList":
+        return cls.model_validate(_build(r, db, vehicles_by_reservation, activities_by_timeline))
 
 
 class ReservationPage(BaseModel):

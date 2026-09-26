@@ -28,7 +28,7 @@ from app.schemas.reservation import (
 )
 from app.services.conflicts import find_conflicts
 from app.services.event_span import MULTI_DAY_LOOKBACK_DAYS, effective_end_date
-from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles
+from app.services.reservation_vehicles import display_vehicle_str, get_reservation_vehicles, get_reservation_vehicles_by_ids
 
 _UNSET = object()
 
@@ -108,6 +108,19 @@ def _get(reservation_id: int, db: Session) -> Reservation:
     return r
 
 
+def _activities_by_timeline(timeline_ids: list[int], db: Session) -> dict[int, list]:
+    """TimelineActivity rows for many timelines in one query instead of one
+    query per timeline — same batch-prefetch pattern as
+    get_reservation_vehicles_by_ids, for the same reason (N+1 flagged by
+    Sentry on GET /api/reservations)."""
+    if not timeline_ids:
+        return {}
+    grouped: dict[int, list] = {}
+    for a in db.query(TimelineActivity).filter(TimelineActivity.timeline_id.in_(timeline_ids)).all():
+        grouped.setdefault(a.timeline_id, []).append(a)
+    return grouped
+
+
 _SORT_COLS = {
     "event_date":         Reservation.event_date,
     "reservation_number": Reservation.reservation_number,
@@ -141,7 +154,17 @@ def list_reservations(
     q = (db.query(Reservation)
          .outerjoin(Customer, Reservation.customer_id == Customer.id)
          .outerjoin(Contact, Reservation.contact_id == Contact.id)
-         .options(contains_eager(Reservation.contact), selectinload(Reservation.timelines)))
+         .options(
+             contains_eager(Reservation.contact),
+             contains_eager(Reservation.customer),
+             selectinload(Reservation.timelines),
+             # payments is a plain, trustworthy relationship (unlike
+             # ReservationVehicle/EventTimeline.activities — see their own
+             # docstrings) so eager-loading it here is enough; no need for
+             # the same by-id prefetch-and-pass-down _build() needs for
+             # reservation_vehicles/timeline_activities below.
+             selectinload(Reservation.payments),
+         ))
 
     if status:
         statuses = [ReservationStatus(s) for s in status.split(",") if s]
@@ -229,10 +252,7 @@ def list_reservations(
         # wrong relative to the precise, non-widened result).
         all_items = q.all()
         timeline_ids = [tl.id for r in all_items for tl in (r.timelines or [])]
-        activities_by_timeline: dict[int, list] = {}
-        if timeline_ids:
-            for a in db.query(TimelineActivity).filter(TimelineActivity.timeline_id.in_(timeline_ids)).all():
-                activities_by_timeline.setdefault(a.timeline_id, []).append(a)
+        activities_by_timeline = _activities_by_timeline(timeline_ids, db)
 
         def _overlaps_range(r: Reservation) -> bool:
             tls = r.timelines or []
@@ -247,8 +267,10 @@ def list_reservations(
         total = q.count()
         items = q.offset((page - 1) * page_size).limit(page_size).all()
 
+    vehicles_by_reservation = get_reservation_vehicles_by_ids([r.id for r in items], db)
+    activities_by_timeline = _activities_by_timeline([r.timelines[0].id for r in items if r.timelines], db)
     return ReservationPage(
-        items=[ReservationList.build(r, db) for r in items],
+        items=[ReservationList.build(r, db, vehicles_by_reservation, activities_by_timeline) for r in items],
         total=total,
         page=page,
         page_size=page_size,
