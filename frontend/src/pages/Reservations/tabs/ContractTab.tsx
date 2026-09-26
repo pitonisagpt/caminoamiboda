@@ -333,9 +333,10 @@ export default function ContractTab({ reservation, onReservationChange }: Contra
               rows={2}
               value={authorizedUse}
               onChange={e => setAuthorizedUse(e.target.value)}
-              placeholder="Describe la finalidad y forma en que se usará el vehículo…"
+              placeholder={contract.default_authorized_use || 'Describe la finalidad y forma en que se usará el vehículo…'}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
+            <p className="text-xs text-gray-400 mt-1">Vacío = se usa el texto de arriba (según el tipo de evento del timeline) en el PDF.</p>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">Otras condiciones especiales (opcional)</label>

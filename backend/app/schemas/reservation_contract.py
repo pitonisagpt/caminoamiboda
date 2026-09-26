@@ -27,6 +27,10 @@ class ReservationContractRead(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    # Computed, not a DB column — what the PDF shows for "Uso autorizado"
+    # when authorized_use is blank. Attached by the router per-response,
+    # never settable via ReservationContractUpdate.
+    default_authorized_use: str = ""
 
     model_config = {"from_attributes": True}
 
