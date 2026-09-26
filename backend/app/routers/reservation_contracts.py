@@ -122,6 +122,21 @@ def _default_authorized_routes(locations) -> Optional[str]:
     return names[0] if names else None
 
 
+def _location_rows(locations) -> List[dict]:
+    """Name/address/maps-link table under 'Lugar de utilización' — dedups by
+    name (a venue can serve more than one purpose, e.g. pickup AND reception
+    at the same place; showing its address/maps link twice adds nothing)."""
+    ordered = sorted(locations, key=lambda loc: loc.display_order)
+    seen = set()
+    rows = []
+    for loc in ordered:
+        if not loc.location_name or loc.location_name in seen:
+            continue
+        seen.add(loc.location_name)
+        rows.append({"name": loc.location_name, "address": loc.address, "maps_link": loc.google_maps_link})
+    return rows
+
+
 def _itinerary_rows(activities) -> List[dict]:
     """Full hora/actividad list for the small table under 'Horario /
     disponibilidad' — display_order, not raw time-string sort, since that's
@@ -276,6 +291,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
     default_authorized_routes = _default_authorized_routes(locations)
     default_decoration_details = _default_decoration_details(reservation)
     itinerary_rows = _itinerary_rows(activities)
+    location_rows = _location_rows(locations)
 
     today = datetime.now(ZoneInfo("America/Bogota")).date()
 
@@ -315,6 +331,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         default_usage_location=default_usage_location,
         default_authorized_routes=default_authorized_routes,
         itinerary_rows=itinerary_rows,
+        location_rows=location_rows,
         default_decoration_details=default_decoration_details,
     )
 
