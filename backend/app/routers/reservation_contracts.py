@@ -115,6 +115,15 @@ def _default_authorized_routes(locations) -> Optional[str]:
     return names[0] if names else None
 
 
+def _itinerary_rows(activities) -> List[dict]:
+    """Full hora/actividad list for the small table under 'Horario /
+    disponibilidad' — display_order, not raw time-string sort, since that's
+    the reliably-maintained chronological key across day_number (see
+    TimelineActivity/timelines.py)."""
+    ordered = sorted(activities, key=lambda a: a.display_order)
+    return [{"time_label": _format_time_es(a.time), "description": a.description} for a in ordered]
+
+
 def _default_authorized_use(reservation: Reservation) -> str:
     tls = reservation.timelines if reservation.timelines else []
     event_type_value = tls[0].event_type.value if tls else "other"
@@ -251,6 +260,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
     default_schedule_availability = _default_schedule_availability(activities)
     default_usage_location = _default_usage_location(locations) or reservation.event_location
     default_authorized_routes = _default_authorized_routes(locations)
+    itinerary_rows = _itinerary_rows(activities)
 
     today = datetime.now(ZoneInfo("America/Bogota")).date()
 
@@ -261,7 +271,10 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         contract=contract,
         reservation=reservation,
         vehicle=vehicle,
-        customer_email=customer.email if customer else None,
+        # Customer has three separate email columns (general/bride/groom) —
+        # the general one wins when set, otherwise show whichever
+        # person-specific one is actually filled in.
+        customer_email=(customer.email or customer.bride_email or customer.groom_email) if customer else None,
         customer_contact=(customer.whatsapp or customer.phone) if customer else None,
         formatted_date=_format_date_es(today),
         formatted_event_date=_format_date_es(reservation.event_date),
@@ -286,6 +299,7 @@ def generate_contract_pdf(reservation_id: int, db: Session = Depends(get_db)):
         default_schedule_availability=default_schedule_availability,
         default_usage_location=default_usage_location,
         default_authorized_routes=default_authorized_routes,
+        itinerary_rows=itinerary_rows,
     )
 
     output_dir = Path(settings.pdf_storage_path) / "reservation_contracts"
