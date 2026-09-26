@@ -15,6 +15,9 @@ export interface ReservationContract {
   client_id_number: string;
   authorized_use: string | null;
   special_conditions: string | null;
+  schedule_availability: string | null;
+  usage_location: string | null;
+  authorized_routes: string | null;
   pdf_path: string | null;
   notes: string | null;
   created_at: string;
