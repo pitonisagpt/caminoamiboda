@@ -7,9 +7,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; background: #fff; }
     .page { padding: 36px 44px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #21b2b8; padding-bottom: 16px; margin-bottom: 24px; }
-    .brand-tagline { font-family: 'Montserrat', Arial, sans-serif; font-weight: 600; font-size: 8pt; color: #166f73; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
-    .header-meta { text-align: right; font-size: 9pt; color: #555; line-height: 1.7; }
+    .header { border-bottom: 3px solid #21b2b8; padding-bottom: 16px; margin-bottom: 24px; }
+    .header-meta { text-align: left; font-size: 9pt; color: #555; line-height: 1.7; }
     .header-meta .doc-num { font-size: 12pt; font-weight: 700; color: #0f4245; }
     .doc-title { font-family: 'Montserrat', Arial, sans-serif; text-align: center; font-size: 13pt; font-weight: 700; color: #0f4245; letter-spacing: 2px; text-transform: uppercase; padding: 10px 0; border-top: 1px solid #d0f4f5; border-bottom: 1px solid #d0f4f5; margin-bottom: 16px; }
     .section { margin-bottom: 16px; }
@@ -36,9 +35,6 @@
 <div class="page">
 
   <div class="header">
-    <div>
-      <div class="brand-tagline">{{ city }} · Transporte de Bodas</div>
-    </div>
     <div class="header-meta">
       <div class="doc-num">{{ contract.contract_number }}</div>
       <div>Fecha: {{ formatted_date }}</div>
